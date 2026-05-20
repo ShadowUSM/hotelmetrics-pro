@@ -1,0 +1,26 @@
+{
+  "name": "HotelMetrics Pro",
+  "short_name": "HotelMetrics",
+  "description": "F&B Revenue Analytics dla hoteli",
+  "start_url": "/hotelmetrics-pro/",
+  "scope": "/hotelmetrics-pro/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#05070f",
+  "theme_color": "#05070f",
+  "lang": "pl",
+  "icons": [
+    {
+      "src": "/hotelmetrics-pro/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/hotelmetrics-pro/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
