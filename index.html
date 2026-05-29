@@ -20,7 +20,7 @@
 <link rel="apple-touch-startup-image" id="pwa-splash">
 <!-- Favicon + Manifest -->
 <link rel="icon" type="image/png" id="pwa-favicon">
-<link rel="manifest" id="pwa-manifest">
+<link rel="manifest" id="pwa-manifest" href="/hotelmetrics-pro/manifest.json">
 
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -356,7 +356,128 @@ textarea.fi{resize:vertical}
 .dp-title{font-size:.78rem;font-weight:600;color:var(--tx);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
 
 /* Bottom spacer — każda zakładka ma 80px wolnego miejsca na dole */
-#v-dashboard,#v-data,#v-analytics,#v-compare,#v-properties,#v-export{padding-bottom:80px}
+#v-dashboard,#v-data,#v-analytics,#v-compare,#v-properties,#v-export,
+#v-budget,#v-team{padding-bottom:80px}
+
+/* ── AUTO THEME (system preference) ── */
+@media(prefers-color-scheme:dark){html:not([data-theme]){--bg:#05070f;--sur:#0d1117;--sur2:#131b27;--sur3:#1a2436;--brd:#1e2d42;--brd2:#243450;--acc:#00d4ff;--acc-glow:rgba(0,212,255,.15);--acc-rgb:0,212,255;--tx:#e8eaf0;--tx2:#8fa3be;--tx3:#4d6580;--red:#ff4d6d;--warn:#f59e0b;--grn:#22c55e;--fd:'Syne',sans-serif;--fb:'Syne',sans-serif}}
+@media(prefers-color-scheme:light){html:not([data-theme]){--bg:#f0f9ff;--sur:#ffffff;--sur2:#e0f2fe;--sur3:#bae6fd;--brd:#bae6fd;--brd2:#7dd3fc;--acc:#0891b2;--acc-glow:rgba(8,145,178,.12);--acc-rgb:8,145,178;--tx:#0c4a6e;--tx2:#0369a1;--tx3:#38bdf8;--red:#dc2626;--warn:#d97706;--grn:#16a34a;--fd:'Outfit',sans-serif;--fb:'Outfit',sans-serif}}
+
+/* ── VIEW TRANSITIONS ── */
+.view{animation:vIn .22s ease}
+@keyframes vIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SKELETON LOADING ── */
+.skel{border-radius:8px;background:linear-gradient(90deg,var(--sur2) 25%,var(--sur3) 50%,var(--sur2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-kpi{height:80px;margin-bottom:10px}
+.skel-card{height:120px;border-radius:14px;margin-bottom:12px}
+.skel-row{height:36px;margin-bottom:6px}
+.skel-h{height:22px;width:40%;margin-bottom:14px}
+
+/* ── LANDSCAPE ── */
+@media(orientation:landscape) and (max-height:500px){
+  #bottom-nav{height:46px}
+  .bnav-item{font-size:.52rem;gap:2px}
+  .bnav-item svg{width:16px;height:16px}
+  #main{padding-top:8px}
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .oc-grid{grid-template-columns:repeat(3,1fr)}
+}
+
+/* ── RANKING ── */
+.rank-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.rank-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--brd);transition:background .15s}
+.rank-row:hover{background:var(--sur2)}
+.rank-pos{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0}
+.rank-pos.gold{background:rgba(255,215,0,.2);color:#ffd700;border:1px solid rgba(255,215,0,.4)}
+.rank-pos.silver{background:rgba(192,192,192,.2);color:#c0c0c0;border:1px solid rgba(192,192,192,.4)}
+.rank-pos.bronze{background:rgba(205,127,50,.2);color:#cd7f32;border:1px solid rgba(205,127,50,.4)}
+.rank-pos.other{background:var(--sur2);color:var(--tx3);border:1px solid var(--brd)}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-size:.83rem;font-weight:600;color:var(--tx)}
+.rank-meta{font-size:.65rem;color:var(--tx3)}
+.rank-val{font-family:var(--fm);font-size:.9rem;font-weight:700;color:var(--tx);text-align:right}
+.rank-trend{font-size:.65rem;font-weight:600;padding:2px 6px;border-radius:10px;margin-left:6px}
+.rank-trend.up{background:rgba(34,197,94,.12);color:var(--grn)}
+.rank-trend.dn{background:rgba(255,77,109,.12);color:var(--red)}
+.rank-bar-wrap{height:4px;background:var(--sur2);border-radius:2px;margin-top:5px;overflow:hidden}
+.rank-bar{height:100%;border-radius:2px;transition:width .6s}
+
+/* ── HEATMAP ── */
+.hmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:8px 0}
+.hmap-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--tx3);cursor:pointer;transition:transform .15s;position:relative}
+.hmap-cell:hover{transform:scale(1.15);z-index:2}
+.hmap-cell.empty{background:transparent;cursor:default}
+.hmap-cell.no-data{background:var(--sur2);color:var(--tx3)}
+.hmap-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.hmap-day{font-size:.58rem;color:var(--tx3);text-align:center;padding:2px 0}
+.hmap-legend{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:.65rem;color:var(--tx3)}
+.hmap-legend-boxes{display:flex;gap:3px}
+.hmap-legend-box{width:14px;height:14px;border-radius:3px}
+
+/* ── GOALS ── */
+.goal-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd)}
+.goal-item:last-child{border-bottom:none}
+.goal-outlet{font-size:.8rem;font-weight:600;color:var(--tx);flex:1}
+.goal-val{font-family:var(--fm);font-size:.8rem;color:var(--acc)}
+.goal-pct{font-size:.7rem;color:var(--tx3)}
+.goal-prog{height:3px;background:var(--sur2);border-radius:2px;margin-top:4px;overflow:hidden}
+.goal-prog-fill{height:100%;border-radius:2px;background:var(--acc);transition:width .5s}
+/* Goal badge on dashboard */
+.goal-badge{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;padding:2px 7px;border-radius:10px;background:rgba(var(--acc-rgb),.1);color:var(--acc);border:1px solid rgba(var(--acc-rgb),.2)}
+
+/* ── NOTES ── */
+.note-item{background:var(--sur2);border:1px solid var(--brd);border-radius:9px;padding:10px 12px;margin-bottom:8px;position:relative}
+.note-date{font-size:.6rem;color:var(--tx3);margin-bottom:4px}
+.note-text{font-size:.78rem;color:var(--tx2);line-height:1.5}
+.note-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--tx3);cursor:pointer;font-size:.75rem;padding:2px 5px;border-radius:5px}
+.note-del:hover{color:var(--red);background:rgba(255,77,109,.1)}
+.outlet-note-btn{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:.7rem;padding:2px 6px;border-radius:5px;transition:all .15s}
+.outlet-note-btn:hover{color:var(--acc);background:var(--acc-glow)}
+
+/* ── WHAT-IF SIMULATOR ── */
+.wi-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--brd)}
+.wi-outlet{font-size:.8rem;font-weight:600;color:var(--tx);flex:1}
+.wi-slider{flex:2;accent-color:var(--acc)}
+.wi-pct{font-size:.8rem;font-family:var(--fm);color:var(--acc);min-width:45px;text-align:right}
+.wi-result{background:var(--acc-glow);border:1px solid rgba(var(--acc-rgb),.2);border-radius:10px;padding:14px;margin-top:14px;text-align:center}
+.wi-result-val{font-family:var(--fd);font-size:1.4rem;font-weight:700;color:var(--acc)}
+.wi-result-diff{font-size:.78rem;color:var(--tx2);margin-top:4px}
+
+/* ── ANNUAL BUDGET ── */
+.ab-month-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--brd)}
+.ab-month-lbl{font-size:.78rem;font-weight:600;color:var(--tx);width:90px;flex-shrink:0}
+.ab-outlet-inputs{display:flex;gap:6px;flex:1;overflow-x:auto}
+.ab-input{background:var(--sur2);border:1px solid var(--brd);color:var(--tx);border-radius:6px;padding:5px 7px;font-size:.72rem;font-family:var(--fm);width:80px;flex-shrink:0;text-align:right;outline:none}
+.ab-input:focus{border-color:var(--acc)}
+.ab-total{font-size:.72rem;font-family:var(--fm);font-weight:700;color:var(--acc);min-width:70px;text-align:right;flex-shrink:0}
+.ab-header{display:flex;align-items:center;gap:8px;padding:0 0 8px;border-bottom:2px solid var(--brd);margin-bottom:4px}
+.ab-header-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);width:90px;flex-shrink:0}
+.ab-header-outlets{display:flex;gap:6px;flex:1;overflow-x:auto}
+.ab-header-outlet{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);width:80px;flex-shrink:0;text-align:center}
+.ab-apply-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+
+/* ── USER ROLES & TEAM ── */
+.role-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:600}
+.role-badge.admin{background:rgba(var(--acc-rgb),.12);color:var(--acc);border:1px solid rgba(var(--acc-rgb),.25)}
+.role-badge.manager{background:rgba(34,197,94,.12);color:var(--grn);border:1px solid rgba(34,197,94,.25)}
+.role-badge.viewer{background:var(--sur2);color:var(--tx3);border:1px solid var(--brd)}
+.team-member{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd)}
+.team-av{width:32px;height:32px;border-radius:50%;background:var(--acc-glow);border:1px solid rgba(var(--acc-rgb),.2);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--acc);flex-shrink:0}
+.team-info{flex:1;min-width:0}
+.team-email{font-size:.78rem;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-role{font-size:.65rem;color:var(--tx3)}
+.team-actions{display:flex;gap:5px}
+/* Backup reminder */
+.backup-remind{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.backup-remind-text{flex:1;font-size:.76rem;color:var(--tx2)}
+/* Forecast enhanced */
+.forecast-conf{font-size:.65rem;color:var(--tx3);margin-top:2px}
+.trend-indicator{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;padding:2px 7px;border-radius:10px}
+.trend-up{background:rgba(34,197,94,.1);color:var(--grn)}
+.trend-dn{background:rgba(255,77,109,.1);color:var(--red)}
+.trend-flat{background:var(--sur2);color:var(--tx3)}
 
 /* ── LOGIN SCREEN ── */
 #login-screen{
@@ -591,6 +712,12 @@ textarea.fi{resize:vertical}
     <div class="nav-i" data-v="export" onclick="go('export')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Eksport / Import
     </div>
+    <div class="nav-i" data-v="budget" onclick="go('budget')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Budżet roczny
+    </div>
+    <div class="nav-i" data-v="team" onclick="go('team')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Zespół
+    </div>
     <div class="s-bottom">
       <div class="s-row">
         <label>Motyw:</label>
@@ -641,6 +768,8 @@ textarea.fi{resize:vertical}
     <div id="v-compare" style="display:none"></div>
     <div id="v-properties" style="display:none"></div>
     <div id="v-export" style="display:none"></div>
+    <div id="v-budget" style="display:none"></div>
+    <div id="v-team" style="display:none"></div>
   </main>
 </div>
 
@@ -667,6 +796,15 @@ textarea.fi{resize:vertical}
     Eksport/Import
   </button>
 </nav>
+
+<!-- NOTES MODAL -->
+<div class="moverlay" id="m-notes">
+<div class="modal">
+  <div class="mtitle">📝 Notatki</div>
+  <button class="mclose" onclick="closeM('m-notes')">✕</button>
+  <div id="notes-content"></div>
+  <div class="fa"><button class="btn btn-s" onclick="closeM('m-notes')">Zamknij</button></div>
+</div></div>
 
 <!-- HELP MODAL -->
 <div id="help-modal">
@@ -716,6 +854,627 @@ textarea.fi{resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ═══════════════════════════════════════════
+   HAPTIC FEEDBACK
+═══════════════════════════════════════════ */
+function haptic(ms){if(navigator.vibrate)navigator.vibrate(ms||10)}
+
+/* ═══════════════════════════════════════════
+   AUTO THEME
+═══════════════════════════════════════════ */
+function initAutoTheme(){
+  var saved=localStorage.getItem('hm-theme');
+  if(saved)return; // User set a theme manually
+  var dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  S.theme=dark?'obsidian':'arctic';
+  document.documentElement.setAttribute('data-theme',S.theme);
+  window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){
+    if(localStorage.getItem('hm-theme'))return;
+    S.theme=e.matches?'obsidian':'arctic';
+    document.documentElement.setAttribute('data-theme',S.theme);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   SKELETON LOADING
+═══════════════════════════════════════════ */
+function skelKPI(n){
+  var h='<div class="kpi-grid">';
+  for(var i=0;i<(n||7);i++)h+='<div class="skel skel-kpi"></div>';
+  return h+'</div>';
+}
+function skelCards(n){
+  var h='<div class="oc-grid">';
+  for(var i=0;i<(n||4);i++)h+='<div class="skel skel-card"></div>';
+  return h+'</div>';
+}
+
+/* ═══════════════════════════════════════════
+   GOALS / TARGETS STORAGE
+═══════════════════════════════════════════ */
+function getGoals(pid,month){return lsGet(uk('goals-'+pid+'-'+month),{})}
+function saveGoalItem(pid,month,outletKey,goal){
+  var g=getGoals(pid,month);
+  g[outletKey]=goal;
+  lsSet(uk('goals-'+pid+'-'+month),g);
+  if(S.uid)fsWrite(db.collection(uPath()+'/properties/'+pid+'/goals').doc(month),g);
+}
+
+/* ═══════════════════════════════════════════
+   NOTES / OUTLET NOTES STORAGE
+═══════════════════════════════════════════ */
+function getNotes(pid,outletKey){return lsGet(uk('notes-'+pid+'-'+outletKey),[])}
+function saveNote(pid,outletKey,text){
+  var notes=getNotes(pid,outletKey);
+  notes.unshift({id:'n'+Date.now(),text:text,date:new Date().toLocaleDateString('pl-PL')});
+  if(notes.length>50)notes=notes.slice(0,50);
+  lsSet(uk('notes-'+pid+'-'+outletKey),notes);
+  if(S.uid)fsWrite(db.collection(uPath()+'/properties/'+pid+'/notes').doc(outletKey),{notes:notes});
+}
+function delNote(pid,outletKey,noteId){
+  var notes=getNotes(pid,outletKey).filter(function(n){return n.id!==noteId});
+  lsSet(uk('notes-'+pid+'-'+outletKey),notes);
+  if(S.uid)fsWrite(db.collection(uPath()+'/properties/'+pid+'/notes').doc(outletKey),{notes:notes});
+}
+
+/* ═══════════════════════════════════════════
+   ANNUAL BUDGET STORAGE
+═══════════════════════════════════════════ */
+function getAnnualBudget(pid,year){return lsGet(uk('ab-'+pid+'-'+year),{})}
+function saveAnnualBudget(pid,year,data){
+  lsSet(uk('ab-'+pid+'-'+year),data);
+  if(S.uid)fsWrite(db.collection(uPath()+'/properties/'+pid+'/annualBudgets').doc(String(year)),data);
+}
+
+/* ═══════════════════════════════════════════
+   USER PROFILE & TEAM STORAGE
+═══════════════════════════════════════════ */
+function getUserProfile(){return lsGet(uk('profile'),{role:'admin',displayName:''})}
+function saveUserProfile(p){lsSet(uk('profile'),p);if(S.uid)fsWrite(db.collection('users').doc(S.uid),p)}
+function getTeamMembers(){return lsGet(uk('team'),[])}
+function saveTeamMembers(arr){lsSet(uk('team'),arr);if(S.uid)fsWrite(db.collection(uPath()+'/team').doc('members'),{list:arr})}
+
+/* ═══════════════════════════════════════════
+   LINEAR REGRESSION FORECAST
+═══════════════════════════════════════════ */
+function linearRegression(values){
+  var n=values.length;if(n<2)return null;
+  var sumX=0,sumY=0,sumXY=0,sumX2=0;
+  values.forEach(function(y,x){sumX+=x;sumY+=y;sumXY+=x*y;sumX2+=x*x});
+  var slope=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX);
+  var intercept=(sumY-slope*sumX)/n;
+  return {slope:slope,intercept:intercept,predict:function(x){return slope*x+intercept}};
+}
+function forecastNextMonth(allData,outlets){
+  var months=Object.keys(allData).sort();
+  if(months.length<3)return null;
+  var totals=months.map(function(m){return Object.values(allData[m].a||{}).reduce(function(a,b){return a+b},0)});
+  var reg=linearRegression(totals);
+  if(!reg)return null;
+  var next=reg.predict(months.length);
+  var trend=reg.slope>totals[totals.length-1]*0.02?'up':reg.slope<-totals[totals.length-1]*0.02?'dn':'flat';
+  return{value:Math.max(0,next),trend:trend,confidence:Math.min(95,60+months.length*5)};
+}
+
+/* ═══════════════════════════════════════════
+   HEATMAP COLORS
+═══════════════════════════════════════════ */
+function heatColor(val,max){
+  if(!val||!max)return 'var(--sur2)';
+  var pct=val/max;
+  if(pct>=0.9)return 'rgba(34,197,94,.8)';
+  if(pct>=0.7)return 'rgba(34,197,94,.5)';
+  if(pct>=0.5)return 'rgba(245,158,11,.6)';
+  if(pct>=0.3)return 'rgba(245,158,11,.3)';
+  return 'rgba(255,77,109,.3)';
+}
+
+/* ═══════════════════════════════════════════
+   AUTO BACKUP REMINDER
+═══════════════════════════════════════════ */
+function checkAutoBackup(){
+  var last=parseInt(localStorage.getItem('hm-last-backup')||'0');
+  var now=Date.now();
+  var week=7*24*60*60*1000;
+  if(now-last>week&&getProps().length){
+    return true;
+  }
+  return false;
+}
+function markBackupDone(){localStorage.setItem('hm-last-backup',Date.now())}
+
+/* ═══════════════════════════════════════════
+   RENDER: RANKING (part of Analytics)
+═══════════════════════════════════════════ */
+function renderRanking(container,metrics,allData){
+  if(!container)return;
+  var sorted=S.outlets.slice().sort(function(a,b){
+    return (metrics[okey(b.name)]&&metrics[okey(b.name)].a||0)-(metrics[okey(a.name)]&&metrics[okey(a.name)].a||0);
+  });
+  var maxVal=sorted.length?metrics[okey(sorted[0].name)]&&metrics[okey(sorted[0].name)].a||1:1;
+  var prevMonths=Object.keys(allData).sort();
+  var prevM2=prevMonths[prevMonths.length-2];
+  var prevData=prevM2?allData[prevM2]:{};
+
+  var h='<div class="stitle">🏆 Ranking outletów</div>';
+  sorted.forEach(function(o,i){
+    var k=okey(o.name),m=metrics[k]||{};
+    var prev=prevData.a&&prevData.a[k]||0;
+    var diff=prev>0?((m.a-prev)/prev*100):null;
+    var pos=['gold','silver','bronze'][i]||'other';
+    var medal=['🥇','🥈','🥉'][i]||(i+1);
+    var barW=maxVal>0?(m.a/maxVal*100):0;
+    h+='<div class="rank-row">';
+    h+='<div class="rank-pos '+pos+'">'+medal+'</div>';
+    h+='<div class="rank-info">';
+    h+='<div class="rank-name">'+o.name+(m.pct!==null?'<span class="pill '+pc(m.pct)+'" style="margin-left:6px;font-size:.6rem">'+(m.pct*100).toFixed(0)+'%</span>':'')+'</div>';
+    h+='<div class="rank-bar-wrap"><div class="rank-bar" style="width:'+barW+'%;background:'+(['#ffd700','#c0c0c0','#cd7f32'][i]||acHex())+'"></div></div>';
+    h+='</div>';
+    h+='<div style="text-align:right">';
+    h+='<div class="rank-val">'+fmt(m.a||0,true)+'</div>';
+    if(diff!==null)h+='<span class="rank-trend '+(diff>=0?'up':'dn')+'">'+(diff>=0?'▲':'▼')+Math.abs(diff).toFixed(1)+'%</span>';
+    h+='</div></div>';
+  });
+  container.innerHTML=h;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: HEATMAP
+═══════════════════════════════════════════ */
+function renderHeatmap(container,pid,month){
+  if(!container)return;
+  var p=month.split('-'),yr=+p[0],mo=+p[1];
+  var daysInMo=new Date(yr,mo,0).getDate();
+  var firstDay=(new Date(yr,mo-1,1).getDay()+6)%7;
+  var md=getMD(pid,month)||{};
+  var total=Object.values(md.a||{}).reduce(function(x,y){return x+y},0);
+  var dailyAvg=md.dr>0?total/md.dr:0;
+  var maxDay=dailyAvg*1.5||1;
+
+  var h='<div class="stitle">📅 Heatmapa miesiąca — '+mLabelFull(month)+'</div>';
+  h+='<div class="hmap-days">';
+  ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].forEach(function(d){h+='<div class="hmap-day">'+d+'</div>'});
+  h+='</div><div class="hmap-grid">';
+  for(var i=0;i<firstDay;i++)h+='<div class="hmap-cell empty"></div>';
+  for(var d=1;d<=daysInMo;d++){
+    var isDone=d<=md.dr;
+    var estVal=isDone?dailyAvg:0;
+    var color=isDone?heatColor(estVal,maxDay):'var(--sur2)';
+    var opacity=isDone?1:0.4;
+    h+='<div class="hmap-cell" style="background:'+color+';opacity:'+opacity+'" title="Dzień '+d+(isDone?' · est. '+Math.round(estVal).toLocaleString('pl-PL')+' PLN':' · brak danych')+'">'+d+'</div>';
+  }
+  h+='</div>';
+  h+='<div class="hmap-legend"><span>Mniej</span><div class="hmap-legend-boxes">';
+  ['rgba(255,77,109,.3)','rgba(245,158,11,.3)','rgba(245,158,11,.6)','rgba(34,197,94,.5)','rgba(34,197,94,.8)'].forEach(function(c){
+    h+='<div class="hmap-legend-box" style="background:'+c+'"></div>';
+  });
+  h+='</div><span>Więcej</span></div>';
+  container.innerHTML=h;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: WHAT-IF SIMULATOR
+═══════════════════════════════════════════ */
+function renderWhatIf(el,metrics){
+  if(!el)return;
+  var T=metrics._t;
+  var h='<div class="stitle">🔮 Symulator "Co jeśli?"</div>';
+  h+='<p class="hs-p" style="margin-bottom:14px">Przesuń suwak aby zobaczyć wpływ zmiany wyników outletu na łączną prognozę miesiąca.</p>';
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),m=metrics[k]||{};
+    h+='<div class="wi-row">';
+    h+='<div class="wi-outlet">'+o.name+'</div>';
+    h+='<input type="range" class="wi-slider" min="-50" max="50" value="0" oninput="wiUpdate(this,\''+k+'\')" data-base="'+(m.proj||0)+'" data-outlet="'+k+'">';
+    h+='<span class="wi-pct" id="wip-'+k+'">0%</span>';
+    h+='</div>';
+  });
+  h+='<div class="wi-result" id="wi-result">';
+  h+='<div style="font-size:.72rem;color:var(--tx3);margin-bottom:4px">Prognoza łączna przy obecnych ustawieniach</div>';
+  h+='<div class="wi-result-val" id="wi-total">'+fmt(T.proj,true)+'</div>';
+  h+='<div class="wi-result-diff" id="wi-diff">bez zmian</div>';
+  h+='</div>';
+  el.innerHTML=h;
+  // Store base total
+  el.dataset.baseTotal=T.proj;
+}
+
+function wiUpdate(slider,outletKey){
+  var pct=parseInt(slider.value);
+  var label=document.getElementById('wip-'+outletKey);
+  if(label)label.textContent=(pct>=0?'+':'')+pct+'%';
+  // Recalculate total
+  var base=parseFloat(document.querySelector('[data-outlet="'+outletKey+'"]').dataset.base)||0;
+  var total=0;
+  document.querySelectorAll('.wi-slider').forEach(function(s){
+    var b=parseFloat(s.dataset.base)||0;
+    var p=parseInt(s.value)/100;
+    total+=b*(1+p);
+  });
+  var baseTotal=parseFloat(document.getElementById('wi-result').dataset.baseTotal)||0;
+  var diff=total-baseTotal;
+  var tv=document.getElementById('wi-total');
+  var dv=document.getElementById('wi-diff');
+  if(tv)tv.textContent=fmt(total,true);
+  if(dv){dv.textContent=(diff>=0?'▲ +':'▼ ')+fmt(Math.abs(diff),true)+' vs obecna prognoza';dv.style.color=diff>=0?'var(--grn)':'var(--red)';}
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: ANALYTICS (updated with new sections)
+═══════════════════════════════════════════ */
+function renderAnalytics(){
+  var el=document.getElementById('v-analytics');if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML='<div class="empty"><p>Brak danych.</p></div>';return;}
+
+  // Show skeleton immediately
+  el.innerHTML=skelKPI(3)+skelCards(4);
+
+  var d=getMD(S.pid,S.month)||{};
+  var M=calcM(S.outlets,d)||{_t:{b:0,a:0,avg:0,proj:0,DR:0,M:dim(S.month),DL:dim(S.month)}};
+  var allD=getAllMD(S.pid),T=M._t;
+  var yr=S.month.split('-')[0];
+  var ytd=Object.entries(allD).filter(function(e){return e[0].startsWith(yr)}).reduce(function(s,e){return s+Object.values(e[1].a||{}).reduce(function(x,y){return x+y},0)},0);
+  var months=Object.keys(allD).sort();
+  var ci=months.indexOf(S.month),mom='—';
+  if(ci>0){var c2=Object.values(allD[months[ci]].a||{}).reduce(function(x,y){return x+y},0),p2=Object.values(allD[months[ci-1]].a||{}).reduce(function(x,y){return x+y},0);if(p2)mom=(c2>=p2?'▲ +':'▼ ')+Math.abs((c2-p2)/p2*100).toFixed(1)+'%'}
+
+  // AI-style forecast
+  var forecast=forecastNextMonth(allD,S.outlets);
+  var p=S.month.split('-'),nextMo=+p[1]===12?(+p[0]+1)+'-01':(p[0]+'-'+String(+p[1]+1).padStart(2,'0'));
+
+  var h='<div class="kpi-grid">';
+  h+='<div class="kpi"><div class="kpi-lbl">YTD '+yr+'</div><div class="kpi-val">'+fmt(ytd,true)+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Momentum MoM</div><div class="kpi-val" style="font-size:1rem">'+mom+'</div></div>';
+  var best=S.outlets.reduce(function(b2,o){return (M[okey(o.name)]&&M[okey(o.name)].a||0)>(M[okey(b2.name)]&&M[okey(b2.name)].a||0)?o:b2},S.outlets[0]);
+  h+='<div class="kpi"><div class="kpi-lbl">Lider</div><div class="kpi-val" style="font-size:.95rem">'+(best?best.name:'—')+'</div></div>';
+  if(forecast){
+    h+='<div class="kpi"><div class="kpi-lbl">Prognoza '+mLabel(nextMo)+'</div><div class="kpi-val">'+fmt(forecast.value,true)+'</div>';
+    h+='<div class="kpi-sub"><span class="trend-indicator trend-'+forecast.trend+'">'+(forecast.trend==='up'?'▲ Wzrost':forecast.trend==='dn'?'▼ Spadek':'→ Stabilnie')+'</span></div></div>';
+  }
+  h+='</div>';
+
+  // Analytics tabs
+  h+='<div class="tabs" id="atabs">';
+  h+='<button class="tab on" onclick="switchATab(\'charts\',this)">📊 Wykresy</button>';
+  h+='<button class="tab" onclick="switchATab(\'ranking\',this)">🏆 Ranking</button>';
+  h+='<button class="tab" onclick="switchATab(\'heatmap\',this)">📅 Heatmapa</button>';
+  h+='<button class="tab" onclick="switchATab(\'whatif\',this)">🔮 Co jeśli?</button>';
+  h+='</div>';
+
+  // Charts panel
+  h+='<div id="at-charts">';
+  h+='<div class="cgrid"><div class="cc"><div class="card-title">Wyniki vs Budżet</div><canvas id="ch-bar"></canvas></div>';
+  h+='<div class="cc"><div class="card-title">Udział outletów</div><canvas id="ch-donut"></canvas></div>';
+  h+='<div class="cc"><div class="card-title">% realizacji budżetu</div><canvas id="ch-hbar"></canvas></div>';
+  h+='<div class="cc"><div class="card-title">Trend miesięczny</div><canvas id="ch-trend"></canvas></div></div>';
+  h+='<div class="stitle">Prognoza</div><div class="tbl-wrap"><table><thead><tr><th>Outlet</th><th>Wynik</th><th>Śr./dz.</th><th>Prognoza</th><th>Budżet</th><th>Prog.%</th><th>B-E</th></tr></thead><tbody>';
+  S.outlets.slice().sort(function(a2,b2){return (M[okey(b2.name)]&&M[okey(b2.name)].a||0)-(M[okey(a2.name)]&&M[okey(a2.name)].a||0)}).forEach(function(o){
+    var k=okey(o.name),m=M[k]||{},pp2=m.b>0?m.proj/m.b:null;
+    h+='<tr><td><strong>'+o.name+'</strong></td><td>'+fmt(m.a||0)+'</td><td>'+fmt(m.avg||0)+'</td>';
+    h+='<td class="'+(m.b?(m.proj>=m.b?'td-pos':'td-neg'):'')+'">'+fmt(m.proj||0)+'</td><td>'+(m.b?fmt(m.b):'—')+'</td>';
+    h+='<td>'+(pp2!==null?'<span class="pill '+pc(pp2)+'">'+(pp2*100).toFixed(1)+'%</span>':'—')+'</td>';
+    h+='<td>'+(m.be?'d.'+m.be:'—')+'</td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  // Ranking panel
+  h+='<div id="at-ranking" style="display:none"></div>';
+  // Heatmap panel
+  h+='<div id="at-heatmap" style="display:none"></div>';
+  // What-if panel
+  h+='<div id="at-whatif" style="display:none"></div>';
+
+  el.innerHTML=h;
+
+  // Build charts
+  var ns=S.outlets.map(function(o){return o.name}),ks=S.outlets.map(function(o){return okey(o.name)});
+  dChart('ch-bar');
+  S.charts['ch-bar']=new Chart(document.getElementById('ch-bar'),{type:'bar',data:{labels:ns,datasets:[
+    {label:'Budżet',data:ks.map(function(k){return conv(M[k]&&M[k].b||0)}),backgroundColor:brdHex()+'88',borderColor:tx2Hex(),borderWidth:1,borderRadius:3},
+    {label:'Wynik',data:ks.map(function(k){return conv(M[k]&&M[k].a||0)}),backgroundColor:COLS.map(function(c){return c+'99'}),borderColor:COLS,borderWidth:1.5,borderRadius:3}
+  ]},options:chOpts(function(v){return fmtR(v)})});
+
+  dChart('ch-donut');
+  S.charts['ch-donut']=new Chart(document.getElementById('ch-donut'),{type:'doughnut',data:{labels:ns,datasets:[{data:ks.map(function(k){return conv(M[k]&&M[k].a||0)}),backgroundColor:COLS,borderColor:surHex(),borderWidth:2,hoverOffset:6}]},options:{plugins:{legend:{position:'right',labels:{color:txHex(),font:{size:10},boxWidth:10}},tooltip:{callbacks:{label:function(ctx){return ctx.label+': '+fmtR(ctx.raw)}}}},cutout:'62%'}});
+
+  dChart('ch-hbar');
+  var bp=ks.map(function(k){return ((M[k]&&M[k].pct||0)*100)});
+  S.charts['ch-hbar']=new Chart(document.getElementById('ch-hbar'),{type:'bar',data:{labels:ns,datasets:[{label:'% budżetu',data:bp,backgroundColor:bp.map(function(v){return v>=100?'rgba(34,197,94,.7)':v>=75?'rgba(245,158,11,.7)':'rgba(255,77,109,.7)'}),borderRadius:3}]},options:Object.assign({},chOpts(function(v){return v+'%'}),{indexAxis:'y',plugins:{legend:{display:false}}})});
+
+  dChart('ch-trend');
+  S.charts['ch-trend']=new Chart(document.getElementById('ch-trend'),{type:'line',data:{labels:months.map(mLabel),datasets:[{label:'Wynik netto',data:months.map(function(m){return conv(Object.values(allD[m].a||{}).reduce(function(x,y){return x+y},0))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:acHex(),pointBorderColor:surHex(),pointBorderWidth:2}]},options:chOpts(function(v){return fmtR(v)})});
+
+  // Pre-render ranking
+  renderRanking(document.getElementById('at-ranking'),M,allD);
+  renderHeatmap(document.getElementById('at-heatmap'),S.pid,S.month);
+  renderWhatIf(document.getElementById('at-whatif'),M);
+}
+
+function switchATab(tab,btn){
+  ['charts','ranking','heatmap','whatif'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
+  document.querySelectorAll('#atabs .tab').forEach(function(b){b.classList.remove('on')});
+  if(btn)btn.classList.add('on');
+  haptic(6);
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: ANNUAL BUDGET CREATOR
+═══════════════════════════════════════════ */
+function renderBudget(){
+  var el=document.getElementById('v-budget');if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML='<div class="empty"><p>Dodaj obiekt i outlety w zakładce <a href="#" onclick="go(\'properties\')">Obiekty i outlety</a>.</p></div>';return;}
+  var yr=S.month.split('-')[0];
+  var ab=getAnnualBudget(S.pid,yr);
+  var mn=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+
+  var h='<div class="stitle">📋 Kreator budżetu rocznego <small>'+yr+'</small></div>';
+
+  // Quick tools
+  h+='<div class="card" style="margin-bottom:14px"><div class="fsect">Szybkie narzędzia</div>';
+  h+='<div class="ab-apply-row">';
+  h+='<select class="s-input" id="ab-copy-year" style="width:120px"><option value="">Rok...</option>';
+  for(var y2=+yr-1;y2>=+yr-3;y2--)h+='<option value="'+y2+'">'+y2+'</option>';
+  h+='</select>';
+  h+='<button class="btn btn-s btn-sm" onclick="abCopyYear()">📋 Kopiuj z roku</button>';
+  h+='<span style="color:var(--tx3);font-size:.72rem">lub</span>';
+  h+='<input type="number" class="fi" id="ab-pct" placeholder="% zmiana" style="width:100px">';
+  h+='<button class="btn btn-s btn-sm" onclick="abApplyPct()">➕ Zastosuj %</button>';
+  h+='</div></div>';
+
+  h+='<div class="card"><div style="overflow-x:auto">';
+  // Header row
+  h+='<div class="ab-header"><div class="ab-header-lbl">Miesiąc</div><div class="ab-header-outlets">';
+  S.outlets.forEach(function(o){h+='<div class="ab-header-outlet">'+o.name.substring(0,8)+'</div>'});
+  h+='<div class="ab-header-outlet">SUMA</div></div></div>';
+
+  // Month rows
+  for(var m2=1;m2<=12;m2++){
+    var mKey=yr+'-'+String(m2).padStart(2,'0');
+    var mData=ab[mKey]||{};
+    var rowTotal=0;
+    S.outlets.forEach(function(o){rowTotal+=parseFloat(mData[okey(o.name)])||0});
+    h+='<div class="ab-month-row">';
+    h+='<div class="ab-month-lbl">'+mn[m2-1]+'</div>';
+    h+='<div class="ab-outlet-inputs">';
+    S.outlets.forEach(function(o){
+      var k=okey(o.name);
+      var v=mData[k]||'';
+      h+='<input type="number" class="ab-input" id="ab-'+mKey+'-'+k+'" value="'+(v||'')+'" placeholder="0" oninput="abUpdateTotal(\''+mKey+'\')">';
+    });
+    h+='<div class="ab-total" id="ab-tot-'+mKey+'">'+(rowTotal?rowTotal.toLocaleString('pl-PL'):'—')+'</div>';
+    h+='</div></div>';
+  }
+
+  // Year total
+  var yearTotal=0;
+  Object.values(ab).forEach(function(md){Object.values(md).forEach(function(v){yearTotal+=parseFloat(v)||0})});
+  h+='<div class="ab-month-row" style="background:var(--sur2);font-weight:700">';
+  h+='<div class="ab-month-lbl">RAZEM</div><div class="ab-outlet-inputs">';
+  S.outlets.forEach(function(o){
+    var k=okey(o.name);
+    var tot=Object.entries(ab).reduce(function(s,e){return s+(parseFloat(e[1][k])||0)},0);
+    h+='<div class="ab-total" style="color:var(--acc)">'+( tot?tot.toLocaleString('pl-PL'):'—')+'</div>';
+  });
+  h+='<div class="ab-total" style="font-size:.9rem">'+( yearTotal?yearTotal.toLocaleString('pl-PL'):'—')+'</div>';
+  h+='</div></div>';
+  h+='</div>';
+  h+='<div class="fa"><button class="btn btn-p" onclick="abSave()">💾 Zapisz budżet roczny</button><button class="btn btn-s" onclick="abApplyToMonths()">📤 Przenieś do miesięcy</button></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function abUpdateTotal(mKey){
+  var total=0;
+  S.outlets.forEach(function(o){
+    var inp=document.getElementById('ab-'+mKey+'-'+okey(o.name));
+    total+=parseFloat(inp&&inp.value)||0;
+  });
+  var t=document.getElementById('ab-tot-'+mKey);
+  if(t)t.textContent=total?total.toLocaleString('pl-PL'):'—';
+}
+
+function abSave(){
+  var yr=S.month.split('-')[0];
+  var data={};
+  var mn=12;
+  for(var m=1;m<=mn;m++){
+    var mKey=yr+'-'+String(m).padStart(2,'0');
+    data[mKey]={};
+    S.outlets.forEach(function(o){
+      var k=okey(o.name);
+      var v=parseFloat(document.getElementById('ab-'+mKey+'-'+k)&&document.getElementById('ab-'+mKey+'-'+k).value)||0;
+      if(v)data[mKey][k]=v;
+    });
+  }
+  saveAnnualBudget(S.pid,yr,data);
+  toast('Budżet roczny zapisany!','ok');haptic([10,5,10]);
+}
+
+function abApplyToMonths(){
+  if(!confirm('Przenieść wartości z kreatora do danych miesięcznych (nadpisze istniejące budżety)?'))return;
+  var yr=S.month.split('-')[0];
+  var ab=getAnnualBudget(S.pid,yr);
+  Object.entries(ab).forEach(function(entry){
+    var month=entry[0],mBudgets=entry[1];
+    if(!Object.keys(mBudgets).length)return;
+    var existing=getMD(S.pid,month)||{dim:dim(month),dr:dim(month),a:{},c:''};
+    existing.b=mBudgets;
+    saveMD(S.pid,month,existing);
+  });
+  toast('Budżety przeniesione do wszystkich miesięcy!','ok');haptic([10,5,10]);
+}
+
+function abCopyYear(){
+  var fromYear=document.getElementById('ab-copy-year').value;
+  if(!fromYear){toast('Wybierz rok','er');return;}
+  var yr=S.month.split('-')[0];
+  var source=getAnnualBudget(S.pid,fromYear);
+  if(!Object.keys(source).length){
+    // Try to build from monthly data
+    var built={};
+    for(var m=1;m<=12;m++){
+      var srcKey=fromYear+'-'+String(m).padStart(2,'0');
+      var dstKey=yr+'-'+String(m).padStart(2,'0');
+      var md=getMD(S.pid,srcKey);
+      if(md&&md.b)built[dstKey]=md.b;
+    }
+    if(Object.keys(built).length){saveAnnualBudget(S.pid,yr,built);renderBudget();toast('Skopiowano z danych miesięcznych '+fromYear,'ok');return;}
+    toast('Brak danych budżetowych dla roku '+fromYear,'er');return;
+  }
+  // Remap keys to current year
+  var newData={};
+  Object.entries(source).forEach(function(e){
+    var newKey=e[0].replace(fromYear,yr);
+    newData[newKey]=e[1];
+  });
+  saveAnnualBudget(S.pid,yr,newData);
+  renderBudget();
+  toast('Skopiowano budżet z roku '+fromYear,'ok');
+}
+
+function abApplyPct(){
+  var pct=parseFloat(document.getElementById('ab-pct').value);
+  if(isNaN(pct)){toast('Wpisz procent np. 10 lub -5','er');return;}
+  var mult=1+pct/100;
+  var yr=S.month.split('-')[0];
+  for(var m=1;m<=12;m++){
+    var mKey=yr+'-'+String(m).padStart(2,'0');
+    S.outlets.forEach(function(o){
+      var k=okey(o.name);
+      var inp=document.getElementById('ab-'+mKey+'-'+k);
+      if(inp&&inp.value){inp.value=Math.round(parseFloat(inp.value)*mult);abUpdateTotal(mKey);}
+    });
+  }
+  toast('Zastosowano '+( pct>=0?'+':'')+pct+'% do wszystkich pól','ok');
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: TEAM / USER MANAGEMENT
+═══════════════════════════════════════════ */
+function renderTeam(){
+  var el=document.getElementById('v-team');if(!el)return;
+  var profile=getUserProfile();
+  var members=getTeamMembers();
+
+  var h='<div class="stitle">👤 Mój profil</div>';
+  h+='<div class="card" style="margin-bottom:16px">';
+  h+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">';
+  h+='<div style="width:48px;height:48px;border-radius:50%;background:var(--acc-glow);border:2px solid rgba(var(--acc-rgb),.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-family:var(--fd);font-weight:700;color:var(--acc)">'+(S.userEmail||'?').charAt(0).toUpperCase()+'</div>';
+  h+='<div><div style="font-size:.9rem;font-weight:600;color:var(--tx)">'+S.userEmail+'</div>';
+  h+='<span class="role-badge '+(profile.role||'admin')+'">'+(profile.role==='admin'?'👑 Administrator':profile.role==='manager'?'👤 Manager':'👁 Viewer')+'</span></div></div>';
+  h+='<div class="fg"><label>Imię i nazwisko (wyświetlane w raportach)</label>';
+  h+='<input class="fi" id="t-name" value="'+(profile.displayName||'')+'" placeholder="Jan Kowalski"></div>';
+  h+='<div class="fg"><label>Rola</label>';
+  h+='<select class="s-input fi" id="t-role"><option value="admin" '+(profile.role==='admin'?'selected':'')+'>👑 Administrator — pełny dostęp</option><option value="manager" '+(profile.role==='manager'?'selected':'')+'>👤 Manager — może edytować dane</option><option value="viewer" '+(profile.role==='viewer'?'selected':'')+'>👁 Viewer — tylko odczyt</option></select></div>';
+  h+='<div class="fa"><button class="btn btn-p" onclick="saveProfile()">💾 Zapisz profil</button></div></div>';
+
+  h+='<div class="stitle">👥 Zespół <small>'+members.length+' osób</small></div>';
+  h+='<div class="card">';
+
+  if(profile.role==='admin'||profile.role==='manager'){
+    h+='<div class="fsect">Zaproś do zespołu</div>';
+    h+='<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">';
+    h+='<input class="fi" id="t-invite-email" type="email" placeholder="email@hotel.pl" style="flex:1;min-width:180px">';
+    h+='<select class="s-input fi" id="t-invite-role" style="width:150px"><option value="manager">Manager</option><option value="viewer">Viewer</option></select>';
+    h+='<button class="btn btn-p" onclick="inviteMember()">+ Zaproś</button></div>';
+    h+='<div class="hs-tip">Po dodaniu emaila, osoba musi się zarejestrować używając tego adresu. Następnie wyślij im link do aplikacji.</div>';
+  }
+
+  if(members.length){
+    h+='<div style="margin-top:14px">';
+    members.forEach(function(m,i){
+      h+='<div class="team-member">';
+      h+='<div class="team-av">'+m.email.charAt(0).toUpperCase()+'</div>';
+      h+='<div class="team-info"><div class="team-email">'+m.email+'</div><div class="team-role">Dodano: '+m.added+'</div></div>';
+      h+='<span class="role-badge '+m.role+'">'+( m.role==='manager'?'Manager':'Viewer')+'</span>';
+      if(profile.role==='admin')h+='<button class="btn-icon" onclick="removeMember('+i+')" title="Usuń"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>';
+      h+='</div>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div class="empty" style="padding:24px"><p style="font-size:.78rem">Brak członków zespołu. Zaproś współpracowników powyżej.</p></div>';
+  }
+  h+='</div>';
+
+  // Backup section
+  if(checkAutoBackup()){
+    h+='<div class="backup-remind"><span style="font-size:1.2rem">💾</span><div class="backup-remind-text">Ostatnia kopia zapasowa była ponad tydzień temu. Zalecamy wykonanie kopii JSON.</div><button class="btn btn-s btn-sm" onclick="exportJSON();markBackupDone()">Wykonaj teraz</button></div>';
+  }
+
+  el.innerHTML=h;
+}
+
+function saveProfile(){
+  var name=document.getElementById('t-name')&&document.getElementById('t-name').value||'';
+  var role=document.getElementById('t-role')&&document.getElementById('t-role').value||'admin';
+  saveUserProfile({displayName:name,role:role,email:S.userEmail,uid:S.uid});
+  var av=document.getElementById('user-av');if(av&&name)av.textContent=name.charAt(0).toUpperCase();
+  toast('Profil zapisany','ok');haptic(10);
+}
+
+function inviteMember(){
+  var email=document.getElementById('t-invite-email')&&document.getElementById('t-invite-email').value.trim();
+  var role=document.getElementById('t-invite-role')&&document.getElementById('t-invite-role').value;
+  if(!email){toast('Wpisz email','er');return;}
+  var members=getTeamMembers();
+  if(members.find(function(m){return m.email===email})){toast('Ten email jest już w zespole','er');return;}
+  members.push({email:email,role:role,added:new Date().toLocaleDateString('pl-PL')});
+  saveTeamMembers(members);
+  document.getElementById('t-invite-email').value='';
+  renderTeam();
+  toast(email+' dodano do zespołu','ok');haptic(10);
+}
+
+function removeMember(idx){
+  if(!confirm('Usunąć tę osobę z zespołu?'))return;
+  var members=getTeamMembers();
+  members.splice(idx,1);
+  saveTeamMembers(members);
+  renderTeam();
+  toast('Usunięto z zespołu','in');
+}
+
+/* ═══════════════════════════════════════════
+   NOTES MODAL
+═══════════════════════════════════════════ */
+function openNotesModal(outletName){
+  var k=okey(outletName);
+  var notes=getNotes(S.pid,k);
+  var modal=document.getElementById('m-notes');
+  if(!modal)return;
+  modal.querySelector('.mtitle').textContent='📝 Notatki — '+outletName;
+  var content=modal.querySelector('#notes-content');
+  if(content){
+    var h='<div class="fg" style="margin-bottom:10px"><label>Nowa notatka</label>';
+    h+='<div style="display:flex;gap:8px">';
+    h+='<input class="fi" id="new-note-inp" placeholder="Wpisz notatkę..." style="flex:1" onkeydown="if(event.key===\'Enter\')addNote(\''+outletName+'\')">';
+    h+='<button class="btn btn-p btn-sm" onclick="addNote(\''+outletName+'\')">Dodaj</button></div></div>';
+    if(notes.length){
+      notes.forEach(function(n){
+        h+='<div class="note-item"><div class="note-date">'+n.date+'</div><div class="note-text">'+n.text+'</div>';
+        h+='<button class="note-del" onclick="delNoteUI(\''+outletName+'\',\''+n.id+'\')">✕</button></div>';
+      });
+    } else {
+      h+='<div style="font-size:.78rem;color:var(--tx3);text-align:center;padding:20px">Brak notatek dla tego outletu.</div>';
+    }
+    content.innerHTML=h;
+  }
+  openM('m-notes');
+}
+
+function addNote(outletName){
+  var inp=document.getElementById('new-note-inp');
+  var text=inp&&inp.value.trim();
+  if(!text){toast('Wpisz treść notatki','er');return;}
+  saveNote(S.pid,okey(outletName),text);
+  openNotesModal(outletName);
+  toast('Notatka dodana','ok');haptic(8);
+}
+
+function delNoteUI(outletName,noteId){
+  delNote(S.pid,okey(outletName),noteId);
+  openNotesModal(outletName);
+}
+
 /* ═══════════════════════════════════════════
    PWA INSTALL PROMPT
 ═══════════════════════════════════════════ */
@@ -1026,13 +1785,14 @@ function setTheme(t){
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import'};
+var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
 function go(v){
   S.view=v;
   document.querySelectorAll('[data-v]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-v')===v)});
-  document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-compare,#v-properties,#v-export').forEach(function(el){el.style.display='none'});
+  document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
   var el=document.getElementById('v-'+v);if(el)el.style.display='block';
   var pt=document.getElementById('pg-title');if(pt)pt.textContent=TITLES[v]||v;
+  haptic(8);
   closeSidebar();
   renderCur();
 }
@@ -1164,6 +1924,8 @@ function renderDashboard(){
     h+='<div class="oc-stat"><div class="oc-stat-l">Śr./dzień</div><div class="oc-stat-v">'+fmt(m.avg||0,true)+'</div></div>';
     h+='<div class="oc-stat"><div class="oc-stat-l">Prognoza</div><div class="oc-stat-v '+(m.b?(m.proj>=m.b?'pos':'neg'):'')+'">'+fmt(m.proj||0,true)+'</div></div>';
     if(m.b)h+='<div class="oc-stat"><div class="oc-stat-l">Do budżetu</div><div class="oc-stat-v '+(m.rem<=0?'pos':'neg')+'">'+fmt(m.rem,true)+'</div></div>';
+    var noteCount=S.pid?getNotes(S.pid,okey(o.name)).length:0;
+    h+="<div style=\"margin-top:8px\"><button class=\"outlet-note-btn\" onclick=\"openNotesModal(\+o.name+)\">📝 Notatki"+(noteCount?" ("+noteCount+")":"")+"</button></div>";
     h+='</div></div>';
   });
   h+='</div>';
@@ -2068,7 +2830,7 @@ function onMonthChange(v){S.month=v;renderCur()}
 
 function renderCur(){
   try{
-    var fn={dashboard:renderDashboard,data:renderData,analytics:renderAnalytics,compare:renderCompare,properties:renderProperties,export:renderExport};
+    var fn={dashboard:renderDashboard,data:renderData,analytics:renderAnalytics,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
     var f=fn[S.view];if(f)f();
   }catch(e){console.error(e)}
 }
@@ -2587,6 +3349,8 @@ function showLogin(){
 }
 
 function startApp(){
+  // Auto theme if user hasn't set one
+  if(!localStorage.getItem('hm-theme'))initAutoTheme();
   // Restore last selected property
   S.props=getProps();
   var lp=localStorage.getItem(uk('pid'));
@@ -2597,6 +3361,11 @@ function startApp(){
   var mi=document.getElementById('month-sel');if(mi)mi.value=S.month;
   renderCur();
   fetchRates();
+  // Check backup reminder after 3 seconds
+  setTimeout(function(){
+    if(checkAutoBackup()&&S.view!=='team')
+      toast('💾 Nie wykonano kopii od ponad tygodnia — przejdź do Zespół','in');
+  },3000);
 }
 
 /* ═══════════════════════════════════════════
