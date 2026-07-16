@@ -740,7 +740,8 @@ textarea.fi{resize:vertical}
         <button class="btn btn-g btn-sm" style="flex:1;justify-content:center;font-size:.7rem" onclick="showHelp()">📖 Instrukcja</button>
         <button class="btn btn-g btn-sm" style="flex:1;justify-content:center;font-size:.7rem" onclick="showAbout()">ℹ️ O programie</button>
       </div>
-      <div class="conn-badge is-offline" id="conn-badge" style="margin-top:8px">
+      <span class="role-badge admin" id="role-badge-sidebar" style="display:none;margin-top:8px;justify-content:center;width:100%;padding:5px 0"></span>
+      <div class="conn-badge is-offline" id="conn-badge" style="margin-top:6px">
         <div class="conn-dot offline" id="conn-dot"></div>
         <span class="conn-text" id="conn-text">Łączenie...</span>
       </div>
@@ -895,9 +896,9 @@ function skelCards(n){
 function getGoals(pid,month){return lsGet(uk('goals-'+pid+'-'+month),{})}
 function saveGoalItem(pid,month,outletKey,goal){
   var g=getGoals(pid,month);
-  g[outletKey]=goal;
+  if(goal>0)g[outletKey]=goal;else delete g[outletKey];
   lsSet(uk('goals-'+pid+'-'+month),g);
-  if(S.uid)fsWrite(db.collection(uPath()+'/properties/'+pid+'/goals').doc(month),g);
+  if(S.uid)fsWrite(db.collection('properties/'+pid+'/goals').doc(month),g);
 }
 
 /* ═══════════════════════════════════════════
@@ -906,15 +907,15 @@ function saveGoalItem(pid,month,outletKey,goal){
 function getNotes(pid,outletKey){return lsGet(uk('notes-'+pid+'-'+outletKey),[])}
 function saveNote(pid,outletKey,text){
   var notes=getNotes(pid,outletKey);
-  notes.unshift({id:'n'+Date.now(),text:text,date:new Date().toLocaleDateString('pl-PL')});
+  notes.unshift({id:'n'+Date.now(),text:text,date:new Date().toLocaleDateString('pl-PL'),author:S.userEmail||''});
   if(notes.length>50)notes=notes.slice(0,50);
   lsSet(uk('notes-'+pid+'-'+outletKey),notes);
-  if(S.uid)fsWrite(db.collection(uPath()+'/properties/'+pid+'/notes').doc(outletKey),{notes:notes});
+  if(S.uid)fsWrite(db.collection('properties/'+pid+'/notes').doc(outletKey),{notes:notes});
 }
 function delNote(pid,outletKey,noteId){
   var notes=getNotes(pid,outletKey).filter(function(n){return n.id!==noteId});
   lsSet(uk('notes-'+pid+'-'+outletKey),notes);
-  if(S.uid)fsWrite(db.collection(uPath()+'/properties/'+pid+'/notes').doc(outletKey),{notes:notes});
+  if(S.uid)fsWrite(db.collection('properties/'+pid+'/notes').doc(outletKey),{notes:notes});
 }
 
 /* ═══════════════════════════════════════════
@@ -923,16 +924,52 @@ function delNote(pid,outletKey,noteId){
 function getAnnualBudget(pid,year){return lsGet(uk('ab-'+pid+'-'+year),{})}
 function saveAnnualBudget(pid,year,data){
   lsSet(uk('ab-'+pid+'-'+year),data);
-  if(S.uid)fsWrite(db.collection(uPath()+'/properties/'+pid+'/annualBudgets').doc(String(year)),data);
+  if(S.uid)fsWrite(db.collection('properties/'+pid+'/annualBudgets').doc(String(year)),data);
 }
 
 /* ═══════════════════════════════════════════
-   USER PROFILE & TEAM STORAGE
+   USER PROFILE (per-user, tylko nazwa wyświetlana)
 ═══════════════════════════════════════════ */
-function getUserProfile(){return lsGet(uk('profile'),{role:'admin',displayName:''})}
-function saveUserProfile(p){lsSet(uk('profile'),p);if(S.uid)fsWrite(db.collection('users').doc(S.uid),p)}
-function getTeamMembers(){return lsGet(uk('team'),[])}
-function saveTeamMembers(arr){lsSet(uk('team'),arr);if(S.uid)fsWrite(db.collection(uPath()+'/team').doc('members'),{list:arr})}
+function getUserProfile(){return lsGet(uk('profile'),{displayName:''})}
+function saveUserProfile(p){lsSet(uk('profile'),p);if(S.uid)fsWrite(db.collection('profiles').doc(S.uid),p)}
+
+/* ═══════════════════════════════════════════
+   ZESPÓŁ — zarządzanie członkami WYBRANEGO obiektu
+   Członkostwo oparte o email (nie wymaga wcześniejszej rejestracji).
+═══════════════════════════════════════════ */
+function getCurrentProperty(){return S.props.find(function(p){return p.id===S.pid})}
+
+function inviteMemberToProperty(email,role){
+  var prop=getCurrentProperty();
+  if(!prop)return {ok:false,msg:'Brak wybranego obiektu'};
+  var lower=email.trim().toLowerCase();
+  if(!lower||lower.indexOf('@')===-1)return {ok:false,msg:'Nieprawidłowy adres email'};
+  if(lower===prop.ownerEmail)return {ok:false,msg:'To jest właściciel obiektu'};
+  prop.members=prop.members||[{email:prop.ownerEmail,role:'admin'}];
+  prop.memberEmails=prop.memberEmails||[prop.ownerEmail];
+  if(prop.memberEmails.indexOf(lower)!==-1)return {ok:false,msg:'Ta osoba już ma dostęp'};
+  prop.members.push({email:lower,role:role||'manager'});
+  prop.memberEmails.push(lower);
+  savePropItem(prop);
+  return {ok:true};
+}
+
+function removeMemberFromProperty(email){
+  var prop=getCurrentProperty();
+  if(!prop)return;
+  if(email===prop.ownerEmail)return; // nie można usunąć właściciela
+  prop.members=(prop.members||[]).filter(function(m){return m.email!==email});
+  prop.memberEmails=(prop.memberEmails||[]).filter(function(e){return e!==email});
+  savePropItem(prop);
+}
+
+function changeMemberRole(email,newRole){
+  var prop=getCurrentProperty();
+  if(!prop)return;
+  var m=(prop.members||[]).find(function(x){return x.email===email});
+  if(m)m.role=newRole;
+  savePropItem(prop);
+}
 
 /* ═══════════════════════════════════════════
    LINEAR REGRESSION FORECAST
@@ -1205,20 +1242,25 @@ function renderBudget(){
   var yr=S.month.split('-')[0];
   var ab=getAnnualBudget(S.pid,yr);
   var mn=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+  var ro=!canEdit();
+  var roAttr=ro?' disabled':'';
 
   var h='<div class="stitle">📋 Kreator budżetu rocznego <small>'+yr+'</small></div>';
+  if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Tryb tylko do odczytu — nie możesz edytować budżetu rocznego.</div>';
 
   // Quick tools
-  h+='<div class="card" style="margin-bottom:14px"><div class="fsect">Szybkie narzędzia</div>';
-  h+='<div class="ab-apply-row">';
-  h+='<select class="s-input" id="ab-copy-year" style="width:120px"><option value="">Rok...</option>';
-  for(var y2=+yr-1;y2>=+yr-3;y2--)h+='<option value="'+y2+'">'+y2+'</option>';
-  h+='</select>';
-  h+='<button class="btn btn-s btn-sm" onclick="abCopyYear()">📋 Kopiuj z roku</button>';
-  h+='<span style="color:var(--tx3);font-size:.72rem">lub</span>';
-  h+='<input type="number" class="fi" id="ab-pct" placeholder="% zmiana" style="width:100px">';
-  h+='<button class="btn btn-s btn-sm" onclick="abApplyPct()">➕ Zastosuj %</button>';
-  h+='</div></div>';
+  if(!ro){
+    h+='<div class="card" style="margin-bottom:14px"><div class="fsect">Szybkie narzędzia</div>';
+    h+='<div class="ab-apply-row">';
+    h+='<select class="s-input" id="ab-copy-year" style="width:120px"><option value="">Rok...</option>';
+    for(var y2=+yr-1;y2>=+yr-3;y2--)h+='<option value="'+y2+'">'+y2+'</option>';
+    h+='</select>';
+    h+='<button class="btn btn-s btn-sm" onclick="abCopyYear()">📋 Kopiuj z roku</button>';
+    h+='<span style="color:var(--tx3);font-size:.72rem">lub</span>';
+    h+='<input type="number" class="fi" id="ab-pct" placeholder="% zmiana" style="width:100px">';
+    h+='<button class="btn btn-s btn-sm" onclick="abApplyPct()">➕ Zastosuj %</button>';
+    h+='</div></div>';
+  }
 
   h+='<div class="card"><div style="overflow-x:auto">';
   // Header row
@@ -1238,7 +1280,7 @@ function renderBudget(){
     S.outlets.forEach(function(o){
       var k=okey(o.name);
       var v=mData[k]||'';
-      h+='<input type="number" class="ab-input" id="ab-'+mKey+'-'+k+'" value="'+(v||'')+'" placeholder="0" oninput="abUpdateTotal(\''+mKey+'\')">';
+      h+='<input type="number" class="ab-input" id="ab-'+mKey+'-'+k+'" value="'+(v||'')+'" placeholder="0" oninput="abUpdateTotal(\''+mKey+'\')"'+roAttr+'>';
     });
     h+='<div class="ab-total" id="ab-tot-'+mKey+'">'+(rowTotal?rowTotal.toLocaleString('pl-PL'):'—')+'</div>';
     h+='</div></div>';
@@ -1257,7 +1299,7 @@ function renderBudget(){
   h+='<div class="ab-total" style="font-size:.9rem">'+( yearTotal?yearTotal.toLocaleString('pl-PL'):'—')+'</div>';
   h+='</div></div>';
   h+='</div>';
-  h+='<div class="fa"><button class="btn btn-p" onclick="abSave()">💾 Zapisz budżet roczny</button><button class="btn btn-s" onclick="abApplyToMonths()">📤 Przenieś do miesięcy</button></div>';
+  if(!ro)h+='<div class="fa"><button class="btn btn-p" onclick="abSave()">💾 Zapisz budżet roczny</button><button class="btn btn-s" onclick="abApplyToMonths()">📤 Przenieś do miesięcy</button></div>';
   h+='</div>';
   el.innerHTML=h;
 }
@@ -1273,6 +1315,7 @@ function abUpdateTotal(mKey){
 }
 
 function abSave(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   var yr=S.month.split('-')[0];
   var data={};
   var mn=12;
@@ -1290,6 +1333,7 @@ function abSave(){
 }
 
 function abApplyToMonths(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   if(!confirm('Przenieść wartości z kreatora do danych miesięcznych (nadpisze istniejące budżety)?'))return;
   var yr=S.month.split('-')[0];
   var ab=getAnnualBudget(S.pid,yr);
@@ -1353,51 +1397,62 @@ function abApplyPct(){
 function renderTeam(){
   var el=document.getElementById('v-team');if(!el)return;
   var profile=getUserProfile();
-  var members=getTeamMembers();
 
   var h='<div class="stitle">👤 Mój profil</div>';
   h+='<div class="card" style="margin-bottom:16px">';
   h+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">';
   h+='<div style="width:48px;height:48px;border-radius:50%;background:var(--acc-glow);border:2px solid rgba(var(--acc-rgb),.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-family:var(--fd);font-weight:700;color:var(--acc)">'+(S.userEmail||'?').charAt(0).toUpperCase()+'</div>';
   h+='<div><div style="font-size:.9rem;font-weight:600;color:var(--tx)">'+S.userEmail+'</div>';
-  h+='<span class="role-badge '+(profile.role||'admin')+'">'+(profile.role==='admin'?'👑 Administrator':profile.role==='manager'?'👤 Manager':'👁 Viewer')+'</span></div></div>';
-  h+='<div class="fg"><label>Imię i nazwisko (wyświetlane w raportach)</label>';
+  h+='<span style="font-size:.65rem;color:var(--tx3)">Twoje konto</span></div></div>';
+  h+='<div class="fg"><label>Imię i nazwisko (wyświetlane w raportach i notatkach)</label>';
   h+='<input class="fi" id="t-name" value="'+(profile.displayName||'')+'" placeholder="Jan Kowalski"></div>';
-  h+='<div class="fg"><label>Rola</label>';
-  h+='<select class="s-input fi" id="t-role"><option value="admin" '+(profile.role==='admin'?'selected':'')+'>👑 Administrator — pełny dostęp</option><option value="manager" '+(profile.role==='manager'?'selected':'')+'>👤 Manager — może edytować dane</option><option value="viewer" '+(profile.role==='viewer'?'selected':'')+'>👁 Viewer — tylko odczyt</option></select></div>';
   h+='<div class="fa"><button class="btn btn-p" onclick="saveProfile()">💾 Zapisz profil</button></div></div>';
 
-  h+='<div class="stitle">👥 Zespół <small>'+members.length+' osób</small></div>';
+  if(!S.pid){
+    h+='<div class="empty"><p>Wybierz obiekt hotelowy, aby zarządzać jego zespołem.</p></div>';
+    el.innerHTML=h;
+    return;
+  }
+
+  var prop=getCurrentProperty();
+  var members=(prop&&prop.members)||[];
+  var isAdmin=canManageTeam();
+
+  h+='<div class="stitle">👥 Zespół obiektu: '+(prop?prop.name:'') +' <small>'+members.length+' osób</small></div>';
   h+='<div class="card">';
 
-  if(profile.role==='admin'||profile.role==='manager'){
+  if(isAdmin){
     h+='<div class="fsect">Zaproś do zespołu</div>';
-    h+='<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">';
-    h+='<input class="fi" id="t-invite-email" type="email" placeholder="email@hotel.pl" style="flex:1;min-width:180px">';
-    h+='<select class="s-input fi" id="t-invite-role" style="width:150px"><option value="manager">Manager</option><option value="viewer">Viewer</option></select>';
+    h+='<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">';
+    h+='<input class="fi" id="t-invite-email" type="email" placeholder="email@hotel.pl" style="flex:1;min-width:180px" onkeydown="if(event.key===\'Enter\')inviteMember()">';
+    h+='<select class="s-input fi" id="t-invite-role" style="width:150px"><option value="manager">Manager — edycja</option><option value="viewer">Podgląd — tylko odczyt</option></select>';
     h+='<button class="btn btn-p" onclick="inviteMember()">+ Zaproś</button></div>';
-    h+='<div class="hs-tip">Po dodaniu emaila, osoba musi się zarejestrować używając tego adresu. Następnie wyślij im link do aplikacji.</div>';
+    h+='<div class="hs-tip">Osoba z tym adresem email zobaczy ten obiekt zaraz po zalogowaniu — nawet jeśli jeszcze nie ma konta, wystarczy że się zarejestruje tym adresem.</div>';
+  } else {
+    h+='<div class="hs-warn">Tylko administrator (właściciel obiektu) może zapraszać i usuwać członków zespołu.</div>';
   }
 
-  if(members.length){
-    h+='<div style="margin-top:14px">';
-    members.forEach(function(m,i){
-      h+='<div class="team-member">';
-      h+='<div class="team-av">'+m.email.charAt(0).toUpperCase()+'</div>';
-      h+='<div class="team-info"><div class="team-email">'+m.email+'</div><div class="team-role">Dodano: '+m.added+'</div></div>';
-      h+='<span class="role-badge '+m.role+'">'+( m.role==='manager'?'Manager':'Viewer')+'</span>';
-      if(profile.role==='admin')h+='<button class="btn-icon" onclick="removeMember('+i+')" title="Usuń"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>';
-      h+='</div>';
-    });
+  h+='<div style="margin-top:14px">';
+  members.forEach(function(m){
+    var isOwnerRow=m.email===prop.ownerEmail;
+    h+='<div class="team-member">';
+    h+='<div class="team-av">'+m.email.charAt(0).toUpperCase()+'</div>';
+    h+='<div class="team-info"><div class="team-email">'+m.email+(m.email===S.userEmailLower?' (Ty)':'')+'</div><div class="team-role">'+(isOwnerRow?'Właściciel obiektu':'Zaproszony członek')+'</div></div>';
+    if(isAdmin&&!isOwnerRow){
+      h+='<select class="s-input" style="width:110px;font-size:.7rem;padding:4px 6px" onchange="changeMemberRoleUI(\''+m.email+'\',this.value)">';
+      h+='<option value="manager" '+(m.role==='manager'?'selected':'')+'>Manager</option>';
+      h+='<option value="viewer" '+(m.role==='viewer'?'selected':'')+'>Podgląd</option></select>';
+      h+='<button class="btn-icon" onclick="removeMember(\''+m.email+'\')" title="Usuń"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>';
+    } else {
+      h+='<span class="role-badge '+m.role+'">'+(m.role==='admin'?'👑 Admin':m.role==='manager'?'Manager':'Podgląd')+'</span>';
+    }
     h+='</div>';
-  } else {
-    h+='<div class="empty" style="padding:24px"><p style="font-size:.78rem">Brak członków zespołu. Zaproś współpracowników powyżej.</p></div>';
-  }
-  h+='</div>';
+  });
+  h+='</div></div>';
 
   // Backup section
   if(checkAutoBackup()){
-    h+='<div class="backup-remind"><span style="font-size:1.2rem">💾</span><div class="backup-remind-text">Ostatnia kopia zapasowa była ponad tydzień temu. Zalecamy wykonanie kopii JSON.</div><button class="btn btn-s btn-sm" onclick="exportJSON();markBackupDone()">Wykonaj teraz</button></div>';
+    h+='<div class="backup-remind" style="margin-top:16px"><span style="font-size:1.2rem">💾</span><div class="backup-remind-text">Ostatnia kopia zapasowa była ponad tydzień temu. Zalecamy wykonanie kopii JSON.</div><button class="btn btn-s btn-sm" onclick="exportJSON();markBackupDone()">Wykonaj teraz</button></div>';
   }
 
   el.innerHTML=h;
@@ -1405,32 +1460,38 @@ function renderTeam(){
 
 function saveProfile(){
   var name=document.getElementById('t-name')&&document.getElementById('t-name').value||'';
-  var role=document.getElementById('t-role')&&document.getElementById('t-role').value||'admin';
-  saveUserProfile({displayName:name,role:role,email:S.userEmail,uid:S.uid});
+  saveUserProfile({displayName:name,email:S.userEmail,uid:S.uid});
   var av=document.getElementById('user-av');if(av&&name)av.textContent=name.charAt(0).toUpperCase();
   toast('Profil zapisany','ok');haptic(10);
 }
 
 function inviteMember(){
+  if(!canManageTeam()){toast('Brak uprawnień administratora','er');return;}
   var email=document.getElementById('t-invite-email')&&document.getElementById('t-invite-email').value.trim();
-  var role=document.getElementById('t-invite-role')&&document.getElementById('t-invite-role').value;
+  var role=document.getElementById('t-invite-role')&&document.getElementById('t-invite-role').value||'manager';
   if(!email){toast('Wpisz email','er');return;}
-  var members=getTeamMembers();
-  if(members.find(function(m){return m.email===email})){toast('Ten email jest już w zespole','er');return;}
-  members.push({email:email,role:role,added:new Date().toLocaleDateString('pl-PL')});
-  saveTeamMembers(members);
+  var result=inviteMemberToProperty(email,role);
+  if(!result.ok){toast(result.msg,'er');return;}
+  S.props=getProps();
   document.getElementById('t-invite-email').value='';
   renderTeam();
-  toast(email+' dodano do zespołu','ok');haptic(10);
+  toast(email.toLowerCase()+' dodano do zespołu — zobaczy obiekt po zalogowaniu','ok');haptic(10);
 }
 
-function removeMember(idx){
-  if(!confirm('Usunąć tę osobę z zespołu?'))return;
-  var members=getTeamMembers();
-  members.splice(idx,1);
-  saveTeamMembers(members);
+function removeMember(email){
+  if(!canManageTeam()){toast('Brak uprawnień administratora','er');return;}
+  if(!confirm('Usunąć '+email+' z zespołu tego obiektu?'))return;
+  removeMemberFromProperty(email);
+  S.props=getProps();
   renderTeam();
   toast('Usunięto z zespołu','in');
+}
+
+function changeMemberRoleUI(email,role){
+  if(!canManageTeam()){toast('Brak uprawnień administratora','er');return;}
+  changeMemberRole(email,role);
+  S.props=getProps();
+  toast('Rola zmieniona na: '+(role==='manager'?'Manager':'Podgląd'),'ok');
 }
 
 /* ═══════════════════════════════════════════
@@ -1443,15 +1504,20 @@ function openNotesModal(outletName){
   if(!modal)return;
   modal.querySelector('.mtitle').textContent='📝 Notatki — '+outletName;
   var content=modal.querySelector('#notes-content');
+  var ro=!canEdit();
   if(content){
-    var h='<div class="fg" style="margin-bottom:10px"><label>Nowa notatka</label>';
-    h+='<div style="display:flex;gap:8px">';
-    h+='<input class="fi" id="new-note-inp" placeholder="Wpisz notatkę..." style="flex:1" onkeydown="if(event.key===\'Enter\')addNote(\''+outletName+'\')">';
-    h+='<button class="btn btn-p btn-sm" onclick="addNote(\''+outletName+'\')">Dodaj</button></div></div>';
+    var h='';
+    if(!ro){
+      h+='<div class="fg" style="margin-bottom:10px"><label>Nowa notatka</label>';
+      h+='<div style="display:flex;gap:8px">';
+      h+='<input class="fi" id="new-note-inp" placeholder="Wpisz notatkę..." style="flex:1" onkeydown="if(event.key===\'Enter\')addNote(\''+outletName+'\')">';
+      h+='<button class="btn btn-p btn-sm" onclick="addNote(\''+outletName+'\')">Dodaj</button></div></div>';
+    }
     if(notes.length){
       notes.forEach(function(n){
-        h+='<div class="note-item"><div class="note-date">'+n.date+'</div><div class="note-text">'+n.text+'</div>';
-        h+='<button class="note-del" onclick="delNoteUI(\''+outletName+'\',\''+n.id+'\')">✕</button></div>';
+        h+='<div class="note-item"><div class="note-date">'+n.date+(n.author?' · '+n.author:'')+'</div><div class="note-text">'+n.text+'</div>';
+        if(!ro)h+='<button class="note-del" onclick="delNoteUI(\''+outletName+'\',\''+n.id+'\')">✕</button>';
+        h+='</div>';
       });
     } else {
       h+='<div style="font-size:.78rem;color:var(--tx3);text-align:center;padding:20px">Brak notatek dla tego outletu.</div>';
@@ -1462,6 +1528,7 @@ function openNotesModal(outletName){
 }
 
 function addNote(outletName){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   var inp=document.getElementById('new-note-inp');
   var text=inp&&inp.value.trim();
   if(!text){toast('Wpisz treść notatki','er');return;}
@@ -1471,6 +1538,7 @@ function addNote(outletName){
 }
 
 function delNoteUI(outletName,noteId){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   delNote(S.pid,okey(outletName),noteId);
   openNotesModal(outletName);
 }
@@ -1662,7 +1730,9 @@ var S={
   view:'dashboard',
   uid:null,
   userEmail:null,
+  userEmailLower:null,
   pid:null,
+  currentRole:'admin',
   month:(function(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')})(),
   theme:localStorage.getItem('hm-theme')||'obsidian',
   cur:localStorage.getItem('hm-cur')||'PLN',
@@ -1674,29 +1744,55 @@ var S={
 
 /* ═══════════════════════════════════════════
    STORAGE — localStorage (cache) + Firestore (cloud)
-   Klucze namespaced per user: hm-{uid}-*
+   Dane WSPÓŁDZIELONE: properties/{pid} z listą memberEmails.
+   Lokalny cache nadal namespaced per przeglądarkę/user (uk),
+   ale źródłem prawdy jest teraz top-level kolekcja 'properties'.
 ═══════════════════════════════════════════ */
 function uk(suffix){return 'hm-'+(S.uid||'anon')+'-'+suffix}
 function lsGet(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 
-// Firestore base path dla zalogowanego użytkownika
-function uPath(){return 'users/'+S.uid}
+// ── ROLE HELPERS ──
+function getMyRole(prop){
+  if(!prop)return null;
+  if(prop.ownerEmail&&prop.ownerEmail===S.userEmailLower)return 'admin';
+  var m=(prop.members||[]).find(function(x){return x.email===S.userEmailLower});
+  return m?m.role:null;
+}
+function refreshCurrentRole(){
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  S.currentRole=getMyRole(prop)||'viewer';
+  updateRoleBadge();
+}
+function canEdit(){return S.currentRole==='admin'||S.currentRole==='manager'}
+function canManageTeam(){return S.currentRole==='admin'}
+function updateRoleBadge(){
+  var el=document.getElementById('role-badge-sidebar');
+  if(!el)return;
+  if(!S.pid){el.style.display='none';return;}
+  el.style.display='';
+  var labels={admin:'👑 Administrator',manager:'👤 Manager',viewer:'👁 Podgląd'};
+  el.className='role-badge '+S.currentRole;
+  el.textContent=labels[S.currentRole]||S.currentRole;
+}
 
-// ── PROPERTIES ──
+// ── PROPERTIES (top-level, współdzielone przez email) ──
 function getProps(){return lsGet(uk('props'),[])}
 function saveProps(a){lsSet(uk('props'),a)}
 function savePropItem(p){
+  if(!p.ownerEmail)p.ownerEmail=S.userEmailLower;
+  if(!p.memberEmails)p.memberEmails=[p.ownerEmail];
+  if(!p.members)p.members=[{email:p.ownerEmail,role:'admin'}];
   var a=getProps(),i=a.findIndex(function(x){return x.id===p.id});
   if(i>=0)a[i]=p;else a.push(p);
   saveProps(a);
-  if(S.uid) fsWrite(db.collection(uPath()+'/properties').doc(p.id),p);
+  if(S.uid) fsWrite(db.collection('properties').doc(p.id),p);
 }
 function delPropItem(id){
   saveProps(getProps().filter(function(p){return p.id!==id}));
   localStorage.removeItem(uk('out-'+id));
   Object.keys(localStorage).filter(function(k){return k.startsWith(uk('md-'+id+'-'))}).forEach(function(k){localStorage.removeItem(k)});
-  if(S.uid){connBeginWrite();db.collection(uPath()+'/properties').doc(id).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+  if(S.uid){connBeginWrite();db.collection('properties').doc(id).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
 }
 
 // ── OUTLETS ──
@@ -1706,11 +1802,11 @@ function saveOutletItem(pid,o){
   var a=getOutlets(pid),i=a.findIndex(function(x){return x.id===o.id});
   if(i>=0)a[i]=o;else a.push(o);
   saveOutlets(pid,a);
-  if(S.uid) fsWrite(db.collection(uPath()+'/properties/'+pid+'/outlets').doc(o.id),o);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/outlets').doc(o.id),o);
 }
 function delOutletItem(pid,oid){
   saveOutlets(pid,getOutlets(pid).filter(function(o){return o.id!==oid}));
-  if(S.uid){connBeginWrite();db.collection(uPath()+'/properties/'+pid+'/outlets').doc(oid).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+  if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/outlets').doc(oid).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
 }
 
 // ── MONTHLY DATA ──
@@ -1718,7 +1814,7 @@ function getMD(pid,month){return lsGet(uk('md-'+pid+'-'+month),null)}
 function saveMD(pid,month,d){
   d.ts=Date.now();
   lsSet(uk('md-'+pid+'-'+month),d);
-  if(S.uid) fsWrite(db.collection(uPath()+'/properties/'+pid+'/monthlyData').doc(month),d);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/monthlyData').doc(month),d);
 }
 function getAllMD(pid){
   var prefix=uk('md-'+pid+'-'),r={};
@@ -1729,21 +1825,67 @@ function getAllMD(pid){
 }
 
 /* ═══════════════════════════════════════════
+   MIGRACJA starych danych (users/{uid}/properties → properties/{pid})
+   Uruchamiana raz po zalogowaniu — bezpieczna, nie nadpisuje istniejących.
+═══════════════════════════════════════════ */
+function migrateLegacyData(){
+  if(localStorage.getItem('hm-migrated-v2'))return Promise.resolve();
+  var oldPath='users/'+S.uid+'/properties';
+  return db.collection(oldPath).get().then(function(snap){
+    if(snap.empty){localStorage.setItem('hm-migrated-v2','1');return;}
+    var tasks=snap.docs.map(function(d){
+      var oldProp=Object.assign({id:d.id},d.data());
+      var newRef=db.collection('properties').doc(oldProp.id);
+      return newRef.get().then(function(existing){
+        if(existing.exists)return;
+        var newProp={
+          id:oldProp.id,name:oldProp.name,addr:oldProp.addr||'',
+          ownerEmail:S.userEmailLower,memberEmails:[S.userEmailLower],
+          members:[{email:S.userEmailLower,role:'admin'}],
+          createdAt:oldProp.createdAt||new Date().toISOString()
+        };
+        return newRef.set(newProp).then(function(){
+          return db.collection(oldPath+'/'+oldProp.id+'/outlets').get();
+        }).then(function(os){
+          return Promise.all(os.docs.map(function(od){
+            return db.collection('properties/'+oldProp.id+'/outlets').doc(od.id).set(od.data());
+          }));
+        }).then(function(){
+          return db.collection(oldPath+'/'+oldProp.id+'/monthlyData').get();
+        }).then(function(ms){
+          return Promise.all(ms.docs.map(function(md){
+            return db.collection('properties/'+oldProp.id+'/monthlyData').doc(md.id).set(md.data());
+          }));
+        });
+      });
+    });
+    return Promise.all(tasks).then(function(){localStorage.setItem('hm-migrated-v2','1')});
+  }).catch(function(e){console.warn('Migracja pominięta:',e.message)});
+}
+
+/* ═══════════════════════════════════════════
    ŁADOWANIE DANYCH Z FIRESTORE po logowaniu
+   Pobiera WSZYSTKIE obiekty gdzie mój email jest na liście memberEmails
 ═══════════════════════════════════════════ */
 function loadUserDataFromFirestore(){
-  return db.collection(uPath()+'/properties').get().then(function(snap){
+  return db.collection('properties').where('memberEmails','array-contains',S.userEmailLower).get().then(function(snap){
     var props=snap.docs.map(function(d){return Object.assign({id:d.id},d.data())});
     saveProps(props);
     var tasks=props.map(function(p){
-      var t1=db.collection(uPath()+'/properties/'+p.id+'/outlets').get().then(function(s){
+      var t1=db.collection('properties/'+p.id+'/outlets').get().then(function(s){
         var outs=s.docs.map(function(d){return Object.assign({id:d.id},d.data())});
         saveOutlets(p.id,outs);
       });
-      var t2=db.collection(uPath()+'/properties/'+p.id+'/monthlyData').get().then(function(s){
+      var t2=db.collection('properties/'+p.id+'/monthlyData').get().then(function(s){
         s.docs.forEach(function(d){lsSet(uk('md-'+p.id+'-'+d.id),d.data())});
       });
-      return Promise.all([t1,t2]);
+      var t3=db.collection('properties/'+p.id+'/goals').get().then(function(s){
+        s.docs.forEach(function(d){lsSet(uk('goals-'+p.id+'-'+d.id),d.data())});
+      });
+      var t4=db.collection('properties/'+p.id+'/notes').get().then(function(s){
+        s.docs.forEach(function(d){lsSet(uk('notes-'+p.id+'-'+d.id),(d.data()&&d.data().notes)||[])});
+      });
+      return Promise.all([t1,t2,t3,t4]);
     });
     return Promise.all(tasks);
   });
@@ -1913,20 +2055,23 @@ function renderDashboard(){
 
   h+='<div class="stitle">Outlety <small>'+mLabelFull(S.month)+'</small></div><div class="oc-grid">';
   var sorted=S.outlets.slice().sort(function(a,b){return (M[okey(b.name)]&&M[okey(b.name)].a||0)-(M[okey(a.name)]&&M[okey(a.name)].a||0)});
+  var goals=getGoals(S.pid,S.month);
   sorted.forEach(function(o,i){
     var k=okey(o.name),m=M[k]||{},p=m.pct,bw=p!==null?Math.min(p*100,100):0,bc=p===null?'ov':p>=1?'ov':p>=0.75?'wa':'da';
     var sh=T.a>0?(m.a/T.a*100).toFixed(1):0;
+    var goalVal=goals[k];
     h+='<div class="oc"><div class="oc-head"><div class="oc-name">'+o.name+'</div><div class="oc-rank">#'+(i+1)+'</div></div>';
-    h+='<div class="oc-val">'+fmt(m.a||0,true)+'</div><div class="oc-meta">'+sh+'% udziału</div>';
+    h+='<div class="oc-val">'+fmt(m.a||0,true)+'</div><div class="oc-meta">'+sh+'% udziału'+(goalVal?' · <span class="goal-badge">🎯 '+Math.min(100,(m.a/goalVal*100)).toFixed(0)+'% celu</span>':'')+'</div>';
     if(m.b){h+='<div class="prog"><div class="prog-fill '+bc+'" style="width:'+bw+'%"></div></div><div class="prog-lbl"><span>'+(p*100).toFixed(1)+'%</span><span>'+fmt(m.b,true)+'</span></div>';}
     else{h+='<div style="font-size:.65rem;color:var(--tx3)">Brak budżetu</div>';}
     h+='<div class="oc-stats">';
     h+='<div class="oc-stat"><div class="oc-stat-l">Śr./dzień</div><div class="oc-stat-v">'+fmt(m.avg||0,true)+'</div></div>';
     h+='<div class="oc-stat"><div class="oc-stat-l">Prognoza</div><div class="oc-stat-v '+(m.b?(m.proj>=m.b?'pos':'neg'):'')+'">'+fmt(m.proj||0,true)+'</div></div>';
     if(m.b)h+='<div class="oc-stat"><div class="oc-stat-l">Do budżetu</div><div class="oc-stat-v '+(m.rem<=0?'pos':'neg')+'">'+fmt(m.rem,true)+'</div></div>';
+    h+='</div>';
     var noteCount=S.pid?getNotes(S.pid,okey(o.name)).length:0;
-    h+="<div style=\"margin-top:8px\"><button class=\"outlet-note-btn\" onclick=\"openNotesModal(\+o.name+)\">📝 Notatki"+(noteCount?" ("+noteCount+")":"")+"</button></div>";
-    h+='</div></div>';
+    h+='<div style="margin-top:8px"><button class="outlet-note-btn" onclick="openNotesModal(\''+o.name+'\')">📝 Notatki'+(noteCount?' ('+noteCount+')':'')+'</button></div>';
+    h+='</div>';
   });
   h+='</div>';
 
@@ -1956,8 +2101,13 @@ function renderData(){
   var pm=prevM(S.month);
   var yr=S.month.split('-')[0];
   var allD=getAllMD(S.pid);
+  var goals=getGoals(S.pid,S.month);
+  var ro=!canEdit();
+  var roAttr=ro?' disabled':'';
 
   var h='';
+
+  if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Masz uprawnienia tylko do odczytu (rola: Podgląd) — nie możesz edytować danych tego obiektu.</div>';
 
   // ── MONTH PICKER BUTTON ──
   h+='<div class="pick-wrap" style="margin-bottom:12px" id="mp-wrap">';
@@ -1976,10 +2126,10 @@ function renderData(){
   h+='<div class="card" style="margin-bottom:12px">';
   h+='<div class="fsect">⚙️ Parametry</div>';
   h+='<div class="fgrid">';
-  h+='<div class="fg"><label>Dni w miesiącu</label><input type="number" class="fi" id="i-dim" value="'+DIM+'" min="28" max="31"></div>';
+  h+='<div class="fg"><label>Dni w miesiącu</label><input type="number" class="fi" id="i-dim" value="'+DIM+'" min="28" max="31"'+roAttr+'></div>';
   h+='<div class="fg"><label>Zakres dni — dane do dnia</label>';
   h+='<div class="pick-wrap" id="dp-wrap">';
-  h+='<button class="dpick-btn" id="dpick-btn" onclick="toggleDPicker(event)">📅 Od dnia 1 do dnia <strong>'+DR+'</strong></button>';
+  h+='<button class="dpick-btn" id="dpick-btn" onclick="'+(ro?'':'toggleDPicker(event)')+'"'+(ro?' style="opacity:.5;cursor:not-allowed"':'')+'>📅 Od dnia 1 do dnia <strong>'+DR+'</strong></button>';
   h+='<input type="hidden" id="i-dr" value="'+DR+'">';
   h+='<div class="picker-pop" id="dp-pop" style="display:none;min-width:220px">';
   h+='<div class="dp-title" id="dp-title">'+mLabelFull(S.month)+'</div>';
@@ -1989,24 +2139,72 @@ function renderData(){
   h+='</div></div>';
 
   // ── TABELA DANYCH ──
-  h+='<div class="card"><div class="fsect">💰 Budżet i wyniki netto (PLN) <button class="btn btn-g btn-sm" onclick="cpyBudget()">📋 Kopiuj z '+mLabel(pm)+'</button></div>';
+  h+='<div class="card"><div class="fsect">💰 Budżet i wyniki netto (PLN) '+(ro?'':'<button class="btn btn-g btn-sm" onclick="cpyBudget()">📋 Kopiuj z '+mLabel(pm)+'</button>')+'</div>';
   h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="det"><thead><tr><th>Outlet</th><th>Budżet (PLN)</th><th>Wynik (PLN)</th><th>%</th></tr></thead><tbody id="det-rows">';
   S.outlets.forEach(function(o){
     var k=okey(o.name),bv=b[k]||0,av=a[k]||0;
     h+='<tr><td class="lbl">'+o.name+'</td>';
-    h+='<td><input type="number" class="ni" id="b-'+k+'" value="'+(bv||'')+'" placeholder="0" oninput="recalc()"></td>';
-    h+='<td><input type="number" class="ni" id="a-'+k+'" value="'+(av||'')+'" placeholder="0" oninput="recalc()"></td>';
+    h+='<td><input type="number" class="ni" id="b-'+k+'" value="'+(bv||'')+'" placeholder="0" oninput="recalc()"'+roAttr+'></td>';
+    h+='<td><input type="number" class="ni" id="a-'+k+'" value="'+(av||'')+'" placeholder="0" oninput="recalc()"'+roAttr+'></td>';
     h+='<td><span id="p-'+k+'" style="font-size:.75rem">—</span></td></tr>';
   });
   h+='<tr style="background:var(--sur2);font-weight:700"><td class="lbl">RAZEM</td><td><span class="itot" id="tot-b">0 PLN</span></td><td><span class="itot" id="tot-a">0 PLN</span></td><td><span id="tot-p" style="font-size:.75rem">—</span></td></tr>';
   h+='</tbody></table></div>';
-  h+='<div class="fg" style="margin-top:12px"><label>Komentarz</label><textarea class="fi" id="i-com" rows="2" placeholder="np. Remont baru...">'+c+'</textarea></div>';
-  h+='<div class="fa"><button class="btn btn-p" onclick="saveData()">💾 Zapisz</button><button class="btn btn-s" onclick="clearData()">🗑 Wyczyść</button></div></div>';
+  h+='<div class="fg" style="margin-top:12px"><label>Komentarz</label><textarea class="fi" id="i-com" rows="2" placeholder="np. Remont baru..."'+roAttr+'>'+c+'</textarea></div>';
+  if(!ro)h+='<div class="fa"><button class="btn btn-p" onclick="saveData()">💾 Zapisz</button><button class="btn btn-s" onclick="clearData()">🗑 Wyczyść</button></div>';
+  h+='</div>';
+
+  // ── CELE / TARGETY (feature #8) ──
+  h+='<div class="card" style="margin-top:14px"><div class="fsect">🎯 Cele (stretch goals) '+(ro?'':'<button class="btn btn-g btn-sm" onclick="goalsApplyPct()">➕ Ustaw jako budżet +% </button>')+'</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Opcjonalny dodatkowy cel ponad budżet — np. cel rozciągnięty (stretch target) dla zmotywowania zespołu.</p>';
+  if(!ro){
+    h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input type="number" class="fi" id="goals-pct-inp" placeholder="np. 10" style="max-width:100px"><span style="font-size:.75rem;color:var(--tx3)">% ponad budżet dla wszystkich outletów</span></div>';
+  }
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),gv=goals[k]||'',bv=b[k]||0,av=a[k]||0;
+    var pct=gv>0?Math.min(100,(av/gv*100)):null;
+    h+='<div class="goal-item"><div class="goal-outlet">'+o.name+'</div>';
+    h+='<input type="number" class="ni" id="goal-'+k+'" value="'+gv+'" placeholder="brak celu" style="width:110px" oninput="goalsRecalc(\''+k+'\')"'+roAttr+'>';
+    h+='<span class="goal-pct" id="goal-pct-'+k+'">'+(pct!==null?pct.toFixed(0)+'%':'—')+'</span>';
+    h+='</div>';
+  });
+  if(!ro)h+='<div class="fa"><button class="btn btn-p btn-sm" onclick="goalsSaveAll()">💾 Zapisz cele</button></div>';
+  h+='</div>';
 
   el.innerHTML=h;
   recalc();
   buildMGrid();
   buildCal();
+}
+
+/* ── GOALS UI ── */
+function goalsRecalc(k){
+  var gv=parseFloat(document.getElementById('goal-'+k)&&document.getElementById('goal-'+k).value)||0;
+  var av=parseFloat(document.getElementById('a-'+k)&&document.getElementById('a-'+k).value)||0;
+  var pctEl=document.getElementById('goal-pct-'+k);
+  if(pctEl)pctEl.textContent=gv>0?Math.min(100,(av/gv*100)).toFixed(0)+'%':'—';
+}
+function goalsApplyPct(){
+  var pct=parseFloat(document.getElementById('goals-pct-inp')&&document.getElementById('goals-pct-inp').value);
+  if(isNaN(pct)){toast('Wpisz % np. 10','er');return;}
+  S.outlets.forEach(function(o){
+    var k=okey(o.name);
+    var bv=parseFloat(document.getElementById('b-'+k)&&document.getElementById('b-'+k).value)||0;
+    if(bv>0){
+      var goalEl=document.getElementById('goal-'+k);
+      if(goalEl){goalEl.value=Math.round(bv*(1+pct/100));goalsRecalc(k);}
+    }
+  });
+  toast('Cele ustawione jako budżet +'+pct+'%','ok');
+}
+function goalsSaveAll(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  S.outlets.forEach(function(o){
+    var k=okey(o.name);
+    var gv=parseFloat(document.getElementById('goal-'+k)&&document.getElementById('goal-'+k).value)||0;
+    saveGoalItem(S.pid,S.month,k,gv);
+  });
+  toast('Cele zapisane!','ok');haptic(10);
 }
 
 /* ── MONTH PICKER ── */
@@ -2109,6 +2307,7 @@ function recalc(){
 }
 
 function saveData(){
+  if(!canEdit()){toast('Brak uprawnień do edycji (rola: Podgląd)','er');return;}
   var M=parseInt(document.getElementById('i-dim')&&document.getElementById('i-dim').value)||dim(S.month);
   var DR=parseInt(document.getElementById('i-dr')&&document.getElementById('i-dr').value)||M;
   var b={},a={};
@@ -2120,7 +2319,7 @@ function saveData(){
   });
   var c=document.getElementById('i-com')&&document.getElementById('i-com').value||'';
   saveMD(S.pid,S.month,{dim:M,dr:DR,b:b,a:a,c:c});
-  toast('Dane zapisane!','ok');
+  toast('Dane zapisane!','ok');haptic(10);
 }
 
 function cpyBudget(){
@@ -2259,10 +2458,12 @@ function renderProperties(){
   // Left
   h+='<div><div class="stitle">Obiekty <small>'+props.length+'</small></div><div class="pl">';
   props.forEach(function(p){
+    var myRole=getMyRole(p);
+    var isOwner=p.ownerEmail===S.userEmailLower;
     h+='<div class="pi '+(p.id===S.pid?'on':'')+'"><div class="pi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>';
-    h+='<div class="pi-info"><div class="pi-name">'+p.name+'</div><div class="pi-sub">'+(p.addr||'Brak adresu')+'</div></div>';
+    h+='<div class="pi-info"><div class="pi-name">'+p.name+' <span class="role-badge '+myRole+'" style="font-size:.55rem;padding:1px 6px">'+(myRole==='admin'?'Admin':myRole==='manager'?'Manager':'Podgląd')+'</span></div><div class="pi-sub">'+(p.addr||'Brak adresu')+(!isOwner?' · właściciel: '+p.ownerEmail:'')+'</div></div>';
     h+='<div class="pi-acts"><button class="btn-icon" onclick="selProp(\''+p.id+'\')">'+(p.id===S.pid?'✓':'→')+'</button>';
-    h+='<button class="btn-icon" onclick="delProp(\''+p.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>';
+    if(isOwner)h+='<button class="btn-icon" onclick="delProp(\''+p.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>';
     h+='</div></div>';
   });
   h+='</div><button class="btn btn-p" onclick="openM(\'m-prop\')" style="margin-top:8px">+ Nowy obiekt</button></div>';
@@ -2270,13 +2471,17 @@ function renderProperties(){
   h+='<div>';
   if(S.pid){
     var outs=getOutlets(S.pid),cp=props.find(function(p){return p.id===S.pid});
+    var ro=!canEdit();
     h+='<div class="stitle">Outlety: '+(cp?cp.name:'')+' <small>'+outs.length+'</small></div>';
+    if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Tryb tylko do odczytu — nie możesz dodawać ani usuwać outletów.</div>';
     h+='<div class="oc-list">';
-    outs.forEach(function(o){h+='<div class="oc-chip">'+o.name+'<button class="oc-chip-x" onclick="delOut(\''+o.id+'\')">✕</button></div>'});
+    outs.forEach(function(o){h+='<div class="oc-chip">'+o.name+(ro?'':'<button class="oc-chip-x" onclick="delOut(\''+o.id+'\')">✕</button>')+'</div>'});
     h+='</div>';
-    h+='<div style="display:flex;gap:8px;margin-bottom:14px">';
-    h+='<input type="text" class="fi" id="out-inp" placeholder="Nazwa outletu" style="flex:1" onkeydown="if(event.key===\'Enter\')addOut()">';
-    h+='<button class="btn btn-p" onclick="addOut()">+ Dodaj</button></div>';
+    if(!ro){
+      h+='<div style="display:flex;gap:8px;margin-bottom:14px">';
+      h+='<input type="text" class="fi" id="out-inp" placeholder="Nazwa outletu" style="flex:1" onkeydown="if(event.key===\'Enter\')addOut()">';
+      h+='<button class="btn btn-p" onclick="addOut()">+ Dodaj</button></div>';
+    }
   } else {
     h+='<div class="empty"><p>Wybierz lub utwórz obiekt.</p></div>';
   }
@@ -2284,25 +2489,28 @@ function renderProperties(){
   el.innerHTML=h;
 }
 
-function selProp(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);updatePropSel();renderCur()}
+function selProp(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);updatePropSel();refreshCurrentRole();renderCur()}
 function saveProp(){
   var n=document.getElementById('np-name')&&document.getElementById('np-name').value.trim();
   var a=document.getElementById('np-addr')&&document.getElementById('np-addr').value.trim()||'';
   if(!n){toast('Podaj nazwę','er');return;}
-  var p={id:'p'+Date.now(),name:n,addr:a};
+  var p={id:'p'+Date.now(),name:n,addr:a,ownerEmail:S.userEmailLower,memberEmails:[S.userEmailLower],members:[{email:S.userEmailLower,role:'admin'}],createdAt:new Date().toISOString()};
   savePropItem(p);S.props=getProps();
-  if(!S.pid){S.pid=p.id;S.outlets=[];localStorage.setItem('hm-pid',p.id);}
-  updatePropSel();closeM('m-prop');
+  if(!S.pid){S.pid=p.id;S.outlets=[];localStorage.setItem(uk('pid'),p.id);}
+  updatePropSel();refreshCurrentRole();closeM('m-prop');
   document.getElementById('np-name').value='';document.getElementById('np-addr').value='';
   renderCur();toast('Obiekt "'+n+'" utworzony','ok');
 }
 function delProp(id){
+  var prop=S.props.find(function(p){return p.id===id});
+  if(prop&&prop.ownerEmail!==S.userEmailLower){toast('Tylko właściciel może usunąć obiekt','er');return;}
   if(!confirm('Usunąć obiekt i wszystkie jego dane?'))return;
   delPropItem(id);if(S.pid===id){S.pid=null;S.outlets=[];}
   S.props=getProps();if(!S.pid&&S.props.length){S.pid=S.props[0].id;S.outlets=getOutlets(S.pid);}
-  updatePropSel();renderCur();toast('Usunięto','in');
+  updatePropSel();refreshCurrentRole();renderCur();toast('Usunięto','in');
 }
 function addOut(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   var inp=document.getElementById('out-inp'),n=inp&&inp.value.trim();
   if(!n){toast('Podaj nazwę','er');return;}
   var outs=getOutlets(S.pid);
@@ -2311,6 +2519,7 @@ function addOut(){
   renderCur();toast('"'+n+'" dodano','ok');
 }
 function delOut(oid){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   if(!confirm('Usunąć outlet?'))return;
   delOutletItem(S.pid,oid);S.outlets=getOutlets(S.pid);renderCur();toast('Usunięto','in');
 }
@@ -2825,7 +3034,7 @@ function updatePropSel(){
   if(!S.props.length){sel.innerHTML='<option value="">Brak obiektów</option>';return;}
   S.props.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===S.pid)o.selected=true;sel.appendChild(o)});
 }
-function onPropChange(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);renderCur()}
+function onPropChange(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);refreshCurrentRole();renderCur()}
 function onMonthChange(v){S.month=v;renderCur()}
 
 function renderCur(){
@@ -2847,6 +3056,8 @@ var HELP_SECTIONS=[
   {id:'hs-analytics',label:'Analityka'},
   {id:'hs-compare',label:'Porównania'},
   {id:'hs-props',  label:'Obiekty i outlety'},
+  {id:'hs-budget', label:'Budżet roczny'},
+  {id:'hs-team',   label:'Zespół i role'},
   {id:'hs-export', label:'Eksport / Import'},
   {id:'hs-settings',label:'Ustawienia'}
 ];
@@ -2855,7 +3066,7 @@ var HELP_CONTENT=`
 <div class="hs" id="hs-start">
 <div class="hs-h1">🚀 Pierwsze kroki</div>
 <div class="hs-h2">Rejestracja i logowanie</div>
-<div class="hs-p">Przy pierwszym uruchomieniu aplikacji wyświetla się ekran logowania. Wybierz zakładkę <strong>Rejestracja</strong>, wpisz adres email i hasło (minimum 6 znaków) i kliknij <em>Utwórz konto</em>. Każde konto ma osobną, izolowaną bazę danych.</div>
+<div class="hs-p">Przy pierwszym uruchomieniu aplikacji wyświetla się ekran logowania. Wybierz zakładkę <strong>Rejestracja</strong>, wpisz adres email i hasło (minimum 6 znaków) i kliknij <em>Utwórz konto</em>. Twoje konto jest domyślnie prywatne — inni użytkownicy zobaczą Twoje obiekty tylko jeśli ich do nich zaprosisz (patrz sekcja "Zespół i role").</div>
 <div class="hs-example"><strong>Przykład:</strong> email: <em>manager@hotel.pl</em>, hasło: <em>Hotel2026!</em><br>Przy kolejnych wejściach używasz zakładki <strong>Logowanie</strong> z tymi samymi danymi.</div>
 <div class="hs-tip">Jeśli zapomnisz hasła, kliknij <em>Zapomniałem hasła</em> — na Twój email zostanie wysłany link do resetu.</div>
 
@@ -2999,7 +3210,54 @@ var HELP_CONTENT=`
 <div class="hs-warn">Kolejność outletów ma znaczenie — wyniki w tabelach i raportach są wyświetlane w kolejności dodawania. Dodawaj outlety w logicznej kolejności (np. od najważniejszego).</div>
 
 <div class="hs-h2">Usuwanie obiektu</div>
-<div class="hs-p">Kliknij ikonę kosza przy obiekcie. Usunięcie obiektu jest nieodwracalne — wszystkie dane (outlety, dane miesięczne) zostają skasowane. Wykonaj wcześniej kopię JSON przez zakładkę Eksport/Import.</div>
+<div class="hs-p">Kliknij ikonę kosza przy obiekcie. Usunięcie obiektu jest nieodwracalne — wszystkie dane (outlety, dane miesięczne) zostają skasowane. Wykonaj wcześniej kopię JSON przez zakładkę Eksport/Import. <strong>Tylko właściciel obiektu może go usunąć</strong> — zaproszeni członkowie zespołu nie mają tej opcji.</div>
+</div>
+
+<div class="help-divider"></div>
+
+<div class="hs" id="hs-budget">
+<div class="hs-h1">📋 Budżet roczny</div>
+<div class="hs-p">Kreator budżetu rocznego pozwala zaplanować budżet dla wszystkich 12 miesięcy i wszystkich outletów w jednym widoku, zamiast wpisywać je pojedynczo w każdym miesiącu.</div>
+
+<div class="hs-h2">Wypełnianie tabeli</div>
+<div class="hs-p">Każdy wiersz to miesiąc, każda kolumna to outlet. Wpisz planowany budżet netto dla każdej kombinacji miesiąc/outlet. Suma wiersza i kolumny liczy się automatycznie.</div>
+
+<div class="hs-h2">Szybkie narzędzia</div>
+<ul class="hs-ul">
+  <li><strong>Kopiuj z roku</strong> — przenosi budżety z wybranego wcześniejszego roku (np. 2025) do bieżącego roku jako punkt startowy.</li>
+  <li><strong>Zastosuj %</strong> — podnosi lub obniża wszystkie wypełnione już wartości o wskazany procent, np. wpisz <em>10</em> aby zwiększyć cały budżet o 10%, lub <em>-5</em> aby go zmniejszyć.</li>
+</ul>
+<div class="hs-example"><strong>Przykład:</strong> Kopiujesz budżet z 2025 → wszystkie miesiące i outlety wypełnione automatycznie → wpisujesz "8" w polu % zmiana → cały budżet roczny rośnie o 8% względem 2025.</div>
+
+<div class="hs-h2">Przenoszenie do danych miesięcznych</div>
+<div class="hs-p">Kreator sam w sobie jest tylko planem — żeby budżety pojawiły się w zakładce <strong>Wprowadź dane</strong> i na Dashboard, kliknij <strong>📤 Przenieś do miesięcy</strong>. Nadpisze to istniejące budżety we wszystkich miesiącach roku.</div>
+<div class="hs-warn">Przeniesienie do miesięcy nadpisuje istniejące wartości budżetu — wyniki netto (już wprowadzone) pozostają nietknięte.</div>
+</div>
+
+<div class="help-divider"></div>
+
+<div class="hs" id="hs-team">
+<div class="hs-h1">👥 Zespół i role</div>
+<div class="hs-p">Każdy obiekt hotelowy może być współdzielony z innymi osobami — np. właściciel, manager F&amp;B i asystent mogą pracować na tych samych danych jednocześnie, każdy logując się na własne konto.</div>
+
+<div class="hs-h2">Trzy poziomy uprawnień</div>
+<ul class="hs-ul">
+  <li><strong>👑 Administrator</strong> — zawsze osoba, która utworzyła obiekt (właściciel). Pełny dostęp: edycja danych, zarządzanie zespołem, usuwanie obiektu.</li>
+  <li><strong>Manager</strong> — może wprowadzać i edytować dane, dodawać outlety, notatki i budżety. Nie może zapraszać ani usuwać członków zespołu, nie może usunąć obiektu.</li>
+  <li><strong>👁 Podgląd (Viewer)</strong> — widzi wszystkie dane, wykresy i raporty, ale nie może niczego edytować. Idealne dla właściciela hotelu, który chce tylko monitorować wyniki.</li>
+</ul>
+
+<div class="hs-h2">Jak zaprosić kogoś do zespołu</div>
+<div class="hs-p">Przejdź do zakładki <strong>Zespół</strong> (widoczna w menu bocznym), upewnij się że wybrany jest właściwy obiekt hotelowy u góry sidebara, i w sekcji "Zaproś do zespołu" wpisz adres email osoby oraz wybierz jej rolę (Manager lub Podgląd). Kliknij <em>+ Zaproś</em>.</div>
+<div class="hs-tip">Zaproszenie działa natychmiast po stronie serwera — osoba nie musi być wcześniej zarejestrowana. Wystarczy że założy konto (lub zaloguje się, jeśli już je ma) tym samym adresem email, którym ją zaprosiłeś — obiekt pojawi się u niej automatycznie na liście obiektów.</div>
+<div class="hs-example"><strong>Przykład:</strong> Jesteś właścicielem hotelu i chcesz żeby Twój manager F&amp;B wprowadzał dane. W zakładce Zespół wpisujesz jego email <em>manager@hotel.pl</em>, wybierasz rolę <strong>Manager</strong>, klikasz Zaproś. Manager loguje się (lub rejestruje) tym adresem na swoim telefonie — od razu widzi ten sam obiekt, te same outlety i dane co Ty.</div>
+
+<div class="hs-h2">Zmiana roli i usuwanie</div>
+<div class="hs-p">Jako administrator możesz w każdej chwili zmienić rolę członka zespołu (rozwijana lista przy jego adresie email) lub usunąć go z zespołu (ikona kosza). Właściciela obiektu nie można usunąć ani zdegradować.</div>
+
+<div class="hs-h2">Tryb tylko do odczytu</div>
+<div class="hs-p">Gdy Twoja rola to <strong>Podgląd</strong>, wszystkie pola do edycji w aplikacji są zablokowane lub ukryte, a na górze widoku pojawia się żółte ostrzeżenie informujące o trybie tylko do odczytu. Możesz swobodnie przeglądać Dashboard, Analitykę, Porównania i eksportować raporty.</div>
+<div class="hs-warn">Uprawnienia są egzekwowane po stronie aplikacji. Osoba techniczna znająca się na rzeczy mogłaby teoretycznie ominąć blokadę UI i zapisać dane bezpośrednio przez API Firebase — dla większości zespołów hotelowych to nie stanowi realnego zagrożenia, ale nie traktuj roli Viewer jako zabezpieczenia klasy bankowej.</div>
 </div>
 
 <div class="help-divider"></div>
@@ -3320,6 +3578,7 @@ function authLogout(){
 function showApp(user){
   S.uid=user.uid;
   S.userEmail=user.email;
+  S.userEmailLower=(user.email||'').toLowerCase();
   // Sidebar user info
   var av=document.getElementById('user-av');
   if(av)av.textContent=(user.email||'?').charAt(0).toUpperCase();
@@ -3328,9 +3587,11 @@ function showApp(user){
   // Hide login, show app
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').style.display='flex';
-  // Load user data from Firestore, then init app
+  // Migruj stare dane (jednorazowo), potem załaduj wszystkie współdzielone obiekty
   showAuthLoading('Ładowanie danych...');
-  loadUserDataFromFirestore().then(function(){
+  migrateLegacyData().then(function(){
+    return loadUserDataFromFirestore();
+  }).then(function(){
     setConnStatus('online');
     startApp();
   }).catch(function(e){
@@ -3341,7 +3602,7 @@ function showApp(user){
 }
 
 function showLogin(){
-  S.uid=null;S.userEmail=null;S.pid=null;S.outlets=[];S.props=[];
+  S.uid=null;S.userEmail=null;S.userEmailLower=null;S.pid=null;S.outlets=[];S.props=[];
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app').style.display='none';
   document.getElementById('auth-loading').classList.remove('show');
@@ -3358,6 +3619,7 @@ function startApp(){
   else if(S.props.length)S.pid=S.props[0].id;
   if(S.pid)S.outlets=getOutlets(S.pid);
   updatePropSel();
+  refreshCurrentRole();
   var mi=document.getElementById('month-sel');if(mi)mi.value=S.month;
   renderCur();
   fetchRates();
