@@ -849,6 +849,7 @@ textarea.fi{resize:vertical}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- Firebase Compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -2481,12 +2482,24 @@ function renderProperties(){
       h+='<div style="display:flex;gap:8px;margin-bottom:14px">';
       h+='<input type="text" class="fi" id="out-inp" placeholder="Nazwa outletu" style="flex:1" onkeydown="if(event.key===\'Enter\')addOut()">';
       h+='<button class="btn btn-p" onclick="addOut()">+ Dodaj</button></div>';
+      if(outs.length)h+='<button class="btn btn-g btn-sm" onclick="resyncOutletsToCloud()">☁️ Synchronizuj outlety z chmurą</button>';
     }
   } else {
     h+='<div class="empty"><p>Wybierz lub utwórz obiekt.</p></div>';
   }
   h+='</div></div>';
   el.innerHTML=h;
+}
+
+/* Wymuszony re-zapis outletów do Firestore — naprawia sytuację gdy outlety
+   istniały tylko lokalnie i nie zostały zsynchronizowane z chmurą (np. przed migracją). */
+function resyncOutletsToCloud(){
+  if(!S.uid||!S.pid){toast('Brak połączenia lub obiektu','er');return;}
+  var outs=getOutlets(S.pid);
+  if(!outs.length){toast('Brak outletów do synchronizacji','er');return;}
+  outs.forEach(function(o){saveOutletItem(S.pid,o)});
+  toast('Zsynchronizowano '+outs.length+' outletów z chmurą — reszta zespołu zobaczy je po odświeżeniu','ok');
+  haptic([10,5,10]);
 }
 
 function selProp(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);updatePropSel();refreshCurrentRole();renderCur()}
@@ -2560,9 +2573,21 @@ function renderExport(){
   h+='<div id="import-preview" style="margin-top:14px"></div>';
   h+='</div>';
 
+  // ── IMPORT HOSPOS PDF ──
+  h+='<div class="stitle">Import raportu HosPOS (PDF)</div>';
+  h+='<div class="card">';
+  h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj dane bezpośrednio z eksportu HosPOS <strong>"Sprzedaż pozycji menu po rabacie"</strong> (.pdf). Algorytm automatycznie odczyta zakres dat i wynik netto (wiersz <em>Razem</em>) dla każdego punktu, dopasuje go do outletów w tym obiekcie i pominie punkty, których nie ma w aplikacji.</p>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  h+='<button class="btn btn-p" onclick="triggerImportHosPOS()">📄 Importuj raport HosPOS (.pdf)</button>';
+  h+='</div>';
+  h+='<div class="hs-warn" style="margin-top:12px">Raport musi obejmować <strong>jeden miesiąc kalendarzowy</strong>, zaczynając od 1. dnia miesiąca (dokładnie tak, jak domyślnie generuje go HosPOS). Raporty obejmujące dwa miesiące nie mogą być rozdzielone automatycznie — wygeneruj osobny raport dla każdego miesiąca.</div>';
+  h+='<div id="hospos-preview" style="margin-top:14px"></div>';
+  h+='</div>';
+
   // hidden file inputs
   h+='<input type="file" id="fi-json" accept=".json" style="display:none" onchange="handleImportJSON(this)">';
   h+='<input type="file" id="fi-excel" accept=".xlsx,.xls" style="display:none" onchange="handleImportExcel(this)">';
+  h+='<input type="file" id="fi-hospos" accept=".pdf" style="display:none" onchange="handleImportHosPOS(this)">';
 
   el.innerHTML=h;
 }
@@ -2809,6 +2834,238 @@ function downloadExcelTemplate(){
   XLSX.utils.book_append_sheet(wb,ws2,'Instrukcja');
   XLSX.writeFile(wb,'HotelMetrics_szablon.xlsx');
   toast('Szablon Excel pobrany','ok');
+}
+
+/* ═══════════════════════════════════════════
+   IMPORT RAPORTU HosPOS (PDF)
+   Parsuje eksport "Sprzedaż pozycji menu po rabacie"
+   Format: sekcje per outlet, każda kończy się wierszem "Razem <netto> <brutto>"
+═══════════════════════════════════════════ */
+
+// Ręczna mapa aliasów: nazwa w raporcie HosPOS (znormalizowana) → klucz outletu w aplikacji.
+// Dodaj tu kolejne wpisy jeśli nazwy w HosPOS różnią się od nazw outletów w aplikacji.
+var HOSPOS_ALIASES={
+  'SKY_CAFE':'SKY_CAFFE'
+};
+
+function normOutletName(name){
+  return String(name||'').trim().toUpperCase()
+    .replace(/[ĄĆĘŁŃÓŚŹŻ]/g,function(c){return {Ą:'A',Ć:'C',Ę:'E',Ł:'L',Ń:'N',Ó:'O',Ś:'S',Ź:'Z',Ż:'Z'}[c]})
+    .replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+}
+
+// Wyciąga tekst z pliku PDF w formie linii (grupowanie elementów wg wspólnej współrzędnej Y)
+function extractPdfLines(arrayBuffer){
+  return pdfjsLib.getDocument({data:arrayBuffer}).promise.then(function(pdf){
+    var pageTasks=[];
+    for(var i=1;i<=pdf.numPages;i++){
+      pageTasks.push(pdf.getPage(i).then(function(page){
+        return page.getTextContent().then(function(tc){
+          var rows={};
+          tc.items.forEach(function(it){
+            var y=Math.round(it.transform[5]);
+            if(!rows[y])rows[y]=[];
+            rows[y].push({x:it.transform[4],s:it.str});
+          });
+          var ys=Object.keys(rows).map(Number).sort(function(a,b){return b-a});
+          return ys.map(function(y){
+            return rows[y].sort(function(a,b){return a.x-b.x}).map(function(it){return it.s}).join(' ').replace(/\s+/g,' ').trim();
+          });
+        });
+      }));
+    }
+    return Promise.all(pageTasks).then(function(pages){
+      var all=[];
+      pages.forEach(function(lines){all=all.concat(lines)});
+      return all;
+    });
+  });
+}
+
+// Linie do odrzucenia (nagłówki, stopki, numery stron) — nie należą do żadnej sekcji outletu
+function isHosPOSNoiseLine(line){
+  if(!line)return true;
+  if(/^Powrót$/i.test(line))return true;
+  if(/^SPRZEDA/i.test(line))return true;
+  if(/^Zakres od:/i.test(line))return true;
+  if(/^Ilo[śs][ćc]\s+[ŚS]r\./i.test(line))return true;
+  if(/^HosPOS$/i.test(line))return true;
+  if(/^Utworzono:/i.test(line))return true;
+  if(/^Przez:/i.test(line))return true;
+  if(/^\d+$/.test(line))return true; // sama liczba = numer strony
+  return false;
+}
+
+function parseHosPOSDate(str){
+  // format DD.MM.YY
+  var m=str.match(/(\d{2})\.(\d{2})\.(\d{2})/);
+  if(!m)return null;
+  var day=+m[1],mon=+m[2],yr=2000+ +m[3];
+  return {day:day,month:mon,year:yr};
+}
+
+function parsePLNumber(str){
+  return parseFloat(String(str).replace(/\s/g,'').replace(',','.'))||0;
+}
+
+// Główny parser: zwraca {startDate, endDate, outlets:[{name, netto}]} albo rzuca Error z czytelnym komunikatem
+function parseHosPOSReport(lines){
+  var fullText=lines.join('\n');
+  var dateM=fullText.match(/Zakres od:\s*(\d{2}\.\d{2}\.\d{2})\s*-\s*do:\s*(\d{2}\.\d{2}\.\d{2})/);
+  if(!dateM)throw new Error('Nie znaleziono zakresu dat w pliku ("Zakres od: ... do: ..."). Czy to na pewno eksport HosPOS?');
+  var startDate=parseHosPOSDate(dateM[1]);
+  var endDate=parseHosPOSDate(dateM[2]);
+
+  var clean=lines.filter(function(l){return !isHosPOSNoiseLine(l)});
+
+  var outlets=[];
+  var currentName=null;
+  var razemRe=/^Razem\s+([\d.,\s]+?)\s+([\d.,\s]+)\s*$/;
+
+  for(var i=0;i<clean.length;i++){
+    var line=clean[i];
+    if(!line)continue;
+    if(/^Łącznie/i.test(line))break; // koniec danych — dalej tylko suma całościowa
+    if(currentName===null){
+      currentName=line;
+      continue;
+    }
+    var m=line.match(razemRe);
+    if(m){
+      outlets.push({name:currentName,netto:parsePLNumber(m[1])});
+      currentName=null; // następna niepusta linia = nazwa kolejnego outletu
+    }
+  }
+
+  if(!outlets.length)throw new Error('Nie rozpoznano żadnej sekcji outletu w pliku. Sprawdź czy plik nie jest zeskanowanym obrazem (PDF musi zawierać tekst, nie skan).');
+
+  return {startDate:startDate,endDate:endDate,outlets:outlets};
+}
+
+function triggerImportHosPOS(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  if(!S.pid){toast('Wybierz obiekt docelowy w sidebarze','er');return;}
+  document.getElementById('fi-hospos')&&document.getElementById('fi-hospos').click();
+}
+
+var _hosposPending=null; // przechowuje sparsowane dane do czasu potwierdzenia importu
+
+function handleImportHosPOS(input){
+  var file=input.files&&input.files[0];if(!file)return;
+  if(!window.pdfjsLib){toast('Biblioteka PDF nie załadowana','er');input.value='';return;}
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  var preview=document.getElementById('hospos-preview');
+  if(preview)preview.innerHTML='<div style="font-size:.75rem;color:var(--tx3)">⏳ Analizuję plik PDF...</div>';
+
+  var reader=new FileReader();
+  reader.onload=function(e){
+    extractPdfLines(e.target.result).then(function(lines){
+      var report;
+      try{
+        report=parseHosPOSReport(lines);
+      }catch(err){
+        if(preview)preview.innerHTML='<div class="hs-warn">'+err.message+'</div>';
+        toast('Nie udało się odczytać pliku','er');
+        input.value='';
+        return;
+      }
+
+      // Sprawdź czy zakres mieści się w jednym miesiącu kalendarzowym
+      if(report.startDate.month!==report.endDate.month||report.startDate.year!==report.endDate.year){
+        var msg='Ten raport obejmuje więcej niż jeden miesiąc: '+
+          String(report.startDate.day).padStart(2,'0')+'.'+String(report.startDate.month).padStart(2,'0')+'.'+report.startDate.year+
+          ' – '+String(report.endDate.day).padStart(2,'0')+'.'+String(report.endDate.month).padStart(2,'0')+'.'+report.endDate.year+
+          '. HosPOS nie dostarcza podziału dziennego w tym raporcie, więc nie da się automatycznie rozdzielić wyniku między miesiące. '+
+          'Wygeneruj w HosPOS osobny raport dla każdego miesiąca (zakres od 1. dnia do ostatniego dnia danego miesiąca) i zaimportuj je po kolei.';
+        if(preview)preview.innerHTML='<div class="hs-warn">'+msg+'</div>';
+        toast('Raport obejmuje więcej niż jeden miesiąc — pomiń lub podziel','er');
+        input.value='';
+        return;
+      }
+      if(report.startDate.day!==1){
+        toast('Uwaga: raport nie zaczyna się od 1. dnia miesiąca — wynik może być niepełny','in');
+      }
+
+      var targetMonth=report.startDate.year+'-'+String(report.startDate.month).padStart(2,'0');
+      var dimVal=dim(targetMonth);
+      var drVal=report.endDate.day;
+      var existing=getMD(S.pid,targetMonth)||{};
+
+      // Dopasuj outlety z raportu do outletów w aplikacji
+      var appOutletByKey={};
+      S.outlets.forEach(function(o){appOutletByKey[okey(o.name)]=o});
+
+      var matched=[],unmatched=[];
+      report.outlets.forEach(function(ro){
+        var norm=normOutletName(ro.name);
+        var targetKey=HOSPOS_ALIASES[norm]||norm;
+        var appOutlet=appOutletByKey[targetKey];
+        if(appOutlet){
+          matched.push({reportName:ro.name,outletName:appOutlet.name,key:targetKey,netto:ro.netto,oldVal:(existing.a&&existing.a[targetKey])||0});
+        } else {
+          unmatched.push(ro.name);
+        }
+      });
+
+      _hosposPending={targetMonth:targetMonth,dim:dimVal,dr:drVal,matched:matched,existing:existing};
+
+      // Build preview UI
+      var h='<div class="card">';
+      h+='<div class="fsect">📋 Podgląd importu — '+mLabelFull(targetMonth)+' <small style="font-weight:400;color:var(--tx3)">dane do dnia '+drVal+'</small></div>';
+      if(matched.length){
+        h+='<div class="tbl-wrap"><table><thead><tr><th>Punkt (raport)</th><th>Outlet w aplikacji</th><th>Obecna wartość</th><th>Nowa wartość</th></tr></thead><tbody>';
+        matched.forEach(function(m){
+          var changed=Math.round(m.oldVal*100)!==Math.round(m.netto*100);
+          h+='<tr><td>'+m.reportName+'</td><td><strong>'+m.outletName+'</strong></td><td>'+fmt(m.oldVal)+'</td>';
+          h+='<td class="'+(changed?'td-acc':'')+'">'+fmt(m.netto)+'</td></tr>';
+        });
+        h+='</tbody></table></div>';
+      } else {
+        h+='<div class="hs-warn">Żaden punkt z raportu nie pasuje do outletów dodanych w tym obiekcie — sprawdź nazwy outletów lub dodaj brakujące w zakładce Obiekty i outlety.</div>';
+      }
+      if(unmatched.length){
+        h+='<div style="margin-top:10px;font-size:.72rem;color:var(--tx3)">Pominięto (brak takiego outletu w aplikacji): '+unmatched.join(', ')+'</div>';
+      }
+      if(matched.length){
+        h+='<div class="fa"><button class="btn btn-p" onclick="confirmHosPOSImport()">✅ Zatwierdź import</button><button class="btn btn-s" onclick="cancelHosPOSImport()">Anuluj</button></div>';
+      }
+      h+='</div>';
+      if(preview)preview.innerHTML=h;
+      input.value='';
+    }).catch(function(err){
+      if(preview)preview.innerHTML='<div class="hs-warn">Błąd odczytu PDF: '+err.message+'</div>';
+      toast('Błąd odczytu pliku PDF','er');
+      input.value='';
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function confirmHosPOSImport(){
+  if(!_hosposPending){toast('Brak danych do zatwierdzenia','er');return;}
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var p=_hosposPending;
+  var data=p.existing||{};
+  data.dim=data.dim||p.dim;
+  data.dr=p.dr; // zawsze aktualizujemy zakres dni do tego z raportu
+  data.b=data.b||{};
+  data.a=data.a||{};
+  data.c=data.c||'';
+  p.matched.forEach(function(m){data.a[m.key]=m.netto});
+  saveMD(S.pid,p.targetMonth,data);
+  toast('Zaimportowano '+p.matched.length+' outletów za '+mLabelFull(p.targetMonth),'ok');
+  haptic([10,5,10]);
+  var preview=document.getElementById('hospos-preview');
+  if(preview)preview.innerHTML='<div class="hs-tip">Import zakończony. Przejdź do Dashboard lub Wprowadź dane, aby zobaczyć wyniki.</div>';
+  _hosposPending=null;
+  if(S.view==='dashboard'||S.view==='data')renderCur();
+}
+
+function cancelHosPOSImport(){
+  _hosposPending=null;
+  var preview=document.getElementById('hospos-preview');
+  if(preview)preview.innerHTML='';
 }
 
 function csvMonth(){
