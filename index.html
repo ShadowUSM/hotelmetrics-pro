@@ -111,6 +111,8 @@ input,select,textarea{font-family:var(--fb)}
 
 /* ═══ SIDEBAR CONTENT ═══ */
 .s-logo{padding:16px 16px 12px;border-bottom:1px solid var(--brd);flex-shrink:0}
+.s-ver{display:inline-flex;align-items:center;gap:4px;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:var(--acc);background:var(--acc-glow);border:1px solid rgba(var(--acc-rgb),.25);border-radius:20px;padding:2px 9px;margin-bottom:8px;cursor:pointer;transition:all .15s;font-family:var(--fb)}
+.s-ver:hover{background:rgba(var(--acc-rgb),.2)}
 .s-logo h1{font-size:1.05rem;letter-spacing:.05em;color:var(--acc);line-height:1.2}
 .s-logo span{font-size:.62rem;color:var(--tx3);font-family:var(--fb);letter-spacing:.1em;text-transform:uppercase}
 .s-sect{padding:10px 14px 4px;font-size:.6rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.12em}
@@ -647,6 +649,18 @@ textarea.fi{resize:vertical}
 .info-box strong{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);display:block;margin-bottom:4px}
 .info-box span{font-size:.85rem;color:var(--tx);font-weight:600}
 .help-divider{height:1px;background:var(--brd);margin:28px 0}
+
+/* ── CHANGELOG ── */
+.changelog-wrap{max-height:280px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:4px}
+.cl-entry{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--brd)}
+.cl-entry:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.cl-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.cl-ver{font-family:var(--fd);font-weight:800;font-size:.85rem;color:var(--acc)}
+.cl-ver.cl-current{position:relative}
+.cl-badge-new{font-size:.55rem;font-weight:700;letter-spacing:.06em;background:var(--acc);color:var(--bg);padding:1px 6px;border-radius:10px;text-transform:uppercase}
+.cl-date{font-size:.65rem;color:var(--tx3)}
+.cl-list{margin:0;padding-left:18px}
+.cl-list li{font-size:.76rem;color:var(--tx2);line-height:1.6;margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -732,6 +746,7 @@ textarea.fi{resize:vertical}
   <!-- SIDEBAR -->
   <nav id="sidebar">
     <div class="s-logo">
+      <div class="s-ver" id="s-ver" onclick="showAbout()" title="Kliknij, aby zobaczyć historię zmian"></div>
       <h1>HotelMetrics<br>Pro</h1>
       <span>F&amp;B Analytics</span>
     </div>
@@ -915,13 +930,13 @@ textarea.fi{resize:vertical}
 
 <!-- ABOUT MODAL -->
 <div class="moverlay" id="m-about">
-<div class="modal">
+<div class="modal" style="max-width:560px">
   <div class="mtitle">ℹ️ O programie</div>
   <button class="mclose" onclick="closeM('m-about')">✕</button>
   <div class="info-grid">
-    <div class="info-box"><strong>Wersja</strong><span>1.0.0</span></div>
-    <div class="info-box"><strong>Data wydania</strong><span>2026</span></div>
-    <div class="info-box"><strong>Platforma</strong><span>PWA / Web</span></div>
+    <div class="info-box"><strong>Wersja</strong><span id="about-ver">—</span></div>
+    <div class="info-box"><strong>Data wydania</strong><span id="about-date">—</span></div>
+    <div class="info-box"><strong>Platforma</strong><span>PWA / Web / Android</span></div>
     <div class="info-box"><strong>Baza danych</strong><span>Firebase / Firestore</span></div>
     <div class="info-box"><strong>Kursy walut</strong><span>NBP API</span></div>
     <div class="info-box"><strong>Offline</strong><span>localStorage cache</span></div>
@@ -929,7 +944,10 @@ textarea.fi{resize:vertical}
   <div class="hs-p" style="margin-top:12px"><strong style="color:var(--tx)">HotelMetrics Pro</strong> to aplikacja do analizy wyników finansowych działów F&amp;B (Food &amp; Beverage) w obiektach hotelowych. Umożliwia śledzenie wyników netto, realizacji budżetu i prognozowanie dla wielu outletów.</div>
   <div class="hs-p">Aplikacja działa w przeglądarce jako PWA — można ją zainstalować na telefonie lub komputerze. Dane są synchronizowane przez Firebase, co umożliwia pracę na wielu urządzeniach.</div>
   <div class="divider"></div>
-  <div class="hs-p" style="font-size:.72rem;color:var(--tx3)">Biblioteki: Chart.js 4.4 · jsPDF 2.5 · SheetJS 0.18 · Firebase 9.23 · PWA Service Worker</div>
+  <div class="fsect" style="margin-bottom:8px">📋 Historia zmian (Changelog)</div>
+  <div id="about-changelog" class="changelog-wrap"></div>
+  <div class="divider"></div>
+  <div class="hs-p" style="font-size:.72rem;color:var(--tx3)">Biblioteki: Chart.js 4.4 · jsPDF 2.5 · SheetJS 0.18 · pdf.js 3.11 · Firebase 9.23 · PWA Service Worker</div>
   <div class="fa"><button class="btn btn-s" onclick="closeM('m-about')">Zamknij</button><button class="btn btn-p" onclick="closeM('m-about');showHelp()">📖 Otwórz instrukcję</button></div>
 </div>
 </div>
@@ -2037,6 +2055,84 @@ function fsWrite(ref,data){
   connBeginWrite();
   ref.set(data).then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});
 }
+
+/* ═══════════════════════════════════════════
+   WERSJA APLIKACJI I CHANGELOG
+═══════════════════════════════════════════ */
+var APP_VERSION='2.4.0';
+var APP_BUILD_DATE='2026-08-09';
+
+// Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
+// powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
+var CHANGELOG=[
+  {v:'2.4.0',date:'2026-08-09',changes:[
+    'Numeracja wersji aplikacji widoczna w sidebarze i w zakładce „O programie"',
+    'Pełny Changelog dostępny w aplikacji (O programie)'
+  ]},
+  {v:'2.3.0',date:'2026-08-08',changes:[
+    'Baner „Dostępna nowa wersja" z przyciskiem wymuszonego odświeżenia po każdej aktualizacji na serwerze',
+    'Automatyczne wykrywanie zmian pliku aplikacji bez potrzeby ręcznego numerowania'
+  ]},
+  {v:'2.2.0',date:'2026-08-05',changes:[
+    'Wykrywanie anomalii — ostrzeżenie przy zapisie wartości znacząco odbiegającej od historycznej średniej outletu',
+    'Gesty swipe na kartach outletów (Dashboard): w prawo — szybki trend 6 mies., w lewo — notatki',
+    'Globalna wyszukiwarka (outlety, miesiące, notatki) dostępna z topbara'
+  ]},
+  {v:'2.1.0',date:'2026-07-23',changes:[
+    'Automatyczny import raportów sprzedaży HosPOS (PDF) z rozpoznawaniem outletów i podglądem przed zapisem',
+    'Ochrona przed importem raportu obejmującego więcej niż jeden miesiąc kalendarzowy'
+  ]},
+  {v:'2.0.0',date:'2026-05-28',changes:[
+    'Współdzielenie danych obiektu między wieloma kontami (zespół)',
+    'Role użytkowników: Administrator, Manager, Podgląd — z wymuszeniem uprawnień w całej aplikacji',
+    'Zapraszanie członków zespołu po adresie email, zarządzanie rolami',
+    'Kreator budżetu rocznego (12 miesięcy × outlety, kopiowanie z poprzedniego roku, zmiana o %)',
+    'Cele (stretch goals) per outlet z widoczną realizacją na Dashboard',
+    'Ranking outletów z podium i heatmapa dzienna miesiąca',
+    'Automatyczny tryb ciemny/jasny wg ustawień systemu, animacje przejść, wibracje (haptyka)',
+    'Przypomnienie o kopii zapasowej po tygodniu bez eksportu'
+  ]},
+  {v:'1.9.0',date:'2026-05-20',changes:[
+    'Aplikacja Android (TWA) — instalacja jako natywna aplikacja bez paska przeglądarki'
+  ]},
+  {v:'1.8.0',date:'2026-05-20',changes:[
+    'Wskaźnik statusu połączenia z serwerem Firebase w sidebarze',
+    'Baner instalacji PWA z instrukcją dla iOS i natywnym oknem instalacji na Androidzie'
+  ]},
+  {v:'1.7.0',date:'2026-05-17',changes:[
+    'Nowa ikona aplikacji (Skyline)',
+    'Wbudowana, przewijana instrukcja obsługi z nawigacją do sekcji',
+    'Sekcja „O programie" z informacjami o aplikacji'
+  ]},
+  {v:'1.6.0',date:'2026-05-14',changes:[
+    'Logowanie i rejestracja (Firebase Authentication)',
+    'Synchronizacja danych w chmurze (Firestore) — dane dostępne na wielu urządzeniach'
+  ]},
+  {v:'1.5.0',date:'2026-05-05',changes:[
+    'Aplikacja jako PWA — instalacja na ekranie głównym telefonu, działanie offline (Service Worker)'
+  ]},
+  {v:'1.4.0',date:'2026-04-28',changes:[
+    'Zakładka Eksport/Import: kopia zapasowa całej bazy danych (JSON)',
+    'Import danych z pliku Excel (format HosPOS oraz uniwersalny szablon)',
+    'Usunięcie danych demonstracyjnych z aplikacji'
+  ]},
+  {v:'1.3.0',date:'2026-04-25',changes:[
+    'Wybór miesiąca przez rozwijaną listę z podglądem lat',
+    'Wybór zakresu dni przez mini kalendarz zamiast ręcznego wpisywania liczby'
+  ]},
+  {v:'1.2.0',date:'2026-04-22',changes:[
+    'Poprawne wyświetlanie polskich znaków oraz symbolu PLN w eksportach PDF/CSV',
+    'Czytelniejsza, bardziej kontrastowa kolorystyka raportu PDF dla managera'
+  ]},
+  {v:'1.1.0',date:'2026-04-20',changes:[
+    'Pełna responsywność na telefonie — dolna nawigacja, poprawki szerokości i przewijania',
+    'Uproszczenie aplikacji do jednego pliku HTML z lokalnym zapisem danych'
+  ]},
+  {v:'1.0.0',date:'2026-04-18',changes:[
+    'Pierwsza wersja aplikacji: Dashboard, wprowadzanie danych, analityka, porównania MoM/YoY/YTD',
+    'Obsługa wielu obiektów hotelowych i outletów, eksport CSV/PDF, 4 motywy kolorystyczne'
+  ]}
+];
 
 /* ═══════════════════════════════════════════
    FIREBASE CONFIG
@@ -3723,7 +3819,9 @@ var HELP_SECTIONS=[
   {id:'hs-budget', label:'Budżet roczny'},
   {id:'hs-team',   label:'Zespół i role'},
   {id:'hs-export', label:'Eksport / Import'},
-  {id:'hs-settings',label:'Ustawienia'}
+  {id:'hs-search', label:'Wyszukiwarka'},
+  {id:'hs-settings',label:'Ustawienia'},
+  {id:'hs-updates',label:'Aktualizacje i wersja'}
 ];
 
 var HELP_CONTENT=`
@@ -3776,7 +3874,15 @@ var HELP_CONTENT=`
 </ul>
 
 <div class="hs-h2">Karty outletów</div>
-<div class="hs-p">Każdy outlet wyświetlany jest jako karta z: wynikiem netto, udziałem % w całości, paskiem realizacji budżetu (zielony ≥100%, żółty ≥75%, czerwony &lt;75%), prognozą i kwotą do budżetu.</div>
+<div class="hs-p">Każdy outlet wyświetlany jest jako karta z: wynikiem netto, udziałem % w całości, paskiem realizacji budżetu (zielony ≥100%, żółty ≥75%, czerwony &lt;75%), prognozą i kwotą do budżetu. Jeśli dla outletu ustawiono cel (patrz sekcja Wprowadź dane), na karcie pojawia się dodatkowo znacznik 🎯 z procentem realizacji celu.</div>
+
+<div class="hs-h2">Gesty swipe (telefon)</div>
+<div class="hs-p">Kartę outletu można przesunąć palcem w bok, aby szybko wykonać akcję bez wchodzenia w osobny widok:</div>
+<ul class="hs-ul">
+  <li><strong>Przesunięcie w prawo</strong> — otwiera mini-wykres trendu ostatnich 6 miesięcy (wynik vs budżet) dla tego outletu.</li>
+  <li><strong>Przesunięcie w lewo</strong> — otwiera bezpośrednio notatki tego outletu.</li>
+</ul>
+<div class="hs-tip">Pionowe przewijanie strony działa normalnie — gest jest rozpoznawany tylko przy wyraźnie poziomym ruchu palca.</div>
 
 <div class="hs-h2">Tabela zbiorcza</div>
 <div class="hs-p">Poniżej kart wyświetlana jest tabela wszystkich outletów z kompletnym zestawem wskaźników w jednym miejscu.</div>
@@ -3794,6 +3900,13 @@ var HELP_CONTENT=`
 <div class="hs-h2">Zakres dni — mini kalendarz</div>
 <div class="hs-p">Kliknij przycisk <em>Od dnia 1 do dnia X</em>. Otworzy się mini kalendarz bieżącego miesiąca. Kliknij dzień do którego masz dane (zazwyczaj wczorajszy). Zakres oznacza sumę narastającą od 1-go do wybranego dnia.</div>
 <div class="hs-example"><strong>Przykład:</strong> Masz dane do 18 marca. Klikasz „18" w kalendarzu → program liczy średnie i prognozy bazując na 18 dniach, a prognozuje na 31 dni.</div>
+
+<div class="hs-h2">Wykrywanie anomalii przy zapisie</div>
+<div class="hs-p">Po kliknięciu <strong>💾 Zapisz</strong> aplikacja porównuje wpisaną średnią dzienną outletu z jego typową średnią z poprzednich miesięcy. Jeśli wartość jest znacząco wyższa (≥150%) lub niższa (≤60%) niż zwykle, pojawia się okno ostrzegawcze z konkretnymi liczbami — pozwala złapać pomyłkę (np. dodatkową cyfrę) zanim trafi do raportu.</div>
+<div class="hs-tip">Masz dwa wyjścia: <em>Zapisz mimo to</em> (jeśli wartość jest prawidłowa, np. był wyjątkowo dobry dzień) lub <em>Popraw dane</em>, aby wrócić do formularza. Ostrzeżenie pojawia się dopiero gdy jest co najmniej 2 miesiące danych historycznych do porównania.</div>
+
+<div class="hs-h2">Cele (stretch goals)</div>
+<div class="hs-p">Poniżej tabeli budżetu znajduje się sekcja <strong>🎯 Cele</strong> — opcjonalna, dodatkowa wartość ponad budżet dla każdego outletu (np. cel rozciągnięty motywujący zespół). Przycisk <em>Ustaw jako budżet +%</em> pozwala szybko wygenerować cele jako budżet powiększony o wskazany procent. Realizacja celu jest widoczna na kartach outletów na Dashboard.</div>
 
 <div class="hs-h2">Tabela budżet i wynik netto</div>
 <div class="hs-p">Dla każdego outletu wpisz dwie wartości w PLN:</div>
@@ -3815,27 +3928,36 @@ var HELP_CONTENT=`
 
 <div class="hs" id="hs-analytics">
 <div class="hs-h1">📈 Analityka</div>
-<div class="hs-p">Zakładka Analityka pokazuje dane wybranego miesiąca w formie graficznej i tabelarycznej.</div>
+<div class="hs-p">Zakładka Analityka pokazuje dane wybranego miesiąca w czterech widokach dostępnych jako zakładki: <strong>Wykresy</strong>, <strong>Ranking</strong>, <strong>Heatmapa</strong> i <strong>Co jeśli?</strong>.</div>
 
 <div class="hs-h2">Wskaźniki u góry</div>
 <ul class="hs-ul">
   <li><strong>Suma YTD</strong> — łączny wynik od stycznia do wybranego miesiąca (bieżącego roku)</li>
   <li><strong>Momentum MoM</strong> — zmiana procentowa vs poprzedni miesiąc (▲ wzrost / ▼ spadek)</li>
   <li><strong>Lider</strong> — outlet z najwyższym wynikiem netto w wybranym miesiącu</li>
+  <li><strong>Prognoza kolejnego miesiąca</strong> — szacunek oparty o regresję liniową z danych historycznych, ze wskaźnikiem trendu (▲ wzrost / ▼ spadek / → stabilnie). Pojawia się gdy jest wystarczająco dużo danych z poprzednich miesięcy.</li>
 </ul>
 
-<div class="hs-h2">Wykresy (4 sztuki)</div>
+<div class="hs-h2">Zakładka: Wykresy</div>
 <ul class="hs-ul">
-  <li><strong>Wyniki vs Budżet</strong> — zgrupowany wykres słupkowy: szary słupek = budżet, kolorowy = wynik. Pozwala na jednym rzut oka zobaczyć które outlety nadrabiają lub zalegają za planem.</li>
+  <li><strong>Wyniki vs Budżet</strong> — zgrupowany wykres słupkowy: szary słupek = budżet, kolorowy = wynik.</li>
   <li><strong>Udział outletów</strong> — wykres pierścieniowy pokazujący procentowy udział każdego outletu w łącznym wyniku miesiąca.</li>
   <li><strong>% realizacji budżetu</strong> — poziomy wykres słupkowy: zielony ≥100%, żółty ≥75%, czerwony &lt;75%.</li>
-  <li><strong>Trend miesięczny</strong> — linia trendu łącznego wyniku netto przez wszystkie dostępne miesiące. Pokazuje sezonowość i dynamikę wzrostu.</li>
+  <li><strong>Trend miesięczny</strong> — linia trendu łącznego wyniku netto przez wszystkie dostępne miesiące.</li>
 </ul>
 <div class="hs-tip">Wykresy uwzględniają wybraną walutę (PLN/EUR/USD). Zmiana waluty w sidebarze natychmiast przelicza wszystkie wartości.</div>
-
-<div class="hs-h2">Tabela prognoz</div>
-<div class="hs-p">Tabela pokazuje dla każdego outletu: wynik do dziś, średnią dzienną, prognozę końca miesiąca, budżet, stosunek prognozy do budżetu i break-even day.</div>
+<div class="hs-p">Poniżej wykresów znajduje się tabela prognoz: wynik do dziś, średnia dzienna, prognoza końca miesiąca, budżet, stosunek prognozy do budżetu i break-even day.</div>
 <div class="hs-example"><strong>Break-even day = 25</strong> oznacza, że przy obecnej średniej dziennej budżet zostanie wykonany 25. dnia miesiąca. Jeśli miesiąc ma 31 dni — zostaje 6 dni na nadwykonanie planu.</div>
+
+<div class="hs-h2">Zakładka: Ranking</div>
+<div class="hs-p">Podium outletów posortowanych wg wyniku netto — trzy pierwsze miejsca oznaczone medalami 🥇🥈🥉, każdy wiersz pokazuje pasek udziału w wyniku i zmianę procentową względem poprzedniego miesiąca.</div>
+
+<div class="hs-h2">Zakładka: Heatmapa</div>
+<div class="hs-p">Kalendarz wybranego miesiąca z kolorami intensywności — zielony oznacza dni z wynikiem powyżej typowej średniej, czerwony poniżej. Dni bez jeszcze wprowadzonych danych są wyszarzone. Najedź (lub dotknij) na dzień, aby zobaczyć szacunkową wartość.</div>
+
+<div class="hs-h2">Zakładka: Co jeśli?</div>
+<div class="hs-p">Symulator scenariuszy — suwak przy każdym outlecie pozwala „na sucho" sprawdzić, jak zmiana jego wyniku o określony procent wpłynęłaby na łączną prognozę miesiąca. Zmiany są tylko podglądowe, niczego nie zapisują.</div>
+<div class="hs-example"><strong>Przykład:</strong> Przesuwasz suwak przy FURU na +15% → aplikacja natychmiast przelicza i pokazuje nową prognozę łączną oraz różnicę względem obecnej.</div>
 </div>
 
 <div class="help-divider"></div>
@@ -3956,6 +4078,30 @@ var HELP_CONTENT=`
   <li><strong>Format B — szablon</strong>: pobierz szablon przyciskiem <em>📋 Pobierz szablon Excel</em>, wypełnij kolumny (Outlet, Budżet, Wynik, Dni, Zakres) i zaimportuj.</li>
 </ul>
 <div class="hs-warn">Przed importem Excel wybierz docelowy obiekt w sidebarze. Import doda brakujące outlety automatycznie.</div>
+
+<div class="hs-h2">Import raportu HosPOS (PDF)</div>
+<div class="hs-p">Przycisk <strong>📄 Importuj raport HosPOS (.pdf)</strong> pozwala wczytać bezpośrednio eksport z systemu POS „Sprzedaż pozycji menu po rabacie". Aplikacja automatycznie:</div>
+<ul class="hs-ul">
+  <li>odczytuje zakres dat z nagłówka raportu,</li>
+  <li>odnajduje wynik netto (wiersz <em>Razem</em>) na końcu sekcji każdego punktu sprzedaży — ignorując wewnętrzne podsumowania kategorii,</li>
+  <li>dopasowuje nazwę punktu z raportu do outletu dodanego w aplikacji (np. drobne różnice pisowni jak „Sky Cafe" → „Sky Caffe"),</li>
+  <li>pomija punkty, których nie ma na liście outletów tego obiektu (np. Spa, Kantyna).</li>
+</ul>
+<div class="hs-p">Przed zapisem zawsze widoczny jest <strong>podgląd</strong> — tabela z porównaniem starej i nowej wartości dla każdego dopasowanego outletu. Import wypełnia tylko wynik netto; budżet trzeba wpisać ręcznie.</div>
+<div class="hs-warn">Raport musi obejmować jeden miesiąc kalendarzowy, zaczynając od 1. dnia. Raport obejmujący dwa miesiące zostanie odrzucony z komunikatem — wygeneruj osobny raport dla każdego miesiąca w systemie POS.</div>
+</div>
+
+<div class="help-divider"></div>
+
+<div class="hs" id="hs-search">
+<div class="hs-h1">🔍 Wyszukiwarka</div>
+<div class="hs-p">Ikona lupy w górnym pasku (topbar) otwiera panel globalnego wyszukiwania, przeszukujący jednocześnie kilka rodzajów danych w wybranym obiekcie.</div>
+<ul class="hs-ul">
+  <li><strong>Miesiące</strong> — wpisz nazwę miesiąca (np. „marzec" lub „2026-03"), aby od razu przejść do Dashboard tego miesiąca.</li>
+  <li><strong>Outlety</strong> — wpisz fragment nazwy outletu, aby przejść do wprowadzania jego danych.</li>
+  <li><strong>Notatki</strong> — wpisz fragment treści notatki, aby otworzyć notatki właściwego outletu.</li>
+</ul>
+<div class="hs-tip">Wyszukiwarka ignoruje polskie znaki przy porównywaniu, więc „lacz" znajdzie też „łącz".</div>
 </div>
 
 <div class="help-divider"></div>
@@ -3987,8 +4133,22 @@ var HELP_CONTENT=`
 <div class="hs-tip">Po instalacji aplikacja działa jak natywna — bez paska adresu przeglądarki, z ikoną na ekranie głównym.</div>
 
 <div class="hs-h2">Synchronizacja Firebase</div>
-<div class="hs-p">Dane są przechowywane w Google Firebase Firestore. Każdy zalogowany użytkownik ma izolowaną przestrzeń danych — nikt inny nie ma do nich dostępu. Synchronizacja odbywa się automatycznie — zmiany wprowadzone na telefonie są natychmiast dostępne na komputerze i odwrotnie.</div>
+<div class="hs-p">Dane są przechowywane w Google Firebase Firestore. Dostęp do obiektu hotelowego mają wyłącznie Ty oraz osoby, które zaprosisz w zakładce Zespół (patrz sekcja „Zespół i role") — nikt inny nie ma do nich wglądu. Synchronizacja odbywa się automatycznie — zmiany wprowadzone na telefonie są natychmiast dostępne na komputerze i u innych członków zespołu.</div>
 <div class="hs-p">Aplikacja ma włączone <strong>offline persistence</strong> — dane są lokalnie cachowane, więc można pracować bez internetu. Po ponownym połączeniu zmiany synchronizują się automatycznie.</div>
+</div>
+
+<div class="help-divider"></div>
+
+<div class="hs" id="hs-updates">
+<div class="hs-h1">🔄 Aktualizacje i wersja</div>
+<div class="hs-p">Numer aktualnie zainstalowanej wersji aplikacji widoczny jest na małej plakietce nad napisem „HotelMetrics Pro" w górnej części sidebara. Kliknięcie w nią otwiera pełną historię zmian.</div>
+
+<div class="hs-h2">Baner nowej wersji</div>
+<div class="hs-p">Aplikacja co kilka minut w tle sprawdza, czy na serwerze pojawiła się nowsza wersja pliku. Gdy tak się stanie, na górze ekranu pojawia się baner <strong>„Dostępna nowa wersja aplikacji"</strong> z przyciskiem <strong>Odśwież teraz</strong>. Kliknięcie usuwa lokalny cache i wczytuje najnowszą wersję z serwera — bez czekania na automatyczną aktualizację.</div>
+<div class="hs-tip">Sprawdzanie odbywa się też automatycznie za każdym razem, gdy wracasz do aplikacji po jej zminimalizowaniu — nie trzeba nic klikać, aby wiedzieć że aktualizacja czeka.</div>
+
+<div class="hs-h2">Historia zmian (Changelog)</div>
+<div class="hs-p">Pełna lista wszystkich wersji i wprowadzonych w nich funkcji dostępna jest w zakładce <strong>ℹ️ O programie</strong> (przycisk w dolnej części sidebara) — przewijana lista od najnowszej do najstarszej wersji.</div>
 </div>
 `;
 
@@ -4024,7 +4184,24 @@ function helpGo(id){
   });
 }
 
-function showAbout(){openM('m-about')}
+function showAbout(){
+  var v=document.getElementById('about-ver');if(v)v.textContent='v'+APP_VERSION;
+  var d=document.getElementById('about-date');if(d)d.textContent=mLabelFull(APP_BUILD_DATE.slice(0,7));
+  var cl=document.getElementById('about-changelog');
+  if(cl){
+    var h='';
+    CHANGELOG.forEach(function(entry,i){
+      h+='<div class="cl-entry"><div class="cl-head"><span class="cl-ver">v'+entry.v+'</span>';
+      if(i===0)h+='<span class="cl-badge-new">Aktualna</span>';
+      h+='<span class="cl-date">'+entry.date+'</span></div>';
+      h+='<ul class="cl-list">';
+      entry.changes.forEach(function(c){h+='<li>'+c+'</li>'});
+      h+='</ul></div>';
+    });
+    cl.innerHTML=h;
+  }
+  openM('m-about');
+}
 
 /* ═══════════════════════════════════════════
    PWA — MANIFEST, IKONA, SERVICE WORKER
@@ -4298,6 +4475,10 @@ function startApp(){
    INIT
 ═══════════════════════════════════════════ */
 function init(){
+  // Wersja aplikacji w sidebarze
+  var verEl=document.getElementById('s-ver');
+  if(verEl)verEl.textContent='v'+APP_VERSION;
+
   // Tema i waluta
   document.documentElement.setAttribute('data-theme',S.theme);
   document.querySelectorAll('.tdot').forEach(function(d){d.classList.toggle('on',d.getAttribute('data-t')===S.theme)});
