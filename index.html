@@ -561,6 +561,27 @@ textarea.fi{resize:vertical}
 .conn-badge.is-offline{border-color:rgba(255,77,109,.2)}
 .conn-badge.is-syncing{border-color:rgba(245,158,11,.2)}
 
+/* ── UPDATE BANNER ── */
+#update-banner{
+  position:fixed;top:0;left:0;right:0;z-index:5000;
+  display:flex;align-items:center;gap:10px;
+  background:var(--acc);color:var(--bg);
+  padding:10px 14px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  transform:translateY(-110%);
+  transition:transform .35s cubic-bezier(.34,1.4,.64,1);
+  font-family:var(--fb);
+}
+#update-banner.show{transform:translateY(0)}
+.ub-icon{font-size:1rem;flex-shrink:0;animation:ubspin 2s linear infinite}
+@keyframes ubspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.ub-text{flex:1;font-size:.8rem;font-weight:600;min-width:0}
+.ub-btn{background:var(--bg);color:var(--acc);border:none;border-radius:8px;padding:7px 14px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--fb)}
+.ub-btn:disabled{opacity:.6;cursor:default}
+.ub-btn:hover:not(:disabled){filter:brightness(1.08)}
+.ub-close{background:rgba(0,0,0,.15);border:none;color:var(--bg);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+@media(max-width:480px){.ub-text{font-size:.72rem}.ub-btn{padding:6px 10px;font-size:.7rem}}
+
 /* ── INSTALL BANNER ── */
 #install-banner{
   position:fixed;bottom:0;left:0;right:0;z-index:1600;
@@ -629,6 +650,13 @@ textarea.fi{resize:vertical}
 </style>
 </head>
 <body>
+<!-- UPDATE BANNER -->
+<div id="update-banner">
+  <span class="ub-icon">🔄</span>
+  <span class="ub-text">Dostępna nowa wersja aplikacji</span>
+  <button class="ub-btn" id="update-refresh-btn" onclick="applyUpdate()">Odśwież teraz</button>
+  <button class="ub-close" onclick="dismissUpdateBanner()">✕</button>
+</div>
 <div id="toasts"></div>
 <div id="overlay" onclick="closeSidebar()"></div>
 
@@ -1766,6 +1794,85 @@ function delNoteUI(outletName,noteId){
   if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   delNote(S.pid,okey(outletName),noteId);
   openNotesModal(outletName);
+}
+
+/* ═══════════════════════════════════════════
+   WYKRYWANIE NOWEJ WERSJI APLIKACJI
+   Porównuje hash treści pliku aktualnie wgranego na serwerze
+   z wersją załadowaną przy starcie — w pełni automatyczne,
+   nie wymaga ręcznego ustawiania numeru wersji przy każdej aktualizacji.
+═══════════════════════════════════════════ */
+var _appBaselineHash=null;
+var _updateBannerShown=false;
+var _updateCheckInFlight=false;
+
+function sha256Hex(text){
+  var enc=new TextEncoder().encode(text);
+  return crypto.subtle.digest('SHA-256',enc).then(function(buf){
+    return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+  });
+}
+
+function fetchLiveAppHash(){
+  var url=location.origin+location.pathname+'?_chk='+Date.now();
+  return fetch(url,{cache:'no-store'}).then(function(r){
+    if(!r.ok)throw new Error('status '+r.status);
+    return r.text();
+  }).then(sha256Hex);
+}
+
+function checkForUpdate(){
+  if(_updateCheckInFlight)return;
+  if(!navigator.onLine)return;
+  if(!window.crypto||!window.crypto.subtle)return; // wymaga kontekstu HTTPS
+  _updateCheckInFlight=true;
+  fetchLiveAppHash().then(function(hash){
+    _updateCheckInFlight=false;
+    if(!_appBaselineHash){_appBaselineHash=hash;return;} // ustalenie punktu odniesienia przy starcie
+    if(hash!==_appBaselineHash&&!_updateBannerShown){
+      _updateBannerShown=true;
+      showUpdateBanner();
+    }
+  }).catch(function(){_updateCheckInFlight=false;}); // brak sieci lub błąd — pomijamy w ciszy
+}
+
+function showUpdateBanner(){
+  var b=document.getElementById('update-banner');
+  if(b)b.classList.add('show');
+  haptic([8,30,8]);
+}
+
+function dismissUpdateBanner(){
+  var b=document.getElementById('update-banner');
+  if(b)b.classList.remove('show');
+}
+
+function applyUpdate(){
+  var btn=document.getElementById('update-refresh-btn');
+  if(btn){btn.disabled=true;btn.textContent='Aktualizuję...';}
+  var tasks=[];
+  if('serviceWorker' in navigator){
+    tasks.push(navigator.serviceWorker.getRegistrations().then(function(regs){
+      return Promise.all(regs.map(function(r){return r.unregister()}));
+    }));
+  }
+  if(window.caches){
+    tasks.push(caches.keys().then(function(keys){
+      return Promise.all(keys.map(function(k){return caches.delete(k)}));
+    }));
+  }
+  Promise.all(tasks).catch(function(){}).then(function(){
+    location.href=location.origin+location.pathname+'?_r='+Date.now();
+  });
+}
+
+function startUpdateWatcher(){
+  setTimeout(checkForUpdate,4000); // ustalenie wersji bazowej po starcie
+  setInterval(checkForUpdate,5*60*1000); // sprawdzanie co 5 minut
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible')checkForUpdate();
+  });
+  window.addEventListener('focus',checkForUpdate);
 }
 
 /* ═══════════════════════════════════════════
@@ -4220,6 +4327,9 @@ function init(){
 
   // PWA
   initPWA();
+
+  // Sprawdzanie aktualizacji aplikacji (baner "Nowa wersja dostępna")
+  startUpdateWatcher();
 
   // Firebase Auth state listener — serce całego systemu
   auth.onAuthStateChanged(function(user){
