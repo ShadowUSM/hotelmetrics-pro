@@ -187,6 +187,36 @@ input,select,textarea{font-family:var(--fb)}
 .oc-stat-v{font-size:.8rem;font-weight:600;color:var(--tx)}
 .oc-stat-v.pos{color:var(--grn)}.oc-stat-v.neg{color:var(--red)}
 
+/* Swipe gestures on outlet cards */
+.oc-swipe-wrap{position:relative;overflow:hidden;border-radius:14px}
+.oc-swipe-wrap .oc{position:relative;z-index:2;background:var(--sur);transition:transform .25s cubic-bezier(.2,.8,.3,1);touch-action:pan-y}
+.oc-swipe-wrap .oc.dragging{transition:none}
+.oc-swipe-hint{position:absolute;top:0;bottom:0;width:50%;display:flex;align-items:center;font-size:.72rem;font-weight:600;color:var(--tx3);z-index:1;opacity:0;transition:opacity .2s}
+.oc-swipe-hint.left{left:0;justify-content:flex-start;padding-left:16px;background:linear-gradient(90deg,var(--acc-glow),transparent)}
+.oc-swipe-hint.right{right:0;justify-content:flex-end;padding-right:16px;background:linear-gradient(-90deg,var(--acc-glow),transparent)}
+.oc-swipe-wrap.show-left .oc-swipe-hint.left{opacity:1}
+.oc-swipe-wrap.show-right .oc-swipe-hint.right{opacity:1}
+
+/* Mini trend modal */
+.trend-mini-canvas-wrap{height:200px;margin:12px 0}
+
+/* ── GLOBAL SEARCH ── */
+#search-panel{display:none;background:var(--sur);border:1px solid var(--brd2);border-radius:13px;margin-bottom:16px;padding:10px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#search-panel.open{display:block;animation:pkIn .15s ease}
+.search-input-row{display:flex;align-items:center;gap:8px;background:var(--sur2);border:1px solid var(--brd);border-radius:9px;padding:8px 10px;color:var(--tx3)}
+.search-input-row svg{flex-shrink:0}
+.search-input-row input{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:.85rem;font-family:var(--fb)}
+.search-input-row input::placeholder{color:var(--tx3)}
+#search-results{max-height:320px;overflow-y:auto;margin-top:8px}
+.sr-item{display:flex;align-items:flex-start;gap:10px;padding:9px 8px;border-radius:8px;cursor:pointer;transition:background .12s}
+.sr-item:hover{background:var(--sur2)}
+.sr-ico{font-size:1rem;flex-shrink:0;width:22px;text-align:center}
+.sr-body{flex:1;min-width:0}
+.sr-title{font-size:.8rem;font-weight:600;color:var(--tx)}
+.sr-sub{font-size:.68rem;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr-empty{padding:16px;text-align:center;font-size:.76rem;color:var(--tx3)}
+.sr-sect{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);padding:8px 8px 2px}
+
 /* Alerts */
 .alert{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:9px;border-left:3px solid;margin-bottom:7px;font-size:.75rem;line-height:1.4}
 .alert.da{background:rgba(255,77,109,.07);border-left-color:var(--red)}
@@ -759,8 +789,20 @@ textarea.fi{resize:vertical}
       <div class="page-title" id="pg-title">Dashboard</div>
       <div class="top-actions">
         <div class="rate-badge" id="rate-badge" style="display:none">EUR <b id="r-eur">—</b> | USD <b id="r-usd">—</b></div>
+        <button class="btn-icon" onclick="toggleSearch()" title="Szukaj">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
         <button class="btn btn-s btn-sm" onclick="refreshAll()">↻ Odśwież</button>
       </div>
+    </div>
+
+    <div id="search-panel">
+      <div class="search-input-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="Szukaj outletu, miesiąca lub notatki..." oninput="performSearch(this.value)" onkeydown="if(event.key==='Escape')toggleSearch()">
+        <button class="mclose" style="position:static;width:24px;height:24px" onclick="toggleSearch()">✕</button>
+      </div>
+      <div id="search-results"></div>
     </div>
 
     <div id="v-dashboard"></div>
@@ -805,6 +847,25 @@ textarea.fi{resize:vertical}
   <button class="mclose" onclick="closeM('m-notes')">✕</button>
   <div id="notes-content"></div>
   <div class="fa"><button class="btn btn-s" onclick="closeM('m-notes')">Zamknij</button></div>
+</div></div>
+
+<!-- TREND MINI MODAL -->
+<div class="moverlay" id="m-trend">
+<div class="modal">
+  <div class="mtitle" id="trend-title">📈 Trend</div>
+  <div class="msub" id="trend-sub"></div>
+  <button class="mclose" onclick="closeM('m-trend')">✕</button>
+  <div class="trend-mini-canvas-wrap"><canvas id="trend-mini-canvas"></canvas></div>
+  <div class="fa"><button class="btn btn-s" onclick="closeM('m-trend')">Zamknij</button></div>
+</div></div>
+
+<!-- ANOMALY MODAL -->
+<div class="moverlay" id="m-anomaly">
+<div class="modal">
+  <div class="mtitle">⚠️ Nietypowa wartość</div>
+  <button class="mclose" onclick="cancelAnomalySave()">✕</button>
+  <div id="anomaly-body"></div>
+  <div class="fa"><button class="btn btn-p" onclick="confirmAnomalySave()">✅ Zapisz mimo to</button><button class="btn btn-s" onclick="cancelAnomalySave()">Popraw dane</button></div>
 </div></div>
 
 <!-- HELP MODAL -->
@@ -1498,6 +1559,169 @@ function changeMemberRoleUI(email,role){
 /* ═══════════════════════════════════════════
    NOTES MODAL
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   GLOBALNA WYSZUKIWARKA
+═══════════════════════════════════════════ */
+function toggleSearch(){
+  var panel=document.getElementById('search-panel');
+  if(!panel)return;
+  var opening=!panel.classList.contains('open');
+  panel.classList.toggle('open',opening);
+  if(opening){
+    var inp=document.getElementById('search-input');
+    if(inp){inp.value='';inp.focus();}
+    var res=document.getElementById('search-results');
+    if(res)res.innerHTML='<div class="sr-empty">Wpisz nazwę outletu, miesiąc (np. „marzec") lub fragment notatki.</div>';
+  }
+}
+
+function srNorm(s){return dePL(String(s||'')).toLowerCase()}
+
+function performSearch(q){
+  var res=document.getElementById('search-results');
+  if(!res)return;
+  var query=q.trim();
+  if(query.length<2){res.innerHTML='<div class="sr-empty">Wpisz co najmniej 2 znaki...</div>';return;}
+  if(!S.pid){res.innerHTML='<div class="sr-empty">Wybierz najpierw obiekt hotelowy.</div>';return;}
+  var nq=srNorm(query);
+  var h='';
+
+  // 1) Dopasowanie miesiąca
+  var monthMatch=detectMonth(query);
+  if(monthMatch){
+    var hasData=!!getMD(S.pid,monthMatch);
+    h+='<div class="sr-sect">Miesiąc</div>';
+    h+='<div class="sr-item" onclick="srGoMonth(\''+monthMatch+'\')"><div class="sr-ico">📅</div><div class="sr-body"><div class="sr-title">'+mLabelFull(monthMatch)+'</div><div class="sr-sub">'+(hasData?'Przejdź do Dashboard':'Brak jeszcze danych — przejdź do wprowadzania')+'</div></div></div>';
+  }
+
+  // 2) Dopasowanie outletów
+  var outletMatches=S.outlets.filter(function(o){return srNorm(o.name).indexOf(nq)!==-1});
+  if(outletMatches.length){
+    h+='<div class="sr-sect">Outlety</div>';
+    outletMatches.forEach(function(o){
+      h+='<div class="sr-item" onclick="srGoOutlet(\''+o.name.replace(/'/g,"\\'")+'\')"><div class="sr-ico">🏪</div><div class="sr-body"><div class="sr-title">'+o.name+'</div><div class="sr-sub">Przejdź do wprowadzania danych</div></div></div>';
+    });
+  }
+
+  // 3) Dopasowanie notatek
+  var noteHits=[];
+  S.outlets.forEach(function(o){
+    var notes=getNotes(S.pid,okey(o.name));
+    notes.forEach(function(n){
+      if(srNorm(n.text).indexOf(nq)!==-1)noteHits.push({outlet:o.name,note:n});
+    });
+  });
+  if(noteHits.length){
+    h+='<div class="sr-sect">Notatki</div>';
+    noteHits.slice(0,10).forEach(function(nh){
+      var snippet=nh.note.text.length>60?nh.note.text.slice(0,60)+'…':nh.note.text;
+      h+='<div class="sr-item" onclick="srGoOutlet(\''+nh.outlet.replace(/'/g,"\\'")+'\',true)"><div class="sr-ico">📝</div><div class="sr-body"><div class="sr-title">'+nh.outlet+'</div><div class="sr-sub">'+snippet+' · '+nh.note.date+'</div></div></div>';
+    });
+  }
+
+  if(!h)h='<div class="sr-empty">Brak wyników dla „'+query+'"</div>';
+  res.innerHTML=h;
+}
+
+function srGoMonth(month){
+  S.month=month;
+  var ms=document.getElementById('month-sel');if(ms)ms.value=month;
+  toggleSearch();
+  go('dashboard');
+}
+
+function srGoOutlet(outletName,openNotes){
+  toggleSearch();
+  go('data');
+  if(openNotes)setTimeout(function(){openNotesModal(outletName)},250);
+}
+
+/* ═══════════════════════════════════════════
+   SWIPE GESTURES na kartach outletów (Dashboard)
+   Prawo → szybki trend, Lewo → notatki
+═══════════════════════════════════════════ */
+function setupOutletSwipes(){
+  document.querySelectorAll('.oc-swipe-wrap').forEach(function(wrap){
+    var card=wrap.querySelector('.oc');
+    if(!card||card._swipeBound)return;
+    card._swipeBound=true;
+    var name=card.getAttribute('data-outlet-name');
+    var startX=0,startY=0,curX=0,dragging=false,decided=null;
+    var THRESH=70,MAXD=110;
+
+    card.addEventListener('touchstart',function(e){
+      var t=e.touches[0];startX=t.clientX;startY=t.clientY;curX=0;dragging=true;decided=null;
+      card.classList.add('dragging');
+    },{passive:true});
+
+    card.addEventListener('touchmove',function(e){
+      if(!dragging)return;
+      var t=e.touches[0];
+      var dx=t.clientX-startX,dy=t.clientY-startY;
+      if(decided===null){
+        if(Math.abs(dx)>12||Math.abs(dy)>12)decided=Math.abs(dx)>Math.abs(dy)?'h':'v';
+        else return;
+      }
+      if(decided==='v')return; // pionowy scroll — nie ingerujemy
+      e.preventDefault();
+      curX=Math.max(-MAXD,Math.min(MAXD,dx));
+      card.style.transform='translateX('+curX+'px)';
+      wrap.classList.toggle('show-left',curX>10);
+      wrap.classList.toggle('show-right',curX<-10);
+    },{passive:false});
+
+    card.addEventListener('touchend',function(){
+      dragging=false;
+      card.classList.remove('dragging');
+      card.style.transform='translateX(0)';
+      wrap.classList.remove('show-left','show-right');
+      if(decided==='h'){
+        if(curX>=THRESH){haptic(12);showOutletTrend(name);}
+        else if(curX<=-THRESH){haptic(12);openNotesModal(name);}
+      }
+      curX=0;decided=null;
+    });
+
+    card.addEventListener('touchcancel',function(){
+      dragging=false;curX=0;decided=null;
+      card.classList.remove('dragging');
+      card.style.transform='translateX(0)';
+      wrap.classList.remove('show-left','show-right');
+    });
+  });
+}
+
+function showOutletTrend(outletName){
+  if(!S.pid)return;
+  var k=okey(outletName);
+  var allD=getAllMD(S.pid);
+  var months=Object.keys(allD).sort();
+  var last6=months.slice(-6);
+  var vals=last6.map(function(m){return conv((allD[m].a&&allD[m].a[k])||0)});
+  var budgets=last6.map(function(m){return conv((allD[m].b&&allD[m].b[k])||0)});
+
+  document.getElementById('trend-title').textContent='📈 '+outletName+' — ostatnie miesiące';
+  var lastVal=vals.length?vals[vals.length-1]:0;
+  var prevVal=vals.length>1?vals[vals.length-2]:null;
+  var chg=prevVal?(((lastVal-prevVal)/prevVal)*100).toFixed(1):null;
+  document.getElementById('trend-sub').textContent=last6.length?('Ostatnie '+last6.length+' mies.'+(chg!==null?' · '+(chg>=0?'▲ +':'▼ ')+Math.abs(chg)+'% vs poprz.':'')):'Brak danych historycznych';
+
+  openM('m-trend');
+
+  dChart('trend-mini-canvas');
+  if(!last6.length)return;
+  var ctx=document.getElementById('trend-mini-canvas');
+  if(!ctx)return;
+  S.charts['trend-mini-canvas']=new Chart(ctx,{
+    type:'line',
+    data:{labels:last6.map(mLabel),datasets:[
+      {label:'Wynik',data:vals,borderColor:acHex(),backgroundColor:acHex()+'22',tension:.3,fill:true,pointRadius:4,pointBackgroundColor:acHex()},
+      {label:'Budżet',data:budgets,borderColor:tx2Hex(),backgroundColor:'transparent',borderDash:[4,4],tension:.3,pointRadius:2}
+    ]},
+    options:chOpts(function(v){return fmtR(v)})
+  });
+}
+
 function openNotesModal(outletName){
   var k=okey(outletName);
   var notes=getNotes(S.pid,k);
@@ -2061,7 +2285,8 @@ function renderDashboard(){
     var k=okey(o.name),m=M[k]||{},p=m.pct,bw=p!==null?Math.min(p*100,100):0,bc=p===null?'ov':p>=1?'ov':p>=0.75?'wa':'da';
     var sh=T.a>0?(m.a/T.a*100).toFixed(1):0;
     var goalVal=goals[k];
-    h+='<div class="oc"><div class="oc-head"><div class="oc-name">'+o.name+'</div><div class="oc-rank">#'+(i+1)+'</div></div>';
+    h+='<div class="oc-swipe-wrap"><div class="oc-swipe-hint left">📈 Trend</div><div class="oc-swipe-hint right">📝 Notatki</div>';
+    h+='<div class="oc" data-outlet-name="'+o.name.replace(/"/g,'&quot;')+'"><div class="oc-head"><div class="oc-name">'+o.name+'</div><div class="oc-rank">#'+(i+1)+'</div></div>';
     h+='<div class="oc-val">'+fmt(m.a||0,true)+'</div><div class="oc-meta">'+sh+'% udziału'+(goalVal?' · <span class="goal-badge">🎯 '+Math.min(100,(m.a/goalVal*100)).toFixed(0)+'% celu</span>':'')+'</div>';
     if(m.b){h+='<div class="prog"><div class="prog-fill '+bc+'" style="width:'+bw+'%"></div></div><div class="prog-lbl"><span>'+(p*100).toFixed(1)+'%</span><span>'+fmt(m.b,true)+'</span></div>';}
     else{h+='<div style="font-size:.65rem;color:var(--tx3)">Brak budżetu</div>';}
@@ -2072,7 +2297,7 @@ function renderDashboard(){
     h+='</div>';
     var noteCount=S.pid?getNotes(S.pid,okey(o.name)).length:0;
     h+='<div style="margin-top:8px"><button class="outlet-note-btn" onclick="openNotesModal(\''+o.name+'\')">📝 Notatki'+(noteCount?' ('+noteCount+')':'')+'</button></div>';
-    h+='</div>';
+    h+='</div></div>';
   });
   h+='</div>';
 
@@ -2089,6 +2314,7 @@ function renderDashboard(){
   h+='<td>'+fmt(T.avg)+'</td><td class="'+(T.b?(T.proj>=T.b?'td-pos':'td-neg'):'')+'">'+fmt(T.proj)+'</td><td>—</td></tr>';
   h+='</tbody></table></div>';
   el.innerHTML=h;
+  setupOutletSwipes();
 }
 
 /* ═══════════════════════════════════════════
@@ -2307,6 +2533,41 @@ function recalc(){
   if(tp){if(tB>0){var pp=tA/tB;tp.innerHTML='<span class="pill '+pc(pp)+'">'+(pp*100).toFixed(1)+'%</span>'}else tp.textContent='—';}
 }
 
+/* ═══════════════════════════════════════════
+   WYKRYWANIE ANOMALII
+   Porównuje nową śr. dzienną outletu z historyczną śr. dzienną
+   z innych zapisanych miesięcy — ostrzega przy dużym odchyleniu.
+═══════════════════════════════════════════ */
+function detectAnomalies(pid,month,actuals,dr){
+  if(!dr||dr<=0)return [];
+  var allD=getAllMD(pid);
+  var anomalies=[];
+  S.outlets.forEach(function(o){
+    var k=okey(o.name);
+    var newVal=actuals[k];
+    if(!newVal||newVal<=0)return;
+    var newDaily=newVal/dr;
+    var histDailies=[];
+    Object.keys(allD).forEach(function(m){
+      if(m===month)return;
+      var md=allD[m];
+      if(md&&md.dr>0&&md.a&&md.a[k]>0)histDailies.push(md.a[k]/md.dr);
+    });
+    if(histDailies.length<2)return; // za mało danych historycznych, nie oceniamy
+    var histAvg=histDailies.reduce(function(s,v){return s+v},0)/histDailies.length;
+    if(histAvg<=0)return;
+    var ratio=newDaily/histAvg;
+    if(ratio>=2.5){
+      anomalies.push({outletName:o.name,newVal:newVal,newDaily:newDaily,histAvg:histAvg,pct:Math.round((ratio-1)*100),direction:'up'});
+    } else if(ratio<=0.4){
+      anomalies.push({outletName:o.name,newVal:newVal,newDaily:newDaily,histAvg:histAvg,pct:Math.round((1-ratio)*100),direction:'down'});
+    }
+  });
+  return anomalies;
+}
+
+var _pendingSave=null;
+
 function saveData(){
   if(!canEdit()){toast('Brak uprawnień do edycji (rola: Podgląd)','er');return;}
   var M=parseInt(document.getElementById('i-dim')&&document.getElementById('i-dim').value)||dim(S.month);
@@ -2319,8 +2580,47 @@ function saveData(){
     if(bv>0)b[k]=bv;if(av>0)a[k]=av;
   });
   var c=document.getElementById('i-com')&&document.getElementById('i-com').value||'';
-  saveMD(S.pid,S.month,{dim:M,dr:DR,b:b,a:a,c:c});
+  var payload={dim:M,dr:DR,b:b,a:a,c:c};
+
+  var anomalies=detectAnomalies(S.pid,S.month,a,DR);
+  if(anomalies.length){
+    _pendingSave=payload;
+    showAnomalyModal(anomalies);
+    return;
+  }
+  saveMD(S.pid,S.month,payload);
   toast('Dane zapisane!','ok');haptic(10);
+}
+
+function showAnomalyModal(anomalies){
+  var body=document.getElementById('anomaly-body');
+  if(!body)return;
+  var h='<p class="hs-p" style="margin-bottom:10px">Wykryto wartości znacząco odbiegające od typowej średniej dziennej tego outletu. Sprawdź, czy nie ma pomyłki (np. dodatkowa cyfra).</p>';
+  anomalies.forEach(function(a){
+    var arrow=a.direction==='up'?'▲':'▼';
+    var color=a.direction==='up'?'var(--grn)':'var(--red)';
+    h+='<div class="alert '+(a.direction==='up'?'ok':'da')+'" style="margin-bottom:8px">';
+    h+='<strong>'+a.outletName+'</strong><br>';
+    h+='Śr./dzień: '+fmt(a.newDaily,true)+' <span style="color:'+color+';font-weight:700">'+arrow+' '+a.pct+'%</span> vs typowe '+fmt(a.histAvg,true)+'<br>';
+    h+='<span style="font-size:.68rem;color:var(--tx3)">Wpisany wynik netto: '+fmt(a.newVal)+'</span>';
+    h+='</div>';
+  });
+  body.innerHTML=h;
+  openM('m-anomaly');
+}
+
+function confirmAnomalySave(){
+  if(!_pendingSave){closeM('m-anomaly');return;}
+  saveMD(S.pid,S.month,_pendingSave);
+  _pendingSave=null;
+  closeM('m-anomaly');
+  toast('Dane zapisane!','ok');haptic(10);
+}
+
+function cancelAnomalySave(){
+  _pendingSave=null;
+  closeM('m-anomaly');
+  toast('Zapis anulowany — popraw dane','in');
 }
 
 function cpyBudget(){
