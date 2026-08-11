@@ -408,10 +408,13 @@ textarea.fi{resize:vertical}
 .cal-d.sel{background:var(--acc)!important;color:var(--bg)!important;font-weight:700}
 .cal-d.tod{outline:2px solid var(--acc);outline-offset:-2px}
 .cal-d.emp{visibility:hidden;pointer-events:none}
+.cal-d{position:relative}
+.cal-d.has-data::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--grn)}
+.cal-d.sel.has-data::after{background:var(--bg)}
 .dp-title{font-size:.78rem;font-weight:600;color:var(--tx);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
 
 /* Bottom spacer — każda zakładka ma 80px wolnego miejsca na dole */
-#v-dashboard,#v-data,#v-analytics,#v-compare,#v-properties,#v-export,
+#v-dashboard,#v-data,#v-daily,#v-analytics,#v-compare,#v-properties,#v-export,
 #v-budget,#v-team{padding-bottom:80px}
 
 /* ── AUTO THEME (system preference) ── */
@@ -795,6 +798,9 @@ textarea.fi{resize:vertical}
     <div class="nav-i" data-v="data" onclick="go('data')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M15.5 3.5a2.121 2.121 0 013 3L12 13l-4 1 1-4 6.5-6.5z"/></svg>Wprowadź dane
     </div>
+    <div class="nav-i" data-v="daily" onclick="go('daily')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/></svg>Dane dzienne
+    </div>
     <div class="nav-i" data-v="analytics" onclick="go('analytics')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analityka
     </div>
@@ -873,6 +879,7 @@ textarea.fi{resize:vertical}
 
     <div id="v-dashboard"></div>
     <div id="v-data" style="display:none"></div>
+    <div id="v-daily" style="display:none"></div>
     <div id="v-analytics" style="display:none"></div>
     <div id="v-compare" style="display:none"></div>
     <div id="v-properties" style="display:none"></div>
@@ -938,7 +945,7 @@ textarea.fi{resize:vertical}
 <div id="help-modal">
   <div class="help-topbar">
     <div class="help-topbar-title">📖 Instrukcja obsługi — HotelMetrics Pro</div>
-    <div class="help-topbar-ver">v1.0.0 · 2026</div>
+    <div class="help-topbar-ver" id="help-topbar-ver">v1.0.0 · 2026</div>
     <button class="help-close" onclick="closeHelp()">✕</button>
   </div>
   <!-- Mobile TOC -->
@@ -1064,6 +1071,46 @@ function saveGoalItem(pid,month,outletKey,goal){
   if(goal>0)g[outletKey]=goal;else delete g[outletKey];
   lsSet(uk('goals-'+pid+'-'+month),g);
   if(S.uid)fsWrite(db.collection('properties/'+pid+'/goals').doc(month),g);
+}
+
+/* ═══════════════════════════════════════════
+   DANE DZIENNE — sprzedaż netto per dzień, per outlet (bez budżetu)
+   Struktura dokumentu miesiąca: { days:{ "1":{AROMA:123,FURU:456}, "2":{...} }, ts }
+   Niezależne od "monthlyData" (suma narastająca) — osobne źródło,
+   wykorzystywane m.in. do rzeczywistej Heatmapy i przyszłego importu Material Control.
+═══════════════════════════════════════════ */
+function getDailyData(pid,month){return lsGet(uk('daily-'+pid+'-'+month),{days:{}})}
+function saveDailyValue(pid,month,day,outletKey,value){
+  var d=getDailyData(pid,month);
+  if(!d.days)d.days={};
+  if(!d.days[day])d.days[day]={};
+  if(value>0)d.days[day][outletKey]=value;else delete d.days[day][outletKey];
+  if(!Object.keys(d.days[day]).length)delete d.days[day];
+  d.ts=Date.now();
+  lsSet(uk('daily-'+pid+'-'+month),d);
+  if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),d);
+}
+function saveDailyDayBulk(pid,month,day,valuesMap){
+  var d=getDailyData(pid,month);
+  if(!d.days)d.days={};
+  var clean={};
+  Object.entries(valuesMap).forEach(function(e){if(e[1]>0)clean[e[0]]=e[1]});
+  if(Object.keys(clean).length)d.days[day]=clean;else delete d.days[day];
+  d.ts=Date.now();
+  lsSet(uk('daily-'+pid+'-'+month),d);
+  if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),d);
+}
+function getAllDailyData(pid){
+  var prefix=uk('daily-'+pid+'-'),r={};
+  Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).forEach(function(k){
+    var m=k.slice(prefix.length);r[m]=lsGet(k,{days:{}});
+  });
+  return r;
+}
+function dailyDayTotal(dayData){return dayData?Object.values(dayData).reduce(function(s,v){return s+v},0):0}
+function dailyMonthTotal(dd){
+  if(!dd||!dd.days)return 0;
+  return Object.values(dd.days).reduce(function(s,dayData){return s+dailyDayTotal(dayData)},0);
 }
 
 /* ═══════════════════════════════════════════
@@ -1231,21 +1278,34 @@ function renderHeatmap(container,pid,month){
   var md=getMD(pid,month)||{};
   var total=Object.values(md.a||{}).reduce(function(x,y){return x+y},0);
   var dailyAvg=md.dr>0?total/md.dr:0;
-  var maxDay=dailyAvg*1.5||1;
+  var dd=getDailyData(pid,month);
+  var hasRealDays=dd.days&&Object.keys(dd.days).length>0;
+  var realVals=hasRealDays?Object.values(dd.days).map(dailyDayTotal):[];
+  var maxDay=Math.max(dailyAvg*1.5||0,realVals.length?Math.max.apply(null,realVals)*1.15:0)||1;
 
-  var h='<div class="stitle">📅 Heatmapa miesiąca — '+mLabelFull(month)+'</div>';
+  var h='<div class="stitle">📅 Heatmapa miesiąca — '+mLabelFull(month)+(hasRealDays?' <small style="color:var(--grn)">● dane rzeczywiste</small>':'')+'</div>';
   h+='<div class="hmap-days">';
   ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].forEach(function(d){h+='<div class="hmap-day">'+d+'</div>'});
   h+='</div><div class="hmap-grid">';
   for(var i=0;i<firstDay;i++)h+='<div class="hmap-cell empty"></div>';
   for(var d=1;d<=daysInMo;d++){
+    var realVal=dd.days&&dd.days[d]?dailyDayTotal(dd.days[d]):null;
     var isDone=d<=md.dr;
-    var estVal=isDone?dailyAvg:0;
-    var color=isDone?heatColor(estVal,maxDay):'var(--sur2)';
-    var opacity=isDone?1:0.4;
-    h+='<div class="hmap-cell" style="background:'+color+';opacity:'+opacity+'" title="Dzień '+d+(isDone?' · est. '+Math.round(estVal).toLocaleString('pl-PL')+' PLN':' · brak danych')+'">'+d+'</div>';
+    var val,color,opacity,tip;
+    if(realVal!==null){
+      val=realVal;color=heatColor(val,maxDay);opacity=1;
+      tip='Dzień '+d+' · '+Math.round(val).toLocaleString('pl-PL')+' PLN (rzeczywiste)';
+    } else if(isDone){
+      val=dailyAvg;color=heatColor(val,maxDay);opacity=0.55;
+      tip='Dzień '+d+' · szacunek '+Math.round(val).toLocaleString('pl-PL')+' PLN (brak danych dziennych)';
+    } else {
+      color='var(--sur2)';opacity=0.4;
+      tip='Dzień '+d+' · brak danych';
+    }
+    h+='<div class="hmap-cell" style="background:'+color+';opacity:'+opacity+'" title="'+tip+'">'+d+'</div>';
   }
   h+='</div>';
+  if(!hasRealDays)h+='<div class="hs-tip" style="margin-top:10px">Kolory poniżej to szacunek na bazie średniej dziennej. Wprowadź dane w zakładce <a href="#" onclick="go(\'daily\')">Dane dzienne</a>, aby zobaczyć rzeczywisty rozkład sprzedaży w poszczególnych dniach.</div>';
   h+='<div class="hmap-legend"><span>Mniej</span><div class="hmap-legend-boxes">';
   ['rgba(255,77,109,.3)','rgba(245,158,11,.3)','rgba(245,158,11,.6)','rgba(34,197,94,.5)','rgba(34,197,94,.8)'].forEach(function(c){
     h+='<div class="hmap-legend-box" style="background:'+c+'"></div>';
@@ -2274,12 +2334,26 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='2.5.0';
+var APP_VERSION='2.6.1';
 var APP_BUILD_DATE='2026-08-11';
 
+// Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
+// — MINOR (środkowa cyfra) rośnie przy nowych funkcjach / większych zmianach: 2.6.0 → 2.7.0
+// — PATCH (ostatnia cyfra) rośnie przy drobnych poprawkach i naprawach błędów: 2.6.0 → 2.6.1 → 2.6.2
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'2.6.1',date:'2026-08-11',changes:[
+    'Naprawiono numer wersji w nagłówku Instrukcji obsługi — był zablokowany na stałe na „v1.0.0" zamiast pokazywać aktualną wersję',
+    'Zweryfikowano działanie mechanizmu wykrywania nowej wersji i wymuszonego odświeżania cache'
+  ]},
+  {v:'2.6.0',date:'2026-08-11',changes:[
+    'Nowa zakładka „Dane dzienne" — wprowadzanie sprzedaży netto osobno dla każdego dnia miesiąca i outletu (bez budżetu)',
+    'Mini-kalendarz wyboru dnia z oznaczeniem dni już wypełnionych oraz podsumowanie miesiąca',
+    'Heatmapa w Analityce korzysta teraz z rzeczywistych danych dziennych, jeśli są wprowadzone — zamiast tylko szacunku ze średniej',
+    'Dane dzienne uwzględnione w synchronizacji z chmurą i w kopii zapasowej JSON',
+    'Przygotowanie architektury pod przyszły import danych z systemu magazynowego Material Control (Excel)'
+  ]},
   {v:'2.5.0',date:'2026-08-11',changes:[
     'Naprawiono błąd powodujący, że zakładki Ranking / Heatmapa / Co jeśli w Analityce nie działały (zdublowana funkcja w kodzie)',
     'Stały, przypisany na stałe kolor każdego outletu — spójny na wykresach, rankingu i kartach',
@@ -2542,7 +2616,10 @@ function loadUserDataFromFirestore(){
       var t4=db.collection('properties/'+p.id+'/notes').get().then(function(s){
         s.docs.forEach(function(d){lsSet(uk('notes-'+p.id+'-'+d.id),(d.data()&&d.data().notes)||[])});
       });
-      return Promise.all([t1,t2,t3,t4]);
+      var t5=db.collection('properties/'+p.id+'/dailyData').get().then(function(s){
+        s.docs.forEach(function(d){lsSet(uk('daily-'+p.id+'-'+d.id),d.data())});
+      });
+      return Promise.all([t1,t2,t3,t4,t5]);
     });
     return Promise.all(tasks);
   });
@@ -2584,11 +2661,11 @@ function setTheme(t){
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
+var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',daily:'Dane dzienne',analytics:'Analityka',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
 function go(v){
   S.view=v;
   document.querySelectorAll('[data-v]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-v')===v)});
-  document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
+  document.querySelectorAll('#v-dashboard,#v-data,#v-daily,#v-analytics,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
   var el=document.getElementById('v-'+v);if(el)el.style.display='block';
   var pt=document.getElementById('pg-title');if(pt)pt.textContent=TITLES[v]||v;
   haptic(8);
@@ -2975,41 +3052,185 @@ function goalsSaveAll(){
   toast('Cele zapisane!','ok');haptic(10);
 }
 
-/* ── MONTH PICKER ── */
-function toggleMPicker(e){
+/* ═══════════════════════════════════════════
+   RENDER: DANE DZIENNE
+   Sprzedaż netto per dzień, per outlet — bez budżetu.
+   Osobne źródło od "Wprowadź dane" (suma narastająca).
+   Zasila rzeczywistą Heatmapę i przyszły import Material Control.
+═══════════════════════════════════════════ */
+var _dailyDay=new Date().getDate();
+
+function renderDaily(){
+  var el=document.getElementById('v-daily');if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('📆','Brak obiektu lub outletów','Dodaj obiekt hotelowy i przynajmniej jeden outlet, aby wprowadzać dane dzienne.','+ Przejdź do obiektów',"go('properties')");return;}
+
+  var yr=S.month.split('-')[0];
+  var ro=!canEdit();
+  var DIM=dim(S.month);
+  if(_dailyDay>DIM)_dailyDay=DIM;
+  var dd=getDailyData(S.pid,S.month);
+  var dayVals=(dd.days&&dd.days[_dailyDay])||{};
+
+  var h='';
+  if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Masz uprawnienia tylko do odczytu (rola: Podgląd) — nie możesz edytować danych tego obiektu.</div>';
+  h+='<p class="hs-p" style="margin-bottom:14px">Wprowadzaj sprzedaż netto osobno dla każdego dnia miesiąca (bez budżetu). Te dane zasilają rzeczywistą Heatmapę w Analityce i będą wykorzystywane w przyszłych analizach oraz imporcie z systemu Material Control.</p>';
+
+  // ── MONTH PICKER (suf=-daily) ──
+  h+='<div class="pick-wrap" style="margin-bottom:12px" id="mp-wrap-daily">';
+  h+='<button class="mpick-btn" id="mpick-btn-daily" onclick="toggleMPicker(event,\'-daily\')">';
+  h+='<span>📅 '+mLabelFull(S.month)+'</span><span class="arr">▾</span></button>';
+  h+='<div class="picker-pop" id="mp-pop-daily" style="display:none">';
+  h+='<div class="yr-nav">';
+  h+='<button class="yr-btn" onclick="mpYearNav(-1,\'-daily\');event.stopPropagation()">◀</button>';
+  h+='<strong id="mp-yr-daily">'+yr+'</strong>';
+  h+='<button class="yr-btn" onclick="mpYearNav(1,\'-daily\');event.stopPropagation()">▶</button>';
+  h+='</div><div class="mgrid" id="mp-grid-daily"></div>';
+  h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z danymi dziennymi</div>';
+  h+='</div></div>';
+
+  // ── WYBÓR DNIA ──
+  h+='<div class="card" style="margin-bottom:12px">';
+  h+='<div class="fsect">📆 Wybierz dzień</div>';
+  h+='<div class="cal-hd"><div class="cal-dh">Pn</div><div class="cal-dh">Wt</div><div class="cal-dh">Śr</div><div class="cal-dh">Cz</div><div class="cal-dh">Pt</div><div class="cal-dh">Sb</div><div class="cal-dh">Nd</div></div>';
+  h+='<div class="cal-dg" id="daily-cal"></div>';
+  h+='</div>';
+
+  // ── TABELA WPROWADZANIA DLA WYBRANEGO DNIA ──
+  h+='<div class="card"><div class="fsect">💰 Sprzedaż netto — dzień <span id="daily-day-lbl">'+_dailyDay+'</span> '+mLabel(S.month)+'</div>';
+  h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="det"><thead><tr><th>Outlet</th><th>Wynik netto (PLN)</th></tr></thead><tbody id="daily-rows">';
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),v=dayVals[k]||'';
+    h+='<tr><td class="lbl">'+o.name+'</td><td><input type="number" class="ni" id="dd-'+k+'" value="'+v+'" placeholder="0" oninput="dailyRecalc()"'+(ro?' disabled':'')+'></td></tr>';
+  });
+  h+='<tr style="background:var(--sur2);font-weight:700"><td class="lbl">SUMA DNIA</td><td><span class="itot" id="daily-tot">0 PLN</span></td></tr>';
+  h+='</tbody></table></div>';
+  if(!ro)h+='<div class="fa"><button class="btn btn-p" onclick="saveDailyEntry()">💾 Zapisz dzień</button><button class="btn btn-s" onclick="clearDailyEntry()">🗑 Wyczyść</button></div>';
+  h+='</div>';
+
+  // ── PODSUMOWANIE MIESIĄCA ──
+  var filledDays=Object.keys(dd.days||{}).map(Number).sort(function(a,b){return a-b});
+  h+='<div class="stitle" style="margin-top:16px">Wypełnione dni <small>'+filledDays.length+' z '+DIM+'</small></div>';
+  if(filledDays.length){
+    h+='<div class="tbl-wrap"><table><thead><tr><th>Dzień</th><th>Suma dnia</th><th>Liczba outletów</th></tr></thead><tbody>';
+    filledDays.forEach(function(day){
+      var vals=dd.days[day];
+      h+='<tr><td>'+day+'</td><td class="td-acc">'+fmt(dailyDayTotal(vals))+'</td><td>'+Object.keys(vals).length+'/'+S.outlets.length+'</td></tr>';
+    });
+    var monthTotal=dailyMonthTotal(dd);
+    h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(monthTotal)+'</td><td>—</td></tr>';
+    h+='</tbody></table></div>';
+  } else {
+    h+='<div class="empty"><p>Brak jeszcze wprowadzonych dni w tym miesiącu.</p></div>';
+  }
+
+  el.innerHTML=h;
+  buildMGrid('-daily');
+  buildDailyCal();
+  dailyRecalc();
+}
+
+function buildDailyCal(){
+  var cal=document.getElementById('daily-cal');if(!cal)return;
+  var p=S.month.split('-'),yr=+p[0],mo=+p[1];
+  var daysInMo=new Date(yr,mo,0).getDate();
+  var firstDay=(new Date(yr,mo-1,1).getDay()+6)%7;
+  var dd=getDailyData(S.pid,S.month);
+  var today=new Date();
+  var todayD=(today.getFullYear()===yr&&today.getMonth()+1===mo)?today.getDate():-1;
+
+  var h='';
+  for(var i=0;i<firstDay;i++)h+='<div class="cal-d emp">x</div>';
+  for(var d=1;d<=daysInMo;d++){
+    var hasData=!!(dd.days&&dd.days[d]&&Object.keys(dd.days[d]).length);
+    var cls='cal-d'+(d===_dailyDay?' sel':'')+(d===todayD?' tod':'')+(hasData?' has-data':'');
+    h+='<button class="'+cls+'" onclick="selectDailyDay('+d+')">'+d+'</button>';
+  }
+  cal.innerHTML=h;
+}
+
+function selectDailyDay(day){
+  _dailyDay=day;
+  var lbl=document.getElementById('daily-day-lbl');if(lbl)lbl.textContent=day;
+  buildDailyCal();
+  var dd=getDailyData(S.pid,S.month);
+  var dayVals=(dd.days&&dd.days[day])||{};
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),inp=document.getElementById('dd-'+k);
+    if(inp)inp.value=dayVals[k]||'';
+  });
+  dailyRecalc();
+  haptic(6);
+}
+
+function dailyRecalc(){
+  var tot=0;
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),inp=document.getElementById('dd-'+k);
+    tot+=parseFloat(inp&&inp.value)||0;
+  });
+  var t=document.getElementById('daily-tot');
+  if(t)t.textContent=tot.toLocaleString('pl-PL')+' PLN';
+}
+
+function saveDailyEntry(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var vals={};
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),inp=document.getElementById('dd-'+k);
+    var v=parseFloat(inp&&inp.value)||0;
+    if(v>0)vals[k]=v;
+  });
+  saveDailyDayBulk(S.pid,S.month,_dailyDay,vals);
+  toast('Zapisano dzień '+_dailyDay,'ok');haptic(10);
+  renderDaily();
+}
+
+function clearDailyEntry(){
+  S.outlets.forEach(function(o){
+    var inp=document.getElementById('dd-'+okey(o.name));
+    if(inp)inp.value='';
+  });
+  dailyRecalc();
+}
+
+/* ── MONTH PICKER (współdzielony, z opcjonalnym suffixem dla różnych widoków) ── */
+function toggleMPicker(e,suf){
+  suf=suf||'';
   e.stopPropagation();
-  var pop=document.getElementById('mp-pop'),btn=document.getElementById('mpick-btn');
+  var pop=document.getElementById('mp-pop'+suf),btn=document.getElementById('mpick-btn'+suf);
   var isOpen=pop&&pop.style.display!=='none';
   closeAllPickers();
   if(!isOpen&&pop){pop.style.display='block';if(btn)btn.classList.add('open');}
 }
 
-function buildMGrid(){
-  var yrEl=document.getElementById('mp-yr');if(!yrEl)return;
+function buildMGrid(suf){
+  suf=suf||'';
+  var yrEl=document.getElementById('mp-yr'+suf);if(!yrEl)return;
   var yr=parseInt(yrEl.textContent)||parseInt(S.month.split('-')[0]);
-  var allD=getAllMD(S.pid);
+  var haveData=suf==='-daily'?getAllDailyData(S.pid):getAllMD(S.pid);
   var mn=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
   var h='';
   for(var i=0;i<12;i++){
     var ym=yr+'-'+String(i+1).padStart(2,'0');
-    var has=!!allD[ym],cur=ym===S.month;
+    var has=!!haveData[ym],cur=ym===S.month;
     var cls='mgrid-btn'+(cur?' cur':has?' has':'');
-    h+='<button class="'+cls+'" onclick="setDMonth(\''+ym+'\');event.stopPropagation()">'+mn[i]+'</button>';
+    h+='<button class="'+cls+'" onclick="setDMonth(\''+ym+'\',\''+suf+'\');event.stopPropagation()">'+mn[i]+'</button>';
   }
-  var grid=document.getElementById('mp-grid');if(grid)grid.innerHTML=h;
+  var grid=document.getElementById('mp-grid'+suf);if(grid)grid.innerHTML=h;
 }
 
-function mpYearNav(d){
-  var el=document.getElementById('mp-yr');if(!el)return;
+function mpYearNav(d,suf){
+  suf=suf||'';
+  var el=document.getElementById('mp-yr'+suf);if(!el)return;
   el.textContent=parseInt(el.textContent)+d;
-  buildMGrid();
+  buildMGrid(suf);
 }
 
-function setDMonth(ym){
+function setDMonth(ym,suf){
   S.month=ym;
   var ms=document.getElementById('month-sel');if(ms)ms.value=ym;
   closeAllPickers();
-  renderData();
+  renderCur();
 }
 
 /* ── DAY PICKER ── */
@@ -3051,12 +3272,14 @@ function setDR(d){
 }
 
 function closeAllPickers(){
-  var mp=document.getElementById('mp-pop'),dp=document.getElementById('dp-pop');
-  var mb=document.getElementById('mpick-btn'),db=document.getElementById('dpick-btn');
-  if(mp)mp.style.display='none';
-  if(dp)dp.style.display='none';
-  if(mb)mb.classList.remove('open');
-  if(db)db.classList.remove('open');
+  ['','-daily'].forEach(function(suf){
+    var mp=document.getElementById('mp-pop'+suf),dp=document.getElementById('dp-pop'+suf);
+    var mb=document.getElementById('mpick-btn'+suf),db2=document.getElementById('dpick-btn'+suf);
+    if(mp)mp.style.display='none';
+    if(dp)dp.style.display='none';
+    if(mb)mb.classList.remove('open');
+    if(db2)db2.classList.remove('open');
+  });
 }
 
 function recalc(){
@@ -3463,11 +3686,12 @@ function eCard(ico,t,d,fn){return '<div class="ecard" onclick="'+fn+'"><div clas
 /* ── JSON EXPORT ── */
 function exportJSON(){
   var props=getProps();
-  var backup={version:'1.0',app:'HotelMetrics Pro',exported:new Date().toISOString(),data:{properties:[],outlets:{},monthlyData:{}}};
+  var backup={version:'1.1',app:'HotelMetrics Pro',exported:new Date().toISOString(),data:{properties:[],outlets:{},monthlyData:{},dailyData:{}}};
   props.forEach(function(p){
     backup.data.properties.push(p);
     backup.data.outlets[p.id]=getOutlets(p.id);
     backup.data.monthlyData[p.id]=getAllMD(p.id);
+    backup.data.dailyData[p.id]=getAllDailyData(p.id);
   });
   var json=JSON.stringify(backup,null,2);
   var date=new Date().toISOString().slice(0,10);
@@ -3494,6 +3718,10 @@ function handleImportJSON(input){
       // Import monthly data
       Object.entries(backup.data.monthlyData||{}).forEach(function(pe){
         Object.entries(pe[1]).forEach(function(me){saveMD(pe[0],me[0],me[1])});
+      });
+      // Import daily data (jeśli obecne w pliku — kopie z wersji ≥1.1)
+      Object.entries(backup.data.dailyData||{}).forEach(function(pe){
+        Object.entries(pe[1]).forEach(function(me){lsSet(uk('daily-'+pe[0]+'-'+me[0]),me[1]);if(S.uid)fsWrite(db.collection('properties/'+pe[0]+'/dailyData').doc(me[0]),me[1]);});
       });
       S.props=getProps();
       if(!S.pid&&S.props.length){S.pid=S.props[0].id;S.outlets=getOutlets(S.pid);}
@@ -4163,7 +4391,7 @@ function onMonthChange(v){S.month=v;renderCur()}
 
 function renderCur(){
   try{
-    var fn={dashboard:renderDashboard,data:renderData,analytics:renderAnalytics,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
+    var fn={dashboard:renderDashboard,data:renderData,daily:renderDaily,analytics:renderAnalytics,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
     var f=fn[S.view];if(f)f();
   }catch(e){console.error(e)}
 }
@@ -4177,6 +4405,7 @@ var HELP_SECTIONS=[
   {id:'hs-start',  label:'Pierwsze kroki'},
   {id:'hs-dash',   label:'Dashboard'},
   {id:'hs-data',   label:'Wprowadź dane'},
+  {id:'hs-daily',  label:'Dane dzienne'},
   {id:'hs-analytics',label:'Analityka'},
   {id:'hs-compare',label:'Porównania'},
   {id:'hs-props',  label:'Obiekty i outlety'},
@@ -4296,9 +4525,33 @@ var HELP_CONTENT=`
 
 <div class="help-divider"></div>
 
+<div class="hs" id="hs-daily">
+<div class="hs-h1">📆 Dane dzienne</div>
+<div class="hs-p">Osobna zakładka do wprowadzania sprzedaży netto pojedynczo dla każdego dnia miesiąca i każdego outletu — <strong>bez budżetu</strong>. To dane niezależne od zakładki „Wprowadź dane" (tam wpisujesz sumę narastającą od 1. dnia miesiąca do wybranego dnia; tutaj — dokładny wynik konkretnego, pojedynczego dnia).</div>
+<div class="hs-tip">Najważniejsze wskaźniki na Dashboard i w raportach nadal opierają się na sumie narastającej z zakładki „Wprowadź dane" — Dane dzienne to dodatkowa, bardziej szczegółowa warstwa informacji, nie zastępuje głównych danych.</div>
+
+<div class="hs-h2">Wybór dnia</div>
+<div class="hs-p">Wybierz miesiąc dużym przyciskiem u góry, a następnie kliknij konkretny dzień w mini-kalendarzu. Dni z już wprowadzonymi danymi mają widoczną zieloną kropkę.</div>
+
+<div class="hs-h2">Wprowadzanie sprzedaży</div>
+<div class="hs-p">Dla wybranego dnia wpisz wynik netto osobno dla każdego outletu i kliknij <strong>💾 Zapisz dzień</strong>. Suma dnia liczy się automatycznie. Możesz wracać do dowolnego dnia i poprawiać wartości w każdej chwili.</div>
+
+<div class="hs-h2">Podsumowanie miesiąca</div>
+<div class="hs-p">Poniżej formularza znajduje się tabela wszystkich dotąd wypełnionych dni z ich sumami — pozwala szybko sprawdzić, których dni jeszcze brakuje.</div>
+
+<div class="hs-h2">Wykorzystanie danych</div>
+<ul class="hs-ul">
+  <li><strong>Heatmapa</strong> (zakładka Analityka) — gdy dla danego miesiąca wprowadzono dane dzienne, heatmapa pokazuje rzeczywisty rozkład sprzedaży w poszczególnych dniach zamiast szacunku ze średniej.</li>
+  <li><strong>Przyszłe analizy</strong> — dane dzienne będą stopniowo wykorzystywane w kolejnych funkcjach analitycznych.</li>
+  <li><strong>Import Material Control</strong> — planowana funkcja automatycznego importu danych dziennych z systemu magazynowego Material Control (Excel), analogicznie do obecnego importu HosPOS.</li>
+</ul>
+</div>
+
+<div class="help-divider"></div>
+
 <div class="hs" id="hs-analytics">
 <div class="hs-h1">📈 Analityka</div>
-<div class="hs-p">Zakładka Analityka pokazuje dane wybranego miesiąca w czterech widokach dostępnych jako zakładki: <strong>Wykresy</strong>, <strong>Ranking</strong>, <strong>Heatmapa</strong> i <strong>Co jeśli?</strong>.</div>
+<div class="hs-p">Zakładka Analityka pokazuje dane wybranego miesiąca w siedmiu widokach dostępnych jako zakładki: <strong>Wykresy</strong>, <strong>Ranking</strong>, <strong>Heatmapa</strong>, <strong>Co jeśli?</strong>, <strong>Trafność</strong>, <strong>Kwadranty</strong> i <strong>Odchylenia</strong>.</div>
 
 <div class="hs-h2">Wskaźniki u góry</div>
 <ul class="hs-ul">
@@ -4323,7 +4576,8 @@ var HELP_CONTENT=`
 <div class="hs-p">Podium outletów posortowanych wg wyniku netto — trzy pierwsze miejsca oznaczone medalami 🥇🥈🥉, każdy wiersz pokazuje pasek udziału w wyniku i zmianę procentową względem poprzedniego miesiąca.</div>
 
 <div class="hs-h2">Zakładka: Heatmapa</div>
-<div class="hs-p">Kalendarz wybranego miesiąca z kolorami intensywności — zielony oznacza dni z wynikiem powyżej typowej średniej, czerwony poniżej. Dni bez jeszcze wprowadzonych danych są wyszarzone. Najedź (lub dotknij) na dzień, aby zobaczyć szacunkową wartość.</div>
+<div class="hs-p">Kalendarz wybranego miesiąca z kolorami intensywności — zielony oznacza dni z wynikiem powyżej typowej średniej, czerwony poniżej. Jeśli w zakładce <strong>Dane dzienne</strong> wprowadzono wyniki dla poszczególnych dni, heatmapa pokazuje wartości rzeczywiste (pełna intensywność, dokładna kwota w podpowiedzi po najechaniu). Dla dni bez wprowadzonych danych dziennych widoczny jest przygaszony szacunek na bazie średniej dziennej z zakładki „Wprowadź dane".</div>
+<div class="hs-tip">Nagłówek heatmapy pokazuje etykietę „● dane rzeczywiste", gdy dla danego miesiąca wprowadzono chociaż jeden dzień w zakładce Dane dzienne.</div>
 
 <div class="hs-h2">Zakładka: Co jeśli?</div>
 <div class="hs-p">Symulator scenariuszy — suwak przy każdym outlecie pozwala „na sucho" sprawdzić, jak zmiana jego wyniku o określony procent wpłynęłaby na łączną prognozę miesiąca. Zmiany są tylko podglądowe, niczego nie zapisują.</div>
@@ -4536,12 +4790,22 @@ var HELP_CONTENT=`
 
 <div class="hs-h2">Historia zmian (Changelog)</div>
 <div class="hs-p">Pełna lista wszystkich wersji i wprowadzonych w nich funkcji dostępna jest w zakładce <strong>ℹ️ O programie</strong> (przycisk w dolnej części sidebara) — przewijana lista od najnowszej do najstarszej wersji.</div>
+
+<div class="hs-h2">Zasady numeracji wersji</div>
+<div class="hs-p">Numer wersji ma format X.Y.Z, np. <strong>2.6.1</strong>:</div>
+<ul class="hs-ul">
+  <li><strong>Środkowa cyfra (Y)</strong> rośnie przy nowych funkcjach lub większych zmianach — np. 2.6.0 → 2.7.0.</li>
+  <li><strong>Ostatnia cyfra (Z)</strong> rośnie przy drobnych poprawkach i naprawach błędów — np. 2.6.0 → 2.6.1 → 2.6.2.</li>
+</ul>
+<div class="hs-tip">Dzięki temu po samej numeracji widać od razu, czy aktualizacja wprowadza coś nowego do przetestowania, czy to tylko drobna poprawka.</div>
 </div>
 `;
 
 function showHelp(){
   var modal=document.getElementById('help-modal');
   if(!modal)return;
+  var verEl=document.getElementById('help-topbar-ver');
+  if(verEl)verEl.textContent='v'+APP_VERSION+' · '+APP_BUILD_DATE.slice(0,4);
   // Build TOC
   var tocHTML='<div class="htoc-section">Nawigacja</div>';
   var mobTocHTML='';
