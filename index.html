@@ -436,7 +436,7 @@ textarea.fi{resize:vertical}
 .dp-title{font-size:.78rem;font-weight:600;color:var(--tx);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
 
 /* Bottom spacer — każda zakładka ma 80px wolnego miejsca na dole */
-#v-dashboard,#v-data,#v-daily,#v-analytics,#v-compare,#v-properties,#v-export,
+#v-dashboard,#v-data,#v-analytics,#v-heatmap,#v-compare,#v-properties,#v-export,
 #v-budget,#v-team{padding-bottom:80px}
 
 /* ── AUTO THEME (system preference) ── */
@@ -739,7 +739,7 @@ textarea.fi{resize:vertical}
   <div class="fg"><label>Nazwa obiektu *</label><input class="fi" id="np-name" placeholder="Hotel Grand Kraków"></div>
   <div class="fg"><label>Adres</label><input class="fi" id="np-addr" placeholder="ul. Przykładowa 1"></div>
   <div class="fg"><label>Miasto (dla danych pogodowych)</label><input class="fi" id="np-city" placeholder="np. Kraków"></div>
-  <div class="hs-tip">Podanie miasta pozwoli aplikacji automatycznie dopasować temperaturę i stan pogody do dni w zakładce Dane dzienne.</div>
+  <div class="hs-tip">Podanie miasta pozwoli aplikacji automatycznie dopasować temperaturę i stan pogody do dni w pod-zakładce Dzienne (w Danych).</div>
   <div class="fa"><button class="btn btn-p" onclick="saveProp()">Utwórz</button><button class="btn btn-s" onclick="closeM('m-prop')">Anuluj</button></div>
 </div></div>
 
@@ -852,11 +852,11 @@ textarea.fi{resize:vertical}
     <div class="nav-i" data-v="data" onclick="go('data')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M15.5 3.5a2.121 2.121 0 013 3L12 13l-4 1 1-4 6.5-6.5z"/></svg>Wprowadź dane
     </div>
-    <div class="nav-i" data-v="daily" onclick="go('daily')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/></svg>Dane dzienne
-    </div>
     <div class="nav-i" data-v="analytics" onclick="go('analytics')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analityka
+    </div>
+    <div class="nav-i" data-v="heatmap" onclick="go('heatmap')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/></svg>Heatmapa
     </div>
     <div class="nav-i" data-v="compare" onclick="go('compare')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Porównania
@@ -947,8 +947,8 @@ textarea.fi{resize:vertical}
 
     <div id="v-dashboard"></div>
     <div id="v-data" style="display:none"></div>
-    <div id="v-daily" style="display:none"></div>
     <div id="v-analytics" style="display:none"></div>
+    <div id="v-heatmap" style="display:none"></div>
     <div id="v-compare" style="display:none"></div>
     <div id="v-properties" style="display:none"></div>
     <div id="v-export" style="display:none"></div>
@@ -970,6 +970,11 @@ textarea.fi{resize:vertical}
   <button class="bnav-item" data-v="analytics" onclick="go('analytics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     Analityka
+  </button>
+
+  <button class="bnav-item" data-v="heatmap" onclick="go('heatmap')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/></svg>
+    Heatmapa
   </button>
 
   <button class="bnav-item" data-v="compare" onclick="go('compare')">
@@ -1473,7 +1478,7 @@ function renderHeatmap(container,pid,month){
     h+='<div class="hm-est">'+(w?wxLabel:(isDone?'szacunek':'brak danych'))+'</div></div>';
   }
   h+='</div></div>';
-  if(!hasRealDays)h+='<div class="hs-tip" style="margin-top:10px">Kolory poniżej to szacunek na bazie średniej dziennej. Wprowadź dane w zakładce <a href="#" onclick="go(\'daily\')">Dane dzienne</a>, aby zobaczyć rzeczywisty rozkład sprzedaży w poszczególnych dniach.</div>';
+  if(!hasRealDays)h+='<div class="hs-tip" style="margin-top:10px">Kolory poniżej to szacunek na bazie średniej dziennej. Wprowadź dane w zakładce <a href="#" onclick="goDaily()">Dane → Dzienne</a>, aby zobaczyć rzeczywisty rozkład sprzedaży w poszczególnych dniach.</div>';
   h+='<div class="hmap-legend"><span>Mniej</span><div class="hmap-legend-boxes">';
   ['rgba(255,77,109,.3)','rgba(245,158,11,.3)','rgba(245,158,11,.6)','rgba(34,197,94,.5)','rgba(34,197,94,.8)'].forEach(function(c){h+='<div class="hmap-legend-box" style="background:'+c+'"></div>'});
   h+='</div><span>Więcej</span></div>';
@@ -1482,12 +1487,22 @@ function renderHeatmap(container,pid,month){
   var prop=S.props.find(function(p){return p.id===pid});
   if(prop&&prop.lat){
     ensureMonthWeather(pid,month).then(function(res){
-      if(res.fetched&&S.view==='analytics'&&S.pid===pid&&S.month===month){
-        var atHeatmap=document.getElementById('at-heatmap');
-        if(atHeatmap&&atHeatmap.style.display!=='none')renderHeatmap(atHeatmap,pid,month);
+      if(res.fetched&&S.view==='heatmap'&&S.pid===pid&&S.month===month){
+        var vHeat=document.getElementById('v-heatmap');
+        if(vHeat)renderHeatmap(vHeat,pid,month);
       }
     });
   }
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: HEATMAPA — samodzielny widok najwyższego poziomu
+   (przeniesiona z zakładek Analityki na listwę dolną, obok Dashboard/Dane/Analityka/Porównania)
+═══════════════════════════════════════════ */
+function renderHeatmapView(){
+  var el=document.getElementById('v-heatmap');if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('📅','Brak obiektu lub outletów','Dodaj obiekt hotelowy i outlety, aby zobaczyć heatmapę sprzedaży.','+ Przejdź do obiektów',"go('properties')");return;}
+  renderHeatmap(el,S.pid,S.month);
 }
 
 function openHeatmapDay(pid,month,day){
@@ -1835,7 +1850,6 @@ function renderAnalytics(){
   h+='<div class="tabs" id="atabs">';
   h+='<button class="tab on" onclick="switchATab(\'charts\',this)">📊 Wykresy</button>';
   h+='<button class="tab" onclick="switchATab(\'ranking\',this)">🏆 Ranking</button>';
-  h+='<button class="tab" onclick="switchATab(\'heatmap\',this)">📅 Heatmapa</button>';
   h+='<button class="tab" onclick="switchATab(\'whatif\',this)">🔮 Co jeśli?</button>';
   h+='<button class="tab" onclick="switchATab(\'accuracy\',this)">🎯 Trafność</button>';
   h+='<button class="tab" onclick="switchATab(\'quadrant\',this)">🧭 Kwadranty</button>';
@@ -1861,8 +1875,6 @@ function renderAnalytics(){
 
   // Ranking panel
   h+='<div id="at-ranking" style="display:none"></div>';
-  // Heatmap panel
-  h+='<div id="at-heatmap" style="display:none"></div>';
   // What-if panel
   h+='<div id="at-whatif" style="display:none"></div>';
   // Accuracy / quadrant / waterfall panels
@@ -1892,9 +1904,8 @@ function renderAnalytics(){
   dChart('ch-trend');
   S.charts['ch-trend']=new Chart(document.getElementById('ch-trend'),{type:'line',data:{labels:months.map(mLabel),datasets:[{label:'Wynik netto',data:months.map(function(m){return conv(Object.values(allD[m].a||{}).reduce(function(x,y){return x+y},0))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:acHex(),pointBorderColor:surHex(),pointBorderWidth:2}]},options:chOpts(function(v){return fmtR(v)})});
 
-  // Pre-render ranking / heatmap / what-if / nowe analizy
+  // Pre-render ranking / what-if / nowe analizy
   renderRanking(document.getElementById('at-ranking'),M,allD);
-  renderHeatmap(document.getElementById('at-heatmap'),S.pid,S.month);
   renderWhatIf(document.getElementById('at-whatif'),M);
   renderAccuracy(document.getElementById('at-accuracy'),allD);
   renderQuadrant(document.getElementById('at-quadrant'),M,allD);
@@ -1903,7 +1914,7 @@ function renderAnalytics(){
 }
 
 function switchATab(tab,btn){
-  ['charts','ranking','heatmap','whatif','accuracy','quadrant','waterfall','weather'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
+  ['charts','ranking','whatif','accuracy','quadrant','waterfall','weather'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
   document.querySelectorAll('#atabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -2644,7 +2655,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.2.0';
+var APP_VERSION='3.3.0';
 var APP_BUILD_DATE='2026-08-12';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2653,6 +2664,12 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.3.0',date:'2026-08-12',changes:[
+    'Zakładka „Dane dzienne" scalona z „Wprowadź dane" — teraz to dwie pod-zakładki (Miesięczne / Dzienne) w jednym miejscu',
+    'Heatmapa przeniesiona z zakładek Analityki na samodzielną pozycję w dolnej belce i sidebarze — szybszy dostęp bez wchodzenia w Analitykę',
+    'Naprawiono kilka wewnętrznych odwołań do starej struktury zakładek powstałych przy przenoszeniu (odświeżanie pogody, linki w pustych stanach)',
+    'Usunięto zdublowany wpis w historii zmian (Changelog)'
+  ]},
   {v:'3.2.0',date:'2026-08-12',changes:[
     'Zmieniono dane pogodowe: aplikacja wykorzystuje maksymalną temperaturę dobową zamiast średniej temperatury dobowej'
   ]},
@@ -2668,7 +2685,6 @@ var CHANGELOG=[
     'Naprawiono pobieranie pogody dla ręcznie dodanych dni bieżącego miesiąca — zapytania są dzielone na dane archiwalne i najnowsze',
     'Tablica rekordów automatycznie próbuje uzupełnić brakujące dane pogodowe dla dni z najwyższą sprzedażą'
   ]},
-  {v:'3.2.0',date:'2026-08-12',changes:['Temperatura w danych pogodowych została zmieniona ze średniej dobowej na maksymalną temperaturę dobową'],},
   {v:'2.9.0',date:'2026-08-12',changes:[
     'Naprawiono zacinający się wskaźnik aktywnej zakładki w Analityce/Porównaniach na telefonie — usunięto animowaną nakładkę (gubiła pozycję przy poziomym przewijaniu) na rzecz prostszego, niezawodnego oznaczania koloru tła bezpośrednio na przycisku',
     'Nowy globalny przycisk zmiany miesiąca w górnym pasku — dostępny z każdej zakładki, nie tylko z „Wprowadź dane"'
@@ -3014,11 +3030,11 @@ function setTheme(t){
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',daily:'Dane dzienne',analytics:'Analityka',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
+var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',heatmap:'Heatmapa',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
 function go(v){
   S.view=v;
   document.querySelectorAll('[data-v]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-v')===v)});
-  document.querySelectorAll('#v-dashboard,#v-data,#v-daily,#v-analytics,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
+  document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-heatmap,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
   var el=document.getElementById('v-'+v);if(el)el.style.display='block';
   var pt=document.getElementById('pg-title');if(pt)pt.textContent=TITLES[v]||v;
   haptic(8);
@@ -3207,7 +3223,7 @@ function renderRecords(target){
   var totalRecords=Object.values(records).reduce(function(n,r){return n+r.length},0);
   var prop=S.props.find(function(p){return p.id===S.pid});
   var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap"><div class="badge">🏆 Tablica rekordów</div><span style="font-size:.68rem;color:var(--tx3)">'+(prop?prop.name:'')+'</span></div>';
-  h+='<div class="card" style="margin-bottom:16px"><div class="card-title">Najwyższe dzienne utargi</div><div style="font-size:.78rem;color:var(--tx2);line-height:1.55">Ranking jest liczony na podstawie danych z zakładki <strong>Dane dzienne</strong> ze wszystkich dostępnych miesięcy. Dla każdego outletu pokazujemy maksymalnie 3 najwyższe dni.</div></div>';
+  h+='<div class="card" style="margin-bottom:16px"><div class="card-title">Najwyższe dzienne utargi</div><div style="font-size:.78rem;color:var(--tx2);line-height:1.55">Ranking jest liczony na podstawie danych z pod-zakładki <strong>Dzienne</strong> (w Danych) ze wszystkich dostępnych miesięcy. Dla każdego outletu pokazujemy maksymalnie 3 najwyższe dni.</div></div>';
   h+='<div class="record-grid">';
   S.outlets.forEach(function(o){
     var k=okey(o.name),rows=records[k]||[];
@@ -3223,7 +3239,7 @@ function renderRecords(target){
   });
   h+='</div>';
   if(totalRecords)h+='<div class="hs-tip">Rekordy nie zależą od aktualnie wybranego miesiąca. Po dodaniu nowego dnia tablica zostanie automatycznie przeliczona.</div>';
-  else h+='<div class="empty"><p>Brak danych dziennych. Wprowadź sprzedaż w zakładce Dane dzienne, aby zbudować tablicę rekordów.</p></div>';
+  else h+='<div class="empty"><p>Brak danych dziennych. Wprowadź sprzedaż w pod-zakładce <a href="#" onclick="goDaily()">Dzienne</a> (w Danych), aby zbudować tablicę rekordów.</p></div>';
   el.innerHTML=h;
   // Jeżeli rekordy mają braki pogodowe, spróbuj je uzupełnić w tle.
   var monthsToFetch={};
@@ -3360,6 +3376,14 @@ function renderData(){
 
   var h='';
 
+  // ── PRZEŁĄCZNIK: Miesięczne / Dzienne ──
+  h+='<div class="tabs" id="data-tabs">';
+  h+='<button class="tab on" id="data-tab-monthly" onclick="switchDataTab(\'monthly\',this)">📝 Miesięczne</button>';
+  h+='<button class="tab" id="data-tab-daily" onclick="switchDataTab(\'daily\',this)">📆 Dzienne</button>';
+  h+='</div>';
+
+  h+='<div id="data-sub-monthly">';
+
   if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Masz uprawnienia tylko do odczytu (rola: Podgląd) — nie możesz edytować danych tego obiektu.</div>';
 
   // ── MONTH PICKER BUTTON ──
@@ -3424,10 +3448,34 @@ function renderData(){
   if(!ro)h+='<div class="fa"><button class="btn btn-p btn-sm" onclick="goalsSaveAll()">💾 Zapisz cele</button></div>';
   h+='</div>';
 
+  h+='</div>'; // koniec #data-sub-monthly
+
+  // ── POD-ZAKŁADKA: Dane dzienne (renderowana osobno przez renderDaily() do #v-daily) ──
+  h+='<div id="v-daily" style="display:none"></div>';
+
   el.innerHTML=h;
   recalc();
   buildMGrid();
   buildCal();
+  renderDaily();
+}
+
+function switchDataTab(tab,btn){
+  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily');
+  if(monthly)monthly.style.display=tab==='monthly'?'block':'none';
+  if(daily)daily.style.display=tab==='daily'?'block':'none';
+  document.querySelectorAll('#data-tabs .tab').forEach(function(b){b.classList.remove('on')});
+  if(btn)btn.classList.add('on');
+  scrollActiveTabIntoView(btn);
+  haptic(6);
+}
+
+// Nawiguje do zakładki Dane i od razu przełącza na pod-zakładkę Dzienne
+// (używane przez linki z innych widoków, np. Heatmapa/Pogoda/Rekordy, gdy brakuje danych dziennych)
+function goDaily(){
+  go('data');
+  var btn=document.getElementById('data-tab-daily');
+  if(btn)switchDataTab('daily',btn);
 }
 
 /* ── GOALS UI ── */
@@ -3553,7 +3601,9 @@ function renderDaily(){
   if(hasLocation){
     var monthAtCall=S.month,pidAtCall=S.pid;
     ensureMonthWeather(S.pid,S.month).then(function(res){
-      if(res.fetched&&S.view==='daily'&&S.month===monthAtCall&&S.pid===pidAtCall)updateDailyWeatherUI();
+      var dailyPanel=document.getElementById('v-daily');
+      var dailyVisible=dailyPanel&&dailyPanel.style.display!=='none';
+      if(res.fetched&&S.view==='data'&&dailyVisible&&S.month===monthAtCall&&S.pid===pidAtCall)updateDailyWeatherUI();
     });
   }
 }
@@ -4215,7 +4265,7 @@ function renderExport(){
   // ── IMPORT MATERIAL CONTROL (dane dzienne) ──
   h+='<div class="stitle">Import danych dziennych (Material Control)</div>';
   h+='<div class="card">';
-  h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj plik <strong>"Sprzedaż wg Typu Aktywności"</strong> (.xlsx/.xlsm) z systemu Material Control — dane trafiają bezpośrednio do zakładki <strong>Dane dzienne</strong>, osobno dla każdego dnia i outletu. Dni obecne w pliku, dla których dany outlet nie ma wiersza, zostaną uzupełnione wartością 0 (outlet zamknięty). Po imporcie aplikacja automatycznie pobierze dane pogodowe dla wszystkich dotkniętych miesięcy.</p>';
+  h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj plik <strong>"Sprzedaż wg Typu Aktywności"</strong> (.xlsx/.xlsm) z systemu Material Control — dane trafiają bezpośrednio do pod-zakładki <strong>Dzienne</strong> w Danych, osobno dla każdego dnia i outletu. Dni obecne w pliku, dla których dany outlet nie ma wiersza, zostaną uzupełnione wartością 0 (outlet zamknięty). Po imporcie aplikacja automatycznie pobierze dane pogodowe dla wszystkich dotkniętych miesięcy.</p>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
   h+='<button class="btn btn-p" onclick="triggerImportMC()">📦 Importuj Material Control (.xlsx)</button>';
   h+='</div>';
@@ -4894,9 +4944,9 @@ function confirmMCImport(){
   var pidAtImport=S.pid;
   function fetchNext(idx){
     if(idx>=months.length){
-      if(preview&&S.pid===pidAtImport)preview.innerHTML='<div class="hs-tip">✅ Import i dane pogodowe zakończone. Sprawdź zakładkę Dane dzienne lub Heatmapę w Analityce.</div>';
+      if(preview&&S.pid===pidAtImport)preview.innerHTML='<div class="hs-tip">✅ Import i dane pogodowe zakończone. Sprawdź pod-zakładkę Dzienne w Danych lub zakładkę Heatmapa.</div>';
       _mcPending=null;
-      if((S.view==='daily'||S.view==='analytics')&&S.pid===pidAtImport)renderCur();
+      if((S.view==='data'||S.view==='analytics'||S.view==='heatmap')&&S.pid===pidAtImport)renderCur();
       return;
     }
     ensureMonthWeather(pidAtImport,months[idx]).then(function(){
@@ -5140,7 +5190,7 @@ function onMonthChange(v){S.month=v;syncMonthUI();renderCur()}
 
 function renderCur(){
   try{
-    var fn={dashboard:renderDashboard,data:renderData,daily:renderDaily,analytics:renderAnalytics,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
+    var fn={dashboard:renderDashboard,data:renderData,analytics:renderAnalytics,heatmap:renderHeatmapView,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
     var f=fn[S.view];if(f)f();
   }catch(e){console.error(e)}
 }
@@ -5154,8 +5204,8 @@ var HELP_SECTIONS=[
   {id:'hs-start',  label:'Pierwsze kroki'},
   {id:'hs-dash',   label:'Dashboard'},
   {id:'hs-data',   label:'Wprowadź dane'},
-  {id:'hs-daily',  label:'Dane dzienne'},
   {id:'hs-analytics',label:'Analityka'},
+  {id:'hs-heatmap',label:'Heatmapa'},
   {id:'hs-compare',label:'Porównania'},
   {id:'hs-props',  label:'Obiekty i outlety'},
   {id:'hs-budget', label:'Budżet roczny'},
@@ -5240,8 +5290,9 @@ var HELP_CONTENT=`
 
 <div class="hs" id="hs-data">
 <div class="hs-h1">✏️ Wprowadź dane</div>
+<div class="hs-p">Ta zakładka ma dwie pod-zakładki na górze: <strong>📝 Miesięczne</strong> (budżet i suma narastająca) oraz <strong>📆 Dzienne</strong> (sprzedaż osobno dla każdego dnia, bez budżetu). Przełączaj się między nimi przyciskami na samej górze widoku.</div>
 
-<div class="hs-h2">Wybór miesiąca</div>
+<div class="hs-h2">📝 Miesięczne — wybór miesiąca</div>
 <div class="hs-p">Kliknij duży przycisk z nazwą miesiąca u góry widoku. Otworzy się siatka 12 miesięcy z nawigacją po latach (strzałki ◀ ▶). Miesiące z zapisanymi danymi są podświetlone akcentem. Kliknij wybrany miesiąc — formularz odświeży się z danymi tego miesiąca.</div>
 <div class="hs-tip">Możesz przeglądać i edytować dane dla dowolnego miesiąca w historii — nie tylko bieżącego. Miesiąc możesz też zmienić z <strong>dowolnej innej zakładki</strong> — ikona kalendarza w górnym pasku (obok lupy) jest widoczna wszędzie, nie tylko tutaj.</div>
 
@@ -5270,14 +5321,10 @@ var HELP_CONTENT=`
 <div class="hs-h2">Komentarz</div>
 <div class="hs-p">Pole tekstowe na dole formularza pozwala dodać notatkę do miesiąca. Komentarz pojawia się na Dashboard i jest dołączany do raportów PDF.</div>
 <div class="hs-example"><strong>Przykład komentarza:</strong> „Remont lobby baru 5-10.03, wpływ -15k na LOBBY BAR. Konferencja 20-22.03 — wzrost BANQUETING."</div>
-</div>
 
-<div class="help-divider"></div>
-
-<div class="hs" id="hs-daily">
-<div class="hs-h1">📆 Dane dzienne</div>
-<div class="hs-p">Osobna zakładka do wprowadzania sprzedaży netto pojedynczo dla każdego dnia miesiąca i każdego outletu — <strong>bez budżetu</strong>. To dane niezależne od zakładki „Wprowadź dane" (tam wpisujesz sumę narastającą od 1. dnia miesiąca do wybranego dnia; tutaj — dokładny wynik konkretnego, pojedynczego dnia).</div>
-<div class="hs-tip">Najważniejsze wskaźniki na Dashboard i w raportach nadal opierają się na sumie narastającej z zakładki „Wprowadź dane" — Dane dzienne to dodatkowa, bardziej szczegółowa warstwa informacji, nie zastępuje głównych danych.</div>
+<div class="hs-h2">📆 Dzienne — sprzedaż per dzień</div>
+<div class="hs-p">Druga pod-zakładka do wprowadzania sprzedaży netto pojedynczo dla każdego dnia miesiąca i każdego outletu — <strong>bez budżetu</strong>. To dane niezależne od pod-zakładki „Miesięczne" (tam wpisujesz sumę narastającą od 1. dnia miesiąca do wybranego dnia; tutaj — dokładny wynik konkretnego, pojedynczego dnia).</div>
+<div class="hs-tip">Najważniejsze wskaźniki na Dashboard i w raportach nadal opierają się na sumie narastającej z pod-zakładki „Miesięczne" — Dane dzienne to dodatkowa, bardziej szczegółowa warstwa informacji, nie zastępuje głównych danych.</div>
 
 <div class="hs-h2">Wybór dnia</div>
 <div class="hs-p">Wybierz miesiąc dużym przyciskiem u góry, a następnie kliknij konkretny dzień w mini-kalendarzu. Dni z już wprowadzonymi danymi mają widoczną zieloną kropkę.</div>
@@ -5290,13 +5337,13 @@ var HELP_CONTENT=`
 
 <div class="hs-h2">Dane pogodowe</div>
 <div class="hs-p">Dla każdego dnia aplikacja pobiera i zapisuje maksymalną temperaturę dobową, sumę opadów, warunki pogodowe oraz maksymalną prędkość wiatru. Dane są przypisywane do konkretnego dnia i mogą być automatycznie uzupełniane ponownie, jeśli brakuje któregoś z parametrów.</div>
-<div class="hs-p">Jeśli obiekt ma ustawioną lokalizację (miasto), aplikacja automatycznie dopasowuje do każdego dnia temperaturę średnią, ikonę stanu pogody i opady — dane pobierane są jednym zapytaniem dla całego miesiąca przy wejściu w zakładkę, bez dodatkowych kliknięć. Pogoda widoczna jest przy wybranym dniu, w tabeli „Wypełnione dni" oraz w podpowiedziach Heatmapy.</div>
+<div class="hs-p">Jeśli obiekt ma ustawioną lokalizację (miasto), aplikacja automatycznie dopasowuje do każdego dnia temperaturę, ikonę stanu pogody i opady — dane pobierane są jednym zapytaniem dla całego miesiąca przy wejściu w pod-zakładkę, bez dodatkowych kliknięć. Pogoda widoczna jest przy wybranym dniu, w tabeli „Wypełnione dni" oraz w podpowiedziach Heatmapy.</div>
 <div class="hs-tip">Źródło danych: Open-Meteo (darmowe, bez klucza API). Jak ustawić lokalizację obiektu — patrz sekcja „Obiekty i outlety".</div>
 <div class="hs-p">Dla najświeższych dni (wczoraj, dziś) dostawca pogody czasem nie ma jeszcze w pełni sfinalizowanych danych — w takim przypadku obok badge'a pogody pojawia się przycisk <strong>🔄 Odśwież pogodę</strong>, który wymusza natychmiastowe, świeże pobranie z pominięciem zapisanego cache.</div>
 
 <div class="hs-h2">Wykorzystanie danych</div>
 <ul class="hs-ul">
-  <li><strong>Heatmapa</strong> (zakładka Analityka) — gdy dla danego miesiąca wprowadzono dane dzienne, heatmapa pokazuje rzeczywisty rozkład sprzedaży w poszczególnych dniach zamiast szacunku ze średniej.</li>
+  <li><strong>Heatmapa</strong> (osobna zakładka w dolnej belce/sidebarze) — gdy dla danego miesiąca wprowadzono dane dzienne, heatmapa pokazuje rzeczywisty rozkład sprzedaży w poszczególnych dniach zamiast szacunku ze średniej.</li>
   <li><strong>Zakładka Pogoda</strong> (Analityka) — porównanie średniej sprzedaży dziennej w zależności od warunków pogodowych, zbiorczo ze wszystkich miesięcy.</li>
   <li><strong>Import Material Control</strong> — automatyczny import danych dziennych z systemu magazynowego Material Control (Excel), dostępny w zakładce Eksport/Import (patrz sekcja „Eksport / Import").</li>
 </ul>
@@ -5305,8 +5352,9 @@ var HELP_CONTENT=`
 <div class="help-divider"></div>
 
 <div class="hs" id="hs-analytics">
+
 <div class="hs-h1">📈 Analityka</div>
-<div class="hs-p">Zakładka Analityka pokazuje dane wybranego miesiąca w ośmiu widokach dostępnych jako zakładki: <strong>Wykresy</strong>, <strong>Ranking</strong>, <strong>Heatmapa</strong>, <strong>Co jeśli?</strong>, <strong>Trafność</strong>, <strong>Kwadranty</strong>, <strong>Odchylenia</strong> i <strong>Pogoda</strong>.</div>
+<div class="hs-p">Zakładka Analityka pokazuje dane wybranego miesiąca w siedmiu widokach dostępnych jako zakładki: <strong>Wykresy</strong>, <strong>Ranking</strong>, <strong>Co jeśli?</strong>, <strong>Trafność</strong>, <strong>Kwadranty</strong>, <strong>Odchylenia</strong> i <strong>Pogoda</strong>.</div>
 
 <div class="hs-h2">Wskaźniki u góry</div>
 <ul class="hs-ul">
@@ -5332,10 +5380,6 @@ var HELP_CONTENT=`
 <div class="hs-h2">Tablica rekordów w sekcji Ranking</div>
 <div class="hs-p">W dolnej części sekcji Ranking znajduje się Tablica rekordów. Dla każdego outletu pokazuje trzy najwyższe dzienne utargi ze wszystkich dostępnych miesięcy. Przy każdym rekordzie widoczna jest data, wartość utargu oraz dane pogodowe: piktogram, maksymalna temperatura dobowa, opady i maksymalna prędkość wiatru.</div>
 
-<div class="hs-h2">Zakładka: Heatmapa</div>
-<div class="hs-p">Kalendarz wybranego miesiąca z kolorami intensywności — zielony oznacza dni z wynikiem powyżej typowej średniej, czerwony poniżej. Jeśli w zakładce <strong>Dane dzienne</strong> wprowadzono wyniki dla poszczególnych dni, heatmapa pokazuje wartości rzeczywiste (pełna intensywność, dokładna kwota w podpowiedzi po najechaniu). Dla dni bez wprowadzonych danych dziennych widoczny jest przygaszony szacunek na bazie średniej dziennej z zakładki „Wprowadź dane".</div>
-<div class="hs-tip">Nagłówek heatmapy pokazuje etykietę „● dane rzeczywiste", gdy dla danego miesiąca wprowadzono chociaż jeden dzień w zakładce Dane dzienne.</div>
-
 <div class="hs-h2">Zakładka: Co jeśli?</div>
 <div class="hs-p">Symulator scenariuszy — suwak przy każdym outlecie pozwala „na sucho" sprawdzić, jak zmiana jego wyniku o określony procent wpłynęłaby na łączną prognozę miesiąca. Zmiany są tylko podglądowe, niczego nie zapisują.</div>
 <div class="hs-example"><strong>Przykład:</strong> Przesuwasz suwak przy FURU na +15% → aplikacja natychmiast przelicza i pokazuje nową prognozę łączną oraz różnicę względem obecnej.</div>
@@ -5351,8 +5395,25 @@ var HELP_CONTENT=`
 <div class="hs-p">Wykres waterfall pokazujący, który outlet najbardziej przyczynił się do przekroczenia lub niewykonania łącznego budżetu miesiąca. Zamiast analizować 6 osobnych liczb, widać jedną historię „co poszło dobrze, a co źle" — zielone słupki podnoszą wynik ponad budżet, czerwone go obniżają.</div>
 
 <div class="hs-h2">Zakładka: Pogoda</div>
-<div class="hs-p">Porównuje średnią sprzedaż dzienną w zależności od warunków pogodowych (Słonecznie / Pochmurno / Deszcz / Śnieg), agregując dane ze wszystkich miesięcy obiektu, dla których wprowadzono dane w zakładce Dane dzienne. Pokazuje, o ile procent sprzedaż w danych warunkach odbiega od średniej ogólnej. Dane pogodowe dla każdego dnia obejmują maksymalną temperaturę dobową, sumę opadów, kod warunków pogodowych oraz maksymalną prędkość wiatru.</div>
+<div class="hs-p">Porównuje średnią sprzedaż dzienną w zależności od warunków pogodowych (Słonecznie / Pochmurno / Deszcz / Śnieg), agregując dane ze wszystkich miesięcy obiektu, dla których wprowadzono dane w pod-zakładce Dzienne (w Danych). Pokazuje, o ile procent sprzedaż w danych warunkach odbiega od średniej ogólnej. Dane pogodowe dla każdego dnia obejmują maksymalną temperaturę dobową, sumę opadów, kod warunków pogodowych oraz maksymalną prędkość wiatru.</div>
 <div class="hs-tip">Wymaga ustawionej lokalizacji obiektu i przynajmniej kilku dni z wprowadzoną sprzedażą — im większa próbka, tym bardziej wiarygodny wynik.</div>
+</div>
+
+<div class="help-divider"></div>
+
+<div class="hs" id="hs-heatmap">
+<div class="hs-h1">📅 Heatmapa</div>
+<div class="hs-p">Samodzielny widok dostępny bezpośrednio z dolnej belki i sidebara (obok Dashboard, Dane, Analityka i Porównania) — kalendarz wybranego miesiąca z kolorami intensywności sprzedaży.</div>
+
+<div class="hs-h2">Odczytywanie kolorów</div>
+<div class="hs-p">Zielony oznacza dni z wynikiem powyżej typowej średniej, czerwony poniżej. Jeśli w pod-zakładce <strong>Dane → Dzienne</strong> wprowadzono wyniki dla poszczególnych dni, heatmapa pokazuje wartości rzeczywiste (pełna intensywność, dokładna kwota bezpośrednio na kafelku). Dla dni bez wprowadzonych danych dziennych widoczny jest przygaszony szacunek na bazie średniej dziennej z pod-zakładki „Miesięczne".</div>
+<div class="hs-tip">Nagłówek heatmapy pokazuje etykietę „● dane rzeczywiste", gdy dla danego miesiąca wprowadzono chociaż jeden dzień danych dziennych.</div>
+
+<div class="hs-h2">Kafelki dnia</div>
+<div class="hs-p">Każdy kafelek pokazuje bezpośrednio numer dnia, sprzedaż netto oraz skrót danych pogodowych (ikona, temperatura, wiatr) — również na telefonie, bez potrzeby najeżdżania kursorem.</div>
+
+<div class="hs-h2">Szczegóły dnia</div>
+<div class="hs-p">Kliknięcie kafelka otwiera okno ze szczegółowym podsumowaniem tego dnia: sprzedaż każdego outletu osobno, suma łączna oraz pełne dane pogodowe z piktogramami.</div>
 </div>
 
 <div class="help-divider"></div>
@@ -5398,7 +5459,7 @@ var HELP_CONTENT=`
 <div class="hs-warn">Kolejność outletów ma znaczenie — wyniki w tabelach i raportach są wyświetlane w kolejności dodawania. Dodawaj outlety w logicznej kolejności (np. od najważniejszego).</div>
 
 <div class="hs-h2">Lokalizacja obiektu (dane pogodowe)</div>
-<div class="hs-p">Przy tworzeniu obiektu możesz od razu podać miasto — aplikacja automatycznie ustali jego współrzędne (geokodowanie). Dla istniejących obiektów kliknij ikonę <strong>📍</strong> przy nazwie obiektu na liście, wpisz miasto i zapisz. Obiekty bez ustawionej lokalizacji mają czerwoną adnotację „brak lokalizacji" — bez niej dane pogodowe w zakładce Dane dzienne nie będą dostępne.</div>
+<div class="hs-p">Przy tworzeniu obiektu możesz od razu podać miasto — aplikacja automatycznie ustali jego współrzędne (geokodowanie). Dla istniejących obiektów kliknij ikonę <strong>📍</strong> przy nazwie obiektu na liście, wpisz miasto i zapisz. Obiekty bez ustawionej lokalizacji mają czerwoną adnotację „brak lokalizacji" — bez niej dane pogodowe w pod-zakładce Dzienne nie będą dostępne.</div>
 
 <div class="hs-h2">Usuwanie obiektu</div>
 <div class="hs-p">Kliknij ikonę kosza przy obiekcie. Usunięcie obiektu jest nieodwracalne — wszystkie dane (outlety, dane miesięczne) zostają skasowane. Wykonaj wcześniej kopię JSON przez zakładkę Eksport/Import. <strong>Tylko właściciel obiektu może go usunąć</strong> — zaproszeni członkowie zespołu nie mają tej opcji.</div>
@@ -5496,7 +5557,7 @@ var HELP_CONTENT=`
 <div class="hs-warn">Raport musi obejmować jeden miesiąc kalendarzowy, zaczynając od 1. dnia. Raport obejmujący dwa miesiące zostanie odrzucony z komunikatem — wygeneruj osobny raport dla każdego miesiąca w systemie POS.</div>
 
 <div class="hs-h2">Import danych dziennych (Material Control)</div>
-<div class="hs-p">Przycisk <strong>📦 Importuj Material Control (.xlsx)</strong> wczytuje plik „Sprzedaż wg Typu Aktywności" — płaską tabelę z kolumnami Data, Miejsce_Sprz. i Przychody Netto. W przeciwieństwie do importu HosPOS PDF (który wypełnia sumę narastającą w zakładce Wprowadź dane), ten import trafia do zakładki <strong>Dane dzienne</strong> — osobno dla każdego dnia.</div>
+<div class="hs-p">Przycisk <strong>📦 Importuj Material Control (.xlsx)</strong> wczytuje plik „Sprzedaż wg Typu Aktywności" — płaską tabelę z kolumnami Data, Miejsce_Sprz. i Przychody Netto. W przeciwieństwie do importu HosPOS PDF (który wypełnia sumę narastającą w pod-zakładce Miesięczne), ten import trafia do pod-zakładki <strong>Dzienne</strong> — osobno dla każdego dnia.</div>
 <ul class="hs-ul">
   <li>Nazwy outletów w pliku mają przedrostek „HOSPOS RVC" (np. „HOSPOS RVC Furu") — aplikacja usuwa go automatycznie i dopasowuje resztę nazwy do outletów w bieżącym obiekcie.</li>
   <li>Może obejmować dowolny zakres dat, nawet wiele miesięcy naraz — dane trafiają do odpowiednich miesięcy automatycznie.</li>
