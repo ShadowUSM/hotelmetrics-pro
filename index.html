@@ -1215,7 +1215,7 @@ function parseWeatherResponse(d){
   var weather={};
   d.daily.time.forEach(function(dateStr,i){
     var day=parseInt(dateStr.split('-')[2],10);
-    var t=d.daily.temperature_2m_mean[i],p=d.daily.precipitation_sum[i],c=d.daily.weathercode[i],wind=d.daily.wind_speed_10m_max?d.daily.wind_speed_10m_max[i]:null;
+    var t=d.daily.temperature_2m_max[i],p=d.daily.precipitation_sum[i],c=d.daily.weathercode[i],wind=d.daily.wind_speed_10m_max?d.daily.wind_speed_10m_max[i]:null;
     if(t!==null&&t!==undefined&&c!==null&&c!==undefined)weather[day]={t:t,p:p||0,c:c,wind:wind||0};
   });
   return weather;
@@ -1225,7 +1225,7 @@ function parseWeatherResponse(d){
 // Nie pytamy Forecast API o cały bieżący miesiąc, ponieważ zawiera on również przyszłe daty i takie
 // zapytanie może zostać odrzucone. To było źródłem problemów z ręcznie dodanymi dniami sierpnia.
 function fetchWeatherRange(lat,lon,start,end,source){
-  var params='latitude='+lat+'&longitude='+lon+'&start_date='+start+'&end_date='+end+'&daily=temperature_2m_mean,precipitation_sum,weathercode,wind_speed_10m_max&timezone=auto';
+  var params='latitude='+lat+'&longitude='+lon+'&start_date='+start+'&end_date='+end+'&daily=temperature_2m_max,precipitation_sum,weathercode,wind_speed_10m_max&timezone=auto';
   var base=source==='archive'?'https://archive-api.open-meteo.com/v1/archive?':'https://api.open-meteo.com/v1/forecast?';
   return fetch(base+params).then(function(r){if(!r.ok)throw new Error('weather status '+r.status);return r.json()}).then(parseWeatherResponse);
 }
@@ -2654,6 +2654,7 @@ var CHANGELOG=[
     'Naprawiono pobieranie pogody dla ręcznie dodanych dni bieżącego miesiąca — zapytania są dzielone na dane archiwalne i najnowsze',
     'Tablica rekordów automatycznie próbuje uzupełnić brakujące dane pogodowe dla dni z najwyższą sprzedażą'
   ]},
+  {v:'3.2.0',date:'2026-08-12',changes:['Temperatura w danych pogodowych została zmieniona ze średniej dobowej na maksymalną temperaturę dobową'],},
   {v:'2.9.0',date:'2026-08-12',changes:[
     'Naprawiono zacinający się wskaźnik aktywnej zakładki w Analityce/Porównaniach na telefonie — usunięto animowaną nakładkę (gubiła pozycję przy poziomym przewijaniu) na rzecz prostszego, niezawodnego oznaczania koloru tła bezpośrednio na przycisku',
     'Nowy globalny przycisk zmiany miesiąca w górnym pasku — dostępny z każdej zakładki, nie tylko z „Wprowadź dane"'
