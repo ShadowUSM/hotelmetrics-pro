@@ -724,6 +724,17 @@ textarea.fi{resize:vertical}
 .cl-list{margin:0;padding-left:18px}
 .cl-list li{font-size:.76rem;color:var(--tx2);line-height:1.6;margin-bottom:2px}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* ── MAP PICKER ── */
+#map-picker-container{height:340px;border-radius:12px;overflow:hidden;border:1px solid var(--brd2);background:var(--sur2)}
+#map-picker-container .leaflet-control-attribution{font-size:.55rem}
+.map-attrib{font-size:.6rem;color:var(--tx3);margin-top:4px}
+.map-search-row{display:flex;gap:8px;margin:10px 0}
+.map-pick-btn{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;background:var(--sur2);border:1px solid var(--brd2);color:var(--tx2);border-radius:8px;padding:7px 11px;cursor:pointer;transition:all .15s;font-family:var(--fb)}
+.map-pick-btn:hover{border-color:var(--acc);color:var(--acc)}
+.map-loc-set{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.72rem;color:var(--tx2);background:var(--acc-glow);border:1px solid rgba(var(--acc-rgb),.2);border-radius:8px;padding:8px 11px;margin-top:8px}
+</style>
 </head>
 <body>
 <!-- UPDATE BANNER -->
@@ -744,7 +755,9 @@ textarea.fi{resize:vertical}
   <div class="fg"><label>Nazwa obiektu *</label><input class="fi" id="np-name" placeholder="Hotel Grand Kraków"></div>
   <div class="fg"><label>Adres</label><input class="fi" id="np-addr" placeholder="ul. Przykładowa 1"></div>
   <div class="fg"><label>Miasto (dla danych pogodowych)</label><input class="fi" id="np-city" placeholder="np. Kraków"></div>
-  <div class="hs-tip">Podanie miasta pozwoli aplikacji automatycznie dopasować temperaturę i stan pogody do dni w pod-zakładce Dzienne (w Danych).</div>
+  <button type="button" class="map-pick-btn" onclick="openMapPicker(null)">🗺️ Wybierz dokładną lokalizację na mapie</button>
+  <div id="np-map-status"></div>
+  <div class="hs-tip">Podanie miasta pozwoli aplikacji automatycznie dopasować temperaturę i stan pogody do dni w pod-zakładce Dzienne (w Danych). Dla pełnej precyzji (np. gdy miasto ma tę samą nazwę co inne w kraju) użyj wyboru na mapie — nadpisze on wpisane miasto dokładnymi współrzędnymi.</div>
   <div class="fa"><button class="btn btn-p" onclick="saveProp()">Utwórz</button><button class="btn btn-s" onclick="closeM('m-prop')">Anuluj</button></div>
 </div></div>
 
@@ -756,7 +769,25 @@ textarea.fi{resize:vertical}
   <div class="msub" id="m-city-sub"></div>
   <div class="fg"><label>Miasto</label><input class="fi" id="city-inp" placeholder="np. Warszawa" onkeydown="if(event.key==='Enter')saveCityForProp()"></div>
   <div id="city-status" style="font-size:.75rem;color:var(--tx3);min-height:18px"></div>
-  <div class="fa"><button class="btn btn-p" onclick="saveCityForProp()">Zapisz lokalizację</button><button class="btn btn-s" onclick="closeM('m-city')">Anuluj</button></div>
+  <button type="button" class="map-pick-btn" onclick="openMapPicker(_cityModalPid)">🗺️ Wybierz dokładną lokalizację na mapie</button>
+  <div class="hs-tip">Wybór na mapie jest dokładniejszy niż samo wpisanie miasta — szczególnie gdy Twoje miasto ma tę samą nazwę co inne w kraju.</div>
+  <div class="fa"><button class="btn btn-p" onclick="saveCityForProp()">Zapisz z nazwy miasta</button><button class="btn btn-s" onclick="closeM('m-city')">Anuluj</button></div>
+</div></div>
+
+<!-- MODAL: Interactive map picker -->
+<div class="moverlay" id="m-map-picker">
+<div class="modal" style="max-width:600px">
+  <div class="mtitle">🗺️ Wybierz lokalizację na mapie</div>
+  <button class="mclose" onclick="closeMapPicker()">✕</button>
+  <div class="msub">Kliknij dokładne miejsce hotelu — mapę możesz przewijać i powiększać (scroll / uszczypnięcie)</div>
+  <div class="map-search-row">
+    <input type="text" class="fi" id="map-search-inp" placeholder="Szukaj miasta lub adresu, aby się zbliżyć..." onkeydown="if(event.key==='Enter'){event.preventDefault();mapSearchLocation();}">
+    <button class="btn btn-s btn-sm" onclick="mapSearchLocation()">Szukaj</button>
+  </div>
+  <div id="map-picker-container"></div>
+  <div id="map-picker-address" style="font-size:.78rem;color:var(--tx2);margin-top:10px;min-height:18px"></div>
+  <div class="map-attrib">Mapa: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</div>
+  <div class="fa"><button class="btn btn-p" id="map-picker-confirm" onclick="confirmMapLocation()" disabled>✅ Ustaw tę lokalizację</button><button class="btn btn-s" onclick="closeMapPicker()">Anuluj</button></div>
 </div></div>
 
 <!-- MODAL: Heatmap day detail -->
@@ -1072,6 +1103,7 @@ textarea.fi{resize:vertical}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- Firebase Compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -1219,6 +1251,143 @@ function geocodeCity(cityName){
     }
     return null;
   });
+}
+
+/* ═══════════════════════════════════════════
+   INTERAKTYWNA MAPA WYBORU LOKALIZACJI (Leaflet + OpenStreetMap + Nominatim)
+   Darmowe, bez klucza API. Rozwiązuje niejednoznaczność nazw miast (Nowe
+   miasta o tej samej nazwie w różnych regionach) — użytkownik wskazuje
+   dokładny punkt na mapie zamiast polegać na dopasowaniu tekstowym.
+═══════════════════════════════════════════ */
+var _leafletMap=null,_leafletMarker=null,_mapPickerTargetPid=null,_mapPickerSelected=null;
+var _newPropMapLocation=null; // tymczasowa lokalizacja wybrana na mapie przy TWORZENIU nowego obiektu (jeszcze bez pid)
+var _reverseGeocodeTimer=null;
+
+function openMapPicker(pid){
+  _mapPickerTargetPid=pid;
+  _mapPickerSelected=null;
+  var confirmBtn=document.getElementById('map-picker-confirm');if(confirmBtn)confirmBtn.disabled=true;
+  var addrEl=document.getElementById('map-picker-address');if(addrEl)addrEl.textContent='';
+  var searchInp=document.getElementById('map-search-inp');if(searchInp)searchInp.value='';
+  openM('m-map-picker');
+  // Leaflet potrzebuje widocznego, poprawnie zmierzonego kontenera — inicjalizujemy po otwarciu modala
+  setTimeout(function(){initLeafletMap(pid)},60);
+}
+
+var _leafletIconsFixed=false;
+function initLeafletMap(pid){
+  if(!window.L){toast('Biblioteka mapy nie załadowana — sprawdź połączenie internetowe','er');return;}
+  var container=document.getElementById('map-picker-container');
+  if(!container)return;
+
+  // Domyślne ikony pinezki Leaflet odwołują się do ścieżek względnych, które łamią się
+  // przy ładowaniu z CDN — wskazujemy jawnie poprawne adresy (raz, przy pierwszym użyciu).
+  if(!_leafletIconsFixed){
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+      iconUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+      shadowUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png'
+    });
+    _leafletIconsFixed=true;
+  }
+
+  var startLat=52.0,startLon=19.0,startZoom=6,hasExisting=false;
+  if(pid){
+    var prop=S.props.find(function(p){return p.id===pid});
+    if(prop&&prop.lat){startLat=prop.lat;startLon=prop.lon;startZoom=15;hasExisting=true;}
+  }
+
+  if(_leafletMap){_leafletMap.remove();_leafletMap=null;_leafletMarker=null;}
+
+  _leafletMap=L.map('map-picker-container').setView([startLat,startLon],startZoom);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+    attribution:'&copy; OpenStreetMap'
+  }).addTo(_leafletMap);
+
+  if(hasExisting){
+    setMapPickerMarker(startLat,startLon,true);
+  }
+
+  _leafletMap.on('click',function(e){setMapPickerMarker(e.latlng.lat,e.latlng.lng)});
+
+  // Kontener mógł mieć złe wymiary policzone przy starcie (bo modal dopiero się otwierał) — wymuś przeliczenie
+  setTimeout(function(){if(_leafletMap)_leafletMap.invalidateSize()},120);
+}
+
+function setMapPickerMarker(lat,lon,skipGeocode){
+  if(!_leafletMap)return;
+  if(_leafletMarker)_leafletMap.removeLayer(_leafletMarker);
+  _leafletMarker=L.marker([lat,lon]).addTo(_leafletMap);
+  _mapPickerSelected={lat:lat,lon:lon,label:null};
+  var confirmBtn=document.getElementById('map-picker-confirm');if(confirmBtn)confirmBtn.disabled=false;
+  if(!skipGeocode){
+    var addrEl=document.getElementById('map-picker-address');if(addrEl)addrEl.textContent='⏳ Ustalanie adresu...';
+    reverseGeocodeDebounced(lat,lon);
+  }
+}
+
+// Nominatim: max 1 zapytanie/s (polityka OSM) — debounce 1.2s, żeby nigdy tego nie przekroczyć
+// nawet przy szybkich, kolejnych kliknięciach po mapie.
+function reverseGeocodeDebounced(lat,lon){
+  if(_reverseGeocodeTimer)clearTimeout(_reverseGeocodeTimer);
+  _reverseGeocodeTimer=setTimeout(function(){
+    reverseGeocode(lat,lon).then(function(addr){
+      var addrEl=document.getElementById('map-picker-address');
+      if(addrEl)addrEl.textContent=addr?('📍 '+addr):('📍 Współrzędne: '+lat.toFixed(5)+', '+lon.toFixed(5)+' (adres nieznany)');
+      if(_mapPickerSelected&&_mapPickerSelected.lat===lat&&_mapPickerSelected.lon===lon)_mapPickerSelected.label=addr;
+    });
+  },1200);
+}
+
+function reverseGeocode(lat,lon){
+  var url='https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lon+'&zoom=16&addressdetails=1';
+  return fetch(url,{headers:{'Accept-Language':'pl'}}).then(function(r){return r.json()}).then(function(d){
+    return (d&&d.display_name)?d.display_name:null;
+  }).catch(function(){return null});
+}
+
+function mapSearchLocation(){
+  var q=document.getElementById('map-search-inp')&&document.getElementById('map-search-inp').value.trim();
+  if(!q){toast('Wpisz nazwę miasta lub adresu','er');return;}
+  geocodeCity(q).then(function(res){
+    if(!res){toast('Nie znaleziono takiego miejsca','er');return;}
+    if(_leafletMap)_leafletMap.setView([res.lat,res.lon],13);
+  }).catch(function(){toast('Błąd wyszukiwania','er')});
+}
+
+function confirmMapLocation(){
+  if(!_mapPickerSelected){toast('Kliknij na mapie, aby wskazać lokalizację','er');return;}
+  var lat=_mapPickerSelected.lat,lon=_mapPickerSelected.lon,label=_mapPickerSelected.label;
+  var shortLabel=label||('Współrzędne: '+lat.toFixed(5)+', '+lon.toFixed(5));
+
+  if(_mapPickerTargetPid){
+    // Edycja istniejącego obiektu — zapisz od razu
+    var prop=S.props.find(function(p){return p.id===_mapPickerTargetPid});
+    if(prop){
+      prop.lat=lat;prop.lon=lon;prop.cityLabel=shortLabel;
+      savePropItem(prop);S.props=getProps();
+      toast('Lokalizacja ustawiona z mapy','ok');
+      renderCur();
+    }
+    closeMapPicker();
+  } else {
+    // Tworzenie nowego obiektu — jeszcze nie ma pid, zapamiętaj tymczasowo do momentu kliknięcia "Utwórz"
+    _newPropMapLocation={lat:lat,lon:lon,label:shortLabel};
+    var statusEl=document.getElementById('np-map-status');
+    if(statusEl)statusEl.innerHTML='<div class="map-loc-set"><span>📍 '+shortLabel+'</span><button class="btn-icon" type="button" onclick="event.stopPropagation();clearNewPropMapLocation()" title="Usuń">✕</button></div>';
+    closeMapPicker();
+  }
+}
+
+function clearNewPropMapLocation(){
+  _newPropMapLocation=null;
+  var statusEl=document.getElementById('np-map-status');if(statusEl)statusEl.innerHTML='';
+}
+
+function closeMapPicker(){
+  closeM('m-map-picker');
+  if(_reverseGeocodeTimer){clearTimeout(_reverseGeocodeTimer);_reverseGeocodeTimer=null;}
 }
 
 // Pobiera pogodę dla całego miesiąca jednym zapytaniem (Forecast API, z fallbackiem do Archive API dla starszych dat)
@@ -2670,7 +2839,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.4.0';
+var APP_VERSION='3.5.0';
 var APP_BUILD_DATE='2026-08-12';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2679,6 +2848,12 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.5.0',date:'2026-08-12',changes:[
+    'Interaktywna mapa wyboru lokalizacji obiektu (Leaflet + OpenStreetMap) — dostępna przy tworzeniu nowego obiektu i w zmianie lokalizacji istniejącego',
+    'Kliknięcie na mapie ustawia dokładne współrzędne GPS zamiast opierać się na dopasowaniu po samej nazwie miasta — eliminuje ryzyko pomyłki między miastami o tej samej nazwie w różnych regionach',
+    'Automatyczne rozpoznawanie adresu po kliknięciu (reverse geocoding, Nominatim/OpenStreetMap) do potwierdzenia wybranego miejsca',
+    'Wyszukiwarka miasta/adresu w oknie mapy, aby szybko się do niego zbliżyć przed dokładnym wskazaniem punktu'
+  ]},
   {v:'3.4.0',date:'2026-08-12',changes:[
     'Sekcje sidebara „Główne" i „Zarządzanie" są teraz zwijane — oszczędza miejsce na telefonie. Sekcja z aktualnie otwartą zakładką rozwija się automatycznie',
     'Nowy raport PDF w Eksport/Import: Heatmapa i Rekordy — dane dziennej sprzedaży i pogody dla wybranego zakresu dat oraz pełna Tablica rekordów'
@@ -4147,7 +4322,7 @@ function renderProperties(){
     if(isOwner)h+='<button class="btn-icon" onclick="delProp(\''+p.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>';
     h+='</div></div>';
   });
-  h+='</div><button class="btn btn-p" onclick="openM(\'m-prop\')" style="margin-top:8px">+ Nowy obiekt</button></div>';
+  h+='</div><button class="btn btn-p" onclick="_newPropMapLocation=null;document.getElementById(\'np-map-status\').innerHTML=\'\';openM(\'m-prop\')" style="margin-top:8px">+ Nowy obiekt</button></div>';
   // Right
   h+='<div>';
   if(S.pid){
@@ -4195,10 +4370,16 @@ function saveProp(){
     if(!S.pid){S.pid=p.id;S.outlets=[];localStorage.setItem(uk('pid'),p.id);}
     updatePropSel();refreshCurrentRole();closeM('m-prop');
     document.getElementById('np-name').value='';document.getElementById('np-addr').value='';document.getElementById('np-city').value='';
+    document.getElementById('np-map-status').innerHTML='';
+    _newPropMapLocation=null;
     renderCur();toast('Obiekt "'+n+'" utworzony'+(p.lat?' · lokalizacja: '+p.cityLabel:''),'ok');
   }
 
-  if(city){
+  // Lokalizacja wybrana na mapie ma pierwszeństwo — jest dokładniejsza niż dopasowanie po samej nazwie miasta
+  if(_newPropMapLocation){
+    p.lat=_newPropMapLocation.lat;p.lon=_newPropMapLocation.lon;p.cityLabel=_newPropMapLocation.label;
+    finishSave();
+  } else if(city){
     toast('Ustalanie lokalizacji...','in');
     geocodeCity(city).then(function(res){
       if(res){p.lat=res.lat;p.lon=res.lon;p.cityLabel=res.label;}
@@ -5628,6 +5809,12 @@ var HELP_CONTENT=`
 
 <div class="hs-h2">Lokalizacja obiektu (dane pogodowe)</div>
 <div class="hs-p">Przy tworzeniu obiektu możesz od razu podać miasto — aplikacja automatycznie ustali jego współrzędne (geokodowanie). Dla istniejących obiektów kliknij ikonę <strong>📍</strong> przy nazwie obiektu na liście, wpisz miasto i zapisz. Obiekty bez ustawionej lokalizacji mają czerwoną adnotację „brak lokalizacji" — bez niej dane pogodowe w pod-zakładce Dzienne nie będą dostępne.</div>
+
+<div class="hs-h2">Dokładny wybór lokalizacji na mapie</div>
+<div class="hs-p">Zarówno przy tworzeniu nowego obiektu, jak i w oknie zmiany lokalizacji istniejącego, dostępny jest przycisk <strong>🗺️ Wybierz dokładną lokalizację na mapie</strong>. Otwiera on interaktywną mapę (przewijaną i powiększaną), na której klikasz dokładne miejsce hotelu — pineska pokazuje wybrany punkt, a aplikacja automatycznie odczytuje i wyświetla odpowiadający mu adres.</div>
+<div class="hs-tip">Wybór na mapie jest <strong>dokładniejszy</strong> niż samo wpisanie nazwy miasta — eliminuje ryzyko pomyłki, gdy dwa różne miejsca w kraju noszą tę samą nazwę (np. kilka miejscowości o identycznej nazwie w różnych województwach). Lokalizacja z mapy zawsze ma pierwszeństwo przed wpisaną nazwą miasta.</div>
+<div class="hs-p">W oknie mapy możesz też wpisać nazwę miasta lub adresu w polu wyszukiwania, aby szybko się do niego zbliżyć — a następnie doprecyzować kliknięciem dokładny punkt.</div>
+<div class="hs-p" style="font-size:.72rem;color:var(--tx3)">Mapa korzysta z darmowych, otwartych usług OpenStreetMap i Leaflet — bez klucza API i bez opłat.</div>
 
 <div class="hs-h2">Usuwanie obiektu</div>
 <div class="hs-p">Kliknij ikonę kosza przy obiekcie. Usunięcie obiektu jest nieodwracalne — wszystkie dane (outlety, dane miesięczne) zostają skasowane. Wykonaj wcześniej kopię JSON przez zakładkę Eksport/Import. <strong>Tylko właściciel obiektu może go usunąć</strong> — zaproszeni członkowie zespołu nie mają tej opcji.</div>
