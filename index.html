@@ -115,7 +115,12 @@ input,select,textarea{font-family:var(--fb)}
 .s-ver:hover{background:rgba(var(--acc-rgb),.2)}
 .s-logo h1{font-size:1.05rem;letter-spacing:.05em;color:var(--acc);line-height:1.2}
 .s-logo span{font-size:.62rem;color:var(--tx3);font-family:var(--fb);letter-spacing:.1em;text-transform:uppercase}
-.s-sect{padding:10px 14px 4px;font-size:.6rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.12em}
+.s-sect{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;font-size:.6rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.12em;cursor:pointer;user-select:none;transition:color .15s}
+.s-sect:hover{color:var(--tx2)}
+.s-sect-arr{transition:transform .2s;flex-shrink:0}
+.s-sect.collapsed .s-sect-arr{transform:rotate(-90deg)}
+.nav-group{overflow:hidden}
+.nav-group.collapsed{display:none}
 .s-sel{padding:8px 14px;border-bottom:1px solid var(--brd)}
 .s-sel label{font-size:.6rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:3px}
 .s-input{width:100%;background:var(--sur2);border:1px solid var(--brd2);color:var(--tx);border-radius:8px;padding:6px 9px;font-size:.8rem;outline:none;-webkit-appearance:none}
@@ -845,7 +850,11 @@ textarea.fi{resize:vertical}
       <label>Miesiąc analizy</label>
       <input type="month" class="s-input" id="month-sel" onchange="onMonthChange(this.value)">
     </div>
-    <div class="s-sect">Główne</div>
+    <div class="s-sect" id="s-sect-main" onclick="toggleNavSection('main')">
+      <span>Główne</span>
+      <svg class="s-sect-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="nav-group" id="nav-group-main">
     <div class="nav-i active" data-v="dashboard" onclick="go('dashboard')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
     </div>
@@ -861,7 +870,12 @@ textarea.fi{resize:vertical}
     <div class="nav-i" data-v="compare" onclick="go('compare')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Porównania
     </div>
-    <div class="s-sect">Zarządzanie</div>
+    </div>
+    <div class="s-sect" id="s-sect-mgmt" onclick="toggleNavSection('mgmt')">
+      <span>Zarządzanie</span>
+      <svg class="s-sect-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="nav-group" id="nav-group-mgmt">
     <div class="nav-i" data-v="properties" onclick="go('properties')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Obiekty i outlety
     </div>
@@ -873,6 +887,7 @@ textarea.fi{resize:vertical}
     </div>
     <div class="nav-i" data-v="team" onclick="go('team')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Zespół
+    </div>
     </div>
     <div class="s-bottom">
       <div class="s-row">
@@ -2655,7 +2670,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.3.0';
+var APP_VERSION='3.4.0';
 var APP_BUILD_DATE='2026-08-12';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2664,6 +2679,10 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.4.0',date:'2026-08-12',changes:[
+    'Sekcje sidebara „Główne" i „Zarządzanie" są teraz zwijane — oszczędza miejsce na telefonie. Sekcja z aktualnie otwartą zakładką rozwija się automatycznie',
+    'Nowy raport PDF w Eksport/Import: Heatmapa i Rekordy — dane dziennej sprzedaży i pogody dla wybranego zakresu dat oraz pełna Tablica rekordów'
+  ]},
   {v:'3.3.0',date:'2026-08-12',changes:[
     'Zakładka „Dane dzienne" scalona z „Wprowadź dane" — teraz to dwie pod-zakładki (Miesięczne / Dzienne) w jednym miejscu',
     'Heatmapa przeniesiona z zakładek Analityki na samodzielną pozycję w dolnej belce i sidebarze — szybszy dostęp bez wchodzenia w Analitykę',
@@ -3037,12 +3056,35 @@ function go(v){
   document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-heatmap,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
   var el=document.getElementById('v-'+v);if(el)el.style.display='block';
   var pt=document.getElementById('pg-title');if(pt)pt.textContent=TITLES[v]||v;
+  syncNavSections();
   haptic(8);
   closeSidebar();
   renderCur();
 }
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('on')}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('on')}
+
+// ── ZWIJANE SEKCJE SIDEBARA ──
+// Sekcja zawierająca aktualnie wybraną zakładkę jest zawsze automatycznie rozwinięta
+// (żeby było widać gdzie jesteś), pozostałe domyślnie zwinięte — oszczędza miejsce na telefonie.
+var NAV_SECTIONS={main:['dashboard','data','analytics','heatmap','compare'],mgmt:['properties','export','budget','team']};
+
+function toggleNavSection(id){
+  var group=document.getElementById('nav-group-'+id),header=document.getElementById('s-sect-'+id);
+  if(!group)return;
+  var collapsed=group.classList.toggle('collapsed');
+  if(header)header.classList.toggle('collapsed',collapsed);
+}
+
+function syncNavSections(){
+  Object.keys(NAV_SECTIONS).forEach(function(id){
+    var group=document.getElementById('nav-group-'+id),header=document.getElementById('s-sect-'+id);
+    if(!group)return;
+    var containsActive=NAV_SECTIONS[id].indexOf(S.view)!==-1;
+    group.classList.toggle('collapsed',!containsActive);
+    if(header)header.classList.toggle('collapsed',!containsActive);
+  });
+}
 
 /* ═══════════════════════════════════════════
    HELPERS
@@ -3204,10 +3246,9 @@ function alerts(metrics,outlets){
 function recordsDateLabel(month,day){
   var p=month.split('-');return String(day).padStart(2,'0')+'.'+p[1]+'.'+p[0];
 }
-function renderRecords(target){
-  var el=target||document.getElementById('at-records');if(!el)return;
-  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('🏆','Brak obiektu lub outletów','Wybierz obiekt hotelowy, aby zobaczyć trzy najwyższe dzienne utargi każdego outletu.','+ Przejdź do obiektów',"go('properties')");return;}
-  var allDaily=getAllDailyData(S.pid),records={};
+// Oblicza top-3 rekordy dzienne per outlet — współdzielone przez widok Rekordów i raport PDF.
+function computeRecords(pid){
+  var allDaily=getAllDailyData(pid),records={};
   S.outlets.forEach(function(o){records[okey(o.name)]=[]});
   Object.keys(allDaily).forEach(function(month){
     var dd=allDaily[month]||{},days=dd.days||{},wx=dd.weather||{};
@@ -3220,6 +3261,12 @@ function renderRecords(target){
     });
   });
   Object.keys(records).forEach(function(k){records[k].sort(function(a,b){return b.value-a.value||b.month.localeCompare(a.month)||b.day-a.day});records[k]=records[k].slice(0,3)});
+  return records;
+}
+function renderRecords(target){
+  var el=target||document.getElementById('at-records');if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('🏆','Brak obiektu lub outletów','Wybierz obiekt hotelowy, aby zobaczyć trzy najwyższe dzienne utargi każdego outletu.','+ Przejdź do obiektów',"go('properties')");return;}
+  var records=computeRecords(S.pid);
   var totalRecords=Object.values(records).reduce(function(n,r){return n+r.length},0);
   var prop=S.props.find(function(p){return p.id===S.pid});
   var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap"><div class="badge">🏆 Tablica rekordów</div><span style="font-size:.68rem;color:var(--tx3)">'+(prop?prop.name:'')+'</span></div>';
@@ -4231,6 +4278,20 @@ function renderExport(){
   h+=eCard('📈','PDF — YTD','Wyniki narastające roczne','pdfYTD()');
   h+='</div>';
 
+  // ── RAPORT PDF: HEATMAPA + REKORDY ──
+  var todayStr=new Date().toISOString().slice(0,10);
+  var monthStartStr=S.month+'-01';
+  h+='<div class="stitle">Raport PDF — Heatmapa i Rekordy</div>';
+  h+='<div class="card" style="margin-bottom:24px">';
+  h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Raport zawiera dane dzienne z <strong>Heatmapy</strong> (sprzedaż netto i pogoda) dla wybranego zakresu dat oraz aktualną <strong>Tablicę rekordów</strong> — trzy najwyższe dzienne utargi per outlet ze wszystkich dostępnych miesięcy.</p>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">';
+  h+='<div class="fg" style="margin-bottom:0"><label>Od dnia</label><input type="date" class="fi" id="hmrep-from" value="'+monthStartStr+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Do dnia</label><input type="date" class="fi" id="hmrep-to" value="'+todayStr+'"></div>';
+  h+='<button class="btn btn-p" onclick="pdfHeatmapRecords()">📄 Generuj raport PDF</button>';
+  h+='</div>';
+  h+='<div class="hs-tip" style="margin-top:10px">Tablica rekordów w raporcie zawsze obejmuje wszystkie miesiące — nie tylko wybrany zakres dat.</div>';
+  h+='</div>';
+
   // ── BACKUP / RESTORE ──
   h+='<div class="stitle">Kopia zapasowa bazy danych</div>';
   h+='<div class="egrid" style="margin-bottom:24px">';
@@ -4982,6 +5043,113 @@ function csvHistory(){
 }
 function dlFile(n,c,t){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+c],{type:t+';charset=utf-8;'}));a.download=n;a.click()}
 
+/* ═══════════════════════════════════════════
+   RAPORT PDF — HEATMAPA + REKORDY
+   Zbiera dane dziennej sprzedaży i pogody dla wskazanego zakresu dat
+   (może obejmować wiele miesięcy) oraz aktualną Tablicę rekordów.
+═══════════════════════════════════════════ */
+function computeHeatmapRangeData(pid,fromStr,toStr){
+  var rows=[];
+  var cur=new Date(fromStr+'T00:00:00'),end=new Date(toStr+'T00:00:00');
+  while(cur<=end){
+    var yr=cur.getFullYear(),mo=cur.getMonth()+1,day=cur.getDate();
+    var month=yr+'-'+String(mo).padStart(2,'0');
+    var dd=getDailyData(pid,month);
+    var md=getMD(pid,month)||{};
+    var total=Object.values(md.a||{}).reduce(function(x,y){return x+y},0);
+    var dailyAvg=md.dr>0?total/md.dr:0;
+    var dayData=dd.days&&dd.days[day]?dd.days[day]:null;
+    var realVal=dayData?dailyDayTotal(dayData):null;
+    var w=dd.weather&&dd.weather[day];
+    var isDone=day<=(md.dr||0);
+    var val=realVal!==null?realVal:(isDone?dailyAvg:null);
+    var source=realVal!==null?'rzeczywiste':(isDone?'szacunek':'brak danych');
+    rows.push({date:month+'-'+String(day).padStart(2,'0'),value:val,source:source,weather:w||null});
+    cur.setDate(cur.getDate()+1);
+  }
+  return rows;
+}
+
+function weatherPdfText(w){
+  if(!w)return '-';
+  var t=weatherLabel(w.c)+' '+Math.round(w.t)+'C';
+  if(w.wind!==undefined)t+=', wiatr '+Math.round(w.wind)+' km/h';
+  if(w.p>0)t+=', opady '+w.p.toFixed(1)+' mm';
+  return dePL(t);
+}
+
+function pdfHeatmapRecords(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var from=document.getElementById('hmrep-from')&&document.getElementById('hmrep-from').value;
+  var to=document.getElementById('hmrep-to')&&document.getElementById('hmrep-to').value;
+  if(!from||!to){toast('Wybierz zakres dat dla raportu','er');return;}
+  if(from>to){toast('Data "od" musi być wcześniejsza niż "do"','er');return;}
+  var spanDays=Math.round((new Date(to)-new Date(from))/86400000)+1;
+  if(spanDays>366){toast('Zakres zbyt duży (maks. 366 dni)','er');return;}
+
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297;
+
+  // ── HEADER ──
+  doc.setFillColor(30,40,60);doc.rect(0,0,pw,22,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(15);doc.setFont('helvetica','bold');
+  doc.text('HotelMetrics Pro',10,9);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(180,200,230);
+  doc.text('Raport: Heatmapa i Tablica rekordow',10,16);
+  doc.text(dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'),pw-10,16,{align:'right'});
+
+  doc.setFillColor(240,245,255);doc.rect(0,22,pw,10,'F');
+  doc.setDrawColor(200,210,230);doc.line(0,32,pw,32);
+  doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
+  doc.text('Zakres raportu Heatmapy: '+from+' do '+to+' ('+spanDays+' dni)',10,29);
+
+  // ── SEKCJA 1: HEATMAPA ──
+  var hmRows=computeHeatmapRangeData(S.pid,from,to);
+  var body1=hmRows.map(function(r){
+    return [r.date,r.value!==null?fmt(r.value):'-',dePL(r.source),weatherPdfText(r.weather)];
+  });
+  doc.autoTable({
+    startY:38,head:[['Data','Sprzedaz netto','Zrodlo','Pogoda']],body:body1,theme:'grid',
+    headStyles:{fillColor:[30,40,60],textColor:[255,255,255],fontStyle:'bold',fontSize:8},
+    bodyStyles:{textColor:[40,40,40],fontSize:7.5},
+    alternateRowStyles:{fillColor:[245,247,250]},
+    margin:{left:10,right:10}
+  });
+
+  // ── SEKCJA 2: TABLICA REKORDÓW ──
+  var records=computeRecords(S.pid);
+  var startY2=doc.lastAutoTable.finalY+10;
+  if(startY2>ph-40){doc.addPage();startY2=20;}
+  doc.setFontSize(11);doc.setTextColor(20,20,20);doc.setFont('helvetica','bold');
+  doc.text('Tablica rekordow - Top 3 dziennych wynikow per outlet',10,startY2);
+  doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);
+  doc.text('(niezalezne od zakresu powyzej - uwzglednia wszystkie dostepne miesiace)',10,startY2+5);
+
+  var recRows=[];
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),list=records[k]||[];
+    if(!list.length){recRows.push([dePL(o.name),'-','-','-']);return;}
+    list.forEach(function(r,i){
+      recRows.push([i===0?dePL(o.name):'',['1.','2.','3.'][i]||(i+1)+'.',recordsDateLabel(r.month,r.day)+'  -  '+fmt(r.value),weatherPdfText(r.weather)]);
+    });
+  });
+  doc.autoTable({
+    startY:startY2+9,head:[['Outlet','Miejsce','Data i wynik','Pogoda']],body:recRows,theme:'grid',
+    headStyles:{fillColor:[30,40,60],textColor:[255,255,255],fontStyle:'bold',fontSize:8},
+    bodyStyles:{textColor:[40,40,40],fontSize:7.5},
+    alternateRowStyles:{fillColor:[245,247,250]},
+    margin:{left:10,right:10},
+    didParseCell:function(dt){if(dt.column.index===0&&dt.cell.raw)dt.cell.styles.fontStyle='bold';}
+  });
+
+  doc.setFontSize(7);doc.setTextColor(150,150,150);
+  doc.text('HotelMetrics Pro | '+new Date().toLocaleString('pl-PL'),10,ph-5);
+  doc.save('Raport_Heatmapa_Rekordy_'+from+'_'+to+'.pdf');
+  toast('Raport PDF wygenerowany','ok');haptic(10);
+}
+
 function pdfMgmt(){
   var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
   if(!S.pid){toast('Wybierz obiekt','er');return;}
@@ -5525,6 +5693,14 @@ var HELP_CONTENT=`
 </ul>
 <div class="hs-tip">Raporty PDF nie zawierają polskich znaków (ograniczenie biblioteki jsPDF) — ą→a, ę→e itd. To normalne zachowanie.</div>
 
+<div class="hs-h2">Raport PDF — Heatmapa i Rekordy</div>
+<div class="hs-p">Osobna sekcja poniżej standardowych raportów. Wybierz zakres dat (<strong>Od dnia</strong> / <strong>Do dnia</strong>) i kliknij <strong>📄 Generuj raport PDF</strong>. Raport zawiera dwie części:</div>
+<ul class="hs-ul">
+  <li><strong>Tabela Heatmapy</strong> — dla każdego dnia w wybranym zakresie: sprzedaż netto, źródło (dane rzeczywiste z Danych dziennych lub szacunek ze średniej), pełne dane pogodowe.</li>
+  <li><strong>Tablica rekordów</strong> — trzy najwyższe dzienne utargi dla każdego outletu, z datą i pogodą. Ta część <strong>zawsze</strong> obejmuje wszystkie dostępne miesiące, niezależnie od wybranego wyżej zakresu dat.</li>
+</ul>
+<div class="hs-warn">Zakres dat może obejmować maksymalnie 366 dni jednorazowo.</div>
+
 <div class="hs-h2">Eksport CSV</div>
 <ul class="hs-ul">
   <li><strong>CSV — Miesiąc</strong> — arkusz kalkulacyjny z danymi wybranego miesiąca: budżet, wynik, realizacja, średnia, prognoza dla każdego outletu.</li>
@@ -5585,6 +5761,9 @@ var HELP_CONTENT=`
 
 <div class="hs" id="hs-settings">
 <div class="hs-h1">⚙️ Ustawienia</div>
+
+<div class="hs-h2">Zwijane sekcje menu bocznego</div>
+<div class="hs-p">Menu w sidebarze jest podzielone na sekcje <strong>Główne</strong> i <strong>Zarządzanie</strong>. Kliknięcie nagłówka sekcji zwija lub rozwija listę zakładek w niej zawartych — przydatne na telefonie, żeby menu nie było zbyt długie. Sekcja zawierająca aktualnie otwartą zakładkę rozwija się automatycznie, więc zawsze widać gdzie aktualnie jesteś.</div>
 
 <div class="hs-h2">Motywy kolorystyczne</div>
 <div class="hs-p">Cztery kolorowe kropki na dole sidebara — kliknij aby zmienić motyw. Wybór jest zapamiętywany w przeglądarce.</div>
@@ -5948,6 +6127,7 @@ function startApp(){
   if(S.pid)S.outlets=getOutlets(S.pid);
   updatePropSel();
   refreshCurrentRole();
+  syncNavSections();
   var mi=document.getElementById('month-sel');if(mi)mi.value=S.month;
   syncMonthUI();
   renderCur();
