@@ -421,7 +421,7 @@ textarea.fi{resize:vertical}
 .dp-title{font-size:.78rem;font-weight:600;color:var(--tx);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
 
 /* Bottom spacer — każda zakładka ma 80px wolnego miejsca na dole */
-#v-dashboard,#v-data,#v-daily,#v-analytics,#v-compare,#v-properties,#v-export,
+#v-dashboard,#v-data,#v-daily,#v-analytics,#v-records,#v-compare,#v-properties,#v-export,
 #v-budget,#v-team{padding-bottom:80px}
 
 /* ── AUTO THEME (system preference) ── */
@@ -473,6 +473,46 @@ textarea.fi{resize:vertical}
 .hmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:8px 0}
 .hmap-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--tx3);cursor:pointer;transition:transform .15s;position:relative}
 .hmap-cell:hover{transform:scale(1.15);z-index:2}
+.hmap-cell{
+  flex-direction:column;
+  padding:4px 3px;
+  gap:2px;
+  text-align:center;
+  overflow:hidden;
+}
+.hmap-cell .hm-day{font-size:.62rem;font-weight:800;line-height:1}
+.hmap-cell .hm-sale{font-size:.56rem;font-family:var(--fm);font-weight:700;line-height:1;white-space:nowrap}
+.hmap-cell .hm-wx{font-size:.62rem;line-height:1;white-space:nowrap}
+.hmap-cell.no-data .hm-sale{color:var(--tx3)}
+@media(max-width:600px){
+  .hmap-grid{gap:4px}
+  .hmap-cell{border-radius:6px;padding:5px 2px;gap:3px}
+  .hmap-cell .hm-day{font-size:.68rem}
+  .hmap-cell .hm-sale{font-size:.58rem}
+  .hmap-cell .hm-wx{font-size:.7rem}
+}
+.record-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:16px}
+.record-card{background:var(--sur);border:1px solid var(--brd);border-radius:14px;overflow:hidden}
+.record-head{padding:12px 14px;background:var(--sur2);border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.record-head-name{font-family:var(--fd);font-size:.9rem;font-weight:700}
+.record-item{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--brd)}
+.record-item:last-child{border-bottom:none}
+.record-medal{font-size:1.05rem;text-align:center}
+.record-date{font-size:.7rem;color:var(--tx3);margin-bottom:3px}
+.record-weather{font-size:.7rem;color:var(--tx2);white-space:nowrap}
+.record-value{font-family:var(--fd);font-size:1rem;font-weight:800;color:var(--acc);text-align:right;white-space:nowrap}
+.record-empty{padding:18px;color:var(--tx3);font-size:.76rem;text-align:center}
+.wx-range{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:14px}
+.wx-range .fg{margin-bottom:0}
+.wx-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:14px}
+.wx-condition{background:var(--sur);border:1px solid var(--brd);border-radius:12px;padding:12px}
+.wx-condition-head{display:flex;align-items:center;gap:7px;font-weight:700;font-size:.82rem;margin-bottom:9px}
+.wx-outlet-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--brd);font-size:.72rem}
+.wx-outlet-row:last-child{border-bottom:none}
+.wx-outlet-avg{font-family:var(--fm);font-weight:700;color:var(--acc)}
+.wx-outlet-n{font-size:.62rem;color:var(--tx3)}
+@media(max-width:560px){.wx-range{grid-template-columns:1fr 1fr}.wx-range .btn{grid-column:1/-1}.record-grid{grid-template-columns:1fr}}
+
 .hmap-cell.empty{background:transparent;cursor:default}
 .hmap-cell.no-data{background:var(--sur2);color:var(--tx3)}
 .hmap-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
@@ -717,7 +757,8 @@ textarea.fi{resize:vertical}
   <div class="fg"><label>Nazwa obiektu *</label><input class="fi" id="np-name" placeholder="Hotel Grand Kraków"></div>
   <div class="fg"><label>Adres</label><input class="fi" id="np-addr" placeholder="ul. Przykładowa 1"></div>
   <div class="fg"><label>Miasto (dla danych pogodowych)</label><input class="fi" id="np-city" placeholder="np. Kraków"></div>
-  <div class="hs-tip">Podanie miasta pozwoli aplikacji automatycznie dopasować temperaturę i stan pogody do dni w zakładce Dane dzienne.</div>
+  <div class="fg"><label>Kod pocztowy (zalecany)</label><input class="fi" id="np-postcode" inputmode="numeric" placeholder="np. 78-100" maxlength="6"></div>
+  <div class="hs-tip">Kod pocztowy pozwala dokładnie rozróżnić miejscowości o tej samej nazwie. Aplikacja zapisze również województwo i współrzędne wybranej lokalizacji.</div>
   <div class="fa"><button class="btn btn-p" onclick="saveProp()">Utwórz</button><button class="btn btn-s" onclick="closeM('m-prop')">Anuluj</button></div>
 </div></div>
 
@@ -727,7 +768,8 @@ textarea.fi{resize:vertical}
   <div class="mtitle">📍 Lokalizacja obiektu</div>
   <button class="mclose" onclick="closeM('m-city')">✕</button>
   <div class="msub" id="m-city-sub"></div>
-  <div class="fg"><label>Miasto</label><input class="fi" id="city-inp" placeholder="np. Warszawa" onkeydown="if(event.key==='Enter')saveCityForProp()"></div>
+  <div class="fg"><label>Miasto</label><input class="fi" id="city-inp" placeholder="np. Warszawa"></div>
+  <div class="fg"><label>Kod pocztowy (zalecany)</label><input class="fi" id="city-postcode" inputmode="numeric" placeholder="np. 78-100" maxlength="6" onkeydown="if(event.key==='Enter')saveCityForProp()"></div>
   <div id="city-status" style="font-size:.75rem;color:var(--tx3);min-height:18px"></div>
   <div class="fa"><button class="btn btn-p" onclick="saveCityForProp()">Zapisz lokalizację</button><button class="btn btn-s" onclick="closeM('m-city')">Anuluj</button></div>
 </div></div>
@@ -826,6 +868,9 @@ textarea.fi{resize:vertical}
     <div class="nav-i" data-v="analytics" onclick="go('analytics')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analityka
     </div>
+    <div class="nav-i" data-v="records" onclick="go('records')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg>Tablica rekordów
+    </div>
     <div class="nav-i" data-v="compare" onclick="go('compare')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Porównania
     </div>
@@ -917,6 +962,7 @@ textarea.fi{resize:vertical}
     <div id="v-data" style="display:none"></div>
     <div id="v-daily" style="display:none"></div>
     <div id="v-analytics" style="display:none"></div>
+    <div id="v-records" style="display:none"></div>
     <div id="v-compare" style="display:none"></div>
     <div id="v-properties" style="display:none"></div>
     <div id="v-export" style="display:none"></div>
@@ -938,6 +984,10 @@ textarea.fi{resize:vertical}
   <button class="bnav-item" data-v="analytics" onclick="go('analytics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     Analityka
+  </button>
+  <button class="bnav-item" data-v="records" onclick="go('records')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg>
+    Rekordy
   </button>
   <button class="bnav-item" data-v="compare" onclick="go('compare')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -966,6 +1016,16 @@ textarea.fi{resize:vertical}
   <button class="mclose" onclick="closeM('m-trend')">✕</button>
   <div class="trend-mini-canvas-wrap"><canvas id="trend-mini-canvas"></canvas></div>
   <div class="fa"><button class="btn btn-s" onclick="closeM('m-trend')">Zamknij</button></div>
+</div></div>
+
+<!-- HEATMAP DAY DETAILS MODAL -->
+<div class="moverlay" id="m-heatday">
+<div class="modal">
+  <div class="mtitle" id="heatday-title">📅 Szczegóły dnia</div>
+  <div class="msub" id="heatday-sub"></div>
+  <button class="mclose" onclick="closeM('m-heatday')">✕</button>
+  <div id="heatday-content"></div>
+  <div class="fa"><button class="btn btn-s" onclick="closeM('m-heatday')">Zamknij</button></div>
 </div></div>
 
 <!-- ANOMALY MODAL -->
@@ -1155,46 +1215,111 @@ function weatherBadgeHTML(w){
   return '<span class="wx-badge" title="'+weatherLabel(w.c)+'">'+weatherIcon(w.c)+' '+Math.round(w.t)+'°C'+(w.p>0?' · '+w.p.toFixed(1)+'mm':'')+'</span>';
 }
 
-// Geokodowanie nazwy miasta na współrzędne (Open-Meteo Geocoding API)
-function geocodeCity(cityName){
-  var url='https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(cityName)+'&count=1&language=pl&format=json';
-  return fetch(url).then(function(r){return r.json()}).then(function(d){
-    if(d.results&&d.results.length){
-      var r0=d.results[0];
-      return {lat:r0.latitude,lon:r0.longitude,label:r0.name+(r0.country?', '+r0.country:'')};
-    }
-    return null;
-  });
+// Geokodowanie lokalizacji.
+// Priorytet: kod pocztowy. Następnie miasto. Wszystkie wyszukania są ograniczone do Polski.
+function normalizePostalCode(pc){
+  var s=String(pc||'').trim().replace(/\s+/g,'');
+  if(/^\d{5}$/.test(s))return s.slice(0,2)+'-'+s.slice(2);
+  if(/^\d{2}-\d{3}$/.test(s))return s;
+  return '';
 }
+function buildGeoResult(r0){
+  if(!r0||r0.latitude===undefined||r0.longitude===undefined)return null;
+  return {lat:r0.latitude,lon:r0.longitude,
+    label:r0.name+(r0.admin1?', '+r0.admin1:'')+(r0.country?', '+r0.country:''),
+    city:r0.name||'',postcode:(r0.postcodes&&r0.postcodes[0])||'',admin1:r0.admin1||'',country:r0.country||''};
+}
+function geoSearch(term){
+  var url='https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(term)+'&count=10&language=pl&countryCode=PL&format=json';
+  return fetch(url).then(function(r){if(!r.ok)throw new Error('Geocoding HTTP '+r.status);return r.json();});
+}
+function geocodeLocation(cityName,postalCode){
+  var city=String(cityName||'').trim(),pc=normalizePostalCode(postalCode);
+  var searches=[];
+  if(pc)searches.push({term:pc,type:'postcode'});
+  if(city)searches.push({term:city,type:'city'});
+  function tryNext(i){
+    if(i>=searches.length)return Promise.resolve(null);
+    return geoSearch(searches[i].term).then(function(d){
+      var results=d.results||[];
+      if(!results.length)return tryNext(i+1);
+      var chosen;
+      if(searches[i].type==='postcode')chosen=results.find(function(r){return (r.postcodes||[]).some(function(x){return normalizePostalCode(x)===pc;});})||results[0];
+      else chosen=results.find(function(r){return String(r.name||'').toLowerCase()===city.toLowerCase();})||results[0];
+      var out=buildGeoResult(chosen);
+      if(!out)return tryNext(i+1);
+      if(pc)out.postcode=pc;
+      return out;
+    }).catch(function(){return tryNext(i+1);});
+  }
+  return tryNext(0);
+}
+function geocodeCity(cityName){return geocodeLocation(cityName,'');}
 
-// Pobiera pogodę dla całego miesiąca jednym zapytaniem (Forecast API, z fallbackiem do Archive API dla starszych dat)
+// Pobiera pogodę dla całego miesiąca z kilku źródeł Open-Meteo.
+// Dla świeżych dni używamy Historical Forecast API, bo klasyczne Archive API
+// ma opóźnienie publikacji danych reanalizowanych. Dodatkowo próbujemy zwykłego
+// Forecast API oraz Archive API, dzięki czemu brak danych z jednego źródła nie
+// powoduje pustej pogody w aplikacji.
 function fetchMonthWeather(lat,lon,month){
   var dim_=dim(month);
   var start=month+'-01';
   var end=month+'-'+String(dim_).padStart(2,'0');
-  var params='latitude='+lat+'&longitude='+lon+'&start_date='+start+'&end_date='+end+'&daily=temperature_2m_mean,precipitation_sum,weathercode&timezone=auto';
+
   function parse(d){
-    if(!d.daily||!d.daily.time)throw new Error('no data');
+    if(!d||!d.daily||!d.daily.time)throw new Error('no data');
     var weather={};
     d.daily.time.forEach(function(dateStr,i){
       var day=parseInt(dateStr.split('-')[2],10);
-      var t=d.daily.temperature_2m_mean[i],p=d.daily.precipitation_sum[i],c=d.daily.weathercode[i];
-      if(t!==null&&t!==undefined)weather[day]={t:t,p:p||0,c:c};
+      var t=d.daily.temperature_2m_mean&&d.daily.temperature_2m_mean[i];
+      var p=d.daily.precipitation_sum&&d.daily.precipitation_sum[i];
+      var c=(d.daily.weather_code&&d.daily.weather_code[i]!==undefined)?d.daily.weather_code[i]:d.daily.weathercode&&d.daily.weathercode[i];
+      if(t!==null&&t!==undefined&&c!==null&&c!==undefined)weather[day]={t:t,p:p||0,c:c};
     });
     return weather;
   }
-  function fetchArchive(){
-    return fetch('https://archive-api.open-meteo.com/v1/archive?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse).catch(function(){return {}});
+
+  function fetchJson(url){
+    return fetch(url).then(function(r){
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(parse).catch(function(){return {};});
   }
-  return fetch('https://api.open-meteo.com/v1/forecast?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse).catch(function(){
-    return {};
-  }).then(function(primaryWeather){
-    // Forecast API czasem jeszcze nie ma sfinalizowanych danych dla najświeższych dni (zwraca null,
-    // bez zgłaszania błędu) — jeśli brakuje jakichkolwiek dni miesiąca, dociągnij brakujące z Archive API.
-    if(Object.keys(primaryWeather).length>=dim_)return primaryWeather;
-    return fetchArchive().then(function(archiveWeather){
-      return Object.assign({},archiveWeather,primaryWeather); // primaryWeather nadpisuje tam, gdzie oba źródła mają dane
-    });
+
+  var qs='latitude='+encodeURIComponent(lat)+'&longitude='+encodeURIComponent(lon)+
+    '&start_date='+start+'&end_date='+end+
+    '&daily=temperature_2m_mean,precipitation_sum,weather_code&timezone=auto';
+
+  var historicalForecastUrl='https://historical-forecast-api.open-meteo.com/v1/forecast?'+qs;
+  var forecastUrl='https://api.open-meteo.com/v1/forecast?'+qs+'&past_days=16';
+  var archiveUrl='https://archive-api.open-meteo.com/v1/archive?'+qs;
+
+  return Promise.all([
+    fetchJson(historicalForecastUrl),
+    fetchJson(forecastUrl),
+    fetchJson(archiveUrl)
+  ]).then(function(res){
+    var historical=res[0]||{},forecast=res[1]||{},archive=res[2]||{};
+    var result={};
+    var today=new Date();
+    var todayNoon=new Date(today.getFullYear(),today.getMonth(),today.getDate()).getTime();
+    var fiveDays=5*86400000;
+
+    // Wybór źródła zależnie od wieku dnia:
+    // do 5 dni wstecz — Historical Forecast / Forecast, starsze — Archive / Historical Forecast.
+    for(var d=1;d<=dim_;d++){
+      var dateObj=new Date(start+'T12:00:00');
+      dateObj.setDate(dateObj.getDate()+(d-1));
+      var age=todayNoon-dateObj.getTime();
+      var val;
+      if(age>=fiveDays){
+        val=(archive[d]||historical[d]||forecast[d]);
+      }else{
+        val=(historical[d]||forecast[d]||archive[d]);
+      }
+      if(val)result[d]=val;
+    }
+    return result;
   });
 }
 
@@ -1207,18 +1332,36 @@ function fetchMonthWeather(lat,lon,month){
 function ensureMonthWeather(pid,month,forceRefresh){
   var prop=S.props.find(function(p){return p.id===pid});
   if(!prop||!prop.lat||!prop.lon)return Promise.resolve({weather:null,fetched:false});
+
   var dd=getDailyData(pid,month);
   var dim_=dim(month);
   var haveEnough=dd.weather&&Object.keys(dd.weather).length>=dim_;
-  var cooldownMs=haveEnough?(24*60*60*1000):(60*60*1000);
+  var hasDaily=dd.days&&Object.keys(dd.days).length>0;
+  var cooldownMs=haveEnough?(24*60*60*1000):(10*60*1000);
   var recentlyFetched=!forceRefresh&&dd.weatherFetchedAt&&(Date.now()-dd.weatherFetchedAt<cooldownMs);
-  if(!forceRefresh&&(haveEnough||recentlyFetched))return Promise.resolve({weather:dd.weather||{},fetched:false});
+
+  // Jeżeli są ręcznie wprowadzone dni bez pogody, zawsze pozwól na ponowne
+  // pobranie po krótkim czasie. Dzięki temu zapis sprzedaży nie blokuje pogody.
+  if(!forceRefresh&&!hasDaily&&(haveEnough||recentlyFetched)){
+    return Promise.resolve({weather:dd.weather||{},fetched:false});
+  }
+  if(!forceRefresh&&recentlyFetched){
+    return Promise.resolve({weather:dd.weather||{},fetched:false});
+  }
+
   return fetchMonthWeather(prop.lat,prop.lon,month).then(function(weather){
-    dd.weather=Object.assign({},dd.weather,weather);
-    dd.weatherFetchedAt=Date.now();
-    lsSet(uk('daily-'+pid+'-'+month),dd);
-    if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),dd);
-    return {weather:dd.weather,fetched:true};
+    var incoming=weather||{};
+    var incomingCount=Object.keys(incoming).length;
+    dd.weather=Object.assign({},dd.weather||{},incoming);
+
+    // Nie zapisuj znacznika czasu po pustym/nieudanym pobraniu.
+    // Dzięki temu kolejne wejście lub odświeżenie może spróbować ponownie bez blokady cache.
+    if(incomingCount>0){
+      dd.weatherFetchedAt=Date.now();
+      lsSet(uk('daily-'+pid+'-'+month),dd);
+      if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),dd);
+    }
+    return {weather:dd.weather,fetched:incomingCount>0};
   }).catch(function(){return {weather:dd.weather||{},fetched:false}});
 }
 
@@ -1393,6 +1536,7 @@ function renderHeatmap(container,pid,month){
   var maxDay=Math.max(dailyAvg*1.5||0,realVals.length?Math.max.apply(null,realVals)*1.15:0)||1;
 
   var h='<div class="stitle">📅 Heatmapa miesiąca — '+mLabelFull(month)+(hasRealDays?' <small style="color:var(--grn)">● dane rzeczywiste</small>':'')+'</div>';
+  h+='<div class="hs-p" style="margin-bottom:10px">Kliknij dzień, aby zobaczyć sprzedaż każdego outletu oraz pogodę.</div>';
   h+='<div class="hmap-days">';
   ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].forEach(function(d){h+='<div class="hmap-day">'+d+'</div>'});
   h+='</div><div class="hmap-grid">';
@@ -1400,23 +1544,28 @@ function renderHeatmap(container,pid,month){
   for(var d=1;d<=daysInMo;d++){
     var realVal=dd.days&&dd.days[d]?dailyDayTotal(dd.days[d]):null;
     var w=dd.weather&&dd.weather[d];
-    var wxSuffix=w?(' · '+weatherIcon(w.c)+' '+Math.round(w.t)+'°C'):'';
     var isDone=d<=md.dr;
-    var val,color,opacity,tip;
+    var val,color,opacity,tip,saleLabel;
     if(realVal!==null){
       val=realVal;color=heatColor(val,maxDay);opacity=1;
-      tip='Dzień '+d+' · '+Math.round(val).toLocaleString('pl-PL')+' PLN (rzeczywiste)'+wxSuffix;
+      saleLabel=fmt(realVal,true);
+      tip='Dzień '+d+' · '+Math.round(val).toLocaleString('pl-PL')+' PLN (rzeczywiste)';
     } else if(isDone){
       val=dailyAvg;color=heatColor(val,maxDay);opacity=0.55;
-      tip='Dzień '+d+' · szacunek '+Math.round(val).toLocaleString('pl-PL')+' PLN (brak danych dziennych)'+wxSuffix;
+      saleLabel=fmt(dailyAvg,true)+'*';
+      tip='Dzień '+d+' · szacunek '+Math.round(val).toLocaleString('pl-PL')+' PLN';
     } else {
       color='var(--sur2)';opacity=0.4;
+      saleLabel='—';
       tip='Dzień '+d+' · brak danych';
     }
-    h+='<div class="hmap-cell" style="background:'+color+';opacity:'+opacity+'" title="'+tip+'">'+d+'</div>';
+    var wx=w?weatherIcon(w.c)+' '+Math.round(w.t)+'°':'';
+    h+='<button type="button" class="hmap-cell '+(realVal!==null?'':'no-data')+'" style="background:'+color+';opacity:'+opacity+'" title="'+tip+'" onclick="openHeatmapDay('+d+')">'+
+      '<span class="hm-day">'+d+'</span><span class="hm-sale">'+saleLabel+'</span><span class="hm-wx">'+wx+'</span></button>';
   }
   h+='</div>';
-  if(!hasRealDays)h+='<div class="hs-tip" style="margin-top:10px">Kolory poniżej to szacunek na bazie średniej dziennej. Wprowadź dane w zakładce <a href="#" onclick="go(\'daily\')">Dane dzienne</a>, aby zobaczyć rzeczywisty rozkład sprzedaży w poszczególnych dniach.</div>';
+  if(!hasRealDays)h+='<div class="hs-tip" style="margin-top:10px">Kolory poniżej to szacunek na bazie średniej dziennej. Wprowadź dane w zakładce <a href="#" onclick="go(\'daily\')">Dane dzienne</a>, aby zobaczyć rzeczywisty rozkład sprzedaży.</div>';
+  else h+='<div class="hs-tip" style="margin-top:10px">* Dni bez wpisu dziennego są pokazane jako szacunek. Kliknij dzień, aby zobaczyć szczegóły.</div>';
   h+='<div class="hmap-legend"><span>Mniej</span><div class="hmap-legend-boxes">';
   ['rgba(255,77,109,.3)','rgba(245,158,11,.3)','rgba(245,158,11,.6)','rgba(34,197,94,.5)','rgba(34,197,94,.8)'].forEach(function(c){
     h+='<div class="hmap-legend-box" style="background:'+c+'"></div>';
@@ -1424,16 +1573,66 @@ function renderHeatmap(container,pid,month){
   h+='</div><span>Więcej</span></div>';
   container.innerHTML=h;
 
-  // Jeśli obiekt ma lokalizację i pogoda nie jest jeszcze pobrana, pobierz i odśwież heatmapę
   var prop=S.props.find(function(p){return p.id===pid});
   if(prop&&prop.lat){
+    var monthAtCall=month,pidAtCall=pid;
     ensureMonthWeather(pid,month).then(function(res){
-      if(res.fetched&&S.view==='analytics'&&S.pid===pid&&S.month===month){
+      if(res.fetched&&S.view==='analytics'&&S.pid===pidAtCall&&S.month===monthAtCall){
         var atHeatmap=document.getElementById('at-heatmap');
-        if(atHeatmap&&atHeatmap.style.display!=='none')renderHeatmap(atHeatmap,pid,month);
+        if(atHeatmap&&atHeatmap.style.display!=='none')renderHeatmap(atHeatmap,pidAtCall,monthAtCall);
       }
     });
   }
+}
+
+function openHeatmapDay(day){
+  var dd=getDailyData(S.pid,S.month);
+  var vals=(dd.days&&dd.days[day])||{};
+  var w=dd.weather&&dd.weather[day];
+  var md=getMD(S.pid,S.month)||{};
+  var total=dailyDayTotal(vals);
+  var hasReal=Object.keys(vals).length>0;
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var title=document.getElementById('heatday-title');
+  var sub=document.getElementById('heatday-sub');
+  var content=document.getElementById('heatday-content');
+  if(!content)return;
+
+  if(title)title.textContent='📅 '+day+' '+mLabel(S.month);
+  if(sub)sub.textContent=hasReal?'Sprzedaż netto — dane rzeczywiste':'Sprzedaż netto — brak wpisu dziennego';
+
+  var h='';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--sur2);border:1px solid var(--brd);border-radius:11px;padding:12px;margin-bottom:12px">';
+  h+='<div><div class="card-title" style="margin-bottom:3px">Łącznie</div><div style="font-family:var(--fd);font-size:1.35rem;font-weight:800;color:var(--acc)">'+(hasReal?fmt(total):'Brak danych')+'</div></div>';
+  h+='<div style="text-align:right">'+(w?weatherBadgeHTML(w):'<span class="wx-badge">🌡️ Brak danych pogodowych</span>')+'</div></div>';
+
+  if(w){
+    h+='<div class="card" style="padding:12px;margin-bottom:12px"><div class="card-title">Warunki pogodowe</div>';
+    h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">';
+    h+='<div><div style="font-size:1.45rem">'+weatherIcon(w.c)+'</div><div style="font-size:.68rem;color:var(--tx3)">'+weatherLabel(w.c)+'</div></div>';
+    h+='<div><div style="font-family:var(--fd);font-size:1rem;font-weight:700">'+Math.round(w.t)+'°C</div><div style="font-size:.68rem;color:var(--tx3)">średnia temp.</div></div>';
+    h+='<div><div style="font-family:var(--fd);font-size:1rem;font-weight:700">'+(w.p||0).toFixed(1)+' mm</div><div style="font-size:.68rem;color:var(--tx3)">opady</div></div>';
+    h+='</div></div>';
+  }
+
+  h+='<div class="card" style="padding:12px"><div class="card-title">Sprzedaż netto według outletów</div>';
+  if(hasReal){
+    S.outlets.forEach(function(o){
+      var k=okey(o.name),v=vals[k]||0,pct=total>0?v/total*100:0;
+      h+='<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--brd)">';
+      h+='<div><div style="font-size:.78rem;font-weight:600">'+o.name+'</div><div class="prog" style="margin-top:5px"><div class="prog-fill" style="width:'+Math.min(100,pct)+'%;background:'+outletColor(k)+'"></div></div></div>';
+      h+='<div style="text-align:right"><div style="font-family:var(--fm);font-weight:700;color:'+outletColor(k)+'">'+fmt(v)+'</div><div style="font-size:.62rem;color:var(--tx3)">'+pct.toFixed(1)+'%</div></div></div>';
+    });
+    h+='<div style="display:flex;justify-content:space-between;padding-top:10px;font-weight:700"><span>RAZEM</span><span class="td-acc">'+fmt(total)+'</span></div>';
+  }else{
+    var est=md.dr>0?(Object.values(md.a||{}).reduce(function(s,v){return s+v},0)/md.dr):0;
+    h+='<div class="empty" style="padding:18px 8px"><p>Ten dzień nie ma wprowadzonych danych dziennych. Szacowana sprzedaż całkowita: <strong>'+fmt(est)+'</strong>.</p></div>';
+  }
+  h+='</div>';
+  if(prop&&prop.lat&&!w)h+='<div class="hs-tip" style="margin-top:10px">Pogoda dla tego dnia nie została jeszcze pobrana. Użyj „Odśwież pogodę" w Danych dziennych.</div>';
+
+  content.innerHTML=h;
+  openM('m-heatday');
 }
 
 /* ═══════════════════════════════════════════
@@ -1632,6 +1831,29 @@ function renderWaterfall(el,metrics){
    Agreguje dane ze WSZYSTKICH miesięcy obiektu (Dane dzienne + pogoda),
    żeby uzyskać sensowną próbkę do porównania kategorii pogodowych.
 ═══════════════════════════════════════════ */
+var _weatherRange={from:'',to:''};
+
+function getDailyDateBounds(pid){
+  var all=getAllDailyData(pid),dates=[];
+  Object.keys(all).forEach(function(month){
+    var dd=all[month];
+    Object.keys(dd.days||{}).forEach(function(day){
+      var d=String(day).padStart(2,'0');
+      dates.push(month+'-'+d);
+    });
+  });
+  dates.sort();
+  return {from:dates[0]||S.month+'-01',to:dates[dates.length-1]||S.month+'-'+String(dim(S.month)).padStart(2,'0')};
+}
+
+function weatherRangeChanged(){
+  var f=document.getElementById('wx-from'),t=document.getElementById('wx-to');
+  if(f)_weatherRange.from=f.value;
+  if(t)_weatherRange.to=t.value;
+  var el=document.getElementById('at-weather');
+  if(el)renderWeatherCorrelation(el,S.pid);
+}
+
 function renderWeatherCorrelation(el,pid){
   if(!el)return;
   var prop=S.props.find(function(p){return p.id===pid});
@@ -1642,60 +1864,171 @@ function renderWeatherCorrelation(el,pid){
     el.innerHTML=h;return;
   }
 
+  var bounds=getDailyDateBounds(pid);
+  if(!_weatherRange.from)_weatherRange.from=bounds.from;
+  if(!_weatherRange.to)_weatherRange.to=bounds.to;
+  if(_weatherRange.from<bounds.from)_weatherRange.from=bounds.from;
+  if(_weatherRange.to>bounds.to)_weatherRange.to=bounds.to;
+  if(_weatherRange.from>_weatherRange.to){var tmp=_weatherRange.from;_weatherRange.from=_weatherRange.to;_weatherRange.to=tmp;}
+
+  h+='<div class="card" style="margin-bottom:14px"><div class="fsect">Zakres analizy</div>';
+  h+='<div class="wx-range">';
+  h+='<div class="fg"><label>Od</label><input class="fi" type="date" id="wx-from" value="'+_weatherRange.from+'" min="'+bounds.from+'" max="'+bounds.to+'" onchange="weatherRangeChanged()"></div>';
+  h+='<div class="fg"><label>Do</label><input class="fi" type="date" id="wx-to" value="'+_weatherRange.to+'" min="'+bounds.from+'" max="'+bounds.to+'" onchange="weatherRangeChanged()"></div>';
+  h+='<button class="btn btn-s" onclick="_weatherRange={from:\''+bounds.from+'\',to:\''+bounds.to+'\'};renderWeatherCorrelation(document.getElementById(\'at-weather\'),S.pid)">↺ Cały dostępny zakres</button>';
+  h+='</div>';
+  h+='<div class="hs-tip">Analiza obejmuje wyłącznie dni z wprowadzoną sprzedażą dzienną oraz przypisaną pogodą.</div></div>';
+
   var allDaily=getAllDailyData(pid);
-  var buckets={};// kategoria -> [sumy dzienne]
-  var sample=0;
-  Object.keys(allDaily).forEach(function(month){
+  var byCat={},sample=0;
+  Object.keys(allDaily).sort().forEach(function(month){
     var dd=allDaily[month];
-    if(!dd.days||!dd.weather)return;
+    if(!dd.days)return;
     Object.keys(dd.days).forEach(function(day){
-      var w=dd.weather[day];
+      var date=month+'-'+String(day).padStart(2,'0');
+      if(date<_weatherRange.from||date>_weatherRange.to)return;
+      var w=dd.weather&&dd.weather[day];
       if(!w||w.c===undefined)return;
       var cat=weatherCategory(w.c);
       if(!cat)return;
-      var total=dailyDayTotal(dd.days[day]);
+      var vals=dd.days[day];
+      var total=dailyDayTotal(vals);
       if(total<=0)return;
-      if(!buckets[cat])buckets[cat]=[];
-      buckets[cat].push(total);
+      if(!byCat[cat])byCat[cat]={total:[],outlets:{}};
+      byCat[cat].total.push(total);
+      S.outlets.forEach(function(o){
+        var k=okey(o.name),v=vals[k];
+        if(v===undefined||v<=0)return;
+        if(!byCat[cat].outlets[k])byCat[cat].outlets[k]=[];
+        byCat[cat].outlets[k].push(v);
+      });
       sample++;
     });
   });
 
-  if(sample<4){
-    h+='<div class="empty"><p>Za mało danych do analizy — potrzeba przynajmniej kilku dni z wprowadzoną sprzedażą w zakładce <a href="#" onclick="go(\'daily\')">Dane dzienne</a> (mają wtedy automatycznie dopasowaną pogodę).</p></div>';
-    el.innerHTML=h;return;
+  var monthsNeeded=[];
+  Object.keys(allDaily).forEach(function(month){
+    var dd=allDaily[month];
+    var hasInRange=Object.keys(dd.days||{}).some(function(day){
+      var date=month+'-'+String(day).padStart(2,'0');
+      return date>=_weatherRange.from&&date<=_weatherRange.to;
+    });
+    if(hasInRange&&(!dd.weather||Object.keys(dd.weather).length<dim(month)))monthsNeeded.push(month);
+  });
+
+  if(monthsNeeded.length){
+    el.innerHTML=h+'<div class="card"><div class="empty" style="padding:28px">⏳ Uzupełniam dane pogodowe dla wybranego zakresu…</div></div>';
+    var idx=0;
+    function next(){
+      if(idx>=monthsNeeded.length){
+        renderWeatherCorrelation(el,pid);
+        return;
+      }
+      ensureMonthWeather(pid,monthsNeeded[idx],true).then(function(){idx++;setTimeout(next,120);});
+    }
+    next();
+    return;
   }
 
   var order=['Słonecznie','Pochmurno','Deszcz','Śnieg'];
-  var rows=order.filter(function(c){return buckets[c]&&buckets[c].length}).map(function(cat){
-    var vals=buckets[cat];
-    var avg=vals.reduce(function(s,v){return s+v},0)/vals.length;
-    return {cat:cat,avg:avg,n:vals.length};
+  var rows=order.filter(function(cat){return byCat[cat]&&byCat[cat].total.length}).map(function(cat){
+    var vals=byCat[cat].total;
+    return {cat:cat,avg:vals.reduce(function(s,v){return s+v},0)/vals.length,n:vals.length};
   });
+
+  if(sample<1){
+    h+='<div class="empty"><p>Brak wystarczających danych w wybranym zakresie. Wprowadź sprzedaż dzienną i upewnij się, że dla dni została pobrana pogoda.</p></div>';
+    el.innerHTML=h;return;
+  }
+
   var overallAvg=rows.reduce(function(s,r){return s+r.avg*r.n},0)/sample;
+  h+='<div class="kpi-grid">';
+  h+='<div class="kpi"><div class="kpi-lbl">Dni w analizie</div><div class="kpi-val">'+sample+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Śr. sprzedaż dnia</div><div class="kpi-val">'+fmt(overallAvg,true)+'</div></div>';
+  h+='</div>';
 
-  h+='<p class="hs-p" style="margin-bottom:12px">Średnia dzienna sprzedaż (wszystkie outlety łącznie) w rozbiciu na warunki pogodowe, na podstawie '+sample+' dni z danymi dziennymi i dopasowaną pogodą — ze wszystkich miesięcy.</p>';
-
-  h+='<div class="cc"><canvas id="ch-weather" style="max-height:260px"></canvas></div>';
-
-  h+='<div class="tbl-wrap" style="margin-top:14px"><table><thead><tr><th>Warunki</th><th>Śr. sprzedaż dnia</th><th>Dni w próbce</th><th>vs śr. ogólna</th></tr></thead><tbody>';
+  h+='<div class="wx-summary-grid">';
   rows.forEach(function(r){
-    var diff=overallAvg>0?((r.avg-overallAvg)/overallAvg*100):0;
     var icon=r.cat==='Słonecznie'?'☀️':r.cat==='Pochmurno'?'☁️':r.cat==='Śnieg'?'❄️':'🌧️';
-    h+='<tr><td>'+icon+' '+r.cat+'</td><td class="td-acc">'+fmt(r.avg,true)+'</td><td>'+r.n+'</td>';
-    h+='<td class="'+(diff>=0?'td-pos':'td-neg')+'">'+(diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%</td></tr>';
+    var diff=overallAvg>0?(r.avg-overallAvg)/overallAvg*100:0;
+    h+='<div class="wx-condition"><div class="wx-condition-head"><span style="font-size:1.15rem">'+icon+'</span>'+r.cat+' <span class="badge" style="margin-left:auto">'+r.n+' dni</span></div>';
+    h+='<div style="font-size:.68rem;color:var(--tx3);margin-bottom:6px">Średnia wszystkich outletów: <strong style="color:var(--tx)">'+fmt(r.avg)+'</strong> · '+(diff>=0?'<span class="td-pos">▲ +':'<span class="td-neg">▼ ')+Math.abs(diff).toFixed(1)+'%</span> vs zakres</div>';
+    S.outlets.forEach(function(o){
+      var k=okey(o.name),vals=byCat[r.cat].outlets[k]||[],avg=vals.length?vals.reduce(function(s,v){return s+v},0)/vals.length:0;
+      h+='<div class="wx-outlet-row"><span>'+o.name+'</span><span class="wx-outlet-avg">'+(vals.length?fmt(avg):'—')+'</span><span class="wx-outlet-n">'+vals.length+' dni</span></div>';
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Warunki</th><th>Śr. sprzedaż dnia</th><th>Dni</th><th>vs śr. zakresu</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var icon=r.cat==='Słonecznie'?'☀️':r.cat==='Pochmurno'?'☁️':r.cat==='Śnieg'?'❄️':'🌧️';
+    var diff=overallAvg>0?((r.avg-overallAvg)/overallAvg*100):0;
+    h+='<tr><td>'+icon+' '+r.cat+'</td><td class="td-acc">'+fmt(r.avg,true)+'</td><td>'+r.n+'</td><td class="'+(diff>=0?'td-pos':'td-neg')+'">'+(diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%</td></tr>';
   });
   h+='</tbody></table></div>';
-  h+='<div class="hs-tip" style="margin-top:10px">Im więcej dni z wprowadzoną sprzedażą, tym bardziej wiarygodne porównanie — traktuj wyniki ostrożnie przy małej próbce.</div>';
+  h+='<div class="hs-tip" style="margin-top:10px">Średnia dla outletu jest liczona tylko z dni, w których ten outlet miał sprzedaż &gt; 0. Dzięki temu wynik pokazuje zachowanie konkretnego outletu przy danym typie pogody.</div>';
 
   el.innerHTML=h;
+}
 
-  dChart('ch-weather');
-  S.charts['ch-weather']=new Chart(document.getElementById('ch-weather'),{
-    type:'bar',
-    data:{labels:rows.map(function(r){return r.cat}),datasets:[{data:rows.map(function(r){return conv(r.avg)}),backgroundColor:rows.map(function(r){return r.cat==='Słonecznie'?'rgba(245,158,11,.75)':r.cat==='Pochmurno'?'rgba(148,163,184,.75)':r.cat==='Śnieg'?'rgba(147,197,253,.75)':'rgba(59,130,246,.75)'}),borderRadius:4}]},
-    options:Object.assign({},chOpts(function(v){return fmtR(v)}),{plugins:{legend:{display:false}}})
+/* ═══════════════════════════════════════════
+   RENDER: TABLICA REKORDÓW
+   3 najwyższe utargi dzienne per outlet + pogoda
+═══════════════════════════════════════════ */
+function renderRecords(){
+  var el=document.getElementById('v-records');if(!el)return;
+  if(!S.pid||!S.outlets.length){
+    el.innerHTML=emptyStateHTML('🏆','Brak danych do rekordów','Dodaj obiekt hotelowy, outlety i dane dzienne, aby zobaczyć trzy najwyższe utargi każdego outletu.','+ Przejdź do danych dziennych',"go('daily')");
+    return;
+  }
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var all=getAllDailyData(S.pid);
+  var h='<div class="stitle">🏆 Tablica rekordów <small>'+((prop&&prop.name)||'')+'</small></div>';
+  h+='<div class="hs-p" style="margin-bottom:14px">Trzy najwyższe dzienne utargi netto dla każdego outletu. Data i pogoda są pobierane z danych dziennych.</div>';
+  h+='<div class="record-grid">';
+
+  var weatherMonths=[];
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),rows=[];
+    Object.keys(all).forEach(function(month){
+      var dd=all[month];
+      Object.keys(dd.days||{}).forEach(function(day){
+        var v=dd.days[day]&&dd.days[day][k];
+        if(v>0)rows.push({month:month,day:+day,value:v,weather:dd.weather&&dd.weather[day]});
+      });
+      if(rows.some(function(r){return r.month===month})&&(!dd.weather||Object.keys(dd.weather).length<dim(month)))weatherMonths.push(month);
+    });
+    rows.sort(function(a,b){return b.value-a.value});
+    rows=rows.slice(0,3);
+
+    h+='<div class="record-card"><div class="record-head"><span class="record-head-name">'+o.name+'</span><span class="badge">TOP 3</span></div>';
+    if(!rows.length){
+      h+='<div class="record-empty">Brak wprowadzonych danych dla tego outletu.</div>';
+    }else{
+      rows.forEach(function(r,i){
+        var date=r.day+' '+mLabel(r.month);
+        var wx=r.weather?weatherIcon(r.weather.c)+' '+Math.round(r.weather.t)+'°C'+(r.weather.p>0?' · '+r.weather.p.toFixed(1)+' mm':''):'🌡️ Brak pogody';
+        h+='<div class="record-item"><div class="record-medal">'+(['🥇','🥈','🥉'][i])+'</div><div><div class="record-date">'+date+'</div><div class="record-weather">'+wx+'</div></div><div class="record-value">'+fmt(r.value)+'</div></div>';
+      });
+    }
+    h+='</div>';
   });
+  h+='</div>';
+  if(!prop||!prop.lat)h+='<div class="hs-warn">Obiekt nie ma ustawionej lokalizacji, więc dane pogodowe nie mogą być dopasowane do rekordów.</div>';
+  el.innerHTML=h;
+
+  var uniqueMonths=Array.from(new Set(weatherMonths));
+  var idx=0;
+  function next(){
+    if(idx>=uniqueMonths.length){
+      if(S.view==='records')renderRecords();
+      return;
+    }
+    ensureMonthWeather(S.pid,uniqueMonths[idx],false).then(function(){idx++;setTimeout(next,120);});
+  }
+  if(prop&&prop.lat&&uniqueMonths.length)next();
 }
 
 /* ═══════════════════════════════════════════
@@ -2529,7 +2862,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='2.9.0';
+var APP_VERSION='3.0.1';
 var APP_BUILD_DATE='2026-08-12';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2538,6 +2871,21 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.0.2',date:'2026-08-12',changes:[
+    'Dodano kod pocztowy dla lokalizacji obiektu — geokodowanie preferuje dokładne dopasowanie kodu w Polsce',
+    'Lokalizacja zapisuje teraz miasto, kod pocztowy, województwo i współrzędne',
+    'Wizytówka obiektu pokazuje kod pocztowy przy lokalizacji'
+  ]},
+  {v:'3.0.1',date:'2026-08-12',changes:[
+    'Pogoda: Historical Forecast API jako źródło dla świeżych dni sierpnia 2026, dodatkowy fallback do Forecast API i Archive API',
+    'Poprawiono cache pogody — nieudane/puste pobranie nie blokuje kolejnych prób',
+  ]},
+  {v:'3.0.0',date:'2026-08-12',changes:[
+    'Nowa Tablica rekordów — 3 najwyższe dzienne utargi netto dla każdego outletu wraz z datą i pogodą',
+    'Heatmapa pokazuje bezpośrednio na kafelkach sprzedaż netto i pogodę oraz otwiera szczegóły dnia po kliknięciu',
+    'Pogoda a sprzedaż: zakres dat oraz rozbicie średniej sprzedaży na poszczególne outlety i warunki pogodowe',
+    'Usprawnione pobieranie pogody dla ręcznie wprowadzonych dni — równoległe wykorzystanie kilku źródeł Open-Meteo oraz ponawianie niepełnych danych'
+  ]},
   {v:'2.9.0',date:'2026-08-12',changes:[
     'Naprawiono zacinający się wskaźnik aktywnej zakładki w Analityce/Porównaniach na telefonie — usunięto animowaną nakładkę (gubiła pozycję przy poziomym przewijaniu) na rzecz prostszego, niezawodnego oznaczania koloru tła bezpośrednio na przycisku',
     'Nowy globalny przycisk zmiany miesiąca w górnym pasku — dostępny z każdej zakładki, nie tylko z „Wprowadź dane"'
@@ -2881,11 +3229,11 @@ function setTheme(t){
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',daily:'Dane dzienne',analytics:'Analityka',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
+var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',daily:'Dane dzienne',analytics:'Analityka',records:'Tablica rekordów',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
 function go(v){
   S.view=v;
   document.querySelectorAll('[data-v]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-v')===v)});
-  document.querySelectorAll('#v-dashboard,#v-data,#v-daily,#v-analytics,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
+  document.querySelectorAll('#v-dashboard,#v-data,#v-daily,#v-analytics,#v-records,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
   var el=document.getElementById('v-'+v);if(el)el.style.display='block';
   var pt=document.getElementById('pg-title');if(pt)pt.textContent=TITLES[v]||v;
   haptic(8);
@@ -3473,6 +3821,14 @@ function saveDailyEntry(){
   saveDailyDayBulk(S.pid,S.month,_dailyDay,vals);
   toast('Zapisano dzień '+_dailyDay,'ok');haptic(10);
   renderDaily();
+  // Po ręcznym wpisaniu sprzedaży od razu uzupełnij pogodę dla całego miesiąca.
+  var pidAtSave=S.pid,monthAtSave=S.month;
+  var prop=S.props.find(function(p){return p.id===pidAtSave});
+  if(prop&&prop.lat&&prop.lon){
+    ensureMonthWeather(pidAtSave,monthAtSave,false).then(function(){
+      if(S.view==='daily'&&S.pid===pidAtSave&&S.month===monthAtSave)updateDailyWeatherUI();
+    });
+  }
 }
 
 function clearDailyEntry(){
@@ -3855,7 +4211,7 @@ function renderProperties(){
     var myRole=getMyRole(p);
     var isOwner=p.ownerEmail===S.userEmailLower;
     h+='<div class="pi '+(p.id===S.pid?'on':'')+'"><div class="pi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>';
-    h+='<div class="pi-info"><div class="pi-name">'+p.name+' <span class="role-badge '+myRole+'" style="font-size:.55rem;padding:1px 6px">'+(myRole==='admin'?'Admin':myRole==='manager'?'Manager':'Podgląd')+'</span></div><div class="pi-sub">'+(p.addr||'Brak adresu')+(!isOwner?' · właściciel: '+p.ownerEmail:'')+' · '+(p.lat?'📍 '+(p.cityLabel||p.city):'<span style="color:var(--warn)">📍 brak lokalizacji (pogoda niedostępna)</span>')+'</div></div>';
+    h+='<div class="pi-info"><div class="pi-name">'+p.name+' <span class="role-badge '+myRole+'" style="font-size:.55rem;padding:1px 6px">'+(myRole==='admin'?'Admin':myRole==='manager'?'Manager':'Podgląd')+'</span></div><div class="pi-sub">'+(p.addr||'Brak adresu')+(!isOwner?' · właściciel: '+p.ownerEmail:'')+' · '+(p.lat?'📍 '+(p.cityLabel||p.city)+(p.postcode?' · '+p.postcode:''):'<span style="color:var(--warn)">📍 brak lokalizacji (pogoda niedostępna)</span>')+'</div></div>';
     h+='<div class="pi-acts">';
     if(isOwner||myRole==='manager')h+='<button class="btn-icon" onclick="openCityModal(\''+p.id+'\')" title="Ustaw lokalizację (pogoda)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></button>';
     h+='<button class="btn-icon" onclick="selProp(\''+p.id+'\')">'+(p.id===S.pid?'✓':'→')+'</button>';
@@ -3902,21 +4258,22 @@ function saveProp(){
   var n=document.getElementById('np-name')&&document.getElementById('np-name').value.trim();
   var a=document.getElementById('np-addr')&&document.getElementById('np-addr').value.trim()||'';
   var city=document.getElementById('np-city')&&document.getElementById('np-city').value.trim()||'';
+  var postcode=normalizePostalCode(document.getElementById('np-postcode')&&document.getElementById('np-postcode').value||'');
   if(!n){toast('Podaj nazwę','er');return;}
-  var p={id:'p'+Date.now(),name:n,addr:a,city:city,ownerEmail:S.userEmailLower,memberEmails:[S.userEmailLower],members:[{email:S.userEmailLower,role:'admin'}],createdAt:new Date().toISOString()};
+  var p={id:'p'+Date.now(),name:n,addr:a,city:city,postcode:postcode,ownerEmail:S.userEmailLower,memberEmails:[S.userEmailLower],members:[{email:S.userEmailLower,role:'admin'}],createdAt:new Date().toISOString()};
 
   function finishSave(){
     savePropItem(p);S.props=getProps();
     if(!S.pid){S.pid=p.id;S.outlets=[];localStorage.setItem(uk('pid'),p.id);}
     updatePropSel();refreshCurrentRole();closeM('m-prop');
-    document.getElementById('np-name').value='';document.getElementById('np-addr').value='';document.getElementById('np-city').value='';
+    document.getElementById('np-name').value='';document.getElementById('np-addr').value='';document.getElementById('np-city').value='';document.getElementById('np-postcode').value='';
     renderCur();toast('Obiekt "'+n+'" utworzony'+(p.lat?' · lokalizacja: '+p.cityLabel:''),'ok');
   }
 
   if(city){
     toast('Ustalanie lokalizacji...','in');
-    geocodeCity(city).then(function(res){
-      if(res){p.lat=res.lat;p.lon=res.lon;p.cityLabel=res.label;}
+    geocodeLocation(city,postcode).then(function(res){
+      if(res){p.lat=res.lat;p.lon=res.lon;p.cityLabel=res.label;p.city=res.city||city;p.postcode=res.postcode||postcode;p.admin1=res.admin1||'';}
       finishSave();
     }).catch(function(){finishSave()});
   } else {
@@ -3941,6 +4298,8 @@ function openCityModal(pid){
   if(sub)sub.textContent=prop?prop.name+(prop.cityLabel?' · obecnie: '+prop.cityLabel:''):'';
   var inp=document.getElementById('city-inp');
   if(inp)inp.value=prop&&prop.city||'';
+  var pc=document.getElementById('city-postcode');
+  if(pc)pc.value=prop&&prop.postcode||'';
   var st=document.getElementById('city-status');if(st)st.textContent='';
   openM('m-city');
 }
@@ -3948,14 +4307,15 @@ function openCityModal(pid){
 function saveCityForProp(){
   if(!_cityModalPid)return;
   var city=document.getElementById('city-inp')&&document.getElementById('city-inp').value.trim();
+  var postcode=normalizePostalCode(document.getElementById('city-postcode')&&document.getElementById('city-postcode').value||'');
   var st=document.getElementById('city-status');
   if(!city){if(st)st.textContent='Wpisz nazwę miasta.';return;}
   if(st)st.textContent='⏳ Ustalanie lokalizacji...';
-  geocodeCity(city).then(function(res){
+  geocodeLocation(city,postcode).then(function(res){
     var prop=S.props.find(function(p){return p.id===_cityModalPid});
     if(!prop)return;
     if(!res){if(st)st.textContent='❌ Nie znaleziono takiego miasta. Spróbuj innej pisowni.';return;}
-    prop.city=city;prop.lat=res.lat;prop.lon=res.lon;prop.cityLabel=res.label;
+    prop.city=res.city||city;prop.postcode=res.postcode||postcode;prop.admin1=res.admin1||'';prop.lat=res.lat;prop.lon=res.lon;prop.cityLabel=res.label;
     savePropItem(prop);S.props=getProps();
     closeM('m-city');
     toast('Lokalizacja ustawiona: '+res.label,'ok');
@@ -4952,7 +5312,7 @@ function onMonthChange(v){S.month=v;syncMonthUI();renderCur()}
 
 function renderCur(){
   try{
-    var fn={dashboard:renderDashboard,data:renderData,daily:renderDaily,analytics:renderAnalytics,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
+    var fn={dashboard:renderDashboard,data:renderData,daily:renderDaily,analytics:renderAnalytics,records:renderRecords,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
     var f=fn[S.view];if(f)f();
   }catch(e){console.error(e)}
 }
@@ -5207,7 +5567,7 @@ var HELP_CONTENT=`
 <div class="hs-warn">Kolejność outletów ma znaczenie — wyniki w tabelach i raportach są wyświetlane w kolejności dodawania. Dodawaj outlety w logicznej kolejności (np. od najważniejszego).</div>
 
 <div class="hs-h2">Lokalizacja obiektu (dane pogodowe)</div>
-<div class="hs-p">Przy tworzeniu obiektu możesz od razu podać miasto — aplikacja automatycznie ustali jego współrzędne (geokodowanie). Dla istniejących obiektów kliknij ikonę <strong>📍</strong> przy nazwie obiektu na liście, wpisz miasto i zapisz. Obiekty bez ustawionej lokalizacji mają czerwoną adnotację „brak lokalizacji" — bez niej dane pogodowe w zakładce Dane dzienne nie będą dostępne.</div>
+<div class="hs-p">Przy tworzeniu obiektu możesz podać miasto oraz kod pocztowy. Kod pocztowy jest zalecany, ponieważ pozwala rozróżnić miejscowości o tej samej nazwie. Aplikacja zapisuje współrzędne i województwo wybranej lokalizacji. Dla istniejących obiektów kliknij ikonę <strong>📍</strong> przy nazwie obiektu na liście, uzupełnij miasto i kod pocztowy i zapisz. Obiekty bez ustawionej lokalizacji mają czerwoną adnotację „brak lokalizacji" — bez niej dane pogodowe w zakładce Dane dzienne nie będą dostępne.</div>
 
 <div class="hs-h2">Usuwanie obiektu</div>
 <div class="hs-p">Kliknij ikonę kosza przy obiekcie. Usunięcie obiektu jest nieodwracalne — wszystkie dane (outlety, dane miesięczne) zostają skasowane. Wykonaj wcześniej kopię JSON przez zakładkę Eksport/Import. <strong>Tylko właściciel obiektu może go usunąć</strong> — zaproszeni członkowie zespołu nie mają tej opcji.</div>
