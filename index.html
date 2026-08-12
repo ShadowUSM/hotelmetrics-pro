@@ -294,10 +294,9 @@ textarea.fi{resize:vertical}
 .mclose:hover{background:var(--red);color:#fff;border-color:var(--red)}
 
 /* Tabs */
-.tabs{display:flex;gap:3px;background:var(--sur2);border-radius:9px;padding:3px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative}
-.tab{padding:6px 13px;border-radius:7px;font-size:.74rem;font-weight:500;color:var(--tx2);background:transparent;border:none;cursor:pointer;transition:color .2s;white-space:nowrap;position:relative;z-index:1}
-.tab.on{color:var(--acc)}
-.tab-indicator{position:absolute;top:3px;bottom:3px;left:0;border-radius:7px;background:var(--sur);box-shadow:0 1px 6px rgba(0,0,0,.2);transition:transform .25s cubic-bezier(.4,0,.2,1),width .25s cubic-bezier(.4,0,.2,1);z-index:0;pointer-events:none}
+.tabs{display:flex;gap:3px;background:var(--sur2);border-radius:9px;padding:3px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:6px 13px;border-radius:7px;font-size:.74rem;font-weight:500;color:var(--tx2);background:transparent;border:none;cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;flex-shrink:0}
+.tab.on{background:var(--sur);color:var(--acc);box-shadow:0 1px 6px rgba(0,0,0,.2);font-weight:700}
 
 /* Section title */
 .stitle{font-size:.9rem;font-family:var(--fd);font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
@@ -397,6 +396,14 @@ textarea.fi{resize:vertical}
 .mgrid-btn.cur{background:var(--acc);color:var(--bg);border-color:var(--acc);font-weight:700}
 .mgrid-btn.has{border-color:var(--acc);color:var(--acc)}
 .mgrid-btn.has.cur{background:var(--acc);color:var(--bg)}
+
+/* Kompaktowa wersja przycisku miesiąca w topbarze (widoczna z każdej zakładki) */
+#mp-wrap-global{flex-shrink:0}
+.mpick-btn-top{width:auto;padding:7px 10px;font-size:.74rem;border-radius:9px;border-width:1px;gap:5px;white-space:nowrap}
+.mpick-btn-top .arr{font-size:.6rem}
+.picker-pop-right{left:auto;right:0;width:220px;max-width:calc(100vw - 20px)}
+@media(max-width:480px){.mpick-btn-top span:not(.arr){display:none}.mpick-btn-top{padding:7px}}
+
 .dpick-btn{display:flex;align-items:center;gap:8px;width:100%;background:var(--sur2);border:1px solid var(--brd2);color:var(--tx);border-radius:9px;padding:9px 12px;font-size:.82rem;cursor:pointer;transition:all .15s;font-family:var(--fb)}
 .dpick-btn:hover,.dpick-btn.open{border-color:var(--acc)}
 .cal-hd{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
@@ -876,6 +883,20 @@ textarea.fi{resize:vertical}
       <div class="page-title" id="pg-title">Dashboard</div>
       <div class="top-actions">
         <div class="rate-badge" id="rate-badge" style="display:none">EUR <b id="r-eur">—</b> | USD <b id="r-usd">—</b></div>
+        <div class="pick-wrap" id="mp-wrap-global">
+          <button class="mpick-btn mpick-btn-top" id="mpick-btn-global" onclick="toggleMPicker(event,'-global')" title="Zmień miesiąc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="mpick-label-global"></span><span class="arr">▾</span>
+          </button>
+          <div class="picker-pop picker-pop-right" id="mp-pop-global" style="display:none">
+            <div class="yr-nav">
+              <button class="yr-btn" onclick="mpYearNav(-1,'-global');event.stopPropagation()">◀</button>
+              <strong id="mp-yr-global"></strong>
+              <button class="yr-btn" onclick="mpYearNav(1,'-global');event.stopPropagation()">▶</button>
+            </div>
+            <div class="mgrid" id="mp-grid-global"></div>
+          </div>
+        </div>
         <button class="btn-icon" onclick="toggleSearch()" title="Szukaj">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
@@ -1014,38 +1035,13 @@ textarea.fi{resize:vertical}
 function haptic(ms){if(navigator.vibrate)navigator.vibrate(ms||10)}
 
 /* ═══════════════════════════════════════════
-   SEGMENTED TABS — animowany, przesuwający się wskaźnik
+   SEGMENTED TABS — aktywna zakładka maluje własne tło (bez wskaźnika-nakładki,
+   który gubił pozycję przy poziomym przewijaniu paska zakładek na telefonie).
+   Dodatkowo: przewiń aktywną zakładkę w widoczny obszar po kliknięciu.
 ═══════════════════════════════════════════ */
-function initSegmentedTabs(containerId){
-  var c=document.getElementById(containerId);
-  if(!c)return;
-  var old=c.querySelector('.tab-indicator');if(old)old.remove();
-  var ind=document.createElement('div');
-  ind.className='tab-indicator';
-  c.insertBefore(ind,c.firstChild);
-  var active=c.querySelector('.tab.on');
-  if(active)positionIndicator(ind,c,active);
+function scrollActiveTabIntoView(btn){
+  if(btn&&btn.scrollIntoView)btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
 }
-function positionIndicator(ind,container,btn){
-  var cr=container.getBoundingClientRect(),br=btn.getBoundingClientRect();
-  ind.style.width=br.width+'px';
-  ind.style.transform='translateX('+(br.left-cr.left-3)+'px)';
-}
-function moveTabIndicator(containerId,btn){
-  var c=document.getElementById(containerId);
-  if(!c||!btn)return;
-  var ind=c.querySelector('.tab-indicator');
-  if(!ind){initSegmentedTabs(containerId);return;}
-  positionIndicator(ind,c,btn);
-}
-window.addEventListener('resize',function(){
-  ['atabs','ctabs'].forEach(function(id){
-    var c=document.getElementById(id);
-    if(!c)return;
-    var active=c.querySelector('.tab.on'),ind=c.querySelector('.tab-indicator');
-    if(active&&ind)positionIndicator(ind,c,active);
-  });
-});
 
 /* ═══════════════════════════════════════════
    AUTO THEME
@@ -1777,7 +1773,6 @@ function renderAnalytics(){
   h+='<div id="at-weather" style="display:none"></div>';
 
   el.innerHTML=h;
-  initSegmentedTabs('atabs');
 
   // Build charts
   var ns=S.outlets.map(function(o){return o.name}),ks=S.outlets.map(function(o){return okey(o.name)});
@@ -1812,7 +1807,7 @@ function switchATab(tab,btn){
   ['charts','ranking','heatmap','whatif','accuracy','quadrant','waterfall','weather'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
   document.querySelectorAll('#atabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
-  moveTabIndicator('atabs',btn);
+  scrollActiveTabIntoView(btn);
   haptic(6);
 }
 
@@ -2146,7 +2141,7 @@ function performSearch(q){
 
 function srGoMonth(month){
   S.month=month;
-  var ms=document.getElementById('month-sel');if(ms)ms.value=month;
+  syncMonthUI();
   toggleSearch();
   go('dashboard');
 }
@@ -2534,7 +2529,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='2.8.1';
+var APP_VERSION='2.9.0';
 var APP_BUILD_DATE='2026-08-12';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2543,6 +2538,10 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'2.9.0',date:'2026-08-12',changes:[
+    'Naprawiono zacinający się wskaźnik aktywnej zakładki w Analityce/Porównaniach na telefonie — usunięto animowaną nakładkę (gubiła pozycję przy poziomym przewijaniu) na rzecz prostszego, niezawodnego oznaczania koloru tła bezpośrednio na przycisku',
+    'Nowy globalny przycisk zmiany miesiąca w górnym pasku — dostępny z każdej zakładki, nie tylko z „Wprowadź dane"'
+  ]},
   {v:'2.8.1',date:'2026-08-12',changes:[
     'Naprawiono brak danych pogodowych dla najświeższych dni (np. wczoraj) — dostawca pogody czasem nie ma jeszcze sfinalizowanych danych, a aplikacja blokowała ponowną próbę na 24h nawet gdy dane były niepełne',
     'Dane pogodowe dla brakujących dni są teraz dodatkowo dociągane z archiwalnego źródła (Archive API), nie tylko przy całkowitym błędzie zapytania',
@@ -3491,7 +3490,12 @@ function toggleMPicker(e,suf){
   var pop=document.getElementById('mp-pop'+suf),btn=document.getElementById('mpick-btn'+suf);
   var isOpen=pop&&pop.style.display!=='none';
   closeAllPickers();
-  if(!isOpen&&pop){pop.style.display='block';if(btn)btn.classList.add('open');}
+  if(!isOpen&&pop){
+    pop.style.display='block';if(btn)btn.classList.add('open');
+    var yrEl=document.getElementById('mp-yr'+suf);
+    if(yrEl)yrEl.textContent=S.month.split('-')[0];
+    buildMGrid(suf);
+  }
 }
 
 function buildMGrid(suf){
@@ -3517,9 +3521,18 @@ function mpYearNav(d,suf){
   buildMGrid(suf);
 }
 
+// Uaktualnia wszystkie widoczne wskaźniki wybranego miesiąca w interfejsie
+// (selektor w sidebarze + kompaktowy przycisk w topbarze) — wywoływane z każdego
+// miejsca, które zmienia S.month, żeby UI był spójny niezależnie od aktywnej zakładki.
+function syncMonthUI(){
+  var ms=document.getElementById('month-sel');if(ms)ms.value=S.month;
+  var lbl=document.getElementById('mpick-label-global');if(lbl)lbl.textContent=mLabel(S.month);
+  var yrG=document.getElementById('mp-yr-global');if(yrG)yrG.textContent=S.month.split('-')[0];
+}
+
 function setDMonth(ym,suf){
   S.month=ym;
-  var ms=document.getElementById('month-sel');if(ms)ms.value=ym;
+  syncMonthUI();
   closeAllPickers();
   renderCur();
 }
@@ -3563,7 +3576,7 @@ function setDR(d){
 }
 
 function closeAllPickers(){
-  ['','-daily'].forEach(function(suf){
+  ['','-daily','-global'].forEach(function(suf){
     var mp=document.getElementById('mp-pop'+suf),dp=document.getElementById('dp-pop'+suf);
     var mb=document.getElementById('mpick-btn'+suf),db2=document.getElementById('dpick-btn'+suf);
     if(mp)mp.style.display='none';
@@ -3774,7 +3787,6 @@ function renderCompare(){
 
   h+='<div class="cc" style="margin-top:14px"><div class="card-title">Wykres porównawczy</div><canvas id="ch-cmp" style="max-height:220px"></canvas></div>';
   el.innerHTML=h;
-  initSegmentedTabs('ctabs');
 
   dChart('ch-cmp');
   var sm=Object.keys(allD).sort();
@@ -3826,7 +3838,7 @@ function cTab(t,btn){
   ['mom','yoy','ytd','season','range'].forEach(function(x){var e=document.getElementById('ct-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
-  moveTabIndicator('ctabs',btn);
+  scrollActiveTabIntoView(btn);
   haptic(6);
 }
 
@@ -4936,7 +4948,7 @@ function updatePropSel(){
   S.props.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===S.pid)o.selected=true;sel.appendChild(o)});
 }
 function onPropChange(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);refreshCurrentRole();renderCur()}
-function onMonthChange(v){S.month=v;renderCur()}
+function onMonthChange(v){S.month=v;syncMonthUI();renderCur()}
 
 function renderCur(){
   try{
@@ -5043,7 +5055,7 @@ var HELP_CONTENT=`
 
 <div class="hs-h2">Wybór miesiąca</div>
 <div class="hs-p">Kliknij duży przycisk z nazwą miesiąca u góry widoku. Otworzy się siatka 12 miesięcy z nawigacją po latach (strzałki ◀ ▶). Miesiące z zapisanymi danymi są podświetlone akcentem. Kliknij wybrany miesiąc — formularz odświeży się z danymi tego miesiąca.</div>
-<div class="hs-tip">Możesz przeglądać i edytować dane dla dowolnego miesiąca w historii — nie tylko bieżącego.</div>
+<div class="hs-tip">Możesz przeglądać i edytować dane dla dowolnego miesiąca w historii — nie tylko bieżącego. Miesiąc możesz też zmienić z <strong>dowolnej innej zakładki</strong> — ikona kalendarza w górnym pasku (obok lupy) jest widoczna wszędzie, nie tylko tutaj.</div>
 
 <div class="hs-h2">Zakres dni — mini kalendarz</div>
 <div class="hs-p">Kliknij przycisk <em>Od dnia 1 do dnia X</em>. Otworzy się mini kalendarz bieżącego miesiąca. Kliknij dzień do którego masz dane (zazwyczaj wczorajszy). Zakres oznacza sumę narastającą od 1-go do wybranego dnia.</div>
@@ -5685,6 +5697,7 @@ function startApp(){
   updatePropSel();
   refreshCurrentRole();
   var mi=document.getElementById('month-sel');if(mi)mi.value=S.month;
+  syncMonthUI();
   renderCur();
   fetchRates();
   // Check backup reminder after 3 seconds
