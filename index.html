@@ -484,6 +484,8 @@ textarea.fi{resize:vertical}
 .goal-prog-fill{height:100%;border-radius:2px;background:var(--acc);transition:width .5s}
 /* Goal badge on dashboard */
 .goal-badge{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;padding:2px 7px;border-radius:10px;background:rgba(var(--acc-rgb),.1);color:var(--acc);border:1px solid rgba(var(--acc-rgb),.2)}
+.wx-badge{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;padding:3px 9px;border-radius:20px;background:var(--sur2);border:1px solid var(--brd2);color:var(--tx2);white-space:nowrap}
+.wx-badge-lg{font-size:.85rem;padding:5px 12px}
 
 /* ── NOTES ── */
 .note-item{background:var(--sur2);border:1px solid var(--brd);border-radius:9px;padding:10px 12px;margin-bottom:8px;position:relative}
@@ -707,7 +709,20 @@ textarea.fi{resize:vertical}
   <button class="mclose" onclick="closeM('m-prop')">✕</button>
   <div class="fg"><label>Nazwa obiektu *</label><input class="fi" id="np-name" placeholder="Hotel Grand Kraków"></div>
   <div class="fg"><label>Adres</label><input class="fi" id="np-addr" placeholder="ul. Przykładowa 1"></div>
+  <div class="fg"><label>Miasto (dla danych pogodowych)</label><input class="fi" id="np-city" placeholder="np. Kraków"></div>
+  <div class="hs-tip">Podanie miasta pozwoli aplikacji automatycznie dopasować temperaturę i stan pogody do dni w zakładce Dane dzienne.</div>
   <div class="fa"><button class="btn btn-p" onclick="saveProp()">Utwórz</button><button class="btn btn-s" onclick="closeM('m-prop')">Anuluj</button></div>
+</div></div>
+
+<!-- MODAL: Set/change property city -->
+<div class="moverlay" id="m-city">
+<div class="modal">
+  <div class="mtitle">📍 Lokalizacja obiektu</div>
+  <button class="mclose" onclick="closeM('m-city')">✕</button>
+  <div class="msub" id="m-city-sub"></div>
+  <div class="fg"><label>Miasto</label><input class="fi" id="city-inp" placeholder="np. Warszawa" onkeydown="if(event.key==='Enter')saveCityForProp()"></div>
+  <div id="city-status" style="font-size:.75rem;color:var(--tx3);min-height:18px"></div>
+  <div class="fa"><button class="btn btn-p" onclick="saveCityForProp()">Zapisz lokalizację</button><button class="btn btn-s" onclick="closeM('m-city')">Anuluj</button></div>
 </div></div>
 
 <!-- MODAL: Comment -->
@@ -1114,6 +1129,91 @@ function dailyMonthTotal(dd){
 }
 
 /* ═══════════════════════════════════════════
+   POGODA — Open-Meteo (bez klucza API, darmowe)
+   Przechowywana w tym samym dokumencie co dane dzienne: dd.weather[day]={t,p,c}
+   t=śr. temperatura °C, p=opady mm, c=kod pogody WMO
+═══════════════════════════════════════════ */
+var WMO_MAP={
+  0:{ic:'☀️',lb:'Słonecznie'},1:{ic:'🌤️',lb:'Prawie bezchmurnie'},2:{ic:'⛅',lb:'Częściowo pochmurno'},3:{ic:'☁️',lb:'Pochmurno'},
+  45:{ic:'🌫️',lb:'Mgła'},48:{ic:'🌫️',lb:'Mgła (szadź)'},
+  51:{ic:'🌦️',lb:'Mżawka słaba'},53:{ic:'🌦️',lb:'Mżawka'},55:{ic:'🌦️',lb:'Mżawka silna'},
+  56:{ic:'🌧️',lb:'Marznąca mżawka'},57:{ic:'🌧️',lb:'Marznąca mżawka silna'},
+  61:{ic:'🌧️',lb:'Deszcz słaby'},63:{ic:'🌧️',lb:'Deszcz'},65:{ic:'🌧️',lb:'Deszcz silny'},
+  66:{ic:'🌧️',lb:'Marznący deszcz'},67:{ic:'🌧️',lb:'Marznący deszcz silny'},
+  71:{ic:'❄️',lb:'Śnieg słaby'},73:{ic:'❄️',lb:'Śnieg'},75:{ic:'❄️',lb:'Śnieg silny'},77:{ic:'❄️',lb:'Ziarna śniegu'},
+  80:{ic:'🌦️',lb:'Przelotny deszcz'},81:{ic:'🌦️',lb:'Przelotny deszcz'},82:{ic:'⛈️',lb:'Gwałtowny deszcz'},
+  85:{ic:'🌨️',lb:'Przelotny śnieg'},86:{ic:'🌨️',lb:'Przelotny śnieg (silny)'},
+  95:{ic:'⛈️',lb:'Burza'},96:{ic:'⛈️',lb:'Burza z gradem'},99:{ic:'⛈️',lb:'Burza z gradem (silna)'}
+};
+function weatherIcon(code){return (WMO_MAP[code]&&WMO_MAP[code].ic)||'🌡️'}
+function weatherLabel(code){return (WMO_MAP[code]&&WMO_MAP[code].lb)||'Brak danych'}
+function weatherCategory(code){
+  if(code===0||code===1)return 'Słonecznie';
+  if(code===2||code===3||code===45||code===48)return 'Pochmurno';
+  if([71,73,75,77,85,86].indexOf(code)!==-1)return 'Śnieg';
+  if(code!==undefined&&code!==null)return 'Deszcz';
+  return null;
+}
+function weatherBadgeHTML(w){
+  if(!w||w.c===undefined)return '';
+  return '<span class="wx-badge" title="'+weatherLabel(w.c)+'">'+weatherIcon(w.c)+' '+Math.round(w.t)+'°C'+(w.p>0?' · '+w.p.toFixed(1)+'mm':'')+'</span>';
+}
+
+// Geokodowanie nazwy miasta na współrzędne (Open-Meteo Geocoding API)
+function geocodeCity(cityName){
+  var url='https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(cityName)+'&count=1&language=pl&format=json';
+  return fetch(url).then(function(r){return r.json()}).then(function(d){
+    if(d.results&&d.results.length){
+      var r0=d.results[0];
+      return {lat:r0.latitude,lon:r0.longitude,label:r0.name+(r0.country?', '+r0.country:'')};
+    }
+    return null;
+  });
+}
+
+// Pobiera pogodę dla całego miesiąca jednym zapytaniem (Forecast API, z fallbackiem do Archive API dla starszych dat)
+function fetchMonthWeather(lat,lon,month){
+  var dim_=dim(month);
+  var start=month+'-01';
+  var end=month+'-'+String(dim_).padStart(2,'0');
+  var params='latitude='+lat+'&longitude='+lon+'&start_date='+start+'&end_date='+end+'&daily=temperature_2m_mean,precipitation_sum,weathercode&timezone=auto';
+  function parse(d){
+    if(!d.daily||!d.daily.time)throw new Error('no data');
+    var weather={};
+    d.daily.time.forEach(function(dateStr,i){
+      var day=parseInt(dateStr.split('-')[2],10);
+      var t=d.daily.temperature_2m_mean[i],p=d.daily.precipitation_sum[i],c=d.daily.weathercode[i];
+      if(t!==null&&t!==undefined)weather[day]={t:t,p:p||0,c:c};
+    });
+    return weather;
+  }
+  return fetch('https://api.open-meteo.com/v1/forecast?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse).catch(function(){
+    return fetch('https://archive-api.open-meteo.com/v1/archive?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse);
+  });
+}
+
+// Zapewnia, że dla danego miesiąca (jeśli obiekt ma ustawioną lokalizację) pogoda jest pobrana i zapisana.
+// Pobiera jednym zapytaniem cały miesiąc, cache'uje na 24h aby nie odpytywać przy każdym renderze.
+// Zwraca {weather, fetched} — fetched=true tylko gdy faktycznie wykonano nowe zapytanie sieciowe
+// (dzięki temu wywołujący mogą bezpiecznie odświeżyć UI tylko raz, bez ryzyka pętli).
+function ensureMonthWeather(pid,month){
+  var prop=S.props.find(function(p){return p.id===pid});
+  if(!prop||!prop.lat||!prop.lon)return Promise.resolve({weather:null,fetched:false});
+  var dd=getDailyData(pid,month);
+  var dim_=dim(month);
+  var haveEnough=dd.weather&&Object.keys(dd.weather).length>=dim_;
+  var recentlyFetched=dd.weatherFetchedAt&&(Date.now()-dd.weatherFetchedAt<24*60*60*1000);
+  if(haveEnough||recentlyFetched)return Promise.resolve({weather:dd.weather||{},fetched:false});
+  return fetchMonthWeather(prop.lat,prop.lon,month).then(function(weather){
+    dd.weather=Object.assign({},dd.weather,weather);
+    dd.weatherFetchedAt=Date.now();
+    lsSet(uk('daily-'+pid+'-'+month),dd);
+    if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),dd);
+    return {weather:dd.weather,fetched:true};
+  }).catch(function(){return {weather:dd.weather||{},fetched:false}});
+}
+
+/* ═══════════════════════════════════════════
    NOTES / OUTLET NOTES STORAGE
 ═══════════════════════════════════════════ */
 function getNotes(pid,outletKey){return lsGet(uk('notes-'+pid+'-'+outletKey),[])}
@@ -1290,14 +1390,16 @@ function renderHeatmap(container,pid,month){
   for(var i=0;i<firstDay;i++)h+='<div class="hmap-cell empty"></div>';
   for(var d=1;d<=daysInMo;d++){
     var realVal=dd.days&&dd.days[d]?dailyDayTotal(dd.days[d]):null;
+    var w=dd.weather&&dd.weather[d];
+    var wxSuffix=w?(' · '+weatherIcon(w.c)+' '+Math.round(w.t)+'°C'):'';
     var isDone=d<=md.dr;
     var val,color,opacity,tip;
     if(realVal!==null){
       val=realVal;color=heatColor(val,maxDay);opacity=1;
-      tip='Dzień '+d+' · '+Math.round(val).toLocaleString('pl-PL')+' PLN (rzeczywiste)';
+      tip='Dzień '+d+' · '+Math.round(val).toLocaleString('pl-PL')+' PLN (rzeczywiste)'+wxSuffix;
     } else if(isDone){
       val=dailyAvg;color=heatColor(val,maxDay);opacity=0.55;
-      tip='Dzień '+d+' · szacunek '+Math.round(val).toLocaleString('pl-PL')+' PLN (brak danych dziennych)';
+      tip='Dzień '+d+' · szacunek '+Math.round(val).toLocaleString('pl-PL')+' PLN (brak danych dziennych)'+wxSuffix;
     } else {
       color='var(--sur2)';opacity=0.4;
       tip='Dzień '+d+' · brak danych';
@@ -1312,6 +1414,17 @@ function renderHeatmap(container,pid,month){
   });
   h+='</div><span>Więcej</span></div>';
   container.innerHTML=h;
+
+  // Jeśli obiekt ma lokalizację i pogoda nie jest jeszcze pobrana, pobierz i odśwież heatmapę
+  var prop=S.props.find(function(p){return p.id===pid});
+  if(prop&&prop.lat){
+    ensureMonthWeather(pid,month).then(function(res){
+      if(res.fetched&&S.view==='analytics'&&S.pid===pid&&S.month===month){
+        var atHeatmap=document.getElementById('at-heatmap');
+        if(atHeatmap&&atHeatmap.style.display!=='none')renderHeatmap(atHeatmap,pid,month);
+      }
+    });
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -1506,6 +1619,77 @@ function renderWaterfall(el,metrics){
 }
 
 /* ═══════════════════════════════════════════
+   RENDER: KORELACJA POGODA × SPRZEDAŻ
+   Agreguje dane ze WSZYSTKICH miesięcy obiektu (Dane dzienne + pogoda),
+   żeby uzyskać sensowną próbkę do porównania kategorii pogodowych.
+═══════════════════════════════════════════ */
+function renderWeatherCorrelation(el,pid){
+  if(!el)return;
+  var prop=S.props.find(function(p){return p.id===pid});
+  var h='<div class="stitle">🌤️ Pogoda a sprzedaż</div>';
+
+  if(!prop||!prop.lat){
+    h+='<div class="empty"><p>Ten obiekt nie ma ustawionej lokalizacji. Ustaw miasto w zakładce <a href="#" onclick="go(\'properties\')">Obiekty i outlety</a> (ikona 📍), aby zobaczyć korelację pogody ze sprzedażą.</p></div>';
+    el.innerHTML=h;return;
+  }
+
+  var allDaily=getAllDailyData(pid);
+  var buckets={};// kategoria -> [sumy dzienne]
+  var sample=0;
+  Object.keys(allDaily).forEach(function(month){
+    var dd=allDaily[month];
+    if(!dd.days||!dd.weather)return;
+    Object.keys(dd.days).forEach(function(day){
+      var w=dd.weather[day];
+      if(!w||w.c===undefined)return;
+      var cat=weatherCategory(w.c);
+      if(!cat)return;
+      var total=dailyDayTotal(dd.days[day]);
+      if(total<=0)return;
+      if(!buckets[cat])buckets[cat]=[];
+      buckets[cat].push(total);
+      sample++;
+    });
+  });
+
+  if(sample<4){
+    h+='<div class="empty"><p>Za mało danych do analizy — potrzeba przynajmniej kilku dni z wprowadzoną sprzedażą w zakładce <a href="#" onclick="go(\'daily\')">Dane dzienne</a> (mają wtedy automatycznie dopasowaną pogodę).</p></div>';
+    el.innerHTML=h;return;
+  }
+
+  var order=['Słonecznie','Pochmurno','Deszcz','Śnieg'];
+  var rows=order.filter(function(c){return buckets[c]&&buckets[c].length}).map(function(cat){
+    var vals=buckets[cat];
+    var avg=vals.reduce(function(s,v){return s+v},0)/vals.length;
+    return {cat:cat,avg:avg,n:vals.length};
+  });
+  var overallAvg=rows.reduce(function(s,r){return s+r.avg*r.n},0)/sample;
+
+  h+='<p class="hs-p" style="margin-bottom:12px">Średnia dzienna sprzedaż (wszystkie outlety łącznie) w rozbiciu na warunki pogodowe, na podstawie '+sample+' dni z danymi dziennymi i dopasowaną pogodą — ze wszystkich miesięcy.</p>';
+
+  h+='<div class="cc"><canvas id="ch-weather" style="max-height:260px"></canvas></div>';
+
+  h+='<div class="tbl-wrap" style="margin-top:14px"><table><thead><tr><th>Warunki</th><th>Śr. sprzedaż dnia</th><th>Dni w próbce</th><th>vs śr. ogólna</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var diff=overallAvg>0?((r.avg-overallAvg)/overallAvg*100):0;
+    var icon=r.cat==='Słonecznie'?'☀️':r.cat==='Pochmurno'?'☁️':r.cat==='Śnieg'?'❄️':'🌧️';
+    h+='<tr><td>'+icon+' '+r.cat+'</td><td class="td-acc">'+fmt(r.avg,true)+'</td><td>'+r.n+'</td>';
+    h+='<td class="'+(diff>=0?'td-pos':'td-neg')+'">'+(diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="hs-tip" style="margin-top:10px">Im więcej dni z wprowadzoną sprzedażą, tym bardziej wiarygodne porównanie — traktuj wyniki ostrożnie przy małej próbce.</div>';
+
+  el.innerHTML=h;
+
+  dChart('ch-weather');
+  S.charts['ch-weather']=new Chart(document.getElementById('ch-weather'),{
+    type:'bar',
+    data:{labels:rows.map(function(r){return r.cat}),datasets:[{data:rows.map(function(r){return conv(r.avg)}),backgroundColor:rows.map(function(r){return r.cat==='Słonecznie'?'rgba(245,158,11,.75)':r.cat==='Pochmurno'?'rgba(148,163,184,.75)':r.cat==='Śnieg'?'rgba(147,197,253,.75)':'rgba(59,130,246,.75)'}),borderRadius:4}]},
+    options:Object.assign({},chOpts(function(v){return fmtR(v)}),{plugins:{legend:{display:false}}})
+  });
+}
+
+/* ═══════════════════════════════════════════
    RENDER: ANALYTICS (updated with new sections)
 ═══════════════════════════════════════════ */
 function renderAnalytics(){
@@ -1548,6 +1732,7 @@ function renderAnalytics(){
   h+='<button class="tab" onclick="switchATab(\'accuracy\',this)">🎯 Trafność</button>';
   h+='<button class="tab" onclick="switchATab(\'quadrant\',this)">🧭 Kwadranty</button>';
   h+='<button class="tab" onclick="switchATab(\'waterfall\',this)">📉 Odchylenia</button>';
+  h+='<button class="tab" onclick="switchATab(\'weather\',this)">🌤️ Pogoda</button>';
   h+='</div>';
 
   // Charts panel
@@ -1576,6 +1761,7 @@ function renderAnalytics(){
   h+='<div id="at-accuracy" style="display:none"></div>';
   h+='<div id="at-quadrant" style="display:none"></div>';
   h+='<div id="at-waterfall" style="display:none"></div>';
+  h+='<div id="at-weather" style="display:none"></div>';
 
   el.innerHTML=h;
   initSegmentedTabs('atabs');
@@ -1606,10 +1792,11 @@ function renderAnalytics(){
   renderAccuracy(document.getElementById('at-accuracy'),allD);
   renderQuadrant(document.getElementById('at-quadrant'),M,allD);
   renderWaterfall(document.getElementById('at-waterfall'),M);
+  renderWeatherCorrelation(document.getElementById('at-weather'),S.pid);
 }
 
 function switchATab(tab,btn){
-  ['charts','ranking','heatmap','whatif','accuracy','quadrant','waterfall'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
+  ['charts','ranking','heatmap','whatif','accuracy','quadrant','waterfall','weather'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
   document.querySelectorAll('#atabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   moveTabIndicator('atabs',btn);
@@ -2334,7 +2521,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='2.6.1';
+var APP_VERSION='2.7.0';
 var APP_BUILD_DATE='2026-08-11';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2343,6 +2530,14 @@ var APP_BUILD_DATE='2026-08-11';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'2.7.0',date:'2026-08-11',changes:[
+    'Dane pogodowe (Open-Meteo) automatycznie dopasowane do dni w zakładce „Dane dzienne" — temperatura, ikona stanu pogody i opady',
+    'Nowe pole „Miasto" przy tworzeniu obiektu — automatyczne ustalanie lokalizacji (geokodowanie)',
+    'Zarządzanie lokalizacją istniejących obiektów (ikona 📍 na liście w Obiekty i outlety)',
+    'Pogoda widoczna przy wybranym dniu, w tabeli „Wypełnione dni" i w podpowiedziach Heatmapy',
+    'Nowa zakładka Analityki: Pogoda — porównanie średniej sprzedaży dziennej w zależności od warunków pogodowych',
+    'Dane pogodowe zapisywane w bazie razem z danymi dziennymi (chmura + kopia zapasowa JSON)'
+  ]},
   {v:'2.6.1',date:'2026-08-11',changes:[
     'Naprawiono numer wersji w nagłówku Instrukcji obsługi — był zablokowany na stałe na „v1.0.0" zamiast pokazywać aktualną wersję',
     'Zweryfikowano działanie mechanizmu wykrywania nowej wersji i wymuszonego odświeżania cache'
@@ -3070,10 +3265,17 @@ function renderDaily(){
   if(_dailyDay>DIM)_dailyDay=DIM;
   var dd=getDailyData(S.pid,S.month);
   var dayVals=(dd.days&&dd.days[_dailyDay])||{};
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var hasLocation=!!(prop&&prop.lat);
+  var dayWeather=dd.weather&&dd.weather[_dailyDay];
 
   var h='';
   if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Masz uprawnienia tylko do odczytu (rola: Podgląd) — nie możesz edytować danych tego obiektu.</div>';
   h+='<p class="hs-p" style="margin-bottom:14px">Wprowadzaj sprzedaż netto osobno dla każdego dnia miesiąca (bez budżetu). Te dane zasilają rzeczywistą Heatmapę w Analityce i będą wykorzystywane w przyszłych analizach oraz imporcie z systemu Material Control.</p>';
+
+  if(!hasLocation){
+    h+='<div class="hs-warn" style="margin-bottom:12px">Ten obiekt nie ma ustawionej lokalizacji — dane pogodowe nie będą dopasowywane do dni. Ustaw miasto w zakładce <a href="#" onclick="go(\'properties\')">Obiekty i outlety</a> (ikona 📍 przy obiekcie).</div>';
+  }
 
   // ── MONTH PICKER (suf=-daily) ──
   h+='<div class="pick-wrap" style="margin-bottom:12px" id="mp-wrap-daily">';
@@ -3096,7 +3298,8 @@ function renderDaily(){
   h+='</div>';
 
   // ── TABELA WPROWADZANIA DLA WYBRANEGO DNIA ──
-  h+='<div class="card"><div class="fsect">💰 Sprzedaż netto — dzień <span id="daily-day-lbl">'+_dailyDay+'</span> '+mLabel(S.month)+'</div>';
+  h+='<div class="card"><div class="fsect" style="flex-wrap:wrap;gap:8px">💰 Sprzedaż netto — dzień <span id="daily-day-lbl">'+_dailyDay+'</span> '+mLabel(S.month)+
+     '<span id="daily-wx-badge">'+(dayWeather?weatherBadgeHTML(dayWeather):(hasLocation?'<span class="wx-badge">⏳ ładowanie pogody...</span>':''))+'</span></div>';
   h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="det"><thead><tr><th>Outlet</th><th>Wynik netto (PLN)</th></tr></thead><tbody id="daily-rows">';
   S.outlets.forEach(function(o){
     var k=okey(o.name),v=dayVals[k]||'';
@@ -3111,13 +3314,16 @@ function renderDaily(){
   var filledDays=Object.keys(dd.days||{}).map(Number).sort(function(a,b){return a-b});
   h+='<div class="stitle" style="margin-top:16px">Wypełnione dni <small>'+filledDays.length+' z '+DIM+'</small></div>';
   if(filledDays.length){
-    h+='<div class="tbl-wrap"><table><thead><tr><th>Dzień</th><th>Suma dnia</th><th>Liczba outletów</th></tr></thead><tbody>';
+    h+='<div class="tbl-wrap"><table><thead><tr><th>Dzień</th><th>Suma dnia</th><th>Liczba outletów</th>'+(hasLocation?'<th>Pogoda</th>':'')+'</tr></thead><tbody id="daily-summary-rows">';
     filledDays.forEach(function(day){
       var vals=dd.days[day];
-      h+='<tr><td>'+day+'</td><td class="td-acc">'+fmt(dailyDayTotal(vals))+'</td><td>'+Object.keys(vals).length+'/'+S.outlets.length+'</td></tr>';
+      var w=dd.weather&&dd.weather[day];
+      h+='<tr><td>'+day+'</td><td class="td-acc">'+fmt(dailyDayTotal(vals))+'</td><td>'+Object.keys(vals).length+'/'+S.outlets.length+'</td>';
+      if(hasLocation)h+='<td>'+(w?weatherBadgeHTML(w):'—')+'</td>';
+      h+='</tr>';
     });
     var monthTotal=dailyMonthTotal(dd);
-    h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(monthTotal)+'</td><td>—</td></tr>';
+    h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(monthTotal)+'</td><td>—</td>'+(hasLocation?'<td>—</td>':'')+'</tr>';
     h+='</tbody></table></div>';
   } else {
     h+='<div class="empty"><p>Brak jeszcze wprowadzonych dni w tym miesiącu.</p></div>';
@@ -3127,6 +3333,39 @@ function renderDaily(){
   buildMGrid('-daily');
   buildDailyCal();
   dailyRecalc();
+
+  // Automatyczne pobranie pogody dla całego miesiąca (jedno zapytanie), jeśli obiekt ma lokalizację
+  if(hasLocation){
+    var monthAtCall=S.month,pidAtCall=S.pid;
+    ensureMonthWeather(S.pid,S.month).then(function(res){
+      if(res.fetched&&S.view==='daily'&&S.month===monthAtCall&&S.pid===pidAtCall)updateDailyWeatherUI();
+    });
+  }
+}
+
+// Odświeża tylko badge pogody i tabelę podsumowania (bez pełnego re-renderu widoku,
+// żeby uniknąć pętli po zakończeniu pobierania pogody)
+function updateDailyWeatherUI(){
+  var dd=getDailyData(S.pid,S.month);
+  var badge=document.getElementById('daily-wx-badge');
+  if(badge){
+    var w=dd.weather&&dd.weather[_dailyDay];
+    badge.innerHTML=w?weatherBadgeHTML(w):'<span class="wx-badge">Brak danych pogodowych</span>';
+  }
+  var summaryRows=document.getElementById('daily-summary-rows');
+  if(summaryRows){
+    var filledDays=Object.keys(dd.days||{}).map(Number).sort(function(a,b){return a-b});
+    var h='';
+    filledDays.forEach(function(day){
+      var vals=dd.days[day];
+      var w=dd.weather&&dd.weather[day];
+      h+='<tr><td>'+day+'</td><td class="td-acc">'+fmt(dailyDayTotal(vals))+'</td><td>'+Object.keys(vals).length+'/'+S.outlets.length+'</td>';
+      h+='<td>'+(w?weatherBadgeHTML(w):'—')+'</td></tr>';
+    });
+    var monthTotal=dailyMonthTotal(dd);
+    h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(monthTotal)+'</td><td>—</td><td>—</td></tr>';
+    summaryRows.innerHTML=h;
+  }
 }
 
 function buildDailyCal(){
@@ -3158,6 +3397,12 @@ function selectDailyDay(day){
     var k=okey(o.name),inp=document.getElementById('dd-'+k);
     if(inp)inp.value=dayVals[k]||'';
   });
+  var badge=document.getElementById('daily-wx-badge');
+  if(badge){
+    var w=dd.weather&&dd.weather[day];
+    var prop=S.props.find(function(p){return p.id===S.pid});
+    badge.innerHTML=w?weatherBadgeHTML(w):((prop&&prop.lat)?'<span class="wx-badge">Brak danych pogodowych</span>':'');
+  }
   dailyRecalc();
   haptic(6);
 }
@@ -3552,8 +3797,10 @@ function renderProperties(){
     var myRole=getMyRole(p);
     var isOwner=p.ownerEmail===S.userEmailLower;
     h+='<div class="pi '+(p.id===S.pid?'on':'')+'"><div class="pi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>';
-    h+='<div class="pi-info"><div class="pi-name">'+p.name+' <span class="role-badge '+myRole+'" style="font-size:.55rem;padding:1px 6px">'+(myRole==='admin'?'Admin':myRole==='manager'?'Manager':'Podgląd')+'</span></div><div class="pi-sub">'+(p.addr||'Brak adresu')+(!isOwner?' · właściciel: '+p.ownerEmail:'')+'</div></div>';
-    h+='<div class="pi-acts"><button class="btn-icon" onclick="selProp(\''+p.id+'\')">'+(p.id===S.pid?'✓':'→')+'</button>';
+    h+='<div class="pi-info"><div class="pi-name">'+p.name+' <span class="role-badge '+myRole+'" style="font-size:.55rem;padding:1px 6px">'+(myRole==='admin'?'Admin':myRole==='manager'?'Manager':'Podgląd')+'</span></div><div class="pi-sub">'+(p.addr||'Brak adresu')+(!isOwner?' · właściciel: '+p.ownerEmail:'')+' · '+(p.lat?'📍 '+(p.cityLabel||p.city):'<span style="color:var(--warn)">📍 brak lokalizacji (pogoda niedostępna)</span>')+'</div></div>';
+    h+='<div class="pi-acts">';
+    if(isOwner||myRole==='manager')h+='<button class="btn-icon" onclick="openCityModal(\''+p.id+'\')" title="Ustaw lokalizację (pogoda)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></button>';
+    h+='<button class="btn-icon" onclick="selProp(\''+p.id+'\')">'+(p.id===S.pid?'✓':'→')+'</button>';
     if(isOwner)h+='<button class="btn-icon" onclick="delProp(\''+p.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>';
     h+='</div></div>';
   });
@@ -3596,14 +3843,29 @@ function selProp(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOu
 function saveProp(){
   var n=document.getElementById('np-name')&&document.getElementById('np-name').value.trim();
   var a=document.getElementById('np-addr')&&document.getElementById('np-addr').value.trim()||'';
+  var city=document.getElementById('np-city')&&document.getElementById('np-city').value.trim()||'';
   if(!n){toast('Podaj nazwę','er');return;}
-  var p={id:'p'+Date.now(),name:n,addr:a,ownerEmail:S.userEmailLower,memberEmails:[S.userEmailLower],members:[{email:S.userEmailLower,role:'admin'}],createdAt:new Date().toISOString()};
-  savePropItem(p);S.props=getProps();
-  if(!S.pid){S.pid=p.id;S.outlets=[];localStorage.setItem(uk('pid'),p.id);}
-  updatePropSel();refreshCurrentRole();closeM('m-prop');
-  document.getElementById('np-name').value='';document.getElementById('np-addr').value='';
-  renderCur();toast('Obiekt "'+n+'" utworzony','ok');
+  var p={id:'p'+Date.now(),name:n,addr:a,city:city,ownerEmail:S.userEmailLower,memberEmails:[S.userEmailLower],members:[{email:S.userEmailLower,role:'admin'}],createdAt:new Date().toISOString()};
+
+  function finishSave(){
+    savePropItem(p);S.props=getProps();
+    if(!S.pid){S.pid=p.id;S.outlets=[];localStorage.setItem(uk('pid'),p.id);}
+    updatePropSel();refreshCurrentRole();closeM('m-prop');
+    document.getElementById('np-name').value='';document.getElementById('np-addr').value='';document.getElementById('np-city').value='';
+    renderCur();toast('Obiekt "'+n+'" utworzony'+(p.lat?' · lokalizacja: '+p.cityLabel:''),'ok');
+  }
+
+  if(city){
+    toast('Ustalanie lokalizacji...','in');
+    geocodeCity(city).then(function(res){
+      if(res){p.lat=res.lat;p.lon=res.lon;p.cityLabel=res.label;}
+      finishSave();
+    }).catch(function(){finishSave()});
+  } else {
+    finishSave();
+  }
 }
+
 function delProp(id){
   var prop=S.props.find(function(p){return p.id===id});
   if(prop&&prop.ownerEmail!==S.userEmailLower){toast('Tylko właściciel może usunąć obiekt','er');return;}
@@ -3611,6 +3873,36 @@ function delProp(id){
   delPropItem(id);if(S.pid===id){S.pid=null;S.outlets=[];}
   S.props=getProps();if(!S.pid&&S.props.length){S.pid=S.props[0].id;S.outlets=getOutlets(S.pid);}
   updatePropSel();refreshCurrentRole();renderCur();toast('Usunięto','in');
+}
+
+var _cityModalPid=null;
+function openCityModal(pid){
+  _cityModalPid=pid;
+  var prop=S.props.find(function(p){return p.id===pid});
+  var sub=document.getElementById('m-city-sub');
+  if(sub)sub.textContent=prop?prop.name+(prop.cityLabel?' · obecnie: '+prop.cityLabel:''):'';
+  var inp=document.getElementById('city-inp');
+  if(inp)inp.value=prop&&prop.city||'';
+  var st=document.getElementById('city-status');if(st)st.textContent='';
+  openM('m-city');
+}
+
+function saveCityForProp(){
+  if(!_cityModalPid)return;
+  var city=document.getElementById('city-inp')&&document.getElementById('city-inp').value.trim();
+  var st=document.getElementById('city-status');
+  if(!city){if(st)st.textContent='Wpisz nazwę miasta.';return;}
+  if(st)st.textContent='⏳ Ustalanie lokalizacji...';
+  geocodeCity(city).then(function(res){
+    var prop=S.props.find(function(p){return p.id===_cityModalPid});
+    if(!prop)return;
+    if(!res){if(st)st.textContent='❌ Nie znaleziono takiego miasta. Spróbuj innej pisowni.';return;}
+    prop.city=city;prop.lat=res.lat;prop.lon=res.lon;prop.cityLabel=res.label;
+    savePropItem(prop);S.props=getProps();
+    closeM('m-city');
+    toast('Lokalizacja ustawiona: '+res.label,'ok');
+    renderCur();
+  }).catch(function(){if(st)st.textContent='❌ Błąd połączenia. Spróbuj ponownie.'});
 }
 function addOut(){
   if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
@@ -4539,10 +4831,14 @@ var HELP_CONTENT=`
 <div class="hs-h2">Podsumowanie miesiąca</div>
 <div class="hs-p">Poniżej formularza znajduje się tabela wszystkich dotąd wypełnionych dni z ich sumami — pozwala szybko sprawdzić, których dni jeszcze brakuje.</div>
 
+<div class="hs-h2">Dane pogodowe</div>
+<div class="hs-p">Jeśli obiekt ma ustawioną lokalizację (miasto), aplikacja automatycznie dopasowuje do każdego dnia temperaturę średnią, ikonę stanu pogody i opady — dane pobierane są jednym zapytaniem dla całego miesiąca przy wejściu w zakładkę, bez dodatkowych kliknięć. Pogoda widoczna jest przy wybranym dniu, w tabeli „Wypełnione dni" oraz w podpowiedziach Heatmapy.</div>
+<div class="hs-tip">Źródło danych: Open-Meteo (darmowe, bez klucza API). Jak ustawić lokalizację obiektu — patrz sekcja „Obiekty i outlety".</div>
+
 <div class="hs-h2">Wykorzystanie danych</div>
 <ul class="hs-ul">
   <li><strong>Heatmapa</strong> (zakładka Analityka) — gdy dla danego miesiąca wprowadzono dane dzienne, heatmapa pokazuje rzeczywisty rozkład sprzedaży w poszczególnych dniach zamiast szacunku ze średniej.</li>
-  <li><strong>Przyszłe analizy</strong> — dane dzienne będą stopniowo wykorzystywane w kolejnych funkcjach analitycznych.</li>
+  <li><strong>Zakładka Pogoda</strong> (Analityka) — porównanie średniej sprzedaży dziennej w zależności od warunków pogodowych, zbiorczo ze wszystkich miesięcy.</li>
   <li><strong>Import Material Control</strong> — planowana funkcja automatycznego importu danych dziennych z systemu magazynowego Material Control (Excel), analogicznie do obecnego importu HosPOS.</li>
 </ul>
 </div>
@@ -4551,7 +4847,7 @@ var HELP_CONTENT=`
 
 <div class="hs" id="hs-analytics">
 <div class="hs-h1">📈 Analityka</div>
-<div class="hs-p">Zakładka Analityka pokazuje dane wybranego miesiąca w siedmiu widokach dostępnych jako zakładki: <strong>Wykresy</strong>, <strong>Ranking</strong>, <strong>Heatmapa</strong>, <strong>Co jeśli?</strong>, <strong>Trafność</strong>, <strong>Kwadranty</strong> i <strong>Odchylenia</strong>.</div>
+<div class="hs-p">Zakładka Analityka pokazuje dane wybranego miesiąca w ośmiu widokach dostępnych jako zakładki: <strong>Wykresy</strong>, <strong>Ranking</strong>, <strong>Heatmapa</strong>, <strong>Co jeśli?</strong>, <strong>Trafność</strong>, <strong>Kwadranty</strong>, <strong>Odchylenia</strong> i <strong>Pogoda</strong>.</div>
 
 <div class="hs-h2">Wskaźniki u góry</div>
 <ul class="hs-ul">
@@ -4592,6 +4888,10 @@ var HELP_CONTENT=`
 
 <div class="hs-h2">Zakładka: Odchylenia</div>
 <div class="hs-p">Wykres waterfall pokazujący, który outlet najbardziej przyczynił się do przekroczenia lub niewykonania łącznego budżetu miesiąca. Zamiast analizować 6 osobnych liczb, widać jedną historię „co poszło dobrze, a co źle" — zielone słupki podnoszą wynik ponad budżet, czerwone go obniżają.</div>
+
+<div class="hs-h2">Zakładka: Pogoda</div>
+<div class="hs-p">Porównuje średnią sprzedaż dzienną w zależności od warunków pogodowych (Słonecznie / Pochmurno / Deszcz / Śnieg), agregując dane ze wszystkich miesięcy obiektu, dla których wprowadzono dane w zakładce Dane dzienne. Pokazuje, o ile procent sprzedaż w danych warunkach odbiega od średniej ogólnej.</div>
+<div class="hs-tip">Wymaga ustawionej lokalizacji obiektu i przynajmniej kilku dni z wprowadzoną sprzedażą — im większa próbka, tym bardziej wiarygodny wynik.</div>
 </div>
 
 <div class="help-divider"></div>
@@ -4635,6 +4935,9 @@ var HELP_CONTENT=`
 <div class="hs-h2">Dodawanie i usuwanie outletów</div>
 <div class="hs-p">Po wybraniu obiektu z listy (prawa kolumna) wpisz nazwę nowego outletu w pole i naciśnij <em>+ Dodaj</em> lub Enter. Aby usunąć outlet kliknij <strong>✕</strong> przy jego nazwie. Usunięcie outletu nie usuwa historycznych danych — jedynie ukrywa go w interfejsie.</div>
 <div class="hs-warn">Kolejność outletów ma znaczenie — wyniki w tabelach i raportach są wyświetlane w kolejności dodawania. Dodawaj outlety w logicznej kolejności (np. od najważniejszego).</div>
+
+<div class="hs-h2">Lokalizacja obiektu (dane pogodowe)</div>
+<div class="hs-p">Przy tworzeniu obiektu możesz od razu podać miasto — aplikacja automatycznie ustali jego współrzędne (geokodowanie). Dla istniejących obiektów kliknij ikonę <strong>📍</strong> przy nazwie obiektu na liście, wpisz miasto i zapisz. Obiekty bez ustawionej lokalizacji mają czerwoną adnotację „brak lokalizacji" — bez niej dane pogodowe w zakładce Dane dzienne nie będą dostępne.</div>
 
 <div class="hs-h2">Usuwanie obiektu</div>
 <div class="hs-p">Kliknij ikonę kosza przy obiekcie. Usunięcie obiektu jest nieodwracalne — wszystkie dane (outlety, dane miesięczne) zostają skasowane. Wykonaj wcześniej kopię JSON przez zakładkę Eksport/Import. <strong>Tylko właściciel obiektu może go usunąć</strong> — zaproszeni członkowie zespołu nie mają tej opcji.</div>
