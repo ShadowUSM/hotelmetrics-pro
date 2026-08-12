@@ -1187,23 +1187,36 @@ function fetchMonthWeather(lat,lon,month){
     });
     return weather;
   }
+  function fetchArchive(){
+    return fetch('https://archive-api.open-meteo.com/v1/archive?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse).catch(function(){return {}});
+  }
   return fetch('https://api.open-meteo.com/v1/forecast?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse).catch(function(){
-    return fetch('https://archive-api.open-meteo.com/v1/archive?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse);
+    return {};
+  }).then(function(primaryWeather){
+    // Forecast API czasem jeszcze nie ma sfinalizowanych danych dla najświeższych dni (zwraca null,
+    // bez zgłaszania błędu) — jeśli brakuje jakichkolwiek dni miesiąca, dociągnij brakujące z Archive API.
+    if(Object.keys(primaryWeather).length>=dim_)return primaryWeather;
+    return fetchArchive().then(function(archiveWeather){
+      return Object.assign({},archiveWeather,primaryWeather); // primaryWeather nadpisuje tam, gdzie oba źródła mają dane
+    });
   });
 }
 
 // Zapewnia, że dla danego miesiąca (jeśli obiekt ma ustawioną lokalizację) pogoda jest pobrana i zapisana.
-// Pobiera jednym zapytaniem cały miesiąc, cache'uje na 24h aby nie odpytywać przy każdym renderze.
-// Zwraca {weather, fetched} — fetched=true tylko gdy faktycznie wykonano nowe zapytanie sieciowe
-// (dzięki temu wywołujący mogą bezpiecznie odświeżyć UI tylko raz, bez ryzyka pętli).
-function ensureMonthWeather(pid,month){
+// Pobiera jednym zapytaniem cały miesiąc. Cache: 24h gdy dane są KOMPLETNE (wszystkie dni miesiąca),
+// ale tylko 1h gdy brakuje części dni — dostawca pogody czasem jeszcze nie ma sfinalizowanych danych
+// dla najświeższych dni (wczoraj/dziś), więc krótszy cooldown pozwala domknąć braki przy kolejnej wizycie.
+// forceRefresh=true pomija cały cache i wymusza natychmiastowe pobranie (przycisk "Odśwież pogodę").
+// Zwraca {weather, fetched} — fetched=true tylko gdy faktycznie wykonano nowe zapytanie sieciowe.
+function ensureMonthWeather(pid,month,forceRefresh){
   var prop=S.props.find(function(p){return p.id===pid});
   if(!prop||!prop.lat||!prop.lon)return Promise.resolve({weather:null,fetched:false});
   var dd=getDailyData(pid,month);
   var dim_=dim(month);
   var haveEnough=dd.weather&&Object.keys(dd.weather).length>=dim_;
-  var recentlyFetched=dd.weatherFetchedAt&&(Date.now()-dd.weatherFetchedAt<24*60*60*1000);
-  if(haveEnough||recentlyFetched)return Promise.resolve({weather:dd.weather||{},fetched:false});
+  var cooldownMs=haveEnough?(24*60*60*1000):(60*60*1000);
+  var recentlyFetched=!forceRefresh&&dd.weatherFetchedAt&&(Date.now()-dd.weatherFetchedAt<cooldownMs);
+  if(!forceRefresh&&(haveEnough||recentlyFetched))return Promise.resolve({weather:dd.weather||{},fetched:false});
   return fetchMonthWeather(prop.lat,prop.lon,month).then(function(weather){
     dd.weather=Object.assign({},dd.weather,weather);
     dd.weatherFetchedAt=Date.now();
@@ -2521,8 +2534,8 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='2.7.0';
-var APP_BUILD_DATE='2026-08-11';
+var APP_VERSION='2.8.1';
+var APP_BUILD_DATE='2026-08-12';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
 // — MINOR (środkowa cyfra) rośnie przy nowych funkcjach / większych zmianach: 2.6.0 → 2.7.0
@@ -2530,6 +2543,19 @@ var APP_BUILD_DATE='2026-08-11';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'2.8.1',date:'2026-08-12',changes:[
+    'Naprawiono brak danych pogodowych dla najświeższych dni (np. wczoraj) — dostawca pogody czasem nie ma jeszcze sfinalizowanych danych, a aplikacja blokowała ponowną próbę na 24h nawet gdy dane były niepełne',
+    'Dane pogodowe dla brakujących dni są teraz dodatkowo dociągane z archiwalnego źródła (Archive API), nie tylko przy całkowitym błędzie zapytania',
+    'Krótszy czas ponawiania (1h zamiast 24h), gdy pogoda dla miesiąca jest niekompletna',
+    'Nowy przycisk „Odśwież pogodę" w zakładce Dane dzienne — natychmiastowe, ręczne pobranie z pominięciem cache'
+  ]},
+  {v:'2.8.0',date:'2026-08-12',changes:[
+    'Import danych dziennych z systemu Material Control (.xlsx/.xlsm) — zakładka Eksport/Import',
+    'Automatyczne rozpoznawanie i dopasowanie outletów (przedrostek "HOSPOS RVC") do outletów w aplikacji',
+    'Dni obecne w pliku, dla których dany outlet nie ma wiersza, są automatycznie uzupełniane wartością 0',
+    'Podgląd importu z podsumowaniem przed zatwierdzeniem (zakres dat, liczba dni, dopasowane/pominięte outlety)',
+    'Po imporcie danych dziennych automatyczne pobranie pogody dla wszystkich dotkniętych miesięcy'
+  ]},
   {v:'2.7.0',date:'2026-08-11',changes:[
     'Dane pogodowe (Open-Meteo) automatycznie dopasowane do dni w zakładce „Dane dzienne" — temperatura, ikona stanu pogody i opady',
     'Nowe pole „Miasto" przy tworzeniu obiektu — automatyczne ustalanie lokalizacji (geokodowanie)',
@@ -3299,7 +3325,9 @@ function renderDaily(){
 
   // ── TABELA WPROWADZANIA DLA WYBRANEGO DNIA ──
   h+='<div class="card"><div class="fsect" style="flex-wrap:wrap;gap:8px">💰 Sprzedaż netto — dzień <span id="daily-day-lbl">'+_dailyDay+'</span> '+mLabel(S.month)+
-     '<span id="daily-wx-badge">'+(dayWeather?weatherBadgeHTML(dayWeather):(hasLocation?'<span class="wx-badge">⏳ ładowanie pogody...</span>':''))+'</span></div>';
+     '<span id="daily-wx-badge">'+(dayWeather?weatherBadgeHTML(dayWeather):(hasLocation?'<span class="wx-badge">⏳ ładowanie pogody...</span>':''))+'</span>'+
+     (hasLocation?'<button class="btn-icon" id="wx-refresh-btn" onclick="refreshWeatherNow()" title="Odśwież pogodę teraz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.7L1 10"/></svg></button>':'')+
+     '</div>';
   h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="det"><thead><tr><th>Outlet</th><th>Wynik netto (PLN)</th></tr></thead><tbody id="daily-rows">';
   S.outlets.forEach(function(o){
     var k=okey(o.name),v=dayVals[k]||'';
@@ -3366,6 +3394,24 @@ function updateDailyWeatherUI(){
     h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(monthTotal)+'</td><td>—</td><td>—</td></tr>';
     summaryRows.innerHTML=h;
   }
+}
+
+// Wymusza natychmiastowe, świeże pobranie pogody dla bieżącego miesiąca — pomija cały cache.
+// Przydatne gdy dla najświeższych dni (wczoraj/dziś) dostawca nie miał jeszcze gotowych danych.
+function refreshWeatherNow(){
+  if(!S.pid)return;
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  if(!prop||!prop.lat){toast('Ten obiekt nie ma ustawionej lokalizacji','er');return;}
+  var btn=document.getElementById('wx-refresh-btn');
+  if(btn)btn.style.opacity='.5';
+  var badge=document.getElementById('daily-wx-badge');
+  if(badge)badge.innerHTML='<span class="wx-badge">⏳ odświeżanie...</span>';
+  ensureMonthWeather(S.pid,S.month,true).then(function(){
+    updateDailyWeatherUI();
+    if(btn)btn.style.opacity='1';
+    toast('Pogoda odświeżona','ok');
+    haptic(8);
+  });
 }
 
 function buildDailyCal(){
@@ -3966,10 +4012,22 @@ function renderExport(){
   h+='<div id="hospos-preview" style="margin-top:14px"></div>';
   h+='</div>';
 
+  // ── IMPORT MATERIAL CONTROL (dane dzienne) ──
+  h+='<div class="stitle">Import danych dziennych (Material Control)</div>';
+  h+='<div class="card">';
+  h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj plik <strong>"Sprzedaż wg Typu Aktywności"</strong> (.xlsx/.xlsm) z systemu Material Control — dane trafiają bezpośrednio do zakładki <strong>Dane dzienne</strong>, osobno dla każdego dnia i outletu. Dni obecne w pliku, dla których dany outlet nie ma wiersza, zostaną uzupełnione wartością 0 (outlet zamknięty). Po imporcie aplikacja automatycznie pobierze dane pogodowe dla wszystkich dotkniętych miesięcy.</p>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  h+='<button class="btn btn-p" onclick="triggerImportMC()">📦 Importuj Material Control (.xlsx)</button>';
+  h+='</div>';
+  h+='<div class="hs-warn" style="margin-top:12px">Import <strong>nadpisuje</strong> istniejące dane dzienne dla każdego dnia, który występuje w pliku. Dni spoza zakresu pliku pozostają nietknięte.</div>';
+  h+='<div id="mc-preview" style="margin-top:14px"></div>';
+  h+='</div>';
+
   // hidden file inputs
   h+='<input type="file" id="fi-json" accept=".json" style="display:none" onchange="handleImportJSON(this)">';
   h+='<input type="file" id="fi-excel" accept=".xlsx,.xls" style="display:none" onchange="handleImportExcel(this)">';
   h+='<input type="file" id="fi-hospos" accept=".pdf" style="display:none" onchange="handleImportHosPOS(this)">';
+  h+='<input type="file" id="fi-mc" accept=".xlsx,.xlsm,.xls" style="display:none" onchange="handleImportMC(this)">';
 
   el.innerHTML=h;
 }
@@ -4455,6 +4513,205 @@ function cancelHosPOSImport(){
   if(preview)preview.innerHTML='';
 }
 
+/* ═══════════════════════════════════════════
+   IMPORT DANYCH DZIENNYCH — Material Control (.xlsx/.xlsm)
+   Format: płaska tabela "Rok | Data | Miejsce_Sprz. | Przychody Netto | Przychody Brutto"
+   Miejsce_Sprz. ma przedrostek "HOSPOS RVC " przed nazwą outletu.
+   Trafia do tej samej struktury co ręczne "Dane dzienne" (bez budżetu).
+═══════════════════════════════════════════ */
+
+function stripHosposPrefix(name){return String(name||'').replace(/^HOSPOS\s+RVC\s+/i,'').trim()}
+
+function parseMaterialControlDate(val){
+  // Excel serial date (liczba) lub tekst DD-MM-YYYY / DD.MM.YYYY / YYYY-MM-DD
+  if(typeof val==='number'){
+    var utcDays=Math.floor(val-25569);
+    var date=new Date(utcDays*86400*1000);
+    return {y:date.getUTCFullYear(),m:date.getUTCMonth()+1,d:date.getUTCDate()};
+  }
+  var s=String(val||'').trim();
+  var m=s.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})$/);
+  if(m)return {y:+m[3],m:+m[2],d:+m[1]};
+  var m2=s.match(/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})$/);
+  if(m2)return {y:+m2[1],m:+m2[2],d:+m2[3]};
+  return null;
+}
+
+// Parsuje surowe wiersze arkusza (header+dane) do struktury gotowej do zapisu.
+// Zero-fill: dla KAŻDEGO dnia obecnego w pliku uzupełnia brakujące app-outlety wartością 0.
+// Dni spoza pliku nie są w żaden sposób tworzone/zerowane.
+function parseMaterialControlRows(rows){
+  if(!rows.length)throw new Error('Plik jest pusty.');
+  var header=rows[0].map(function(h){return String(h||'').trim().toLowerCase()});
+  var dateCol=header.findIndex(function(h){return h==='data'});
+  var placeCol=header.findIndex(function(h){return h.indexOf('miejsce')!==-1});
+  var nettoCol=header.findIndex(function(h){return h.indexOf('netto')!==-1});
+  if(dateCol===-1||placeCol===-1||nettoCol===-1)throw new Error('Nie rozpoznano kolumn — oczekiwano nagłówków: Data, Miejsce_Sprz., Przychody Netto.');
+
+  var appOutletByKey={};
+  S.outlets.forEach(function(o){appOutletByKey[okey(o.name)]=o});
+
+  var byMonth={},daysWithData={};
+  var matchedOutletNames={},unmatchedOutletNames={};
+  var rowCount=0,minDate=null,maxDate=null;
+
+  for(var i=1;i<rows.length;i++){
+    var row=rows[i];
+    if(!row||row[dateCol]===null||row[dateCol]===undefined||row[dateCol]==='')continue;
+    var dt=parseMaterialControlDate(row[dateCol]);
+    if(!dt)continue;
+    var rawPlace=stripHosposPrefix(row[placeCol]);
+    if(!rawPlace)continue;
+    var norm=normOutletName(rawPlace);
+    var targetKey=HOSPOS_ALIASES[norm]||norm;
+    var appOutlet=appOutletByKey[targetKey];
+    var netto=parseFloat(row[nettoCol]);
+    if(isNaN(netto))continue;
+
+    var month=dt.y+'-'+String(dt.m).padStart(2,'0');
+    var dateVal=month+'-'+String(dt.d).padStart(2,'0');
+    if(!minDate||dateVal<minDate)minDate=dateVal;
+    if(!maxDate||dateVal>maxDate)maxDate=dateVal;
+
+    if(!daysWithData[month])daysWithData[month]={};
+    daysWithData[month][dt.d]=true;
+    rowCount++;
+
+    if(appOutlet){
+      matchedOutletNames[rawPlace]=appOutlet.name;
+      if(!byMonth[month])byMonth[month]={};
+      if(!byMonth[month][dt.d])byMonth[month][dt.d]={};
+      byMonth[month][dt.d][targetKey]=netto;
+    } else {
+      unmatchedOutletNames[rawPlace]=true;
+    }
+  }
+
+  // Zero-fill dla dni obecnych w pliku
+  Object.keys(daysWithData).forEach(function(month){
+    Object.keys(daysWithData[month]).forEach(function(dayStr){
+      var day=+dayStr;
+      if(!byMonth[month])byMonth[month]={};
+      if(!byMonth[month][day])byMonth[month][day]={};
+      S.outlets.forEach(function(o){
+        var k=okey(o.name);
+        if(!(k in byMonth[month][day]))byMonth[month][day][k]=0;
+      });
+    });
+  });
+
+  var daysAffected=0;
+  Object.values(daysWithData).forEach(function(d){daysAffected+=Object.keys(d).length});
+
+  return {
+    byMonth:byMonth,minDate:minDate,maxDate:maxDate,rowCount:rowCount,
+    matchedOutletNames:Object.keys(matchedOutletNames),
+    unmatchedOutletNames:Object.keys(unmatchedOutletNames),
+    monthsAffected:Object.keys(byMonth).sort(),
+    daysAffected:daysAffected
+  };
+}
+
+function triggerImportMC(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  if(!S.pid){toast('Wybierz obiekt docelowy w sidebarze','er');return;}
+  document.getElementById('fi-mc')&&document.getElementById('fi-mc').click();
+}
+
+var _mcPending=null;
+
+function handleImportMC(input){
+  var file=input.files&&input.files[0];if(!file)return;
+  if(!window.XLSX){toast('Biblioteka XLSX nie załadowana','er');input.value='';return;}
+  var preview=document.getElementById('mc-preview');
+  if(preview)preview.innerHTML='<div style="font-size:.75rem;color:var(--tx3)">⏳ Analizuję plik...</div>';
+
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var parsed;
+    try{
+      var wb=XLSX.read(e.target.result,{type:'array'});
+      var sheetName=wb.SheetNames.indexOf('Data')!==-1?'Data':wb.SheetNames[0];
+      var rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,defval:''});
+      parsed=parseMaterialControlRows(rows);
+    }catch(err){
+      if(preview)preview.innerHTML='<div class="hs-warn">'+err.message+'</div>';
+      toast('Nie udało się odczytać pliku','er');input.value='';return;
+    }
+
+    if(!parsed.rowCount||!parsed.monthsAffected.length){
+      if(preview)preview.innerHTML='<div class="hs-warn">Nie rozpoznano żadnych wierszy z danymi w pliku.</div>';
+      toast('Brak rozpoznanych danych','er');input.value='';return;
+    }
+
+    _mcPending=parsed;
+
+    var h='<div class="card">';
+    h+='<div class="fsect">📋 Podgląd importu Material Control</div>';
+    h+='<div class="info-grid" style="margin-bottom:12px">';
+    h+='<div class="info-box"><strong>Zakres dat</strong><span style="font-size:.72rem">'+parsed.minDate+' – '+parsed.maxDate+'</span></div>';
+    h+='<div class="info-box"><strong>Dni z danymi</strong><span>'+parsed.daysAffected+'</span></div>';
+    h+='<div class="info-box"><strong>Miesięcy</strong><span>'+parsed.monthsAffected.length+'</span></div>';
+    h+='<div class="info-box"><strong>Wierszy w pliku</strong><span>'+parsed.rowCount+'</span></div>';
+    h+='</div>';
+    h+='<div style="font-size:.75rem;color:var(--tx2);margin-bottom:6px"><strong>Dopasowane outlety:</strong> '+parsed.matchedOutletNames.join(', ')+'</div>';
+    if(parsed.unmatchedOutletNames.length)h+='<div style="font-size:.72rem;color:var(--tx3);margin-bottom:6px">Pominięto (brak takiego outletu w aplikacji): '+parsed.unmatchedOutletNames.join(', ')+'</div>';
+    h+='<div class="hs-warn">Zatwierdzenie nadpisze dane dzienne dla wszystkich '+parsed.daysAffected+' dni występujących w pliku, w '+parsed.monthsAffected.length+' miesiącach. Po imporcie aplikacja automatycznie pobierze pogodę dla tych miesięcy.</div>';
+    h+='<div class="fa"><button class="btn btn-p" onclick="confirmMCImport()">✅ Zatwierdź import</button><button class="btn btn-s" onclick="cancelMCImport()">Anuluj</button></div>';
+    h+='</div>';
+    if(preview)preview.innerHTML=h;
+    input.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function commitMCImport(parsed){
+  parsed.monthsAffected.forEach(function(month){
+    var dd=getDailyData(S.pid,month);
+    if(!dd.days)dd.days={};
+    Object.keys(parsed.byMonth[month]).forEach(function(dayStr){
+      dd.days[+dayStr]=parsed.byMonth[month][dayStr];
+    });
+    dd.ts=Date.now();
+    lsSet(uk('daily-'+S.pid+'-'+month),dd);
+    if(S.uid)fsWrite(db.collection('properties/'+S.pid+'/dailyData').doc(month),dd);
+  });
+}
+
+function confirmMCImport(){
+  if(!_mcPending){toast('Brak danych do zatwierdzenia','er');return;}
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var parsed=_mcPending;
+  commitMCImport(parsed);
+  toast('Zaimportowano '+parsed.daysAffected+' dni w '+parsed.monthsAffected.length+' miesiącach','ok');
+  haptic([10,5,10]);
+
+  var preview=document.getElementById('mc-preview');
+  if(preview)preview.innerHTML='<div class="hs-tip">⏳ Import zakończony. Pobieram dane pogodowe dla dotkniętych miesięcy...</div>';
+
+  // Sekwencyjne pobranie pogody dla każdego dotkniętego miesiąca (z lekkim odstępem, uprzejmie wobec API)
+  var months=parsed.monthsAffected.slice();
+  var pidAtImport=S.pid;
+  function fetchNext(idx){
+    if(idx>=months.length){
+      if(preview&&S.pid===pidAtImport)preview.innerHTML='<div class="hs-tip">✅ Import i dane pogodowe zakończone. Sprawdź zakładkę Dane dzienne lub Heatmapę w Analityce.</div>';
+      _mcPending=null;
+      if((S.view==='daily'||S.view==='analytics')&&S.pid===pidAtImport)renderCur();
+      return;
+    }
+    ensureMonthWeather(pidAtImport,months[idx]).then(function(){
+      setTimeout(function(){fetchNext(idx+1)},250);
+    });
+  }
+  fetchNext(0);
+}
+
+function cancelMCImport(){
+  _mcPending=null;
+  var preview=document.getElementById('mc-preview');
+  if(preview)preview.innerHTML='';
+}
+
 function csvMonth(){
   if(!S.pid){toast('Wybierz obiekt','er');return;}
   var d=getMD(S.pid,S.month)||{};
@@ -4834,12 +5091,13 @@ var HELP_CONTENT=`
 <div class="hs-h2">Dane pogodowe</div>
 <div class="hs-p">Jeśli obiekt ma ustawioną lokalizację (miasto), aplikacja automatycznie dopasowuje do każdego dnia temperaturę średnią, ikonę stanu pogody i opady — dane pobierane są jednym zapytaniem dla całego miesiąca przy wejściu w zakładkę, bez dodatkowych kliknięć. Pogoda widoczna jest przy wybranym dniu, w tabeli „Wypełnione dni" oraz w podpowiedziach Heatmapy.</div>
 <div class="hs-tip">Źródło danych: Open-Meteo (darmowe, bez klucza API). Jak ustawić lokalizację obiektu — patrz sekcja „Obiekty i outlety".</div>
+<div class="hs-p">Dla najświeższych dni (wczoraj, dziś) dostawca pogody czasem nie ma jeszcze w pełni sfinalizowanych danych — w takim przypadku obok badge'a pogody pojawia się przycisk <strong>🔄 Odśwież pogodę</strong>, który wymusza natychmiastowe, świeże pobranie z pominięciem zapisanego cache.</div>
 
 <div class="hs-h2">Wykorzystanie danych</div>
 <ul class="hs-ul">
   <li><strong>Heatmapa</strong> (zakładka Analityka) — gdy dla danego miesiąca wprowadzono dane dzienne, heatmapa pokazuje rzeczywisty rozkład sprzedaży w poszczególnych dniach zamiast szacunku ze średniej.</li>
   <li><strong>Zakładka Pogoda</strong> (Analityka) — porównanie średniej sprzedaży dziennej w zależności od warunków pogodowych, zbiorczo ze wszystkich miesięcy.</li>
-  <li><strong>Import Material Control</strong> — planowana funkcja automatycznego importu danych dziennych z systemu magazynowego Material Control (Excel), analogicznie do obecnego importu HosPOS.</li>
+  <li><strong>Import Material Control</strong> — automatyczny import danych dziennych z systemu magazynowego Material Control (Excel), dostępny w zakładce Eksport/Import (patrz sekcja „Eksport / Import").</li>
 </ul>
 </div>
 
@@ -5033,6 +5291,17 @@ var HELP_CONTENT=`
 </ul>
 <div class="hs-p">Przed zapisem zawsze widoczny jest <strong>podgląd</strong> — tabela z porównaniem starej i nowej wartości dla każdego dopasowanego outletu. Import wypełnia tylko wynik netto; budżet trzeba wpisać ręcznie.</div>
 <div class="hs-warn">Raport musi obejmować jeden miesiąc kalendarzowy, zaczynając od 1. dnia. Raport obejmujący dwa miesiące zostanie odrzucony z komunikatem — wygeneruj osobny raport dla każdego miesiąca w systemie POS.</div>
+
+<div class="hs-h2">Import danych dziennych (Material Control)</div>
+<div class="hs-p">Przycisk <strong>📦 Importuj Material Control (.xlsx)</strong> wczytuje plik „Sprzedaż wg Typu Aktywności" — płaską tabelę z kolumnami Data, Miejsce_Sprz. i Przychody Netto. W przeciwieństwie do importu HosPOS PDF (który wypełnia sumę narastającą w zakładce Wprowadź dane), ten import trafia do zakładki <strong>Dane dzienne</strong> — osobno dla każdego dnia.</div>
+<ul class="hs-ul">
+  <li>Nazwy outletów w pliku mają przedrostek „HOSPOS RVC" (np. „HOSPOS RVC Furu") — aplikacja usuwa go automatycznie i dopasowuje resztę nazwy do outletów w bieżącym obiekcie.</li>
+  <li>Może obejmować dowolny zakres dat, nawet wiele miesięcy naraz — dane trafiają do odpowiednich miesięcy automatycznie.</li>
+  <li>Dla każdego dnia obecnego w pliku, outlety z Twojej listy które akurat tego dnia nie mają wiersza (bo były zamknięte) otrzymują wynik <strong>0</strong>. Dni spoza zakresu pliku nie są w żaden sposób ruszane.</li>
+  <li>Punkty sprzedaży spoza listy outletów aplikacji (np. Kantyna, SPA, M&E) są pomijane.</li>
+</ul>
+<div class="hs-warn">Import <strong>nadpisuje</strong> istniejące dane dzienne dla każdego dnia występującego w pliku — również te wpisane wcześniej ręcznie. Podgląd przed zatwierdzeniem pokazuje dokładnie ile dni i miesięcy zostanie zmienionych.</div>
+<div class="hs-tip">Po zatwierdzeniu importu aplikacja automatycznie pobiera dane pogodowe dla wszystkich dotkniętych miesięcy (jeśli obiekt ma ustawioną lokalizację) — bez dodatkowych kliknięć.</div>
 </div>
 
 <div class="help-divider"></div>
