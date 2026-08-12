@@ -485,9 +485,16 @@ textarea.fi{resize:vertical}
 .rank-bar{height:100%;border-radius:2px;transition:width .6s}
 
 /* ── HEATMAP ── */
-.hmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:8px 0}
-.hmap-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--tx3);cursor:pointer;transition:transform .15s;position:relative}
-.hmap-cell:hover{transform:scale(1.15);z-index:2}
+.hmap-grid{display:grid;grid-template-columns:repeat(7,minmax(72px,1fr));gap:5px;margin:8px 0}
+.hmap-cell{min-height:78px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.66rem;color:var(--tx);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;padding:5px;text-align:center;border:1px solid rgba(255,255,255,.08)}
+.hmap-cell:hover{transform:scale(1.04);z-index:2;box-shadow:0 5px 18px rgba(0,0,0,.22)}
+.hmap-cell .hm-day-no{font-size:.7rem;font-weight:700;color:var(--tx2)}
+.hmap-cell .hm-sale{font-family:var(--fm);font-size:.7rem;font-weight:800;line-height:1.05}
+.hmap-cell .hm-weather{font-size:.68rem;line-height:1.05}
+.hmap-cell .hm-est{font-size:.5rem;color:var(--tx3);line-height:1.05}
+.hmap-cell.empty{background:transparent;cursor:default;border:none}
+.hmap-cell.no-data{background:var(--sur2);color:var(--tx3)}
+@media(max-width:600px){.hmap-grid,.hmap-days{min-width:560px}.hmap-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}.hmap-cell{min-height:74px}.weather-range-grid{grid-template-columns:1fr 1fr!important}.weather-range-grid .btn{grid-column:1/-1;width:100%;justify-content:center}}
 .hmap-cell.empty{background:transparent;cursor:default}
 .hmap-cell.no-data{background:var(--sur2);color:var(--tx3)}
 .hmap-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
@@ -745,6 +752,16 @@ textarea.fi{resize:vertical}
   <div class="fg"><label>Miasto</label><input class="fi" id="city-inp" placeholder="np. Warszawa" onkeydown="if(event.key==='Enter')saveCityForProp()"></div>
   <div id="city-status" style="font-size:.75rem;color:var(--tx3);min-height:18px"></div>
   <div class="fa"><button class="btn btn-p" onclick="saveCityForProp()">Zapisz lokalizację</button><button class="btn btn-s" onclick="closeM('m-city')">Anuluj</button></div>
+</div></div>
+
+<!-- MODAL: Heatmap day detail -->
+<div class="moverlay" id="m-heatday">
+<div class="modal" style="max-width:620px">
+  <div class="mtitle" id="m-heatday-title">📅 Szczegóły dnia</div>
+  <div class="msub" id="m-heatday-sub"></div>
+  <button class="mclose" onclick="closeM('m-heatday')">✕</button>
+  <div id="m-heatday-body"></div>
+  <div class="fa"><button class="btn btn-s" onclick="closeM('m-heatday')">Zamknij</button></div>
 </div></div>
 
 <!-- MODAL: Comment -->
@@ -1163,10 +1180,15 @@ var WMO_MAP={
 };
 function weatherIcon(code){return (WMO_MAP[code]&&WMO_MAP[code].ic)||'🌡️'}
 function weatherLabel(code){return (WMO_MAP[code]&&WMO_MAP[code].lb)||'Brak danych'}
-function weatherCategory(code){
+function weatherCategory(w){
+  if(!w||w.c===undefined||w.c===null)return null;
+  var code=w.c,wind=Number(w.wind)||0;
+  if(wind>=30&&[95,96,99].indexOf(code)===-1)return 'Wietrznie';
   if(code===0||code===1)return 'Słonecznie';
-  if(code===2||code===3||code===45||code===48)return 'Pochmurno';
+  if(code===2||code===3)return 'Pochmurno';
+  if(code===45||code===48)return 'Mgła';
   if([71,73,75,77,85,86].indexOf(code)!==-1)return 'Śnieg';
+  if([95,96,99].indexOf(code)!==-1)return 'Burza';
   if(code!==undefined&&code!==null)return 'Deszcz';
   return null;
 }
@@ -1193,8 +1215,8 @@ function parseWeatherResponse(d){
   var weather={};
   d.daily.time.forEach(function(dateStr,i){
     var day=parseInt(dateStr.split('-')[2],10);
-    var t=d.daily.temperature_2m_mean[i],p=d.daily.precipitation_sum[i],c=d.daily.weathercode[i];
-    if(t!==null&&t!==undefined&&c!==null&&c!==undefined)weather[day]={t:t,p:p||0,c:c};
+    var t=d.daily.temperature_2m_mean[i],p=d.daily.precipitation_sum[i],c=d.daily.weathercode[i],wind=d.daily.wind_speed_10m_max?d.daily.wind_speed_10m_max[i]:null;
+    if(t!==null&&t!==undefined&&c!==null&&c!==undefined)weather[day]={t:t,p:p||0,c:c,wind:wind||0};
   });
   return weather;
 }
@@ -1203,7 +1225,7 @@ function parseWeatherResponse(d){
 // Nie pytamy Forecast API o cały bieżący miesiąc, ponieważ zawiera on również przyszłe daty i takie
 // zapytanie może zostać odrzucone. To było źródłem problemów z ręcznie dodanymi dniami sierpnia.
 function fetchWeatherRange(lat,lon,start,end,source){
-  var params='latitude='+lat+'&longitude='+lon+'&start_date='+start+'&end_date='+end+'&daily=temperature_2m_mean,precipitation_sum,weathercode&timezone=auto';
+  var params='latitude='+lat+'&longitude='+lon+'&start_date='+start+'&end_date='+end+'&daily=temperature_2m_mean,precipitation_sum,weathercode,wind_speed_10m_max&timezone=auto';
   var base=source==='archive'?'https://archive-api.open-meteo.com/v1/archive?':'https://api.open-meteo.com/v1/forecast?';
   return fetch(base+params).then(function(r){if(!r.ok)throw new Error('weather status '+r.status);return r.json()}).then(parseWeatherResponse);
 }
@@ -1246,7 +1268,7 @@ function ensureMonthWeather(pid,month,forceRefresh){
   var filledDays=Object.keys(dd.days||{}).map(Number).filter(function(d){return d>0});
   if(!filledDays.length)return Promise.resolve({weather:dd.weather||{},fetched:false});
   var weather=dd.weather||{};
-  var missing=filledDays.filter(function(day){return !weather[day]});
+  var missing=filledDays.filter(function(day){return !weather[day]||weather[day].wind===undefined});
   var cooldownMs=missing.length?30*60*1000:24*60*60*1000;
   var recentlyFetched=!forceRefresh&&dd.weatherFetchedAt&&(Date.now()-dd.weatherFetchedAt<cooldownMs);
   if(!forceRefresh&&!missing.length)return Promise.resolve({weather:weather,fetched:false});
@@ -1431,38 +1453,38 @@ function renderHeatmap(container,pid,month){
   var maxDay=Math.max(dailyAvg*1.5||0,realVals.length?Math.max.apply(null,realVals)*1.15:0)||1;
 
   var h='<div class="stitle">📅 Heatmapa miesiąca — '+mLabelFull(month)+(hasRealDays?' <small style="color:var(--grn)">● dane rzeczywiste</small>':'')+'</div>';
-  h+='<div class="hmap-days">';
+  h+='<div class="hmap-wrap"><div class="hmap-days">';
   ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].forEach(function(d){h+='<div class="hmap-day">'+d+'</div>'});
   h+='</div><div class="hmap-grid">';
   for(var i=0;i<firstDay;i++)h+='<div class="hmap-cell empty"></div>';
   for(var d=1;d<=daysInMo;d++){
-    var realVal=dd.days&&dd.days[d]?dailyDayTotal(dd.days[d]):null;
+    var dayData=dd.days&&dd.days[d]?dd.days[d]:null;
+    var realVal=dayData?dailyDayTotal(dayData):null;
     var w=dd.weather&&dd.weather[d];
-    var wxSuffix=w?(' · '+weatherIcon(w.c)+' '+Math.round(w.t)+'°C'):'';
     var isDone=d<=md.dr;
-    var val,color,opacity,tip;
+    var val,color,opacity;
     if(realVal!==null){
       val=realVal;color=heatColor(val,maxDay);opacity=1;
-      tip='Dzień '+d+' · '+Math.round(val).toLocaleString('pl-PL')+' PLN (rzeczywiste)'+wxSuffix;
-    } else if(isDone){
-      val=dailyAvg;color=heatColor(val,maxDay);opacity=0.55;
-      tip='Dzień '+d+' · szacunek '+Math.round(val).toLocaleString('pl-PL')+' PLN (brak danych dziennych)'+wxSuffix;
-    } else {
-      color='var(--sur2)';opacity=0.4;
-      tip='Dzień '+d+' · brak danych';
+    }else if(isDone){
+      val=dailyAvg;color=heatColor(val,maxDay);opacity=.55;
+    }else{
+      color='var(--sur2)';opacity=.4;
     }
-    h+='<div class="hmap-cell" style="background:'+color+';opacity:'+opacity+'" title="'+tip+'">'+d+'</div>';
+    var saleText=realVal!==null?fmt(realVal,true):(isDone?('~ '+fmt(dailyAvg,true)):'—');
+    var wx=w?weatherIcon(w.c)+' '+Math.round(w.t)+'°C':'🌡️ —';
+    var wxLabel=w?weatherLabel(w.c):'Brak danych';
+    var click=(realVal!==null||isDone)?' onclick="openHeatmapDay(\''+pid+'\',\''+month+'\','+d+')"':'';
+    h+='<div class="hmap-cell" style="background:'+color+';opacity:'+opacity+'"'+click+' title="Kliknij, aby zobaczyć szczegóły dnia">';
+    h+='<div class="hm-day-no">'+d+'</div><div class="hm-sale">'+saleText+'</div><div class="hm-weather">'+wx+'</div>';
+    h+='<div class="hm-est">'+(w?wxLabel:(isDone?'szacunek':'brak danych'))+'</div></div>';
   }
-  h+='</div>';
+  h+='</div></div>';
   if(!hasRealDays)h+='<div class="hs-tip" style="margin-top:10px">Kolory poniżej to szacunek na bazie średniej dziennej. Wprowadź dane w zakładce <a href="#" onclick="go(\'daily\')">Dane dzienne</a>, aby zobaczyć rzeczywisty rozkład sprzedaży w poszczególnych dniach.</div>';
   h+='<div class="hmap-legend"><span>Mniej</span><div class="hmap-legend-boxes">';
-  ['rgba(255,77,109,.3)','rgba(245,158,11,.3)','rgba(245,158,11,.6)','rgba(34,197,94,.5)','rgba(34,197,94,.8)'].forEach(function(c){
-    h+='<div class="hmap-legend-box" style="background:'+c+'"></div>';
-  });
+  ['rgba(255,77,109,.3)','rgba(245,158,11,.3)','rgba(245,158,11,.6)','rgba(34,197,94,.5)','rgba(34,197,94,.8)'].forEach(function(c){h+='<div class="hmap-legend-box" style="background:'+c+'"></div>'});
   h+='</div><span>Więcej</span></div>';
   container.innerHTML=h;
 
-  // Jeśli obiekt ma lokalizację i pogoda nie jest jeszcze pobrana, pobierz i odśwież heatmapę
   var prop=S.props.find(function(p){return p.id===pid});
   if(prop&&prop.lat){
     ensureMonthWeather(pid,month).then(function(res){
@@ -1472,6 +1494,33 @@ function renderHeatmap(container,pid,month){
       }
     });
   }
+}
+
+function openHeatmapDay(pid,month,day){
+  var dd=getDailyData(pid,month),dayData=dd.days&&dd.days[day]?dd.days[day]:{},w=dd.weather&&dd.weather[day],prop=S.props.find(function(p){return p.id===pid});
+  var p=month.split('-'),date=new Date(+p[0],+p[1]-1,day);
+  var dateLabel=date.toLocaleDateString('pl-PL',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  var total=dailyDayTotal(dayData);
+  document.getElementById('m-heatday-title').textContent='📅 '+dateLabel;
+  document.getElementById('m-heatday-sub').textContent='Szczegółowe podsumowanie sprzedaży i pogody';
+  var h='<div class="kpi-grid" style="margin-bottom:14px"><div class="kpi"><div class="kpi-lbl">Sprzedaż netto</div><div class="kpi-val">'+fmt(total,true)+'</div><div class="kpi-sub">łącznie</div></div>';
+  if(w){
+    h+='<div class="kpi"><div class="kpi-lbl">Pogoda</div><div class="kpi-val" style="font-size:1.5rem">'+weatherIcon(w.c)+'</div><div class="kpi-sub">'+weatherLabel(w.c)+'</div></div>';
+    h+='<div class="kpi"><div class="kpi-lbl">Temperatura</div><div class="kpi-val">'+Math.round(w.t)+'°C</div><div class="kpi-sub">średnia dobowa</div></div>';
+    h+='<div class="kpi"><div class="kpi-lbl">Opady</div><div class="kpi-val">'+Number(w.p||0).toFixed(1)+' mm</div><div class="kpi-sub">suma dobowa</div></div>';
+    if(w.wind)h+='<div class="kpi"><div class="kpi-lbl">Wiatr</div><div class="kpi-val">'+Math.round(w.wind)+' km/h</div><div class="kpi-sub">maks. prędkość</div></div>';
+  }else h+='<div class="hs-warn">Brak danych pogodowych dla tego dnia.</div>';
+  h+='</div>';
+  h+='<div class="stitle">Sprzedaż netto według outletów</div>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Outlet</th><th>Sprzedaż netto</th><th>Udział</th></tr></thead><tbody>';
+  S.outlets.slice().sort(function(a,b){return (dayData[okey(b.name)]||0)-(dayData[okey(a.name)]||0)}).forEach(function(o){
+    var v=Number(dayData[okey(o.name)])||0,share=total>0?v/total*100:0;
+    h+='<tr><td><strong>'+o.name+'</strong></td><td class="td-acc">'+fmt(v,true)+'</td><td>'+share.toFixed(1)+'%</td></tr>';
+  });
+  h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(total,true)+'</td><td>100%</td></tr></tbody></table></div>';
+  if(prop)h+='<div class="hs-tip" style="margin-top:12px">📍 '+(prop.city||prop.name||'Lokalizacja obiektu')+'</div>';
+  document.getElementById('m-heatday-body').innerHTML=h;
+  openM('m-heatday');
 }
 
 /* ═══════════════════════════════════════════
@@ -1670,70 +1719,88 @@ function renderWaterfall(el,metrics){
    Agreguje dane ze WSZYSTKICH miesięcy obiektu (Dane dzienne + pogoda),
    żeby uzyskać sensowną próbkę do porównania kategorii pogodowych.
 ═══════════════════════════════════════════ */
+function weatherCategoryIcon(cat){
+  return ({'Słonecznie':'☀️','Pochmurno':'☁️','Deszcz':'🌧️','Śnieg':'❄️','Mgła':'🌫️','Burza':'⛈️','Wietrznie':'💨'})[cat]||'🌤️';
+}
+function weatherDateKey(month,day){return month+'-'+String(day).padStart(2,'0');}
 function renderWeatherCorrelation(el,pid){
   if(!el)return;
   var prop=S.props.find(function(p){return p.id===pid});
   var h='<div class="stitle">🌤️ Pogoda a sprzedaż</div>';
-
   if(!prop||!prop.lat){
-    h+='<div class="empty"><p>Ten obiekt nie ma ustawionej lokalizacji. Ustaw miasto w zakładce <a href="#" onclick="go(\'properties\')">Obiekty i outlety</a> (ikona 📍), aby zobaczyć korelację pogody ze sprzedażą.</p></div>';
+    h+='<div class="empty"><p>Ten obiekt nie ma ustawionej lokalizacji. Ustaw miasto w zakładce <a href="#" onclick="go(\'properties\')">Obiekty i outlety</a> (ikona 📍), aby analizować pogodę.</p></div>';
     el.innerHTML=h;return;
   }
 
-  var allDaily=getAllDailyData(pid);
-  var buckets={};// kategoria -> [sumy dzienne]
-  var sample=0;
+  var allDaily=getAllDailyData(pid),available=[];
   Object.keys(allDaily).forEach(function(month){
     var dd=allDaily[month];
-    if(!dd.days||!dd.weather)return;
+    if(!dd.days)return;
     Object.keys(dd.days).forEach(function(day){
-      var w=dd.weather[day];
-      if(!w||w.c===undefined)return;
-      var cat=weatherCategory(w.c);
-      if(!cat)return;
-      var total=dailyDayTotal(dd.days[day]);
-      if(total<=0)return;
-      if(!buckets[cat])buckets[cat]=[];
-      buckets[cat].push(total);
-      sample++;
+      var w=dd.weather&&dd.weather[day];
+      if(w&&w.c!==undefined)available.push({month:month,day:+day,key:weatherDateKey(month,+day)});
+    });
+  });
+  available.sort(function(a,b){return a.key.localeCompare(b.key)});
+  if(!available.length){
+    h+='<div class="empty"><p>Brak dni z jednocześnie wprowadzoną sprzedażą i danymi pogodowymi.</p></div>';el.innerHTML=h;return;
+  }
+  var minKey=available[0].key,maxKey=available[available.length-1].key;
+  var from=S.weatherFrom&&S.weatherFrom>=minKey&&S.weatherFrom<=maxKey?S.weatherFrom:minKey;
+  var to=S.weatherTo&&S.weatherTo>=minKey&&S.weatherTo<=maxKey?S.weatherTo:maxKey;
+  if(from>to){from=minKey;to=maxKey;}
+  S.weatherFrom=from;S.weatherTo=to;
+
+  h+='<div class="card" style="margin-bottom:14px"><div class="fsect">Zakres analizy</div><div class="weather-range-grid" style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">';
+  h+='<div class="fg" style="margin:0"><label>Od</label><input type="date" class="fi" id="weather-from" value="'+from+'" min="'+minKey+'" max="'+maxKey+'" onchange="setWeatherRange()"></div>';
+  h+='<div class="fg" style="margin:0"><label>Do</label><input type="date" class="fi" id="weather-to" value="'+to+'" min="'+minKey+'" max="'+maxKey+'" onchange="setWeatherRange()"></div>';
+  h+='<button class="btn btn-p" onclick="setWeatherRange()">🔎 Analizuj</button></div>';
+  h+='<div class="hs-tip" style="margin-top:9px">Analizowane są wyłącznie dni z wprowadzoną sprzedażą i dopasowaną pogodą. Zakres: '+new Date(from+'T12:00:00').toLocaleDateString('pl-PL')+' – '+new Date(to+'T12:00:00').toLocaleDateString('pl-PL')+'.</div></div>';
+
+  var buckets={},sample=0;
+  Object.keys(allDaily).forEach(function(month){
+    var dd=allDaily[month];if(!dd.days)return;
+    Object.keys(dd.days).forEach(function(day){
+      var key=weatherDateKey(month,+day);if(key<from||key>to)return;
+      var w=dd.weather&&dd.weather[day];if(!w||w.c===undefined)return;
+      var cat=weatherCategory(w);if(!cat)return;
+      if(!buckets[cat])buckets[cat]={days:0,total:0,outlets:{}};
+      var b=buckets[cat];b.days++;sample++;
+      S.outlets.forEach(function(o){b.outlets[okey(o.name)]=(b.outlets[okey(o.name)]||0)+(Number(dd.days[day][okey(o.name)])||0)});
+      b.total+=dailyDayTotal(dd.days[day]);
     });
   });
 
-  if(sample<4){
-    h+='<div class="empty"><p>Za mało danych do analizy — potrzeba przynajmniej kilku dni z wprowadzoną sprzedażą w zakładce <a href="#" onclick="go(\'daily\')">Dane dzienne</a> (mają wtedy automatycznie dopasowaną pogodę).</p></div>';
-    el.innerHTML=h;return;
-  }
+  if(sample<1){h+='<div class="empty"><p>Brak danych dla wybranego zakresu.</p></div>';el.innerHTML=h;return;}
+  var order=['Słonecznie','Pochmurno','Deszcz','Śnieg','Mgła','Burza','Wietrznie'];
+  var rows=order.filter(function(c){return buckets[c]&&buckets[c].days}).map(function(cat){return {cat:cat,b:buckets[cat]};});
+  var overallTotal=rows.reduce(function(s,r){return s+r.b.total},0);
 
-  var order=['Słonecznie','Pochmurno','Deszcz','Śnieg'];
-  var rows=order.filter(function(c){return buckets[c]&&buckets[c].length}).map(function(cat){
-    var vals=buckets[cat];
-    var avg=vals.reduce(function(s,v){return s+v},0)/vals.length;
-    return {cat:cat,avg:avg,n:vals.length};
-  });
-  var overallAvg=rows.reduce(function(s,r){return s+r.avg*r.n},0)/sample;
-
-  h+='<p class="hs-p" style="margin-bottom:12px">Średnia dzienna sprzedaż (wszystkie outlety łącznie) w rozbiciu na warunki pogodowe, na podstawie '+sample+' dni z danymi dziennymi i dopasowaną pogodą — ze wszystkich miesięcy.</p>';
-
-  h+='<div class="cc"><canvas id="ch-weather" style="max-height:260px"></canvas></div>';
-
-  h+='<div class="tbl-wrap" style="margin-top:14px"><table><thead><tr><th>Warunki</th><th>Śr. sprzedaż dnia</th><th>Dni w próbce</th><th>vs śr. ogólna</th></tr></thead><tbody>';
-  rows.forEach(function(r){
-    var diff=overallAvg>0?((r.avg-overallAvg)/overallAvg*100):0;
-    var icon=r.cat==='Słonecznie'?'☀️':r.cat==='Pochmurno'?'☁️':r.cat==='Śnieg'?'❄️':'🌧️';
-    h+='<tr><td>'+icon+' '+r.cat+'</td><td class="td-acc">'+fmt(r.avg,true)+'</td><td>'+r.n+'</td>';
-    h+='<td class="'+(diff>=0?'td-pos':'td-neg')+'">'+(diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%</td></tr>';
-  });
+  h+='<p class="hs-p" style="margin-bottom:12px">Wyniki pokazują zarówno sumę sprzedaży w danej kategorii pogody, jak i średni przychód netto na dzień. W tabeli outletów średnia liczona jest tylko z dni, w których wystąpiła dana kategoria pogody.</p>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Warunki</th><th>Dni</th><th>Sprzedaż łącznie</th><th>Śr./dzień</th><th>vs śr. zakresu</th></tr></thead><tbody>';
+  var overallAvg=sample?overallTotal/sample:0;
+  rows.forEach(function(r){var avg=r.b.total/r.b.days,diff=overallAvg?((avg-overallAvg)/overallAvg*100):0;h+='<tr><td><strong>'+weatherCategoryIcon(r.cat)+' '+r.cat+'</strong></td><td>'+r.b.days+'</td><td class="td-acc">'+fmt(r.b.total,true)+'</td><td>'+fmt(avg,true)+'</td><td class="'+(diff>=0?'td-pos':'td-neg')+'">'+(diff>=0?'▲ +':'▼ ')+Math.abs(diff).toFixed(1)+'%</td></tr>'});
   h+='</tbody></table></div>';
-  h+='<div class="hs-tip" style="margin-top:10px">Im więcej dni z wprowadzoną sprzedażą, tym bardziej wiarygodne porównanie — traktuj wyniki ostrożnie przy małej próbce.</div>';
 
+  h+='<div class="stitle" style="margin-top:18px">Sprzedaż poszczególnych outletów według pogody</div>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Warunki</th><th>Liczba dni</th>';
+  S.outlets.forEach(function(o){h+='<th>'+o.name+'</th>'});
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r){h+='<tr><td><strong>'+weatherCategoryIcon(r.cat)+' '+r.cat+'</strong></td><td>'+r.b.days+'</td>';S.outlets.forEach(function(o){var sum=r.b.outlets[okey(o.name)]||0,avg=sum/r.b.days;h+='<td><strong>'+fmt(avg,true)+'</strong><br><span style="font-size:.6rem;color:var(--tx3)">suma '+fmt(sum,true)+'</span></td>'});h+='</tr>'});
+  h+='</tbody></table></div>';
+
+  h+='<div class="cc" style="margin-top:14px"><canvas id="ch-weather" style="max-height:260px"></canvas></div>';
+  h+='<div class="hs-tip" style="margin-top:10px">Przy małej liczbie dni wynik może być przypadkowy. Szczególnie ostrożnie interpretuj kategorie z 1–2 dniami.</div>';
   el.innerHTML=h;
-
   dChart('ch-weather');
-  S.charts['ch-weather']=new Chart(document.getElementById('ch-weather'),{
-    type:'bar',
-    data:{labels:rows.map(function(r){return r.cat}),datasets:[{data:rows.map(function(r){return conv(r.avg)}),backgroundColor:rows.map(function(r){return r.cat==='Słonecznie'?'rgba(245,158,11,.75)':r.cat==='Pochmurno'?'rgba(148,163,184,.75)':r.cat==='Śnieg'?'rgba(147,197,253,.75)':'rgba(59,130,246,.75)'}),borderRadius:4}]},
-    options:Object.assign({},chOpts(function(v){return fmtR(v)}),{plugins:{legend:{display:false}}})
-  });
+  S.charts['ch-weather']=new Chart(document.getElementById('ch-weather'),{type:'bar',data:{labels:rows.map(function(r){return r.cat}),datasets:[{label:'Średnia sprzedaż / dzień',data:rows.map(function(r){return conv(r.b.total/r.b.days)}),backgroundColor:rows.map(function(r){return r.cat==='Słonecznie'?'rgba(245,158,11,.75)':r.cat==='Pochmurno'?'rgba(148,163,184,.75)':r.cat==='Śnieg'?'rgba(147,197,253,.75)':r.cat==='Wietrznie'?'rgba(14,165,233,.75)':r.cat==='Burza'?'rgba(124,58,237,.75)':'rgba(59,130,246,.75)'}),borderRadius:4}]},options:Object.assign({},chOpts(function(v){return fmtR(v)}),{plugins:{legend:{display:false}}})});
+}
+function setWeatherRange(){
+  var a=document.getElementById('weather-from'),b=document.getElementById('weather-to');if(!a||!b)return;
+  if(!a.value||!b.value)return;
+  S.weatherFrom=a.value;S.weatherTo=b.value;
+  if(S.weatherFrom>S.weatherTo){var x=S.weatherFrom;S.weatherFrom=S.weatherTo;S.weatherTo=x;}
+  renderWeatherCorrelation(document.getElementById('at-weather'),S.pid);
 }
 
 /* ═══════════════════════════════════════════
@@ -2576,6 +2643,12 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.1.0',date:'2026-08-12',changes:[
+    'Heatmapa pokazuje bezpośrednio na kafelkach dzienną sprzedaż netto oraz dane pogodowe, także na telefonie',
+    'Kliknięcie kafelka Heatmapy otwiera szczegółowe podsumowanie dnia: sprzedaż każdego outletu, suma oraz pogoda z piktogramami',
+    'Zakładka Pogoda umożliwia wybór dowolnego zakresu dat i pokazuje sprzedaż każdego outletu według warunków pogodowych',
+    'Rozszerzono dane pogodowe o maksymalną prędkość wiatru i kategorię Wietrznie, Mgła oraz Burza'
+  ]},
   {v:'3.0.0',date:'2026-08-12',changes:[
     'Nowa zakładka „Tablica rekordów” — trzy najwyższe dzienne utargi dla każdego outletu wraz z datą i pogodą',
     'Naprawiono pobieranie pogody dla ręcznie dodanych dni bieżącego miesiąca — zapytania są dzielone na dane archiwalne i najnowsze',
@@ -2733,7 +2806,9 @@ var S={
   rates:{EUR:null,USD:null},
   props:[],
   outlets:[],
-  charts:{}
+  charts:{},
+  weatherFrom:null,
+  weatherTo:null
 };
 
 /* ═══════════════════════════════════════════
