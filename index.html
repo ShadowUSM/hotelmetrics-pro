@@ -155,6 +155,21 @@ input,select,textarea{font-family:var(--fb)}
 /* ═══ CARDS ═══ */
 .card{background:var(--sur);border:1px solid var(--brd);border-radius:14px;padding:16px;max-width:100%}
 .card-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);margin-bottom:10px}
+.record-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:16px}
+.record-card{background:var(--sur);border:1px solid var(--brd);border-radius:14px;overflow:hidden}
+.record-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--brd);background:var(--sur2)}
+.record-head-name{font-family:var(--fd);font-weight:700;font-size:.95rem;color:var(--tx)}
+.record-head-sub{font-size:.62rem;color:var(--tx3);margin-top:2px}
+.record-row{display:grid;grid-template-columns:30px 1fr auto;gap:9px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--brd)}
+.record-row:last-child{border-bottom:0}
+.record-medal{font-size:1.1rem;text-align:center}
+.record-date{font-size:.74rem;font-weight:600;color:var(--tx)}
+.record-weather{font-size:.63rem;color:var(--tx3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.record-value{font-family:var(--fd);font-size:.95rem;font-weight:700;color:var(--acc);white-space:nowrap;text-align:right}
+.record-empty{padding:18px;color:var(--tx3);font-size:.75rem}
+.record-summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.record-summary .kpi{min-width:130px;flex:1}
+@media(max-width:480px){.record-grid{grid-template-columns:1fr}.record-row{grid-template-columns:28px 1fr auto}.record-value{font-size:.86rem}}
 
 /* KPI grid */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px}
@@ -817,6 +832,9 @@ textarea.fi{resize:vertical}
     <div class="nav-i active" data-v="dashboard" onclick="go('dashboard')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
     </div>
+    <div class="nav-i" data-v="records" onclick="go('records')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4h8a2 2 0 0 1 2 2v14H6V6a2 2 0 0 1 2-2Z"/><path d="M9 8h6M9 12h6M9 16h4"/><path d="M9 2h6v3H9z"/></svg>Tablica rekordów
+    </div>
     <div class="nav-i" data-v="data" onclick="go('data')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M15.5 3.5a2.121 2.121 0 013 3L12 13l-4 1 1-4 6.5-6.5z"/></svg>Wprowadź dane
     </div>
@@ -914,6 +932,7 @@ textarea.fi{resize:vertical}
     </div>
 
     <div id="v-dashboard"></div>
+    <div id="v-records" style="display:none"></div>
     <div id="v-data" style="display:none"></div>
     <div id="v-daily" style="display:none"></div>
     <div id="v-analytics" style="display:none"></div>
@@ -935,17 +954,18 @@ textarea.fi{resize:vertical}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M15.5 3.5a2.121 2.121 0 013 3L12 13l-4 1 1-4 6.5-6.5z"/></svg>
     Dane
   </button>
+  <button class="bnav-item" data-v="records" onclick="go('records')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4h8a2 2 0 0 1 2 2v14H6V6a2 2 0 0 1 2-2Z"/><path d="M9 8h6M9 12h6M9 16h4"/><path d="M9 2h6v3H9z"/></svg>
+    Rekordy
+  </button>
   <button class="bnav-item" data-v="analytics" onclick="go('analytics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     Analityka
   </button>
+
   <button class="bnav-item" data-v="compare" onclick="go('compare')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     Porównania
-  </button>
-  <button class="bnav-item" data-v="export" onclick="go('export')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Eksport/Import
   </button>
 </nav>
 
@@ -1168,58 +1188,76 @@ function geocodeCity(cityName){
 }
 
 // Pobiera pogodę dla całego miesiąca jednym zapytaniem (Forecast API, z fallbackiem do Archive API dla starszych dat)
-function fetchMonthWeather(lat,lon,month){
-  var dim_=dim(month);
-  var start=month+'-01';
-  var end=month+'-'+String(dim_).padStart(2,'0');
+function parseWeatherResponse(d){
+  if(!d.daily||!d.daily.time)throw new Error('no data');
+  var weather={};
+  d.daily.time.forEach(function(dateStr,i){
+    var day=parseInt(dateStr.split('-')[2],10);
+    var t=d.daily.temperature_2m_mean[i],p=d.daily.precipitation_sum[i],c=d.daily.weathercode[i];
+    if(t!==null&&t!==undefined&&c!==null&&c!==undefined)weather[day]={t:t,p:p||0,c:c};
+  });
+  return weather;
+}
+
+// Open-Meteo: dla dat starszych niż kilka dni używamy Archive API, a dla ostatnich dni Forecast API.
+// Nie pytamy Forecast API o cały bieżący miesiąc, ponieważ zawiera on również przyszłe daty i takie
+// zapytanie może zostać odrzucone. To było źródłem problemów z ręcznie dodanymi dniami sierpnia.
+function fetchWeatherRange(lat,lon,start,end,source){
   var params='latitude='+lat+'&longitude='+lon+'&start_date='+start+'&end_date='+end+'&daily=temperature_2m_mean,precipitation_sum,weathercode&timezone=auto';
-  function parse(d){
-    if(!d.daily||!d.daily.time)throw new Error('no data');
-    var weather={};
-    d.daily.time.forEach(function(dateStr,i){
-      var day=parseInt(dateStr.split('-')[2],10);
-      var t=d.daily.temperature_2m_mean[i],p=d.daily.precipitation_sum[i],c=d.daily.weathercode[i];
-      if(t!==null&&t!==undefined)weather[day]={t:t,p:p||0,c:c};
-    });
-    return weather;
+  var base=source==='archive'?'https://archive-api.open-meteo.com/v1/archive?':'https://api.open-meteo.com/v1/forecast?';
+  return fetch(base+params).then(function(r){if(!r.ok)throw new Error('weather status '+r.status);return r.json()}).then(parseWeatherResponse);
+}
+
+function dateOnly(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
+
+// Pobiera pogodę dla zakresu miesiąca, ale tylko do dzisiaj. Daty są dzielone na archiwalne
+// i najnowsze, dzięki czemu bieżący miesiąc działa poprawnie również po ręcznym wpisaniu danych.
+function fetchMonthWeather(lat,lon,month){
+  var p=month.split('-'),yr=+p[0],mo=+p[1],first=new Date(yr,mo-1,1),last=new Date(yr,mo-1,dim(month));
+  var today=dateOnly(new Date());
+  if(first>today)return Promise.resolve({});
+  if(last>today)last=today;
+  var archiveCutoff=addDays(today,-5);
+  var tasks=[];
+  if(first<=archiveCutoff){
+    var aEnd=last<archiveCutoff?last:archiveCutoff;
+    tasks.push(fetchWeatherRange(lat,lon,isoDate(first),isoDate(aEnd),'archive').catch(function(){return {}}));
   }
-  function fetchArchive(){
-    return fetch('https://archive-api.open-meteo.com/v1/archive?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse).catch(function(){return {}});
+  var recentStart=first>archiveCutoff?first:addDays(archiveCutoff,1);
+  if(recentStart<=last){
+    tasks.push(fetchWeatherRange(lat,lon,isoDate(recentStart),isoDate(last),'forecast').catch(function(){return {}}));
   }
-  return fetch('https://api.open-meteo.com/v1/forecast?'+params).then(function(r){if(!r.ok)throw new Error('bad status');return r.json()}).then(parse).catch(function(){
-    return {};
-  }).then(function(primaryWeather){
-    // Forecast API czasem jeszcze nie ma sfinalizowanych danych dla najświeższych dni (zwraca null,
-    // bez zgłaszania błędu) — jeśli brakuje jakichkolwiek dni miesiąca, dociągnij brakujące z Archive API.
-    if(Object.keys(primaryWeather).length>=dim_)return primaryWeather;
-    return fetchArchive().then(function(archiveWeather){
-      return Object.assign({},archiveWeather,primaryWeather); // primaryWeather nadpisuje tam, gdzie oba źródła mają dane
-    });
+  if(!tasks.length)return Promise.resolve({});
+  return Promise.all(tasks).then(function(parts){
+    var out={};parts.forEach(function(w){Object.assign(out,w)});return out;
   });
 }
 
-// Zapewnia, że dla danego miesiąca (jeśli obiekt ma ustawioną lokalizację) pogoda jest pobrana i zapisana.
-// Pobiera jednym zapytaniem cały miesiąc. Cache: 24h gdy dane są KOMPLETNE (wszystkie dni miesiąca),
-// ale tylko 1h gdy brakuje części dni — dostawca pogody czasem jeszcze nie ma sfinalizowanych danych
-// dla najświeższych dni (wczoraj/dziś), więc krótszy cooldown pozwala domknąć braki przy kolejnej wizycie.
-// forceRefresh=true pomija cały cache i wymusza natychmiastowe pobranie (przycisk "Odśwież pogodę").
-// Zwraca {weather, fetched} — fetched=true tylko gdy faktycznie wykonano nowe zapytanie sieciowe.
+// Zapewnia, że dla danego miesiąca pogoda jest pobrana i zapisana.
+// W odróżnieniu od poprzedniej wersji cache jest uznawany za kompletny tylko wtedy, gdy
+// pogoda istnieje dla wszystkich dni, które faktycznie mają sprzedaż. Dzięki temu ręcznie
+// dodany dzień bez pogody zostanie ponownie pobrany.
 function ensureMonthWeather(pid,month,forceRefresh){
   var prop=S.props.find(function(p){return p.id===pid});
   if(!prop||!prop.lat||!prop.lon)return Promise.resolve({weather:null,fetched:false});
   var dd=getDailyData(pid,month);
-  var dim_=dim(month);
-  var haveEnough=dd.weather&&Object.keys(dd.weather).length>=dim_;
-  var cooldownMs=haveEnough?(24*60*60*1000):(60*60*1000);
+  var filledDays=Object.keys(dd.days||{}).map(Number).filter(function(d){return d>0});
+  if(!filledDays.length)return Promise.resolve({weather:dd.weather||{},fetched:false});
+  var weather=dd.weather||{};
+  var missing=filledDays.filter(function(day){return !weather[day]});
+  var cooldownMs=missing.length?30*60*1000:24*60*60*1000;
   var recentlyFetched=!forceRefresh&&dd.weatherFetchedAt&&(Date.now()-dd.weatherFetchedAt<cooldownMs);
-  if(!forceRefresh&&(haveEnough||recentlyFetched))return Promise.resolve({weather:dd.weather||{},fetched:false});
-  return fetchMonthWeather(prop.lat,prop.lon,month).then(function(weather){
-    dd.weather=Object.assign({},dd.weather,weather);
+  if(!forceRefresh&&!missing.length)return Promise.resolve({weather:weather,fetched:false});
+  if(!forceRefresh&&recentlyFetched)return Promise.resolve({weather:weather,fetched:false});
+  return fetchMonthWeather(prop.lat,prop.lon,month).then(function(newWeather){
+    dd.weather=Object.assign({},weather,newWeather);
     dd.weatherFetchedAt=Date.now();
     lsSet(uk('daily-'+pid+'-'+month),dd);
     if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),dd);
     return {weather:dd.weather,fetched:true};
-  }).catch(function(){return {weather:dd.weather||{},fetched:false}});
+  }).catch(function(){return {weather:weather,fetched:false}});
 }
 
 /* ═══════════════════════════════════════════
@@ -2529,7 +2567,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='2.9.0';
+var APP_VERSION='3.0.0';
 var APP_BUILD_DATE='2026-08-12';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2538,6 +2576,11 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.0.0',date:'2026-08-12',changes:[
+    'Nowa zakładka „Tablica rekordów” — trzy najwyższe dzienne utargi dla każdego outletu wraz z datą i pogodą',
+    'Naprawiono pobieranie pogody dla ręcznie dodanych dni bieżącego miesiąca — zapytania są dzielone na dane archiwalne i najnowsze',
+    'Tablica rekordów automatycznie próbuje uzupełnić brakujące dane pogodowe dla dni z najwyższą sprzedażą'
+  ]},
   {v:'2.9.0',date:'2026-08-12',changes:[
     'Naprawiono zacinający się wskaźnik aktywnej zakładki w Analityce/Porównaniach na telefonie — usunięto animowaną nakładkę (gubiła pozycję przy poziomym przewijaniu) na rzecz prostszego, niezawodnego oznaczania koloru tła bezpośrednio na przycisku',
     'Nowy globalny przycisk zmiany miesiąca w górnym pasku — dostępny z każdej zakładki, nie tylko z „Wprowadź dane"'
@@ -2881,11 +2924,11 @@ function setTheme(t){
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',daily:'Dane dzienne',analytics:'Analityka',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
+var TITLES={dashboard:'Dashboard',records:'Tablica rekordów',data:'Wprowadź dane',daily:'Dane dzienne',analytics:'Analityka',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
 function go(v){
   S.view=v;
   document.querySelectorAll('[data-v]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-v')===v)});
-  document.querySelectorAll('#v-dashboard,#v-data,#v-daily,#v-analytics,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
+  document.querySelectorAll('#v-dashboard,#v-records,#v-data,#v-daily,#v-analytics,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
   var el=document.getElementById('v-'+v);if(el)el.style.display='block';
   var pt=document.getElementById('pg-title');if(pt)pt.textContent=TITLES[v]||v;
   haptic(8);
@@ -3046,6 +3089,61 @@ function alerts(metrics,outlets){
   });
   if(T.b>0&&T.pct!==null&&T.pct>=1) al.unshift({t:'ok',msg:'Łączny budżet wykonany: '+(T.pct*100).toFixed(0)+'% 🎉'});
   return al;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: TABLICA REKORDÓW
+   Top 3 najwyższe dzienne utargi dla każdego outletu, niezależnie od wybranego miesiąca.
+═══════════════════════════════════════════ */
+function recordsDateLabel(month,day){
+  var p=month.split('-');return String(day).padStart(2,'0')+'.'+p[1]+'.'+p[0];
+}
+function renderRecords(){
+  var el=document.getElementById('v-records');if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('🏆','Brak obiektu lub outletów','Wybierz obiekt hotelowy, aby zobaczyć trzy najwyższe dzienne utargi każdego outletu.','+ Przejdź do obiektów',"go('properties')");return;}
+  var allDaily=getAllDailyData(S.pid),records={};
+  S.outlets.forEach(function(o){records[okey(o.name)]=[]});
+  Object.keys(allDaily).forEach(function(month){
+    var dd=allDaily[month]||{},days=dd.days||{},wx=dd.weather||{};
+    Object.keys(days).forEach(function(day){
+      var vals=days[day]||{};
+      Object.keys(records).forEach(function(k){
+        var value=parseFloat(vals[k])||0;
+        if(value>0)records[k].push({value:value,month:month,day:+day,weather:wx[day]||null});
+      });
+    });
+  });
+  Object.keys(records).forEach(function(k){records[k].sort(function(a,b){return b.value-a.value||b.month.localeCompare(a.month)||b.day-a.day});records[k]=records[k].slice(0,3)});
+  var totalRecords=Object.values(records).reduce(function(n,r){return n+r.length},0);
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap"><div class="badge">🏆 Tablica rekordów</div><span style="font-size:.68rem;color:var(--tx3)">'+(prop?prop.name:'')+'</span></div>';
+  h+='<div class="card" style="margin-bottom:16px"><div class="card-title">Najwyższe dzienne utargi</div><div style="font-size:.78rem;color:var(--tx2);line-height:1.55">Ranking jest liczony na podstawie danych z zakładki <strong>Dane dzienne</strong> ze wszystkich dostępnych miesięcy. Dla każdego outletu pokazujemy maksymalnie 3 najwyższe dni.</div></div>';
+  h+='<div class="record-grid">';
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),rows=records[k]||[];
+    h+='<div class="record-card"><div class="record-head"><div><div class="record-head-name">'+o.name+'</div><div class="record-head-sub">Top '+Math.min(3,rows.length)+' rekordy</div></div><div style="font-size:1.1rem">🏆</div></div>';
+    if(!rows.length){h+='<div class="record-empty">Brak dziennych danych dla tego outletu.</div>'}
+    rows.forEach(function(r,i){
+      var medal=['🥇','🥈','🥉'][i]||(i+1);
+      var w=r.weather;
+      var weatherText=w?(weatherIcon(w.c)+' '+Math.round(w.t)+'°C'+(w.p>0?' · '+w.p.toFixed(1)+' mm':'')+' · '+weatherLabel(w.c)):'🌡️ Brak danych pogodowych';
+      h+='<div class="record-row"><div class="record-medal">'+medal+'</div><div><div class="record-date">'+recordsDateLabel(r.month,r.day)+'</div><div class="record-weather">'+weatherText+'</div></div><div class="record-value">'+fmt(r.value)+'</div></div>';
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+  if(totalRecords)h+='<div class="hs-tip">Rekordy nie zależą od aktualnie wybranego miesiąca. Po dodaniu nowego dnia tablica zostanie automatycznie przeliczona.</div>';
+  else h+='<div class="empty"><p>Brak danych dziennych. Wprowadź sprzedaż w zakładce Dane dzienne, aby zbudować tablicę rekordów.</p></div>';
+  el.innerHTML=h;
+  // Jeżeli rekordy mają braki pogodowe, spróbuj je uzupełnić w tle.
+  var monthsToFetch={};
+  Object.keys(records).forEach(function(k){(records[k]||[]).forEach(function(r){if(!r.weather)monthsToFetch[r.month]=true})});
+  var monthList=Object.keys(monthsToFetch);
+  if(monthList.length){
+    Promise.all(monthList.map(function(m){return ensureMonthWeather(S.pid,m)})).then(function(){
+      if(S.view==='records')renderRecords();
+    });
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -4952,7 +5050,7 @@ function onMonthChange(v){S.month=v;syncMonthUI();renderCur()}
 
 function renderCur(){
   try{
-    var fn={dashboard:renderDashboard,data:renderData,daily:renderDaily,analytics:renderAnalytics,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
+    var fn={dashboard:renderDashboard,records:renderRecords,data:renderData,daily:renderDaily,analytics:renderAnalytics,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
     var f=fn[S.view];if(f)f();
   }catch(e){console.error(e)}
 }
