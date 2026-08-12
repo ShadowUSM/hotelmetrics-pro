@@ -1018,7 +1018,7 @@ textarea.fi{resize:vertical}
 <div id="help-modal">
   <div class="help-topbar">
     <div class="help-topbar-title">📖 Instrukcja obsługi — HotelMetrics Pro</div>
-    <div class="help-topbar-ver" id="help-topbar-ver">v1.0.0 · 2026</div>
+    <div class="help-topbar-ver" id="help-topbar-ver">v3.2.0 · 2026</div>
     <button class="help-close" onclick="closeHelp()">✕</button>
   </div>
   <!-- Mobile TOC -->
@@ -2436,36 +2436,52 @@ function showUpdateBanner(){
 }
 
 function dismissUpdateBanner(){
+  // Ukrywa baner tylko do kolejnego wykrycia zmiany wersji.
+  // Nie zapisujemy tego w localStorage, aby każda nowa wersja została zgłoszona.
   var b=document.getElementById('update-banner');
   if(b)b.classList.remove('show');
 }
 
-function applyUpdate(){
-  var btn=document.getElementById('update-refresh-btn');
-  if(btn){btn.disabled=true;btn.textContent='Aktualizuję...';}
+function clearAppCache(){
   var tasks=[];
+  // Usuwamy wszystkie Service Workery, aby stara wersja nie mogła
+  // przechwycić kolejnego żądania aplikacji.
   if('serviceWorker' in navigator){
     tasks.push(navigator.serviceWorker.getRegistrations().then(function(regs){
-      return Promise.all(regs.map(function(r){return r.unregister()}));
+      return Promise.all(regs.map(function(r){return r.unregister().catch(function(){return false;})}));
     }));
   }
+  // Usuwamy Cache Storage, ale NIE localStorage ani IndexedDB.
+  // Dane użytkownika i ustawienia pozostają bez zmian.
   if(window.caches){
     tasks.push(caches.keys().then(function(keys){
       return Promise.all(keys.map(function(k){return caches.delete(k)}));
     }));
   }
-  Promise.all(tasks).catch(function(){}).then(function(){
-    location.href=location.origin+location.pathname+'?_r='+Date.now();
+  return Promise.all(tasks);
+}
+
+function applyUpdate(){
+  var btn=document.getElementById('update-refresh-btn');
+  if(btn){btn.disabled=true;btn.textContent='Odświeżam...';}
+  clearAppCache().catch(function(){}).then(function(){
+    // Cache-busting wymusza pobranie aktualnego HTML także z CDN/proxy.
+    var url=location.origin+location.pathname+'?hm_update='+Date.now();
+    location.replace(url);
   });
 }
 
 function startUpdateWatcher(){
-  setTimeout(checkForUpdate,4000); // ustalenie wersji bazowej po starcie
-  setInterval(checkForUpdate,5*60*1000); // sprawdzanie co 5 minut
+  // Pierwsze sprawdzenie po uruchomieniu ustala wersję bazową.
+  setTimeout(checkForUpdate,4000);
+  // Regularne sprawdzanie co 5 minut.
+  setInterval(checkForUpdate,5*60*1000);
+  // Natychmiastowe sprawdzenie po powrocie do aplikacji lub online.
   document.addEventListener('visibilitychange',function(){
     if(document.visibilityState==='visible')checkForUpdate();
   });
   window.addEventListener('focus',checkForUpdate);
+  window.addEventListener('online',checkForUpdate);
 }
 
 /* ═══════════════════════════════════════════
@@ -2634,7 +2650,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.0.0';
+var APP_VERSION='3.2.0';
 var APP_BUILD_DATE='2026-08-12';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2643,6 +2659,10 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.2.0',date:'2026-08-12',changes:[
+    'Zmieniono dane pogodowe: aplikacja wykorzystuje maksymalną temperaturę dobową zamiast średniej temperatury dobowej'
+  ]},
+
   {v:'3.1.0',date:'2026-08-12',changes:[
     'Heatmapa pokazuje bezpośrednio na kafelkach dzienną sprzedaż netto oraz dane pogodowe, także na telefonie',
     'Kliknięcie kafelka Heatmapy otwiera szczegółowe podsumowanie dnia: sprzedaż każdego outletu, suma oraz pogoda z piktogramami',
