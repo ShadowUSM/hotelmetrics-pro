@@ -3095,12 +3095,19 @@ function toggleSearch(){
   var panel=document.getElementById('search-panel');
   if(!panel)return;
   var opening=!panel.classList.contains('open');
-  panel.classList.toggle('open',opening);
   if(opening){
+    panel.classList.add('open');
+    history.pushState({hmSearch:true},'',location.href);
     var inp=document.getElementById('search-input');
     if(inp){inp.value='';inp.focus();}
     var res=document.getElementById('search-results');
     if(res)res.innerHTML='<div class="sr-empty">Wpisz nazwę outletu, miesiąc (np. „marzec") lub fragment notatki.</div>';
+  } else {
+    if(history.state&&history.state.hmSearch){
+      history.back();
+    } else {
+      panel.classList.remove('open');
+    }
   }
 }
 
@@ -3962,7 +3969,8 @@ function setTheme(t){
    NAVIGATION
 ═══════════════════════════════════════════ */
 var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',heatmap:'Heatmapa',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
-function go(v){
+function go(v,_skipHistory){
+  if(v!==S.view&&!_skipHistory)history.pushState({hmView:v},'',location.href);
   S.view=v;
   document.querySelectorAll('[data-v]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-v')===v)});
   document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-heatmap,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
@@ -3975,6 +3983,36 @@ function go(v){
 }
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('on')}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('on')}
+
+/* ═══════════════════════════════════════════
+   OBSŁUGA GESTU „WSTECZ" (Android/przeglądarka)
+   Wykorzystuje standardowe History API: każde otwarcie modala/pomocy/
+   wyszukiwarki oraz każda zmiana zakładki dopisuje wpis do historii
+   przeglądarki. Gest "wstecz" (lub systemowy przycisk wstecz) wywołuje
+   wtedy zdarzenie popstate, które:
+   1) jeśli jakiekolwiek okienko jest aktualnie otwarte — zamyka je,
+   2) w przeciwnym razie — cofa do poprzednio otwartej zakładki.
+   Jeśli nie ma już nic do cofnięcia, gest normalnie zamyka aplikację
+   (zachowanie systemowe, celowo nieprzechwytywane).
+═══════════════════════════════════════════════════════════ */
+function popstateHandler(){
+  // 1) Zamknij dowolne aktualnie widoczne okienko — w kolejności priorytetu
+  var openModal=document.querySelector('.moverlay.on');
+  if(openModal){openModal.classList.remove('on');return;}
+  var helpModal=document.getElementById('help-modal');
+  if(helpModal&&helpModal.classList.contains('open')){helpModal.classList.remove('open');return;}
+  var searchPanel=document.getElementById('search-panel');
+  if(searchPanel&&searchPanel.classList.contains('open')){searchPanel.classList.remove('open');return;}
+
+  // 2) Brak otwartego okienka — wróć do poprzedniej zakładki zgodnie z historią
+  var st=history.state;
+  if(st&&st.hmView)go(st.hmView,true);
+}
+
+function initBackGesture(){
+  history.replaceState({hmView:S.view},'',location.href);
+  window.addEventListener('popstate',popstateHandler);
+}
 
 // ── ZWIJANE SEKCJE SIDEBARA ──
 // Sekcja zawierająca aktualnie wybraną zakładkę jest zawsze automatycznie rozwinięta
@@ -6656,8 +6694,25 @@ function toast(msg,type){
 /* ═══════════════════════════════════════════
    MODAL
 ═══════════════════════════════════════════ */
-function openM(id){var e=document.getElementById(id);if(e)e.classList.add('on')}
-function closeM(id){var e=document.getElementById(id);if(e)e.classList.remove('on')}
+function openM(id){
+  var e=document.getElementById(id);
+  if(e){
+    e.classList.add('on');
+    history.pushState({hmModal:id},'',location.href);
+  }
+}
+function closeM(id){
+  var e=document.getElementById(id);
+  if(!e||!e.classList.contains('on'))return;
+  // Jeśli to bieżący wpis historii (modal otwarty przez openM), cofnij się w historii —
+  // wywoła to popstate, które faktycznie zamknie modal. Dzięki temu zamknięcie
+  // przyciskiem X i gestem "wstecz" telefonu zawsze zostają zsynchronizowane.
+  if(history.state&&history.state.hmModal===id){
+    history.back();
+  } else {
+    e.classList.remove('on');
+  }
+}
 
 /* ═══════════════════════════════════════════
    SELECTOR SYNC
@@ -7160,11 +7215,17 @@ function showHelp(){
   // Content
   var content=document.getElementById('help-content');if(content)content.innerHTML=HELP_CONTENT;
   modal.classList.add('open');
+  history.pushState({hmHelp:true},'',location.href);
 }
 
 function closeHelp(){
   var modal=document.getElementById('help-modal');
-  if(modal)modal.classList.remove('open');
+  if(!modal||!modal.classList.contains('open'))return;
+  if(history.state&&history.state.hmHelp){
+    history.back();
+  } else {
+    modal.classList.remove('open');
+  }
 }
 
 function helpGo(id){
@@ -7474,6 +7535,9 @@ function init(){
   var verEl=document.getElementById('s-ver');
   if(verEl)verEl.textContent='v'+APP_VERSION;
 
+  // Obsługa gestu "wstecz" — zamyka okienka / cofa do poprzedniej zakładki
+  initBackGesture();
+
   // Tema i waluta
   document.documentElement.setAttribute('data-theme',S.theme);
   document.querySelectorAll('.tdot').forEach(function(d){d.classList.toggle('on',d.getAttribute('data-t')===S.theme)});
@@ -7493,7 +7557,7 @@ function init(){
   window.addEventListener('orientationchange',function(){setTimeout(updateVH,150)});
 
   // Modal/picker close handlers
-  document.querySelectorAll('.moverlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('on')})});
+  document.querySelectorAll('.moverlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)closeM(o.id)})});
   document.addEventListener('click',function(){closeAllPickers()});
 
   // Sidebar pid save — update uk
