@@ -76,6 +76,27 @@
   --neu-in-sm:inset 2px 2px 5px rgba(163,177,198,.5),inset -2px -2px 5px rgba(255,255,255,.8);
   --neu-flat:2px 2px 5px rgba(163,177,198,.35),-2px -2px 5px rgba(255,255,255,.7);
 }
+/* ── NEUMORPHISM: CIEMNY (Neu Dark) ──
+   Ta sama zasada co w wersji jasnej, odwrócona kolorystycznie: głęboka
+   antracytowa czerń zamiast bieli, a "jasny" cień to nie biel tylko
+   odrobinę jaśniejszy odcień tła (czysta biel na czarnym tle wyglądałaby
+   nienaturalnie) + mocny, niemal czarny cień dla głębi. Pastelowy akcent
+   koralowo-pomarańczowy — zgodnie z przesłanymi przykładami (odtwarzacz
+   muzyki, aplikacja bankowa HRTBT). */
+[data-theme="neu-dark"]{
+  --bg:#1b1e25;--sur:#1b1e25;--sur2:#21252d;--sur3:#262b34;
+  --brd:#262b34;--brd2:#2f353f;
+  --acc:#ff7a5c;--acc-glow:rgba(255,122,92,.18);--acc-rgb:255,122,92;
+  --tx:#e8e9ee;--tx2:#9aa0ae;--tx3:#656b7a;
+  --red:#ff5c5c;--warn:#ffab52;--grn:#4ade80;
+  --fd:'Outfit',sans-serif;--fb:'Outfit',sans-serif;
+  --neu-out:6px 6px 14px rgba(0,0,0,.55),-6px -6px 14px rgba(52,58,70,.5);
+  --neu-out-sm:3px 3px 7px rgba(0,0,0,.5),-3px -3px 7px rgba(52,58,70,.45);
+  --neu-out-lg:9px 9px 22px rgba(0,0,0,.55),-9px -9px 22px rgba(52,58,70,.5);
+  --neu-in:inset 4px 4px 9px rgba(0,0,0,.55),inset -4px -4px 9px rgba(52,58,70,.45);
+  --neu-in-sm:inset 2px 2px 5px rgba(0,0,0,.5),inset -2px -2px 5px rgba(52,58,70,.4);
+  --neu-flat:2px 2px 5px rgba(0,0,0,.4),-2px -2px 5px rgba(52,58,70,.3);
+}
 
 /* ═══ RESET ═══ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -163,6 +184,7 @@ input,select,textarea{font-family:var(--fb)}
 .tdot[data-t="arctic"]{background:linear-gradient(135deg,#0891b2 40%,#e0f2fe)}
 .tdot[data-t="parchment"]{background:linear-gradient(135deg,#b45309 40%,#faf7f0)}
 .tdot[data-t="neu-light"]{background:linear-gradient(135deg,#7b6ef6 40%,#e9edf3);box-shadow:inset 0 0 0 1px rgba(163,177,198,.4)}
+.tdot[data-t="neu-dark"]{background:linear-gradient(135deg,#ff7a5c 40%,#1b1e25)}
 .cur-btns{display:flex;gap:4px}
 .cur-btn{flex:1;padding:5px 0;background:var(--sur2);border:1px solid var(--brd);color:var(--tx2);border-radius:6px;font-size:.7rem;font-weight:500;transition:all .15s}
 .cur-btn.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
@@ -904,6 +926,152 @@ textarea.fi{resize:vertical}
 [data-theme="neu-light"] .record-row{border-bottom:1px solid rgba(163,177,198,.18)}
 
 /* ══════════════════════════════════════════════════════════
+   NEU DARK — ETAP A/B: Fundament + Dashboard + Tabele/Formularze
+   (lustrzane odbicie Etapów 1-3 z wersji jasnej, dostosowane
+   kolorystycznie do ciemnej palety i skorygowane tam, gdzie
+   jasna wersja miała zaszyte na sztywno kolory nieprzenośne
+   1:1 na ciemne tło — np. biały cień/podświetlenie).
+═══════════════════════════════════════════════════════════ */
+
+/* — Sidebar: płaski panel, oddzielony od treści miękkim cieniem, bez twardej krawędzi — */
+[data-theme="neu-dark"] #sidebar{border-right:none;box-shadow:8px 0 24px rgba(0,0,0,.4)}
+[data-theme="neu-dark"] .s-logo,
+[data-theme="neu-dark"] .s-user,
+[data-theme="neu-dark"] .s-bottom{border-color:transparent}
+[data-theme="neu-dark"] .s-sel{border-color:transparent}
+
+/* — Nawigacja: spoczynek płaski, hover = lekko wypukły, aktywny = wciśnięty (inset) — */
+[data-theme="neu-dark"] .nav-i{border-left:none;border-radius:11px;margin:2px 10px;padding:9px 12px;width:calc(100% - 20px)}
+[data-theme="neu-dark"] .nav-i:hover{background:var(--sur);box-shadow:var(--neu-out-sm);color:var(--tx)}
+[data-theme="neu-dark"] .nav-i.active{background:var(--sur);box-shadow:var(--neu-in-sm);color:var(--acc);font-weight:700}
+[data-theme="neu-dark"] .bnav-item.active{color:var(--acc)}
+
+/* — Przyciski: podniesione, wciśnięcie = inset. Primary = pastelowa wypełniona pigułka z poświatą — */
+[data-theme="neu-dark"] .btn{border:none;box-shadow:var(--neu-out-sm);background:var(--sur);color:var(--tx2)}
+[data-theme="neu-dark"] .btn:active{box-shadow:var(--neu-in-sm)}
+[data-theme="neu-dark"] .btn-p{background:linear-gradient(135deg,var(--acc),#ff9b80);color:#1b1e25;box-shadow:4px 4px 12px rgba(255,122,92,.45),-2px -2px 8px rgba(52,58,70,.4)}
+[data-theme="neu-dark"] .btn-p:active{box-shadow:inset 3px 3px 7px rgba(0,0,0,.5),inset -2px -2px 6px rgba(52,58,70,.3)}
+[data-theme="neu-dark"] .btn-s{background:var(--sur);color:var(--tx2);border:none;box-shadow:var(--neu-out-sm)}
+[data-theme="neu-dark"] .btn-s:active{box-shadow:var(--neu-in-sm)}
+[data-theme="neu-dark"] .btn-icon{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--tx2);border-radius:10px}
+[data-theme="neu-dark"] .btn-icon:active{box-shadow:var(--neu-in-sm)}
+
+/* — Topbar: przyciski akcji (lupa, miesiąc, odśwież) w tym samym duchu — */
+[data-theme="neu-dark"] .mpick-btn-top{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--tx2)}
+[data-theme="neu-dark"] .mpick-btn-top.open{box-shadow:var(--neu-in-sm);color:var(--acc)}
+
+/* — Pola tekstowe: wgłębione (inset) — typowy neumorficzny "input" — */
+[data-theme="neu-dark"] .s-input,
+[data-theme="neu-dark"] .fi{background:var(--sur);border:none;box-shadow:var(--neu-in-sm);color:var(--tx)}
+[data-theme="neu-dark"] .fi:focus{box-shadow:var(--neu-in-sm),0 0 0 2px rgba(var(--acc-rgb),.35)}
+
+/* — Awatar użytkownika i wersja: delikatna wypukłość — */
+[data-theme="neu-dark"] .user-av{background:var(--sur);color:var(--acc);box-shadow:var(--neu-out-sm)}
+[data-theme="neu-dark"] .logout-btn{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--tx2)}
+[data-theme="neu-dark"] .s-ver{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--acc)}
+
+/* — Dolna belka nawigacji (mobile): miękki cień górny zamiast linii — */
+[data-theme="neu-dark"] #bottom-nav{border-top:none;box-shadow:0 -6px 18px rgba(0,0,0,.45)}
+
+/* — Sekcje sidebara (Główne/Zarządzanie): bez linii, subtelniejszy tekst — */
+[data-theme="neu-dark"] .s-sect:hover{color:var(--acc)}
+
+/* ══════════════════════════════════════════════════════════
+   ETAP 2/6: DASHBOARD — karty KPI, hero card, insights,
+   karty outletów, alerty, paski postępu, odznaki.
+═══════════════════════════════════════════════════════════ */
+
+/* — Karty KPI: wypukłe, bez krawędzi, lekko unoszą się na hover — */
+[data-theme="neu-dark"] .kpi{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-dark"] .kpi::after{display:none}
+[data-theme="neu-dark"] .kpi:hover{box-shadow:var(--neu-out-lg)}
+[data-theme="neu-dark"] .kpi-badge.up{background:var(--sur);box-shadow:var(--neu-flat);color:var(--grn)}
+[data-theme="neu-dark"] .kpi-badge.dn{background:var(--sur);box-shadow:var(--neu-flat);color:var(--red)}
+
+/* — Hero card: mocniejsza wypukłość, płaskie tło (bez gradientu — spójne z zasadą "ten sam ton") — */
+[data-theme="neu-dark"] .hero-card{background:var(--sur);border:none;box-shadow:var(--neu-out-lg)}
+
+/* — Insights (automatyczne podsumowanie): pastelowa, lekko wypukła karta — */
+[data-theme="neu-dark"] .insights-card{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-dark"] .insights-card .ic-head{color:var(--acc)}
+
+/* — Karty outletów: jak KPI — wypukłe, bez krawędzi — */
+[data-theme="neu-dark"] .oc{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-dark"] .oc:hover{box-shadow:var(--neu-out-lg)}
+[data-theme="neu-dark"] .oc-rank{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+
+/* — Pasek postępu: wgłębiony rowek z wypełnieniem w kolorze statusu — */
+[data-theme="neu-dark"] .prog{background:var(--sur);box-shadow:var(--neu-in-sm)}
+[data-theme="neu-dark"] .prog-fill{box-shadow:0 0 6px rgba(0,0,0,.4)}
+
+/* — Statystyki w karcie outletu: lekko wgłębione "kafelki" zagnieżdżone w karcie — */
+[data-theme="neu-dark"] .oc-stat{background:var(--sur);box-shadow:var(--neu-in-sm)}
+
+/* — Alerty: pastelowy ton statusu, miękki cień zamiast twardej kreski z boku — */
+[data-theme="neu-dark"] .alert{border-left:none;background:var(--sur);box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .alert.da{color:#ff8a8a}
+[data-theme="neu-dark"] .alert.wa{color:#ffbf6b}
+[data-theme="neu-dark"] .alert.ok{color:#5eeaa8}
+
+/* — Drobne odznaki (badge/goal-badge/wx-badge): płaskie, bez krawędzi — */
+[data-theme="neu-dark"] .badge,
+[data-theme="neu-dark"] .goal-badge,
+[data-theme="neu-dark"] .wx-badge{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+
+/* — Puste stany: wypukła karta zamiast przerywanej ramki — */
+[data-theme="neu-dark"] .empty-hero{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+
+/* — Globalna wyszukiwarka: wypukły panel, wgłębione pole tekstowe — */
+[data-theme="neu-dark"] #search-panel{background:var(--sur);border:none;box-shadow:var(--neu-out-lg)}
+[data-theme="neu-dark"] .search-input-row{background:var(--sur);border:none;box-shadow:var(--neu-in-sm)}
+[data-theme="neu-dark"] .sr-item:hover{background:var(--sur);box-shadow:var(--neu-flat)}
+
+/* ══════════════════════════════════════════════════════════
+   ETAP 3/6: TABELE I FORMULARZE — Wprowadź dane, Dane dzienne,
+   tabele w Analityce/Porównaniach/Budżecie.
+   Priorytet: czytelność liczb finansowych > czysta estetyka —
+   dane liczbowe zachowują pełny kontrast, zmienia się tylko
+   "opakowanie" (cienie zamiast krawędzi, karty zamiast linii).
+═══════════════════════════════════════════════════════════ */
+
+/* — Ogólna karta (.card) — wypukła, bez krawędzi, jak KPI/outlety — */
+[data-theme="neu-dark"] .card{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+
+/* — Nagłówek sekcji w karcie: bez twardej linii pod spodem — */
+[data-theme="neu-dark"] .fsect{border-bottom:none;padding-bottom:2px}
+[data-theme="neu-dark"] .goal-item{border-bottom:none}
+
+/* — Tabele: opakowujący div dostaje wgłębienie ("taca"), nagłówek wyróżniony
+   delikatnym uniesieniem, wiersze oddzielone bardzo miękką linią
+   (nie znikają całkiem — przy gęstych danych liczbowych potrzebna
+   jest jakaś pozioma prowadnica dla oka). Tabele .det (bez wrappera)
+   polegają na cieniu rodzica .card — box-shadow bezpośrednio na
+   <table border-collapse> bywa przycinany w niektórych przeglądarkach — */
+[data-theme="neu-dark"] .tbl-wrap{background:var(--sur);border:none;box-shadow:var(--neu-in)}
+[data-theme="neu-dark"] .tbl-wrap table{background:transparent}
+[data-theme="neu-dark"] thead th,
+[data-theme="neu-dark"] .det th{background:var(--sur2);border-bottom:none;box-shadow:0 1px 0 rgba(255,255,255,.04),0 2px 4px rgba(0,0,0,.35)}
+[data-theme="neu-dark"] tbody td,
+[data-theme="neu-dark"] .det td{border-bottom:1px solid rgba(255,255,255,.06)}
+[data-theme="neu-dark"] tbody tr:hover td{background:rgba(255,255,255,.04)}
+
+/* — Pola formularza: wgłębione (uzupełnienie Etapu 1 o warianty specyficzne) — */
+[data-theme="neu-dark"] .fi[type="number"]{font-family:var(--fb)}
+[data-theme="neu-dark"] .ni{background:var(--sur);border:none;color:var(--tx);box-shadow:var(--neu-in-sm)}
+[data-theme="neu-dark"] .ni:focus{box-shadow:var(--neu-in-sm),0 0 0 2px rgba(var(--acc-rgb),.35)}
+
+/* — Zakładki segmentowe: wgłębiona "taca", aktywna zakładka wypukła
+   ponad nią — klasyczny neumorficzny segmented control — */
+[data-theme="neu-dark"] .tabs{background:var(--sur);box-shadow:var(--neu-in-sm);padding:4px}
+[data-theme="neu-dark"] .tab.on{background:var(--sur);box-shadow:var(--neu-out-sm)}
+
+/* — Tablica rekordów: karty jak outlety, nagłówek bez linii — */
+[data-theme="neu-dark"] .record-card{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-dark"] .record-head{background:var(--sur2);border-bottom:none;box-shadow:0 1px 0 rgba(255,255,255,.04)}
+[data-theme="neu-dark"] .record-row{border-bottom:1px solid rgba(255,255,255,.06)}
+
+
+/* ══════════════════════════════════════════════════════════
    ETAP 4/6: MODALE I PICKERY — wszystkie okna dialogowe,
    wybór miesiąca/dnia, popovery.
 ═══════════════════════════════════════════════════════════ */
@@ -1192,6 +1360,7 @@ textarea.fi{resize:vertical}
           <div class="tdot" data-t="arctic" onclick="setTheme('arctic')" title="Arctic"></div>
           <div class="tdot" data-t="parchment" onclick="setTheme('parchment')" title="Parchment"></div>
           <div class="tdot" data-t="neu-light" onclick="setTheme('neu-light')" title="Neu Light"></div>
+          <div class="tdot" data-t="neu-dark" onclick="setTheme('neu-dark')" title="Neu Dark"></div>
         </div>
       </div>
       <div class="s-row">
@@ -3497,7 +3666,7 @@ function setTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   document.querySelectorAll('.tdot').forEach(function(d){d.classList.toggle('on',d.getAttribute('data-t')===t)});
   // Sync PWA theme-color
-  var themeColors={obsidian:'#05070f',ember:'#090704',arctic:'#f0f9ff',parchment:'#faf7f0','neu-light':'#e9edf3'};
+  var themeColors={obsidian:'#05070f',ember:'#090704',arctic:'#f0f9ff',parchment:'#faf7f0','neu-light':'#e9edf3','neu-dark':'#1b1e25'};
   var mt=document.getElementById('meta-theme');
   if(mt)mt.setAttribute('content',themeColors[t]||'#05070f');
   renderCur();
@@ -6741,7 +6910,7 @@ function initPWA(){
   var ai=document.getElementById('pwa-apple-icon');if(ai)ai.href=icon;
 
   // Web App Manifest (blob URL — działa bez pliku zewnętrznego)
-  var themeColors={obsidian:'#05070f',ember:'#090704',arctic:'#f0f9ff',parchment:'#faf7f0','neu-light':'#e9edf3'};
+  var themeColors={obsidian:'#05070f',ember:'#090704',arctic:'#f0f9ff',parchment:'#faf7f0','neu-light':'#e9edf3','neu-dark':'#1b1e25'};
   var bgColor=themeColors[S.theme]||'#05070f';
   var startUrl=location.pathname||'./';
   var manifest={
