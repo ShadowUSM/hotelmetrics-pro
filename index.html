@@ -858,6 +858,50 @@ textarea.fi{resize:vertical}
 [data-theme="neu-light"] #search-panel{background:var(--sur);border:none;box-shadow:var(--neu-out-lg)}
 [data-theme="neu-light"] .search-input-row{background:var(--sur);border:none;box-shadow:var(--neu-in-sm)}
 [data-theme="neu-light"] .sr-item:hover{background:var(--sur);box-shadow:var(--neu-flat)}
+
+/* ══════════════════════════════════════════════════════════
+   ETAP 3/6: TABELE I FORMULARZE — Wprowadź dane, Dane dzienne,
+   tabele w Analityce/Porównaniach/Budżecie.
+   Priorytet: czytelność liczb finansowych > czysta estetyka —
+   dane liczbowe zachowują pełny kontrast, zmienia się tylko
+   "opakowanie" (cienie zamiast krawędzi, karty zamiast linii).
+═══════════════════════════════════════════════════════════ */
+
+/* — Ogólna karta (.card) — wypukła, bez krawędzi, jak KPI/outlety — */
+[data-theme="neu-light"] .card{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+
+/* — Nagłówek sekcji w karcie: bez twardej linii pod spodem — */
+[data-theme="neu-light"] .fsect{border-bottom:none;padding-bottom:2px}
+[data-theme="neu-light"] .goal-item{border-bottom:none}
+
+/* — Tabele: opakowujący div dostaje wgłębienie ("taca"), nagłówek wyróżniony
+   delikatnym uniesieniem, wiersze oddzielone bardzo miękką linią
+   (nie znikają całkiem — przy gęstych danych liczbowych potrzebna
+   jest jakaś pozioma prowadnica dla oka). Tabele .det (bez wrappera)
+   polegają na cieniu rodzica .card — box-shadow bezpośrednio na
+   <table border-collapse> bywa przycinany w niektórych przeglądarkach — */
+[data-theme="neu-light"] .tbl-wrap{background:var(--sur);border:none;box-shadow:var(--neu-in)}
+[data-theme="neu-light"] .tbl-wrap table{background:transparent}
+[data-theme="neu-light"] thead th,
+[data-theme="neu-light"] .det th{background:var(--sur2);border-bottom:none;box-shadow:0 1px 0 rgba(255,255,255,.7),0 2px 4px rgba(163,177,198,.25)}
+[data-theme="neu-light"] tbody td,
+[data-theme="neu-light"] .det td{border-bottom:1px solid rgba(163,177,198,.18)}
+[data-theme="neu-light"] tbody tr:hover td{background:rgba(255,255,255,.5)}
+
+/* — Pola formularza: wgłębione (uzupełnienie Etapu 1 o warianty specyficzne) — */
+[data-theme="neu-light"] .fi[type="number"]{font-family:var(--fb)}
+[data-theme="neu-light"] .ni{background:var(--sur);border:none;color:var(--tx);box-shadow:var(--neu-in-sm)}
+[data-theme="neu-light"] .ni:focus{box-shadow:var(--neu-in-sm),0 0 0 2px rgba(var(--acc-rgb),.35)}
+
+/* — Zakładki segmentowe: wgłębiona "taca", aktywna zakładka wypukła
+   ponad nią — klasyczny neumorficzny segmented control — */
+[data-theme="neu-light"] .tabs{background:var(--sur);box-shadow:var(--neu-in-sm);padding:4px}
+[data-theme="neu-light"] .tab.on{background:var(--sur);box-shadow:var(--neu-out-sm)}
+
+/* — Tablica rekordów: karty jak outlety, nagłówek bez linii — */
+[data-theme="neu-light"] .record-card{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-light"] .record-head{background:var(--sur2);border-bottom:none;box-shadow:0 1px 0 rgba(255,255,255,.6)}
+[data-theme="neu-light"] .record-row{border-bottom:1px solid rgba(163,177,198,.18)}
 </style>
 </head>
 
