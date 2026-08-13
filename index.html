@@ -1876,6 +1876,21 @@ function weatherVerdictText(diffPct){
   return {icon:'🌧️',text:'Zła pogoda wyraźnie sprzyjała',cls:'wxins-neg'};
 }
 
+// Gdy pogoda w miesiącu jest zbyt jednolita, żeby ocenić jej wpływ na sprzedaż —
+// zamiast oceny pokazujemy czysto opisowe zestawienie: ile dni było jakich.
+var WX_CAT_ORDER=['Słonecznie','Pochmurno','Deszcz','Śnieg','Mgła','Burza','Wietrznie'];
+var WX_CAT_ADJ_SG={'Słonecznie':'słoneczny','Pochmurno':'pochmurny','Deszcz':'deszczowy','Śnieg':'śnieżny','Mgła':'z mgłą','Burza':'burzowy','Wietrznie':'wietrzny'};
+var WX_CAT_ADJ_PL={'Słonecznie':'słonecznych','Pochmurno':'pochmurnych','Deszcz':'deszczowych','Śnieg':'śnieżnych','Mgła':'z mgłą','Burza':'burzowych','Wietrznie':'wietrznych'};
+
+function weatherCategoryDescriptionLine(catCounts){
+  var parts=WX_CAT_ORDER.filter(function(c){return catCounts[c]}).map(function(c){
+    var n=catCounts[c];
+    var adj=n===1?WX_CAT_ADJ_SG[c]:WX_CAT_ADJ_PL[c];
+    return n+' '+(n===1?'dzień':'dni')+' '+adj;
+  });
+  return parts.join(', ')+'.';
+}
+
 // Krótka linijka "komentarza synoptyka" do karty podsumowania miesiąca na Dashboard
 function weatherInsightSummaryLine(insight){
   if(insight.status==='no-location')return null;
@@ -1883,7 +1898,7 @@ function weatherInsightSummaryLine(insight){
   if(insight.status==='insufficient')return {empty:true,text:'Za mało dni z jednocześnie wpisaną sprzedażą i pogodą ('+insight.daysAvailable+') — uzupełnij więcej dni w pod-zakładce Dzienne.'};
 
   var withData=insight.perOutlet.filter(function(x){return x.verdict!=='insufficient'});
-  if(!withData.length)return {empty:true,text:'Zbyt mało zróżnicowanej pogody w tym miesiącu, aby ocenić jej wpływ na poszczególne outlety.'};
+  if(!withData.length)return {empty:false,descOnly:true,text:'Pogoda tego miesiąca: '+weatherCategoryDescriptionLine(insight.catCounts)};
 
   var positive=withData.filter(function(x){return x.diffPct>=5});
   var negative=withData.filter(function(x){return x.diffPct<=-5});
@@ -1917,17 +1932,29 @@ function openWeatherInsightModal(){
 
   h+='<p class="hs-p" style="margin:12px 0">Na podstawie '+insight.daysAnalyzed+' dni tego miesiąca z jednocześnie wpisaną sprzedażą i dopasowaną pogodą (źródło: pod-zakładka Dzienne).</p>';
 
-  h+='<div class="wxins-list">';
-  insight.perOutlet.forEach(function(row){
-    if(row.verdict==='insufficient'){
-      h+='<div class="wxins-row"><div class="wxins-row-name">'+row.name+'</div><div class="wxins-row-verdict wxins-neutral">Za mało zróżnicowanej pogody</div></div>';
-      return;
-    }
-    var v=weatherVerdictText(row.diffPct);
-    h+='<div class="wxins-row"><div class="wxins-row-name">'+row.name+'</div>';
-    h+='<div class="wxins-row-verdict '+v.cls+'">'+v.icon+' '+v.text+' ('+(row.diffPct>=0?'+':'')+row.diffPct.toFixed(0)+'%)</div></div>';
-  });
-  h+='</div>';
+  var withData=insight.perOutlet.filter(function(x){return x.verdict!=='insufficient'});
+  if(!withData.length){
+    // Zbyt jednolita pogoda, żeby ocenić wpływ — pokazujemy czysty opis zamiast oceny
+    h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">';
+    WX_CAT_ORDER.filter(function(c){return insight.catCounts[c]}).forEach(function(c){
+      var n=insight.catCounts[c];
+      h+='<span class="wx-badge">'+weatherCategoryIcon(c)+' '+c+': '+n+' '+(n===1?'dzień':'dni')+'</span>';
+    });
+    h+='</div>';
+    h+='<p class="hs-p" style="color:var(--tx3);font-size:.74rem">Pogoda w tym miesiącu była zbyt jednolita, aby ocenić jej wpływ na poszczególne outlety — potrzebne są zarówno dni słoneczne, jak i dni z gorszą pogodą do porównania. Powyżej samo zestawienie warunków.</p>';
+  } else {
+    h+='<div class="wxins-list">';
+    insight.perOutlet.forEach(function(row){
+      if(row.verdict==='insufficient'){
+        h+='<div class="wxins-row"><div class="wxins-row-name">'+row.name+'</div><div class="wxins-row-verdict wxins-neutral">Za mało zróżnicowanej pogody</div></div>';
+        return;
+      }
+      var v=weatherVerdictText(row.diffPct);
+      h+='<div class="wxins-row"><div class="wxins-row-name">'+row.name+'</div>';
+      h+='<div class="wxins-row-verdict '+v.cls+'">'+v.icon+' '+v.text+' ('+(row.diffPct>=0?'+':'')+row.diffPct.toFixed(0)+'%)</div></div>';
+    });
+    h+='</div>';
+  }
 
   body.innerHTML=h;
   openM('m-weather-insight');
