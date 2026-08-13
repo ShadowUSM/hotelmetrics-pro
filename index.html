@@ -2839,8 +2839,8 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.5.0';
-var APP_BUILD_DATE='2026-08-12';
+var APP_VERSION='3.7.0';
+var APP_BUILD_DATE='2026-08-13';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
 // — MINOR (środkowa cyfra) rośnie przy nowych funkcjach / większych zmianach: 2.6.0 → 2.7.0
@@ -2848,6 +2848,19 @@ var APP_BUILD_DATE='2026-08-12';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.7.0',date:'2026-08-13',changes:[
+    'Nowy raport PDF: Pogoda — sprzedaż wg warunków pogodowych, łącznie i per outlet',
+    'Nowy raport PDF: Trafność budżetowania — średnie odchylenie prognoza/rzeczywistość per outlet z oceną',
+    'Nowy raport PDF: Sezonowość — wybrany miesiąc vs średnia z tych samych miesięcy w poprzednich latach',
+    'Nowy raport PDF: Dzień po dniu — pełne zestawienie dzienne miesiąca per outlet wraz z pogodą',
+    'Nowy raport PDF: Analiza zaawansowana — Kwadranty (wzrost×udział) i rozkład odchyleń od budżetu w jednym dokumencie',
+    'Wszystkie nowe raporty korzystają z tego samego jasnego, kontrastowego stylu co pozostałe raporty PDF'
+  ]},
+  {v:'3.6.0',date:'2026-08-12',changes:[
+    'Ujednolicono wygląd wszystkich raportów PDF (Zarząd, Manager, YTD, Heatmapa i Rekordy) do jednego, jasnego, kontrastowego stylu — cienki granatowy pasek nagłówka zamiast pełnego ciemnego tła',
+    'Raport „Zarząd" przeprojektowany z ciemnego motywu na jasny — oszczędniejszy w druku i czytelniejszy na papierze',
+    'Wspólne funkcje pomocnicze do generowania raportów PDF — spójność między raportami obecnymi i przyszłymi'
+  ]},
   {v:'3.5.0',date:'2026-08-12',changes:[
     'Interaktywna mapa wyboru lokalizacji obiektu (Leaflet + OpenStreetMap) — dostępna przy tworzeniu nowego obiektu i w zmianie lokalizacji istniejącego',
     'Kliknięcie na mapie ustawia dokładne współrzędne GPS zamiast opierać się na dopasowaniu po samej nazwie miasta — eliminuje ryzyko pomyłki między miastami o tej samej nazwie w różnych regionach',
@@ -4457,6 +4470,11 @@ function renderExport(){
   h+=eCard('📊','PDF — Zarząd','KPI + tabela + wykres','pdfMgmt()');
   h+=eCard('👤','PDF — Manager','Analiza dzienna per outlet','pdfMgr()');
   h+=eCard('📈','PDF — YTD','Wyniki narastające roczne','pdfYTD()');
+  h+=eCard('🌤️','PDF — Pogoda','Sprzedaż wg warunków pogodowych','pdfWeatherReport()');
+  h+=eCard('🎯','PDF — Trafność','Trafność budżetowania per outlet','pdfAccuracyReport()');
+  h+=eCard('📆','PDF — Sezonowość','Miesiąc vs poprzednie lata','pdfSeasonalityReport()');
+  h+=eCard('📋','PDF — Dzień po dniu','Pełne zestawienie dzienne','pdfDailyDetailReport()');
+  h+=eCard('🧭','PDF — Analiza zaawansowana','Kwadranty + Odchylenia','pdfAdvancedReport()');
   h+='</div>';
 
   // ── RAPORT PDF: HEATMAPA + REKORDY ──
@@ -5259,6 +5277,53 @@ function weatherPdfText(w){
   return dePL(t);
 }
 
+/* ═══════════════════════════════════════════
+   WSPÓLNY STYL RAPORTÓW PDF — jasny, kontrastowy, oszczędny w druku
+   Wszystkie raporty (Zarząd, Manager, YTD, Heatmapa+Rekordy i kolejne)
+   korzystają z tych samych kolorów i tego samego nagłówka/stopki,
+   żeby wyglądały spójnie i dobrze się drukowały (biały papier, ciemny tekst,
+   tylko cienki granatowy pasek nagłówka zamiast pełnego ciemnego tła).
+═══════════════════════════════════════════ */
+var PDF_STYLE={
+  headerBg:[30,40,60],   headerText:[255,255,255], headerSub:[190,205,228],
+  bodyText:[25,25,25],   altRow:[245,247,250],     statusBg:[240,245,255],
+  statusLine:[205,215,232], footerText:[120,130,150], footerLine:[205,215,232],
+  good:[0,140,60], warn:[185,110,0], bad:[190,20,45], accentBox:[240,245,255]
+};
+
+function pdfDrawHeader(doc,pw,subtitle,rightText){
+  doc.setFillColor.apply(doc,PDF_STYLE.headerBg);doc.rect(0,0,pw,22,'F');
+  doc.setTextColor.apply(doc,PDF_STYLE.headerText);doc.setFontSize(15);doc.setFont('helvetica','bold');
+  doc.text('HotelMetrics Pro',10,9);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor.apply(doc,PDF_STYLE.headerSub);
+  doc.text(dePL(subtitle),10,16);
+  if(rightText)doc.text(dePL(rightText),pw-10,16,{align:'right'});
+}
+
+function pdfDrawFooter(doc,pw,ph,extra){
+  doc.setDrawColor.apply(doc,PDF_STYLE.footerLine);doc.line(10,ph-10,pw-10,ph-10);
+  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor.apply(doc,PDF_STYLE.footerText);
+  doc.text('HotelMetrics Pro | Wygenerowano: '+new Date().toLocaleString('pl-PL'),10,ph-5);
+  if(extra)doc.text(dePL(extra),pw-10,ph-5,{align:'right'});
+}
+
+// Lekkie, jasne kafelki KPI (biale tlo, cienka ramka, kolorowy akcent na gorze) —
+// zastepuja dawne ciemne kafelki, zeby raport dobrze wygladal takze wydrukowany.
+function pdfDrawKpiBoxes(doc,kpis,startY,pw,perRow){
+  perRow=perRow||3;
+  var gap=4,boxW=(pw-20-(perRow-1)*gap)/perRow,boxH=15;
+  kpis.forEach(function(k,i){
+    var col=i%perRow,row=Math.floor(i/perRow),x=10+col*(boxW+gap),y=startY+row*(boxH+gap);
+    doc.setFillColor.apply(doc,PDF_STYLE.accentBox);doc.roundedRect(x,y,boxW,boxH,1.5,1.5,'F');
+    doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.roundedRect(x,y,boxW,boxH,1.5,1.5,'S');
+    doc.setFontSize(6.8);doc.setTextColor(90,100,120);doc.setFont('helvetica','normal');
+    doc.text(dePL(k[0]),x+3,y+5.5);
+    doc.setFontSize(10);doc.setTextColor(20,30,55);doc.setFont('helvetica','bold');
+    doc.text(dePL(k[1]),x+3,y+11.5);
+  });
+  return startY+Math.ceil(kpis.length/perRow)*(boxH+gap);
+}
+
 function pdfHeatmapRecords(){
   var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
   if(!S.pid){toast('Wybierz obiekt','er');return;}
@@ -5273,16 +5338,10 @@ function pdfHeatmapRecords(){
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
 
-  // ── HEADER ──
-  doc.setFillColor(30,40,60);doc.rect(0,0,pw,22,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(15);doc.setFont('helvetica','bold');
-  doc.text('HotelMetrics Pro',10,9);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(180,200,230);
-  doc.text('Raport: Heatmapa i Tablica rekordow',10,16);
-  doc.text(dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'),pw-10,16,{align:'right'});
+  pdfDrawHeader(doc,pw,'Raport: Heatmapa i Tablica rekordow',dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
 
-  doc.setFillColor(240,245,255);doc.rect(0,22,pw,10,'F');
-  doc.setDrawColor(200,210,230);doc.line(0,32,pw,32);
+  doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
+  doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
   doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
   doc.text('Zakres raportu Heatmapy: '+from+' do '+to+' ('+spanDays+' dni)',10,29);
 
@@ -5293,9 +5352,9 @@ function pdfHeatmapRecords(){
   });
   doc.autoTable({
     startY:38,head:[['Data','Sprzedaz netto','Zrodlo','Pogoda']],body:body1,theme:'grid',
-    headStyles:{fillColor:[30,40,60],textColor:[255,255,255],fontStyle:'bold',fontSize:8},
-    bodyStyles:{textColor:[40,40,40],fontSize:7.5},
-    alternateRowStyles:{fillColor:[245,247,250]},
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7.5},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
     margin:{left:10,right:10}
   });
 
@@ -5318,15 +5377,14 @@ function pdfHeatmapRecords(){
   });
   doc.autoTable({
     startY:startY2+9,head:[['Outlet','Miejsce','Data i wynik','Pogoda']],body:recRows,theme:'grid',
-    headStyles:{fillColor:[30,40,60],textColor:[255,255,255],fontStyle:'bold',fontSize:8},
-    bodyStyles:{textColor:[40,40,40],fontSize:7.5},
-    alternateRowStyles:{fillColor:[245,247,250]},
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7.5},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
     margin:{left:10,right:10},
     didParseCell:function(dt){if(dt.column.index===0&&dt.cell.raw)dt.cell.styles.fontStyle='bold';}
   });
 
-  doc.setFontSize(7);doc.setTextColor(150,150,150);
-  doc.text('HotelMetrics Pro | '+new Date().toLocaleString('pl-PL'),10,ph-5);
+  pdfDrawFooter(doc,pw,ph);
   doc.save('Raport_Heatmapa_Rekordy_'+from+'_'+to+'.pdf');
   toast('Raport PDF wygenerowany','ok');haptic(10);
 }
@@ -5337,17 +5395,45 @@ function pdfMgmt(){
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var d=getMD(S.pid,S.month)||{},M=calcM(S.outlets,d)||{_t:{b:0,a:0,avg:0,proj:0,DR:0,M:dim(S.month),DL:dim(S.month)}};
   var T=M._t,prop=S.props.find(function(p){return p.id===S.pid}),pw=210,ph=297;
-  doc.setFillColor(5,7,15);doc.rect(0,0,pw,20,'F');
-  doc.setTextColor(0,212,255);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('HotelMetrics Pro',10,8);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(143,163,190);doc.text('Raport zarzad - '+mLabelX(S.month),10,14);
-  doc.setTextColor(180,180,180);doc.text(dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'),pw-10,14,{align:'right'});
+
+  pdfDrawHeader(doc,pw,'Raport zarzad - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+
   var kpis=[['Wynik netto',fmt(T.a,true)],['Budzet',T.b?fmt(T.b,true):'-'],['Realizacja',T.pct!==null?(T.pct*100).toFixed(1)+'%':'-'],['Sr./dzien',fmt(T.avg,true)],['Prognoza',fmt(T.proj,true)],['Break-even',T.b&&T.avg>0?'dzien '+Math.ceil(T.b/T.avg):'-']];
-  kpis.forEach(function(k,i){var col=i%3,row=Math.floor(i/3),x=10+col*63,y=24+row*17;doc.setFillColor(13,17,23);doc.roundedRect(x,y,60,14,2,2,'F');doc.setFontSize(7);doc.setTextColor(143,163,190);doc.text(k[0],x+3,y+5);doc.setFontSize(9.5);doc.setTextColor(232,234,240);doc.setFont('helvetica','bold');doc.text(k[1],x+3,y+11)});
+  var y=pdfDrawKpiBoxes(doc,kpis,28,pw,3)+4;
+
   var rows=S.outlets.map(function(o){var k=okey(o.name),m=M[k]||{};return[dePL(o.name),fmt(m.b||0),fmt(m.a||0),m.pct!=null?(m.pct*100).toFixed(1)+'%':'-',fmt(m.avg||0),fmt(m.proj||0),m.be?'d.'+m.be:'-']});
   rows.push(['RAZEM',fmt(T.b||0),fmt(T.a),T.pct!=null?(T.pct*100).toFixed(1)+'%':'-',fmt(T.avg),fmt(T.proj),'-']);
-  doc.autoTable({startY:60,head:[['Outlet','Budzet','Wynik','Real.%','Sr./dz.','Prognoza','B-E']],body:rows,theme:'grid',headStyles:{fillColor:[13,17,23],textColor:[0,212,255],fontStyle:'bold',fontSize:8},bodyStyles:{textColor:[232,234,240],fillColor:[13,17,23],fontSize:8,lineColor:[30,45,66]},alternateRowStyles:{fillColor:[19,27,39]},didParseCell:function(dt){if(dt.row.index===rows.length-1){dt.cell.styles.fontStyle='bold';dt.cell.styles.textColor=[0,212,255];}}});
-  try{var cv=document.getElementById('ch-bar');if(cv){var img=cv.toDataURL('image/png'),y2=doc.lastAutoTable.finalY+5;if(y2+50<ph-10){doc.setFontSize(8);doc.setTextColor(143,163,190);doc.text('Wyniki vs Budzet',10,y2+4);doc.addImage(img,'PNG',10,y2+7,pw-20,45);}}}catch(e){}
-  doc.setFontSize(7);doc.setTextColor(80,100,120);doc.text('HotelMetrics Pro | '+new Date().toLocaleString('pl-PL'),10,ph-5);
+  doc.autoTable({
+    startY:y,head:[['Outlet','Budzet','Wynik','Real.%','Sr./dz.','Prognoza','B-E']],body:rows,theme:'grid',
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8,lineColor:PDF_STYLE.statusLine},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    columnStyles:{3:{halign:'center'}},
+    didParseCell:function(dt){
+      if(dt.section==='body'&&dt.column.index===3&&dt.row.index<rows.length-1){
+        var v=parseFloat(dt.cell.raw);
+        if(v>=100){dt.cell.styles.textColor=PDF_STYLE.good;dt.cell.styles.fontStyle='bold';}
+        else if(v>=75){dt.cell.styles.textColor=PDF_STYLE.warn;dt.cell.styles.fontStyle='bold';}
+        else if(v>0){dt.cell.styles.textColor=PDF_STYLE.bad;dt.cell.styles.fontStyle='bold';}
+      }
+      if(dt.row.index===rows.length-1){dt.cell.styles.fontStyle='bold';dt.cell.styles.fillColor=PDF_STYLE.statusBg;dt.cell.styles.textColor=[20,30,55];}
+    }
+  });
+
+  try{
+    var cv=document.getElementById('ch-bar');
+    if(cv){
+      var img=cv.toDataURL('image/png'),y2=doc.lastAutoTable.finalY+8;
+      if(y2+55<ph-14){
+        doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
+        doc.text('Wyniki vs Budzet',10,y2+2);
+        doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.roundedRect(10,y2+5,pw-20,48,2,2,'S');
+        doc.addImage(img,'PNG',12,y2+7,pw-24,44);
+      }
+    }
+  }catch(e){}
+
+  pdfDrawFooter(doc,pw,ph);
   doc.save('Raport_Zarzad_'+S.month+'.pdf');toast('PDF zarzad','ok');
 }
 
@@ -5359,17 +5445,12 @@ function pdfMgr(){
   var T=M._t,prop=S.props.find(function(p){return p.id===S.pid}),pw=210,ph=297;
   var dr=d.dr||1,DM=d.dim||30,com=dePL(d.c||'');
 
-  // ── HEADER (ciemny pasek, bialy tekst) ──
-  doc.setFillColor(30,40,60);doc.rect(0,0,pw,22,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(15);doc.setFont('helvetica','bold');
-  doc.text('HotelMetrics Pro',10,9);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(180,200,230);
-  doc.text('Raport operacyjny managera - '+mLabelX(S.month),10,16);
-  doc.text(dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'),pw-10,16,{align:'right'});
+  // ── HEADER (wspólny styl) ──
+  pdfDrawHeader(doc,pw,'Raport operacyjny managera - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
 
   // ── PASEK STATUSU ──
-  doc.setFillColor(240,245,255);doc.rect(0,22,pw,10,'F');
-  doc.setDrawColor(200,210,230);doc.line(0,32,pw,32);
+  doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
+  doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
   doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
   doc.text('Stan na dzien: '+dr+' z '+DM+',  Pozostalo: '+(DM-dr)+' dni',10,29);
   if(com){
@@ -5396,20 +5477,20 @@ function pdfMgr(){
     head:[['Outlet','Wynik','Budzet','Real.%','Sr./dz.','Wymagana sr.','Prognoza','Break-even']],
     body:rows,
     theme:'striped',
-    headStyles:{fillColor:[30,40,60],textColor:[255,255,255],fontStyle:'bold',fontSize:7.5,cellPadding:3},
-    bodyStyles:{textColor:[20,20,20],fontSize:7.5,cellPadding:3},
-    alternateRowStyles:{fillColor:[245,248,255]},
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:7.5,cellPadding:3},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7.5,cellPadding:3},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
     columnStyles:{0:{fontStyle:'bold'},3:{halign:'center'},7:{halign:'center'}},
     didParseCell:function(dt){
       if(dt.section==='body'&&dt.column.index===3&&dt.row.index<rows.length-1){
         var v=parseFloat(dt.cell.raw);
-        if(v>=100){dt.cell.styles.textColor=[0,130,60];dt.cell.styles.fontStyle='bold';}
-        else if(v>=75){dt.cell.styles.textColor=[180,100,0];dt.cell.styles.fontStyle='bold';}
-        else if(v>0){dt.cell.styles.textColor=[200,0,40];dt.cell.styles.fontStyle='bold';}
+        if(v>=100){dt.cell.styles.textColor=PDF_STYLE.good;dt.cell.styles.fontStyle='bold';}
+        else if(v>=75){dt.cell.styles.textColor=PDF_STYLE.warn;dt.cell.styles.fontStyle='bold';}
+        else if(v>0){dt.cell.styles.textColor=PDF_STYLE.bad;dt.cell.styles.fontStyle='bold';}
       }
       if(dt.row.index===rows.length-1){
         dt.cell.styles.fontStyle='bold';
-        dt.cell.styles.fillColor=[220,230,245];
+        dt.cell.styles.fillColor=PDF_STYLE.statusBg;
         dt.cell.styles.textColor=[20,20,80];
       }
     }
@@ -5421,17 +5502,17 @@ function pdfMgr(){
   if(y+S.outlets.length*10+16<ph-20){
     doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
     doc.text('Realizacja budzetu — postep',10,y);y+=5;
-    doc.setDrawColor(210,215,225);doc.line(10,y,pw-10,y);y+=4;
+    doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(10,y,pw-10,y);y+=4;
     S.outlets.forEach(function(o){
       var k=okey(o.name),m=M[k]||{};
       if(!m.b)return;
       var pct=Math.min(m.pct||0,1),barW=(pw-60)*pct;
-      var c=pct>=1?[0,160,80]:pct>=0.75?[200,130,0]:[200,30,50];
+      var c=pct>=1?PDF_STYLE.good:pct>=0.75?PDF_STYLE.warn:PDF_STYLE.bad;
       doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(40,40,40);
       doc.text(dePL(o.name),10,y+3.5);
       doc.setFillColor(230,235,245);doc.roundedRect(55,y,pw-65,4,1,1,'F');
-      if(barW>0){doc.setFillColor(c[0],c[1],c[2]);doc.roundedRect(55,y,barW,4,1,1,'F');}
-      doc.setFontSize(7);doc.setTextColor(c[0],c[1],c[2]);doc.setFont('helvetica','bold');
+      if(barW>0){doc.setFillColor.apply(doc,c);doc.roundedRect(55,y,barW,4,1,1,'F');}
+      doc.setFontSize(7);doc.setTextColor.apply(doc,c);doc.setFont('helvetica','bold');
       doc.text((m.pct*100).toFixed(1)+'%',pw-8,y+3.5,{align:'right'});
       y+=8;
     });
@@ -5442,8 +5523,8 @@ function pdfMgr(){
   if(y<ph-25){
     var allD=getAllMD(S.pid),yr=S.month.split('-')[0];
     var ytd=Object.entries(allD).filter(function(e){return e[0].startsWith(yr)}).reduce(function(s,e){return s+Object.values(e[1].a||{}).reduce(function(x,yv){return x+yv},0)},0);
-    doc.setFillColor(240,245,255);doc.roundedRect(10,y,pw-20,12,2,2,'F');
-    doc.setDrawColor(180,200,230);doc.roundedRect(10,y,pw-20,12,2,2,'S');
+    doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.roundedRect(10,y,pw-20,12,2,2,'F');
+    doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.roundedRect(10,y,pw-20,12,2,2,'S');
     doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(30,40,100);
     doc.text('Suma narastajaca YTD '+yr+':',14,y+7.5);
     doc.setFontSize(10);doc.setTextColor(0,100,180);
@@ -5458,19 +5539,14 @@ function pdfMgr(){
     doc.text('Alerty:',10,y);y+=5;
     al.forEach(function(a){
       if(y>ph-15)return;
-      var c=a.t==='da'?[180,0,30]:a.t==='ok'?[0,140,60]:[160,100,0];
-      doc.setFillColor(c[0],c[1],c[2]);doc.circle(13,y-1,1.5,'F');
+      var c=a.t==='da'?PDF_STYLE.bad:a.t==='ok'?PDF_STYLE.good:PDF_STYLE.warn;
+      doc.setFillColor.apply(doc,c);doc.circle(13,y-1,1.5,'F');
       doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(30,30,30);
       doc.text(dePL(a.msg),17,y);y+=5;
     });
   }
 
-  // ── FOOTER ──
-  doc.setDrawColor(200,210,230);doc.line(10,ph-10,pw-10,ph-10);
-  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(120,130,150);
-  doc.text('HotelMetrics Pro | Wygenerowano: '+new Date().toLocaleString('pl-PL'),10,ph-5);
-  doc.text('Strona 1',pw-10,ph-5,{align:'right'});
-
+  pdfDrawFooter(doc,pw,ph,'Strona 1');
   doc.save('Raport_Manager_'+S.month+'.pdf');toast('PDF manager','ok');
 }
 
@@ -5478,17 +5554,339 @@ function pdfYTD(){
   var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
   if(!S.pid){toast('Wybierz obiekt','er');return;}
   var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  var allD=getAllMD(S.pid),prop=S.props.find(function(p){return p.id===S.pid}),yr=S.month.split('-')[0],pw=297;
-  doc.setFillColor(0,68,90);doc.rect(0,0,pw,18,'F');
-  doc.setTextColor(0,212,255);doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('HotelMetrics Pro - YTD '+yr,10,7);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(143,220,240);doc.text(dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'),10,14);
+  var allD=getAllMD(S.pid),prop=S.props.find(function(p){return p.id===S.pid}),yr=S.month.split('-')[0],pw=297,ph=210;
+
+  pdfDrawHeader(doc,pw,'Raport narastajacy YTD '+yr,dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+
   var ym=Object.keys(allD).filter(function(m){return m.startsWith(yr)}).sort(),run=0;
   var rows=ym.map(function(m){var d=allD[m],ma=Object.values(d.a||{}).reduce(function(x,yv){return x+yv},0),mb=Object.values(d.b||{}).reduce(function(x,yv){return x+yv},0);run+=ma;return[mLabelX(m)].concat(S.outlets.map(function(o){return fmt(d.a&&d.a[okey(o.name)]||0)})).concat([fmt(ma),mb?fmt(mb):'-',mb?(ma/mb*100).toFixed(1)+'%':'-',fmt(run)])});
   var tA=ym.reduce(function(s,m){return s+Object.values(allD[m].a||{}).reduce(function(x,yv){return x+yv},0)},0),tB=ym.reduce(function(s,m){return s+Object.values(allD[m].b||{}).reduce(function(x,yv){return x+yv},0)},0);
   rows.push(['RAZEM'].concat(S.outlets.map(function(o){return fmt(ym.reduce(function(s,m){return s+(allD[m].a&&allD[m].a[okey(o.name)]||0)},0))})).concat([fmt(tA),tB?fmt(tB):'-',tB?(tA/tB*100).toFixed(1)+'%':'-',fmt(tA)]));
-  doc.autoTable({startY:21,head:[['Miesiac'].concat(S.outlets.map(function(o){return dePL(o.name)})).concat(['SUMA','Budzet','Real.%','Narastajaco'])],body:rows,theme:'grid',headStyles:{fillColor:[0,68,90],textColor:[0,212,255],fontStyle:'bold',fontSize:7},bodyStyles:{textColor:[20,40,60],fontSize:7.5,lineColor:[180,210,230]},alternateRowStyles:{fillColor:[235,248,255]},didParseCell:function(dt){if(dt.row.index===rows.length-1){dt.cell.styles.fontStyle='bold';dt.cell.styles.fillColor=[0,68,90];dt.cell.styles.textColor=[0,212,255];}}});
-  doc.setFontSize(7);doc.setTextColor(100,130,150);doc.text('HotelMetrics Pro | '+new Date().toLocaleString('pl-PL'),10,203);
+  doc.autoTable({
+    startY:28,head:[['Miesiac'].concat(S.outlets.map(function(o){return dePL(o.name)})).concat(['SUMA','Budzet','Real.%','Narastajaco'])],body:rows,theme:'grid',
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:7.5},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7.5,lineColor:PDF_STYLE.statusLine},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    didParseCell:function(dt){if(dt.row.index===rows.length-1){dt.cell.styles.fontStyle='bold';dt.cell.styles.fillColor=PDF_STYLE.statusBg;dt.cell.styles.textColor=[20,30,55];}}
+  });
+
+  pdfDrawFooter(doc,pw,ph);
   doc.save('Raport_YTD_'+yr+'.pdf');toast('PDF YTD','ok');
+}
+
+/* ═══════════════════════════════════════════
+   RAPORT: POGODA A SPRZEDAŻ
+═══════════════════════════════════════════ */
+function pdfWeatherReport(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  if(!prop||!prop.lat){toast('Ten obiekt nie ma ustawionej lokalizacji — ustaw ją w Obiekty i outlety','er');return;}
+
+  var allDaily=getAllDailyData(S.pid),buckets={},sample=0;
+  Object.keys(allDaily).forEach(function(month){
+    var dd=allDaily[month];if(!dd.days)return;
+    Object.keys(dd.days).forEach(function(day){
+      var w=dd.weather&&dd.weather[day];if(!w||w.c===undefined)return;
+      var cat=weatherCategory(w);if(!cat)return;
+      if(!buckets[cat])buckets[cat]={days:0,total:0,outlets:{}};
+      var b=buckets[cat];b.days++;sample++;
+      S.outlets.forEach(function(o){b.outlets[okey(o.name)]=(b.outlets[okey(o.name)]||0)+(Number(dd.days[day][okey(o.name)])||0)});
+      b.total+=dailyDayTotal(dd.days[day]);
+    });
+  });
+  if(sample<1){toast('Za mało danych (dni z jednoczesną sprzedażą i pogodą)','er');return;}
+
+  var order=['Słonecznie','Pochmurno','Deszcz','Śnieg','Mgła','Burza','Wietrznie'];
+  var rows=order.filter(function(c){return buckets[c]&&buckets[c].days}).map(function(cat){return {cat:cat,b:buckets[cat]}});
+  var overallTotal=rows.reduce(function(s,r){return s+r.b.total},0),overallAvg=sample?overallTotal/sample:0;
+
+  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  var pw=297,ph=210;
+  pdfDrawHeader(doc,pw,'Raport: Pogoda a sprzedaz',dePL(prop.name)+' | '+new Date().toLocaleDateString('pl-PL'));
+  doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
+  doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
+  doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
+  doc.text('Caly dostepny okres danych dziennych - '+sample+' dni z dopasowana pogoda',10,29);
+
+  var body1=rows.map(function(r){
+    var avg=r.b.total/r.b.days,diff=overallAvg?((avg-overallAvg)/overallAvg*100):0;
+    return [dePL(r.cat),r.b.days,fmt(r.b.total),fmt(avg),(diff>=0?'+':'')+diff.toFixed(1)+'%'];
+  });
+  doc.autoTable({
+    startY:38,head:[['Warunki','Dni','Sprzedaz lacznie','Sr./dzien','vs sr. okresu']],body:body1,theme:'grid',
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    columnStyles:{4:{halign:'center'}},
+    didParseCell:function(dt){
+      if(dt.section==='body'&&dt.column.index===4){
+        var v=parseFloat(dt.cell.raw);
+        dt.cell.styles.textColor=v>=0?PDF_STYLE.good:PDF_STYLE.bad;dt.cell.styles.fontStyle='bold';
+      }
+    }
+  });
+
+  var y2=doc.lastAutoTable.finalY+10;
+  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(20,20,20);
+  doc.text('Srednia sprzedaz na dzien per outlet, wg warunkow pogodowych',10,y2);
+  var body2=rows.map(function(r){
+    var row=[dePL(r.cat),r.b.days];
+    S.outlets.forEach(function(o){var sum=r.b.outlets[okey(o.name)]||0;row.push(fmt(sum/r.b.days))});
+    return row;
+  });
+  doc.autoTable({
+    startY:y2+4,head:[['Warunki','Dni'].concat(S.outlets.map(function(o){return dePL(o.name)}))],body:body2,theme:'grid',
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:7.5},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7.5},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow}
+  });
+
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('Raport_Pogoda_'+S.pid+'.pdf');toast('PDF pogoda','ok');
+}
+
+/* ═══════════════════════════════════════════
+   RAPORT: TRAFNOŚĆ BUDŻETOWANIA
+═══════════════════════════════════════════ */
+function pdfAccuracyReport(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var allD=getAllMD(S.pid);
+  var months=Object.keys(allD).sort();
+  var closedMonths=months.filter(function(m){var d=allD[m];return d&&d.dr>0&&d.dim>0&&d.dr>=d.dim});
+  if(closedMonths.length<2){toast('Potrzeba co najmniej 2 zamkniętych miesięcy z budżetem','er');return;}
+
+  var rows=[];
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),devs=[];
+    closedMonths.forEach(function(m){var d=allD[m],b=d.b&&d.b[k],a=d.a&&d.a[k];if(b>0&&a!==undefined)devs.push((a-b)/b*100)});
+    if(!devs.length)return;
+    var avgDev=devs.reduce(function(s,v){return s+v},0)/devs.length;
+    rows.push({name:o.name,avgDev:avgDev,n:devs.length});
+  });
+  if(!rows.length){toast('Brak wystarczających danych budżetowych','er');return;}
+  rows.sort(function(a,b){return Math.abs(b.avgDev)-Math.abs(a.avgDev)});
+
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297;
+  pdfDrawHeader(doc,pw,'Raport: Trafnosc budzetowania',dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
+  doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
+  doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
+  doc.text('Na podstawie '+closedMonths.length+' zamknietych miesiecy (z pelnym zakresem dni)',10,29);
+
+  var body=rows.map(function(r){
+    var abs=Math.abs(r.avgDev);
+    var rating=abs<=5?'Bardzo trafny':abs<=15?'Trafny':abs<=30?'Do poprawy':'Niska trafnosc';
+    return [dePL(r.name),(r.avgDev>=0?'+':'')+r.avgDev.toFixed(1)+'%',r.n,rating];
+  });
+  doc.autoTable({
+    startY:38,head:[['Outlet','Sr. odchylenie','Miesiecy z budzetem','Ocena']],body:body,theme:'grid',
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8.5},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8.5},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    columnStyles:{1:{halign:'center'},2:{halign:'center'}},
+    didParseCell:function(dt){
+      if(dt.section==='body'&&dt.column.index===1){
+        var v=parseFloat(dt.cell.raw);
+        dt.cell.styles.textColor=v>=0?PDF_STYLE.good:PDF_STYLE.bad;dt.cell.styles.fontStyle='bold';
+      }
+      if(dt.section==='body'&&dt.column.index===3){
+        var txt=dt.cell.raw;
+        dt.cell.styles.textColor=txt==='Bardzo trafny'||txt==='Trafny'?PDF_STYLE.good:txt==='Do poprawy'?PDF_STYLE.warn:PDF_STYLE.bad;
+        dt.cell.styles.fontStyle='bold';
+      }
+    }
+  });
+
+  var y2=doc.lastAutoTable.finalY+10;
+  doc.setFontSize(8);doc.setFont('helvetica','italic');doc.setTextColor(90,90,90);
+  doc.text('Odchylenie dodatnie = zwykle przekraczacie budzet. Ujemne = zwykle ponizej planu.',10,y2);
+
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('Raport_Trafnosc_'+S.pid+'.pdf');toast('PDF trafność','ok');
+}
+
+/* ═══════════════════════════════════════════
+   RAPORT: SEZONOWOŚĆ
+═══════════════════════════════════════════ */
+function pdfSeasonalityReport(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var allD=getAllMD(S.pid),mm=S.month.split('-')[1];
+  var sameMonthYears=Object.keys(allD).filter(function(m){return m.endsWith('-'+mm)&&m!==S.month});
+  if(!sameMonthYears.length){toast('Brak danych z tego samego miesiąca w poprzednich latach','er');return;}
+
+  var cD=getMD(S.pid,S.month)||{},cA=Object.values(cD.a||{}).reduce(function(x,y){return x+y},0);
+  var histTotals=sameMonthYears.map(function(m){return Object.values(allD[m].a||{}).reduce(function(x,y){return x+y},0)});
+  var histAvg=histTotals.reduce(function(s,v){return s+v},0)/histTotals.length;
+  var seasonIdx=histAvg>0?(cA/histAvg*100):null;
+
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297;
+  pdfDrawHeader(doc,pw,'Raport: Sezonowosc - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+
+  var kpis=[['Wynik '+mLabel(S.month)+' (teraz)',fmt(cA,true)],['Sr. z '+sameMonthYears.length+' poprz. lat',fmt(histAvg,true)],['Indeks sezonowosci',seasonIdx!==null?seasonIdx.toFixed(0):'-']];
+  var y=pdfDrawKpiBoxes(doc,kpis,28,pw,3)+4;
+
+  doc.setFontSize(7.5);doc.setFont('helvetica','italic');doc.setTextColor(90,90,90);
+  doc.text('Indeks 100 = dokladnie tyle samo co srednio w poprzednich latach w tym samym miesiacu. Powyzej 100 = lepszy sezon niz zwykle.',10,y);
+  y+=8;
+
+  var body=S.outlets.map(function(o){
+    var k=okey(o.name),cur=cD.a&&cD.a[k]||0;
+    var hVals=sameMonthYears.map(function(m){return (allD[m].a&&allD[m].a[k])||0}).filter(function(v){return v>0});
+    var hAvg=hVals.length?hVals.reduce(function(s,v){return s+v},0)/hVals.length:0;
+    var idx=hAvg>0?(cur/hAvg*100):null;
+    return [dePL(o.name),fmt(cur),hAvg?fmt(hAvg):'-',idx!==null?idx.toFixed(0):'-'];
+  });
+  doc.autoTable({
+    startY:y,head:[['Outlet',mLabelX(S.month),'Sr. z poprz. lat','Indeks']],body:body,theme:'grid',
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8.5},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8.5},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    columnStyles:{3:{halign:'center'}},
+    didParseCell:function(dt){
+      if(dt.section==='body'&&dt.column.index===3&&dt.cell.raw!=='-'){
+        var v=parseFloat(dt.cell.raw);
+        dt.cell.styles.textColor=v>=100?PDF_STYLE.good:v>=80?PDF_STYLE.warn:PDF_STYLE.bad;dt.cell.styles.fontStyle='bold';
+      }
+    }
+  });
+
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('Raport_Sezonowosc_'+S.month+'.pdf');toast('PDF sezonowość','ok');
+}
+
+/* ═══════════════════════════════════════════
+   RAPORT: SZCZEGÓŁOWY DZIENNY
+═══════════════════════════════════════════ */
+function pdfDailyDetailReport(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var dd=getDailyData(S.pid,S.month);
+  var days=Object.keys(dd.days||{}).map(Number).sort(function(a,b){return a-b});
+  if(!days.length){toast('Brak danych dziennych dla '+mLabelX(S.month)+' — uzupełnij w pod-zakładce Dzienne','er');return;}
+
+  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  var pw=297,ph=210;
+  pdfDrawHeader(doc,pw,'Raport dzienny szczegolowy - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
+  doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
+  doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
+  doc.text('Wypelnione dni: '+days.length+' z '+dim(S.month)+' — zrodlo: Dane dzienne (wprowadzone recznie lub import Material Control)',10,29);
+
+  var monthTotal=0;
+  var body=days.map(function(day){
+    var vals=dd.days[day]||{};
+    var total=dailyDayTotal(vals);monthTotal+=total;
+    var w=dd.weather&&dd.weather[day];
+    var row=[String(day)];
+    S.outlets.forEach(function(o){row.push(fmt(vals[okey(o.name)]||0))});
+    row.push(fmt(total));
+    row.push(w?weatherPdfText(w):'-');
+    return row;
+  });
+  body.push(['RAZEM'].concat(S.outlets.map(function(o){
+    return fmt(days.reduce(function(s,day){return s+(dd.days[day][okey(o.name)]||0)},0));
+  })).concat([fmt(monthTotal),'-']));
+
+  doc.autoTable({
+    startY:38,head:[['Dzien'].concat(S.outlets.map(function(o){return dePL(o.name)})).concat(['Suma','Pogoda'])],body:body,theme:'grid',
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:7.5},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7},
+    alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    didParseCell:function(dt){if(dt.row.index===body.length-1){dt.cell.styles.fontStyle='bold';dt.cell.styles.fillColor=PDF_STYLE.statusBg;dt.cell.styles.textColor=[20,30,55];}}
+  });
+
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('Raport_Dzienny_'+S.month+'.pdf');toast('PDF dzienny','ok');
+}
+
+/* ═══════════════════════════════════════════
+   RAPORT: ANALIZA ZAAWANSOWANA (Kwadranty + Odchylenia)
+═══════════════════════════════════════════ */
+function pdfAdvancedReport(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Blad jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var d=getMD(S.pid,S.month)||{},M=calcM(S.outlets,d)||{_t:{b:0,a:0}};
+  var T=M._t;
+  var allD=getAllMD(S.pid),months=Object.keys(allD).sort(),ci=months.indexOf(S.month);
+
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297;
+  pdfDrawHeader(doc,pw,'Raport: Analiza zaawansowana - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+
+  var y=28;
+
+  // ── SEKCJA 1: KWADRANTY (wzrost x udzial) ──
+  doc.setFontSize(10.5);doc.setFont('helvetica','bold');doc.setTextColor(20,20,20);
+  doc.text('Wzrost x Udzial w przychodzie',10,y);y+=4;
+  if(ci<1){
+    doc.setFontSize(8);doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);
+    doc.text('Potrzebny jest co najmniej jeden poprzedni miesiac z danymi.',10,y+4);y+=14;
+  } else {
+    var prevData=allD[months[ci-1]]||{};
+    var qRows=[];
+    S.outlets.forEach(function(o){
+      var k=okey(o.name),m=M[k]||{};
+      var cur=m.a||0,prev=(prevData.a&&prevData.a[k])||0;
+      if(!cur&&!prev)return;
+      var growth=prev>0?((cur-prev)/prev*100):(cur>0?100:0);
+      var share=T.a>0?(cur/T.a*100):0;
+      var cat=growth>=0&&share>=(100/S.outlets.length)?'Rosnaca gwiazda':growth>=0?'Rosnie, maly udzial':share>=(100/S.outlets.length)?'Duzy udzial, spada':'Wymaga uwagi';
+      qRows.push([dePL(o.name),(growth>=0?'+':'')+growth.toFixed(1)+'%',share.toFixed(1)+'%',dePL(cat)]);
+    });
+    doc.autoTable({
+      startY:y+2,head:[['Outlet','Wzrost MoM','Udzial w wyniku','Kategoria']],body:qRows,theme:'grid',
+      headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+      bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},
+      alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+      columnStyles:{1:{halign:'center'},2:{halign:'center'}},
+      didParseCell:function(dt){if(dt.section==='body'&&dt.column.index===1){var v=parseFloat(dt.cell.raw);dt.cell.styles.textColor=v>=0?PDF_STYLE.good:PDF_STYLE.bad;dt.cell.styles.fontStyle='bold';}}
+    });
+    y=doc.lastAutoTable.finalY+10;
+  }
+
+  // ── SEKCJA 2: ODCHYLENIA (waterfall) ──
+  if(y>ph-50){doc.addPage();y=20;}
+  doc.setFontSize(10.5);doc.setFont('helvetica','bold');doc.setTextColor(20,20,20);
+  doc.text('Rozklad odchylenia od budzetu',10,y);y+=4;
+  if(!T.b){
+    doc.setFontSize(8);doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);
+    doc.text('Ustaw budzet dla outletow w tym miesiacu, aby zobaczyc rozklad odchylen.',10,y+4);
+  } else {
+    var devs=S.outlets.map(function(o){var k=okey(o.name),m=M[k]||{};return {name:o.name,dev:(m.a||0)-(m.b||0)}}).filter(function(dd){return dd.dev!==0}).sort(function(a,b){return b.dev-a.dev});
+    var wRows=[['Budzet startowy','-',fmt(T.b)]];
+    var running=T.b;
+    devs.forEach(function(dv){
+      running+=dv.dev;
+      wRows.push([dePL(dv.name),(dv.dev>=0?'+':'')+fmt(dv.dev),fmt(running)]);
+    });
+    wRows.push(['WYNIK KONCOWY','-',fmt(running)]);
+    doc.autoTable({
+      startY:y+2,head:[['Pozycja','Zmiana','Wartosc narastajaco']],body:wRows,theme:'grid',
+      headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+      bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},
+      alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+      columnStyles:{1:{halign:'center'}},
+      didParseCell:function(dt){
+        if(dt.section==='body'&&dt.column.index===1&&dt.cell.raw!=='-'){
+          var v=parseFloat(dt.cell.raw.replace(/[^\d.-]/g,''));
+          dt.cell.styles.textColor=v>=0?PDF_STYLE.good:PDF_STYLE.bad;dt.cell.styles.fontStyle='bold';
+        }
+        if(dt.row.index===0||dt.row.index===wRows.length-1){dt.cell.styles.fontStyle='bold';dt.cell.styles.fillColor=PDF_STYLE.statusBg;}
+      }
+    });
+  }
+
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('Raport_Analiza_'+S.month+'.pdf');toast('PDF analiza zaawansowana','ok');
 }
 
 /* ═══════════════════════════════════════════
@@ -5877,8 +6275,14 @@ var HELP_CONTENT=`
   <li><strong>PDF — Raport Zarząd</strong> — profesjonalny raport A4 z KPI, tabelą wyników i wykresem. Przeznaczony dla dyrekcji i właścicieli. Zawiera datę, nazwę obiektu, komentarz do miesiąca.</li>
   <li><strong>PDF — Raport Manager</strong> — szczegółowy raport operacyjny z analizą każdego outletu osobno, paskami postępu realizacji budżetu, stanem na dzień i prognozą YTD. Przeznaczony dla managera F&amp;B.</li>
   <li><strong>PDF — Raport YTD</strong> — raport landscape A4 z tabelą miesięczną — wszystkie miesiące bieżącego roku w jednym pliku, z kolumną narastającą.</li>
+  <li><strong>PDF — Pogoda</strong> — raport landscape ze sprzedażą wg warunków pogodowych (łącznie i per outlet), oparty na całej dostępnej historii Danych dziennych. Wymaga ustawionej lokalizacji obiektu.</li>
+  <li><strong>PDF — Trafność</strong> — tabela średniego odchylenia wyniku od budżetu per outlet, z oceną (Bardzo trafny / Trafny / Do poprawy / Niska trafność). Wymaga co najmniej 2 zamkniętych miesięcy z budżetem.</li>
+  <li><strong>PDF — Sezonowość</strong> — wybrany miesiąc (z sidebara) zestawiony ze średnią z tych samych miesięcy w poprzednich latach, z indeksem sezonowości per outlet.</li>
+  <li><strong>PDF — Dzień po dniu</strong> — pełne zestawienie dzienne wybranego miesiąca: każdy dzień, każdy outlet osobno, suma dnia i pogoda. Źródło: pod-zakładka Dzienne (w Danych). Dobry dokument archiwalny/audytowy.</li>
+  <li><strong>PDF — Analiza zaawansowana</strong> — dwie sekcje w jednym dokumencie: Kwadranty (który outlet rośnie i ma duży udział, a który wymaga uwagi) oraz rozkład odchylenia od budżetu (który outlet najbardziej wpłynął na wynik miesiąca).</li>
 </ul>
 <div class="hs-tip">Raporty PDF nie zawierają polskich znaków (ograniczenie biblioteki jsPDF) — ą→a, ę→e itd. To normalne zachowanie.</div>
+<div class="hs-tip">Wszystkie raporty PDF mają jednolity, jasny i kontrastowy styl (biały papier, ciemny tekst, cienki granatowy pasek nagłówka) — zaprojektowany żeby dobrze wyglądał na ekranie i był oszczędny przy druku.</div>
 
 <div class="hs-h2">Raport PDF — Heatmapa i Rekordy</div>
 <div class="hs-p">Osobna sekcja poniżej standardowych raportów. Wybierz zakres dat (<strong>Od dnia</strong> / <strong>Do dnia</strong>) i kliknij <strong>📄 Generuj raport PDF</strong>. Raport zawiera dwie części:</div>
