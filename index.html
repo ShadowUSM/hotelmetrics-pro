@@ -420,6 +420,27 @@ textarea.fi{resize:vertical}
 .hero-spark{width:110px;height:36px;flex-shrink:0}
 .spark-svg{width:100%;height:100%;display:block}
 
+/* Wiersz "komentarz synoptyka" wewnątrz karty podsumowania miesiąca */
+.hero-wx-row{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--brd);position:relative;z-index:1;cursor:pointer;transition:opacity .15s}
+.hero-wx-row:hover{opacity:.8}
+.hero-wx-row.empty{cursor:default;opacity:.7}
+.hero-wx-icon{font-size:1.3rem;flex-shrink:0}
+.hero-wx-text{flex:1;font-size:.78rem;color:var(--tx2);line-height:1.4}
+.hero-wx-arrow{font-size:.68rem;color:var(--acc);font-weight:700;white-space:nowrap;flex-shrink:0}
+
+/* Modal: Pogoda a sprzedaż (miesiąc) */
+.wxins-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:4px}
+.wxins-summary-item{background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:9px 11px;text-align:center}
+.wxins-summary-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:3px}
+.wxins-summary-val{font-family:var(--fd);font-size:.95rem;font-weight:700;color:var(--tx)}
+.wxins-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.wxins-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:10px 12px}
+.wxins-row-name{font-size:.8rem;font-weight:600;color:var(--tx);flex-shrink:0}
+.wxins-row-verdict{font-size:.72rem;text-align:right}
+.wxins-row-verdict.wxins-pos{color:var(--grn);font-weight:600}
+.wxins-row-verdict.wxins-neg{color:var(--red);font-weight:600}
+.wxins-row-verdict.wxins-neutral{color:var(--tx3)}
+
 /* Automatyczne podsumowanie */
 .insights-card{background:var(--acc-glow);border:1px solid rgba(var(--acc-rgb),.2);border-radius:14px;padding:14px 16px;margin-bottom:16px}
 .insights-card .ic-head{display:flex;align-items:center;gap:6px;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--acc);font-weight:700;margin-bottom:8px}
@@ -1128,6 +1149,9 @@ textarea.fi{resize:vertical}
 
 /* — Kafelki informacyjne (O programie, podsumowania w raportach na ekranie) — */
 [data-theme="neu-light"] .info-box{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-light"] .hero-wx-row{border-top:none}
+[data-theme="neu-light"] .wxins-summary-item,
+[data-theme="neu-light"] .wxins-row{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
 
 /* — Karty raportów w Eksport/Import: wypukłe jak reszta kart — */
 [data-theme="neu-light"] .ecard{background:var(--sur);border:none;box-shadow:var(--neu-out)}
@@ -1228,6 +1252,9 @@ textarea.fi{resize:vertical}
 
 /* — Kafelki informacyjne (O programie, podsumowania w raportach na ekranie) — */
 [data-theme="neu-dark"] .info-box{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .hero-wx-row{border-top:none}
+[data-theme="neu-dark"] .wxins-summary-item,
+[data-theme="neu-dark"] .wxins-row{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
 
 /* — Karty raportów w Eksport/Import: wypukłe jak reszta kart — */
 [data-theme="neu-dark"] .ecard{background:var(--sur);border:none;box-shadow:var(--neu-out)}
@@ -1341,6 +1368,15 @@ textarea.fi{resize:vertical}
   <button class="mclose" onclick="closeM('m-comment')">✕</button>
   <div class="fg"><label>Notatka</label><textarea class="fi" id="m-comment-txt" rows="3" placeholder="np. Remont baru w tygodniu 2..."></textarea></div>
   <div class="fa"><button class="btn btn-p" onclick="saveComment()">Zapisz</button><button class="btn btn-s" onclick="closeM('m-comment')">Anuluj</button></div>
+</div></div>
+
+<!-- MODAL: Pogoda a sprzedaż (komentarz synoptyka dla wybranego miesiąca) -->
+<div class="moverlay" id="m-weather-insight">
+<div class="modal" style="max-width:560px">
+  <div class="mtitle">🌦️ Pogoda a sprzedaż — <span id="wxins-month-label"></span></div>
+  <button class="mclose" onclick="closeM('m-weather-insight')">✕</button>
+  <div id="wxins-body"></div>
+  <div class="fa"><button class="btn btn-s" onclick="closeM('m-weather-insight')">Zamknij</button></div>
 </div></div>
 
 <!-- INSTALL BANNER -->
@@ -1774,6 +1810,127 @@ function weatherCategory(w){
 function weatherBadgeHTML(w){
   if(!w||w.c===undefined)return '';
   return '<span class="wx-badge" title="'+weatherLabel(w.c)+'">'+weatherIcon(w.c)+' '+Math.round(w.t)+'°C'+(w.p>0?' · '+w.p.toFixed(1)+'mm':'')+(w.wind!==undefined?' · 💨 '+Math.round(w.wind)+' km/h':'')+'</span>';
+}
+
+/* ═══════════════════════════════════════════
+   "KOMENTARZ SYNOPTYKA" — pogoda a sprzedaż DLA WYBRANEGO MIESIĄCA
+   Liczony zawsze na żywo z S.month — zmienia się automatycznie
+   przy przełączaniu miesiąca i w miarę uzupełniania danych dziennych.
+   Wersja per-outlet: każdy outlet może reagować na pogodę inaczej
+   (np. Beach Bar korzysta na słońcu, restauracja wewnętrzna — na deszczu).
+═══════════════════════════════════════════════════════════ */
+var WX_BAD_CATS=['Deszcz','Śnieg','Burza','Wietrznie'];
+
+function computeMonthWeatherInsight(pid,month){
+  var prop=S.props.find(function(p){return p.id===pid});
+  if(!prop||!prop.lat)return {status:'no-location'};
+
+  var dd=getDailyData(pid,month);
+  if(!dd.days||!dd.weather||!Object.keys(dd.days).length)return {status:'no-data'};
+
+  var days=Object.keys(dd.days).filter(function(d){return dd.weather[d]&&dd.weather[d].c!==undefined});
+  if(days.length<4)return {status:'insufficient',daysAvailable:days.length};
+
+  // Podsumowanie pogody miesiąca
+  var temps=[],precipDays=0,windyDays=0,catCounts={};
+  days.forEach(function(day){
+    var w=dd.weather[day];
+    if(w.t!==undefined&&w.t!==null)temps.push(w.t);
+    if(w.p>0.5)precipDays++;
+    if(Number(w.wind)>=30)windyDays++;
+    var cat=weatherCategory(w);
+    if(cat)catCounts[cat]=(catCounts[cat]||0)+1;
+  });
+  var avgTemp=temps.length?temps.reduce(function(a,b){return a+b},0)/temps.length:null;
+  var dominantCat=Object.keys(catCounts).sort(function(a,b){return catCounts[b]-catCounts[a]})[0]||null;
+
+  // Analiza per outlet: dni słoneczne vs dni złej pogody
+  var perOutlet=[];
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),goodVals=[],badVals=[];
+    days.forEach(function(day){
+      var val=Number(dd.days[day][k]);
+      if(!val||val<=0)return;
+      var cat=weatherCategory(dd.weather[day]);
+      if(cat==='Słonecznie')goodVals.push(val);
+      else if(WX_BAD_CATS.indexOf(cat)!==-1)badVals.push(val);
+    });
+    if(goodVals.length<2||badVals.length<2){
+      perOutlet.push({name:o.name,verdict:'insufficient',nGood:goodVals.length,nBad:badVals.length});
+      return;
+    }
+    var avgGood=goodVals.reduce(function(a,b){return a+b},0)/goodVals.length;
+    var avgBad=badVals.reduce(function(a,b){return a+b},0)/badVals.length;
+    var diffPct=avgBad>0?((avgGood-avgBad)/avgBad*100):null;
+    perOutlet.push({name:o.name,key:k,avgGood:avgGood,avgBad:avgBad,diffPct:diffPct,nGood:goodVals.length,nBad:badVals.length});
+  });
+
+  return {status:'ok',daysAnalyzed:days.length,avgTemp:avgTemp,precipDays:precipDays,windyDays:windyDays,dominantCat:dominantCat,catCounts:catCounts,perOutlet:perOutlet};
+}
+
+function weatherVerdictText(diffPct){
+  if(diffPct>=15)return {icon:'📈',text:'Pogoda wyraźnie sprzyjała',cls:'wxins-pos'};
+  if(diffPct>=5)return {icon:'🙂',text:'Pogoda lekko sprzyjała',cls:'wxins-pos'};
+  if(diffPct>-5)return {icon:'➖',text:'Brak wyraźnego wpływu',cls:'wxins-neutral'};
+  if(diffPct>-15)return {icon:'🙃',text:'Gorsza pogoda lekko sprzyjała',cls:'wxins-neg'};
+  return {icon:'🌧️',text:'Zła pogoda wyraźnie sprzyjała',cls:'wxins-neg'};
+}
+
+// Krótka linijka "komentarza synoptyka" do karty podsumowania miesiąca na Dashboard
+function weatherInsightSummaryLine(insight){
+  if(insight.status==='no-location')return null;
+  if(insight.status==='no-data')return {empty:true,text:'Uzupełnij dane w pod-zakładce Dzienne, aby zobaczyć wpływ pogody na sprzedaż w tym miesiącu.'};
+  if(insight.status==='insufficient')return {empty:true,text:'Za mało dni z jednocześnie wpisaną sprzedażą i pogodą ('+insight.daysAvailable+') — uzupełnij więcej dni w pod-zakładce Dzienne.'};
+
+  var withData=insight.perOutlet.filter(function(x){return x.verdict!=='insufficient'});
+  if(!withData.length)return {empty:true,text:'Zbyt mało zróżnicowanej pogody w tym miesiącu, aby ocenić jej wpływ na poszczególne outlety.'};
+
+  var positive=withData.filter(function(x){return x.diffPct>=5});
+  var negative=withData.filter(function(x){return x.diffPct<=-5});
+
+  var parts=[];
+  if(positive.length)parts.push(positive.length+' '+(positive.length===1?'outlet zyskiwał':'outlety zyskiwały')+' na dobrej pogodzie');
+  if(negative.length)parts.push(negative.length+' '+(negative.length===1?'outlet radził':'outlety radziły')+' sobie lepiej przy gorszej pogodzie');
+
+  if(!parts.length)return {empty:false,text:'Pogoda nie miała istotnego wpływu na sprzedaż w żadnym outlecie w tym miesiącu.'};
+  return {empty:false,text:parts.join(', ')+'.'};
+}
+
+function openWeatherInsightModal(){
+  var insight=computeMonthWeatherInsight(S.pid,S.month);
+  var lbl=document.getElementById('wxins-month-label');if(lbl)lbl.textContent=mLabelFull(S.month);
+  var body=document.getElementById('wxins-body');if(!body)return;
+
+  if(insight.status!=='ok'){
+    var msg=weatherInsightSummaryLine(insight);
+    body.innerHTML='<div class="empty"><p>'+(msg?msg.text:'Brak danych pogodowych dla tego miesiąca.')+'</p></div>';
+    openM('m-weather-insight');
+    return;
+  }
+
+  var h='<div class="wxins-summary">';
+  h+='<div class="wxins-summary-item"><div class="wxins-summary-lbl">Śr. temperatura</div><div class="wxins-summary-val">'+(insight.avgTemp!==null?Math.round(insight.avgTemp)+'°C':'—')+'</div></div>';
+  h+='<div class="wxins-summary-item"><div class="wxins-summary-lbl">Dni z opadami</div><div class="wxins-summary-val">'+insight.precipDays+'</div></div>';
+  h+='<div class="wxins-summary-item"><div class="wxins-summary-lbl">Dni wietrzne</div><div class="wxins-summary-val">'+insight.windyDays+'</div></div>';
+  h+='<div class="wxins-summary-item"><div class="wxins-summary-lbl">Przeważająca pogoda</div><div class="wxins-summary-val" style="font-size:.8rem">'+(insight.dominantCat?weatherCategoryIcon(insight.dominantCat)+' '+insight.dominantCat:'—')+'</div></div>';
+  h+='</div>';
+
+  h+='<p class="hs-p" style="margin:12px 0">Na podstawie '+insight.daysAnalyzed+' dni tego miesiąca z jednocześnie wpisaną sprzedażą i dopasowaną pogodą (źródło: pod-zakładka Dzienne).</p>';
+
+  h+='<div class="wxins-list">';
+  insight.perOutlet.forEach(function(row){
+    if(row.verdict==='insufficient'){
+      h+='<div class="wxins-row"><div class="wxins-row-name">'+row.name+'</div><div class="wxins-row-verdict wxins-neutral">Za mało zróżnicowanej pogody</div></div>';
+      return;
+    }
+    var v=weatherVerdictText(row.diffPct);
+    h+='<div class="wxins-row"><div class="wxins-row-name">'+row.name+'</div>';
+    h+='<div class="wxins-row-verdict '+v.cls+'">'+v.icon+' '+v.text+' ('+(row.diffPct>=0?'+':'')+row.diffPct.toFixed(0)+'%)</div></div>';
+  });
+  h+='</div>';
+
+  body.innerHTML=h;
+  openM('m-weather-insight');
 }
 
 // Geokodowanie nazwy miasta na współrzędne (Open-Meteo Geocoding API)
@@ -4070,7 +4227,19 @@ function renderDashboard(){
   if(T.pct!==null)h+='<div class="kpi-badge '+(T.pct>=1?'up':'dn')+'" style="background:var(--sur2);color:var(--tx2)">Budżet: '+(T.pct*100).toFixed(0)+'%</div>';
   h+='</div></div>';
   if(heroSparkVals.length>=2)h+='<div class="hero-spark">'+buildSparklineSVG(heroSparkVals,acHex(),110,36)+'</div>';
-  h+='</div></div>';
+  h+='</div>';
+
+  // ── "Komentarz synoptyka": pogoda a sprzedaż — liczony na żywo dla S.month ──
+  var wxInsight=computeMonthWeatherInsight(S.pid,S.month);
+  var wxLine=weatherInsightSummaryLine(wxInsight);
+  if(wxLine){
+    if(wxLine.empty){
+      h+='<div class="hero-wx-row empty" onclick="goDaily()"><span class="hero-wx-icon">🌦️</span><span class="hero-wx-text">'+wxLine.text+'</span></div>';
+    } else {
+      h+='<div class="hero-wx-row" onclick="openWeatherInsightModal()"><span class="hero-wx-icon">🌦️</span><span class="hero-wx-text">'+wxLine.text+'</span><span class="hero-wx-arrow">Szczegóły →</span></div>';
+    }
+  }
+  h+='</div>';
 
   // ── INSIGHTS: automatyczne podsumowanie ──
   var insights=generateInsights(M,S.outlets,allD,T);
