@@ -57,6 +57,25 @@
   --red:#b91c1c;--warn:#c2410c;--grn:#166534;
   --fd:'Jost',sans-serif;--fb:'Jost',sans-serif;
 }
+/* ── NEUMORPHISM: JASNY (Neu Light) ──
+   Baza i powierzchnie mają celowo bardzo zbliżony ton — w neumorfizmie
+   elementy "wtapiają się" w tło, a ich forma wynika wyłącznie z cieni
+   (jasny cień górny-lewy + ciemny cień dolny-prawy = wypukłość;
+   odwrócone cienie = wgłębienie/wciśnięcie). */
+[data-theme="neu-light"]{
+  --bg:#e9edf3;--sur:#e9edf3;--sur2:#e3e7ee;--sur3:#dce1ea;
+  --brd:#dbe1e9;--brd2:#c7d0dc;
+  --acc:#7b6ef6;--acc-glow:rgba(123,110,246,.16);--acc-rgb:123,110,246;
+  --tx:#2e3446;--tx2:#6b7690;--tx3:#98a3b8;
+  --red:#e5484d;--warn:#ef9f36;--grn:#1fae6c;
+  --fd:'Outfit',sans-serif;--fb:'Outfit',sans-serif;
+  --neu-out:6px 6px 14px rgba(163,177,198,.55),-6px -6px 14px rgba(255,255,255,.9);
+  --neu-out-sm:3px 3px 7px rgba(163,177,198,.5),-3px -3px 7px rgba(255,255,255,.85);
+  --neu-out-lg:9px 9px 20px rgba(163,177,198,.5),-9px -9px 20px rgba(255,255,255,.9);
+  --neu-in:inset 4px 4px 9px rgba(163,177,198,.5),inset -4px -4px 9px rgba(255,255,255,.8);
+  --neu-in-sm:inset 2px 2px 5px rgba(163,177,198,.5),inset -2px -2px 5px rgba(255,255,255,.8);
+  --neu-flat:2px 2px 5px rgba(163,177,198,.35),-2px -2px 5px rgba(255,255,255,.7);
+}
 
 /* ═══ RESET ═══ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -143,6 +162,7 @@ input,select,textarea{font-family:var(--fb)}
 .tdot[data-t="ember"]{background:linear-gradient(135deg,#f59e0b 40%,#090704)}
 .tdot[data-t="arctic"]{background:linear-gradient(135deg,#0891b2 40%,#e0f2fe)}
 .tdot[data-t="parchment"]{background:linear-gradient(135deg,#b45309 40%,#faf7f0)}
+.tdot[data-t="neu-light"]{background:linear-gradient(135deg,#7b6ef6 40%,#e9edf3);box-shadow:inset 0 0 0 1px rgba(163,177,198,.4)}
 .cur-btns{display:flex;gap:4px}
 .cur-btn{flex:1;padding:5px 0;background:var(--sur2);border:1px solid var(--brd);color:var(--tx2);border-radius:6px;font-size:.7rem;font-weight:500;transition:all .15s}
 .cur-btn.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
@@ -735,7 +755,62 @@ textarea.fi{resize:vertical}
 .map-pick-btn:hover{border-color:var(--acc);color:var(--acc)}
 .map-loc-set{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.72rem;color:var(--tx2);background:var(--acc-glow);border:1px solid rgba(var(--acc-rgb),.2);border-radius:8px;padding:8px 11px;margin-top:8px}
 </style>
+<style>
+/* ══════════════════════════════════════════════════════════
+   NEUMORFIZM — MOTYW JASNY (Neu Light)
+   ETAP 1/6: Fundament — sidebar, topbar, przyciski, nawigacja.
+   Reguły scope'owane atrybutem [data-theme="neu-light"], więc
+   pozostałe 4 motywy pozostają całkowicie nietknięte.
+   Zasada: elementy "wtapiają się" w tło (ten sam kolor co --bg/--sur),
+   a ich forma wynika z podwójnego cienia (jasny + ciemny).
+   Stan aktywny/wciśnięty = cienie odwrócone do wewnątrz (wgłębienie).
+═══════════════════════════════════════════════════════════ */
+
+/* — Sidebar: płaski panel, oddzielony od treści miękkim cieniem, bez twardej krawędzi — */
+[data-theme="neu-light"] #sidebar{border-right:none;box-shadow:8px 0 24px rgba(163,177,198,.28)}
+[data-theme="neu-light"] .s-logo,
+[data-theme="neu-light"] .s-user,
+[data-theme="neu-light"] .s-bottom{border-color:transparent}
+[data-theme="neu-light"] .s-sel{border-color:transparent}
+
+/* — Nawigacja: spoczynek płaski, hover = lekko wypukły, aktywny = wciśnięty (inset) — */
+[data-theme="neu-light"] .nav-i{border-left:none;border-radius:11px;margin:2px 10px;padding:9px 12px;width:calc(100% - 20px)}
+[data-theme="neu-light"] .nav-i:hover{background:var(--sur);box-shadow:var(--neu-out-sm);color:var(--tx)}
+[data-theme="neu-light"] .nav-i.active{background:var(--sur);box-shadow:var(--neu-in-sm);color:var(--acc);font-weight:700}
+[data-theme="neu-light"] .bnav-item.active{color:var(--acc)}
+
+/* — Przyciski: podniesione, wciśnięcie = inset. Primary = pastelowa wypełniona pigułka z poświatą — */
+[data-theme="neu-light"] .btn{border:none;box-shadow:var(--neu-out-sm);background:var(--sur);color:var(--tx2)}
+[data-theme="neu-light"] .btn:active{box-shadow:var(--neu-in-sm)}
+[data-theme="neu-light"] .btn-p{background:linear-gradient(135deg,var(--acc),#9b8ffa);color:#fff;box-shadow:4px 4px 12px rgba(123,110,246,.4),-2px -2px 8px rgba(255,255,255,.6)}
+[data-theme="neu-light"] .btn-p:active{box-shadow:inset 3px 3px 7px rgba(80,60,200,.35),inset -2px -2px 6px rgba(255,255,255,.25)}
+[data-theme="neu-light"] .btn-s{background:var(--sur);color:var(--tx2);border:none;box-shadow:var(--neu-out-sm)}
+[data-theme="neu-light"] .btn-s:active{box-shadow:var(--neu-in-sm)}
+[data-theme="neu-light"] .btn-icon{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--tx2);border-radius:10px}
+[data-theme="neu-light"] .btn-icon:active{box-shadow:var(--neu-in-sm)}
+
+/* — Topbar: przyciski akcji (lupa, miesiąc, odśwież) w tym samym duchu — */
+[data-theme="neu-light"] .mpick-btn-top{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--tx2)}
+[data-theme="neu-light"] .mpick-btn-top.open{box-shadow:var(--neu-in-sm);color:var(--acc)}
+
+/* — Pola tekstowe: wgłębione (inset) — typowy neumorficzny "input" — */
+[data-theme="neu-light"] .s-input,
+[data-theme="neu-light"] .fi{background:var(--sur);border:none;box-shadow:var(--neu-in-sm);color:var(--tx)}
+[data-theme="neu-light"] .fi:focus{box-shadow:var(--neu-in-sm),0 0 0 2px rgba(var(--acc-rgb),.35)}
+
+/* — Awatar użytkownika i wersja: delikatna wypukłość — */
+[data-theme="neu-light"] .user-av{background:var(--sur);color:var(--acc);box-shadow:var(--neu-out-sm)}
+[data-theme="neu-light"] .logout-btn{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--tx2)}
+[data-theme="neu-light"] .s-ver{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--acc)}
+
+/* — Dolna belka nawigacji (mobile): miękki cień górny zamiast linii — */
+[data-theme="neu-light"] #bottom-nav{border-top:none;box-shadow:0 -6px 18px rgba(163,177,198,.3)}
+
+/* — Sekcje sidebara (Główne/Zarządzanie): bez linii, subtelniejszy tekst — */
+[data-theme="neu-light"] .s-sect:hover{color:var(--acc)}
+</style>
 </head>
+
 <body>
 <!-- UPDATE BANNER -->
 <div id="update-banner">
@@ -928,6 +1003,7 @@ textarea.fi{resize:vertical}
           <div class="tdot" data-t="ember" onclick="setTheme('ember')" title="Ember"></div>
           <div class="tdot" data-t="arctic" onclick="setTheme('arctic')" title="Arctic"></div>
           <div class="tdot" data-t="parchment" onclick="setTheme('parchment')" title="Parchment"></div>
+          <div class="tdot" data-t="neu-light" onclick="setTheme('neu-light')" title="Neu Light"></div>
         </div>
       </div>
       <div class="s-row">
@@ -2839,7 +2915,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.7.0';
+var APP_VERSION='3.8.0';
 var APP_BUILD_DATE='2026-08-13';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -2848,6 +2924,11 @@ var APP_BUILD_DATE='2026-08-13';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.8.0',date:'2026-08-13',changes:[
+    'Nowy motyw „Neu Light" (Etap 1/6 wdrożenia neumorfizmu) — jasny, pastelowy styl z miękkimi podwójnymi cieniami zamiast twardych krawędzi',
+    'Etap 1 obejmuje: sidebar, górny pasek, przyciski, pola tekstowe i nawigację dolną (mobile). Kolejne etapy obejmą Dashboard, tabele, modale i wykresy',
+    'Wybór motywu dostępny jak dotychczas — 5. kropka w dolnej części sidebara'
+  ]},
   {v:'3.7.0',date:'2026-08-13',changes:[
     'Nowy raport PDF: Pogoda — sprzedaż wg warunków pogodowych, łącznie i per outlet',
     'Nowy raport PDF: Trafność budżetowania — średnie odchylenie prognoza/rzeczywistość per outlet z oceną',
@@ -3228,7 +3309,7 @@ function setTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   document.querySelectorAll('.tdot').forEach(function(d){d.classList.toggle('on',d.getAttribute('data-t')===t)});
   // Sync PWA theme-color
-  var themeColors={obsidian:'#05070f',ember:'#090704',arctic:'#f0f9ff',parchment:'#faf7f0'};
+  var themeColors={obsidian:'#05070f',ember:'#090704',arctic:'#f0f9ff',parchment:'#faf7f0','neu-light':'#e9edf3'};
   var mt=document.getElementById('meta-theme');
   if(mt)mt.setAttribute('content',themeColors[t]||'#05070f');
   renderCur();
@@ -6472,7 +6553,7 @@ function initPWA(){
   var ai=document.getElementById('pwa-apple-icon');if(ai)ai.href=icon;
 
   // Web App Manifest (blob URL — działa bez pliku zewnętrznego)
-  var themeColors={obsidian:'#05070f',ember:'#090704',arctic:'#f0f9ff',parchment:'#faf7f0'};
+  var themeColors={obsidian:'#05070f',ember:'#090704',arctic:'#f0f9ff',parchment:'#faf7f0','neu-light':'#e9edf3'};
   var bgColor=themeColors[S.theme]||'#05070f';
   var startUrl=location.pathname||'./';
   var manifest={
