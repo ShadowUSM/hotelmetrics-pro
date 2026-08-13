@@ -1164,6 +1164,107 @@ textarea.fi{resize:vertical}
 [data-theme="neu-light"] .rank-pos.other{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
 [data-theme="neu-light"] .role-badge.viewer{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
 [data-theme="neu-light"] .hs-example{background:var(--sur);border:none;border-left:3px solid var(--acc);box-shadow:var(--neu-flat)}
+
+/* ══════════════════════════════════════════════════════════
+   NEU DARK — ETAP B/B: Modale/pickery + Wykresy/widżety +
+   Nawigacja dolna + Domknięcie jakości
+   (lustrzane odbicie Etapów 4-6 z wersji jasnej).
+═══════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════
+   ETAP 4/6: MODALE I PICKERY — wszystkie okna dialogowe,
+   wybór miesiąca/dnia, popovery.
+═══════════════════════════════════════════════════════════ */
+
+/* — Okno modalne: mocno wypukłe, bez krawędzi (zastępuje twardy border+cień) — */
+[data-theme="neu-dark"] .modal{background:var(--sur);border:none;box-shadow:var(--neu-out-lg),0 20px 45px rgba(0,0,0,.5)}
+[data-theme="neu-dark"] .mclose{background:var(--sur);border:none;box-shadow:var(--neu-flat);color:var(--tx2)}
+[data-theme="neu-dark"] .mclose:active{box-shadow:var(--neu-in-sm)}
+
+/* — Przycisk wyboru miesiąca/zakresu dni: wypukły, stan otwarty = wciśnięty — */
+[data-theme="neu-dark"] .mpick-btn,
+[data-theme="neu-dark"] .dpick-btn{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--tx)}
+[data-theme="neu-dark"] .mpick-btn:hover,
+[data-theme="neu-dark"] .mpick-btn.open,
+[data-theme="neu-dark"] .dpick-btn:hover,
+[data-theme="neu-dark"] .dpick-btn.open{background:var(--sur);box-shadow:var(--neu-in-sm);color:var(--acc)}
+
+/* — Popover (siatka miesięcy / mini-kalendarz): wypukły panel unoszący się nad treścią — */
+[data-theme="neu-dark"] .picker-pop{background:var(--sur);border:none;box-shadow:var(--neu-out-lg),0 12px 30px rgba(0,0,0,.4)}
+[data-theme="neu-dark"] .yr-nav{border-bottom:none}
+[data-theme="neu-dark"] .yr-btn{background:var(--sur);border:none;box-shadow:var(--neu-flat);color:var(--tx2)}
+[data-theme="neu-dark"] .yr-btn:hover{box-shadow:var(--neu-in-sm);color:var(--acc)}
+[data-theme="neu-dark"] .mgrid-btn{background:var(--sur);border:none;box-shadow:var(--neu-flat);color:var(--tx2)}
+[data-theme="neu-dark"] .mgrid-btn:hover{background:var(--sur);box-shadow:var(--neu-in-sm);color:var(--acc)}
+[data-theme="neu-dark"] .mgrid-btn.has{box-shadow:var(--neu-flat);color:var(--acc)}
+[data-theme="neu-dark"] .mgrid-btn.cur,
+[data-theme="neu-dark"] .mgrid-btn.has.cur{background:linear-gradient(135deg,var(--acc),#ff9b80);color:#1b1e25;box-shadow:2px 2px 8px rgba(255,122,92,.45)}
+[data-theme="neu-dark"] .dp-title{border-bottom:none}
+
+/* — Mini kalendarz dnia: płaskie komórki, wybrany dzień = solidna pastelowa pigułka — */
+[data-theme="neu-dark"] .cal-d:hover{background:var(--sur);box-shadow:var(--neu-flat);color:var(--tx)}
+[data-theme="neu-dark"] .cal-d.rng{background:var(--sur);box-shadow:var(--neu-flat);color:var(--acc)}
+[data-theme="neu-dark"] .cal-d.sel{background:linear-gradient(135deg,var(--acc),#ff9b80)!important;color:#1b1e25!important;box-shadow:2px 2px 8px rgba(255,122,92,.45)}
+
+/* ══════════════════════════════════════════════════════════
+   ETAP 5/6: WYKRESY I WIDŻETY SPECJALNE
+   Uwaga: wykresy Chart.js już pobierają kolory dynamicznie
+   przez zmienne CSS (acHex/txHex/tx2Hex/brdHex/surHex) —
+   automatycznie dziedziczą paletę Neu Light bez zmian w JS.
+═══════════════════════════════════════════════════════════ */
+
+/* — Kontener wykresu (.cc): wypukła karta jak reszta — */
+[data-theme="neu-dark"] .cc{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+
+/* — Heatmapa: komórki z miękkim cieniem zamiast obwódki (rgba(255,255,255,.08) była
+   pomyślana pod ciemne motywy — na jasnym tle byłaby prawie niewidoczna) — */
+[data-theme="neu-dark"] .hmap-cell{border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .hmap-legend-box{box-shadow:var(--neu-flat)}
+
+/* — Ranking: rząd bez twardej linii, medal jako wypukły krążek — */
+[data-theme="neu-dark"] .rank-row{border-bottom:1px solid rgba(255,255,255,.06)}
+[data-theme="neu-dark"] .rank-pos{background:var(--sur);box-shadow:var(--neu-out-sm)}
+
+/* — Kafelki informacyjne (O programie, podsumowania w raportach na ekranie) — */
+[data-theme="neu-dark"] .info-box{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+
+/* — Karty raportów w Eksport/Import: wypukłe jak reszta kart — */
+[data-theme="neu-dark"] .ecard{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-dark"] .ecard:hover{box-shadow:var(--neu-out-lg)}
+
+/* ══════════════════════════════════════════════════════════
+   ETAP 6/6: NAWIGACJA DOLNA I DOMKNIĘCIE
+═══════════════════════════════════════════════════════════ */
+
+/* — Aktywna ikona w dolnej belce (mobile): delikatna wypukła "pastylka" pod ikoną — */
+[data-theme="neu-dark"] .bnav-item{position:relative}
+[data-theme="neu-dark"] .bnav-item.active::before{content:'';position:absolute;top:2px;left:50%;transform:translateX(-50%);width:34px;height:28px;border-radius:10px;background:var(--sur);box-shadow:var(--neu-in-sm);z-index:-1}
+
+/* — Mapa (Leaflet): ramka kontenera w duchu neumorfizmu zamiast twardej linii — */
+[data-theme="neu-dark"] #map-picker-container{border:none;box-shadow:var(--neu-in)}
+[data-theme="neu-dark"] .map-pick-btn{background:var(--sur);border:none;box-shadow:var(--neu-out-sm);color:var(--tx2)}
+[data-theme="neu-dark"] .map-pick-btn:hover{box-shadow:var(--neu-in-sm);color:var(--acc)}
+
+/* — Domknięcie: pozostałe widoczne elementy pominięte we wcześniejszych etapach — */
+[data-theme="neu-dark"] .login-card{background:var(--sur);border:none;box-shadow:var(--neu-out-lg),0 20px 45px rgba(0,0,0,.4)}
+[data-theme="neu-dark"] .pi{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-dark"] .oc-chip{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .ccard{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-dark"] .toast{background:var(--sur);border:none;box-shadow:var(--neu-out-lg)}
+[data-theme="neu-dark"] .note-item{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .ab-input{background:var(--sur);border:none;box-shadow:var(--neu-in-sm);color:var(--tx)}
+[data-theme="neu-dark"] .conn-badge{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .rate-badge{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .cur-btn{background:var(--sur);border:none;box-shadow:var(--neu-flat);color:var(--tx2)}
+[data-theme="neu-dark"] .cur-btn.on{background:linear-gradient(135deg,var(--acc),#ff9b80);color:#1b1e25;box-shadow:2px 2px 8px rgba(255,122,92,.45)}
+[data-theme="neu-dark"] #hamburger{background:var(--sur);border:none;box-shadow:var(--neu-out-sm)}
+[data-theme="neu-dark"] .help-close,
+[data-theme="neu-dark"] .help-topbar-ver,
+[data-theme="neu-dark"] .hmtoc-link{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .rank-pos.other{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .role-badge.viewer{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+[data-theme="neu-dark"] .hs-example{background:var(--sur);border:none;border-left:3px solid var(--acc);box-shadow:var(--neu-flat)}
+
 </style>
 </head>
 
