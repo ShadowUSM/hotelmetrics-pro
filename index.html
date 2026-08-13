@@ -808,6 +808,56 @@ textarea.fi{resize:vertical}
 
 /* — Sekcje sidebara (Główne/Zarządzanie): bez linii, subtelniejszy tekst — */
 [data-theme="neu-light"] .s-sect:hover{color:var(--acc)}
+
+/* ══════════════════════════════════════════════════════════
+   ETAP 2/6: DASHBOARD — karty KPI, hero card, insights,
+   karty outletów, alerty, paski postępu, odznaki.
+═══════════════════════════════════════════════════════════ */
+
+/* — Karty KPI: wypukłe, bez krawędzi, lekko unoszą się na hover — */
+[data-theme="neu-light"] .kpi{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-light"] .kpi::after{display:none}
+[data-theme="neu-light"] .kpi:hover{box-shadow:var(--neu-out-lg)}
+[data-theme="neu-light"] .kpi-badge.up{background:var(--sur);box-shadow:var(--neu-flat);color:var(--grn)}
+[data-theme="neu-light"] .kpi-badge.dn{background:var(--sur);box-shadow:var(--neu-flat);color:var(--red)}
+
+/* — Hero card: mocniejsza wypukłość, płaskie tło (bez gradientu — spójne z zasadą "ten sam ton") — */
+[data-theme="neu-light"] .hero-card{background:var(--sur);border:none;box-shadow:var(--neu-out-lg)}
+
+/* — Insights (automatyczne podsumowanie): pastelowa, lekko wypukła karta — */
+[data-theme="neu-light"] .insights-card{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-light"] .insights-card .ic-head{color:var(--acc)}
+
+/* — Karty outletów: jak KPI — wypukłe, bez krawędzi — */
+[data-theme="neu-light"] .oc{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+[data-theme="neu-light"] .oc:hover{box-shadow:var(--neu-out-lg)}
+[data-theme="neu-light"] .oc-rank{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+
+/* — Pasek postępu: wgłębiony rowek z wypełnieniem w kolorze statusu — */
+[data-theme="neu-light"] .prog{background:var(--sur);box-shadow:var(--neu-in-sm)}
+[data-theme="neu-light"] .prog-fill{box-shadow:0 0 6px rgba(0,0,0,.12)}
+
+/* — Statystyki w karcie outletu: lekko wgłębione "kafelki" zagnieżdżone w karcie — */
+[data-theme="neu-light"] .oc-stat{background:var(--sur);box-shadow:var(--neu-in-sm)}
+
+/* — Alerty: pastelowy ton statusu, miękki cień zamiast twardej kreski z boku — */
+[data-theme="neu-light"] .alert{border-left:none;background:var(--sur);box-shadow:var(--neu-flat)}
+[data-theme="neu-light"] .alert.da{color:#c0393f}
+[data-theme="neu-light"] .alert.wa{color:#b87418}
+[data-theme="neu-light"] .alert.ok{color:#15875a}
+
+/* — Drobne odznaki (badge/goal-badge/wx-badge): płaskie, bez krawędzi — */
+[data-theme="neu-light"] .badge,
+[data-theme="neu-light"] .goal-badge,
+[data-theme="neu-light"] .wx-badge{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
+
+/* — Puste stany: wypukła karta zamiast przerywanej ramki — */
+[data-theme="neu-light"] .empty-hero{background:var(--sur);border:none;box-shadow:var(--neu-out)}
+
+/* — Globalna wyszukiwarka: wypukły panel, wgłębione pole tekstowe — */
+[data-theme="neu-light"] #search-panel{background:var(--sur);border:none;box-shadow:var(--neu-out-lg)}
+[data-theme="neu-light"] .search-input-row{background:var(--sur);border:none;box-shadow:var(--neu-in-sm)}
+[data-theme="neu-light"] .sr-item:hover{background:var(--sur);box-shadow:var(--neu-flat)}
 </style>
 </head>
 
