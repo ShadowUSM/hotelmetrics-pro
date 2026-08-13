@@ -81,12 +81,13 @@
    antracytowa czerń zamiast bieli, a "jasny" cień to nie biel tylko
    odrobinę jaśniejszy odcień tła (czysta biel na czarnym tle wyglądałaby
    nienaturalnie) + mocny, niemal czarny cień dla głębi. Pastelowy akcent
-   koralowo-pomarańczowy — zgodnie z przesłanymi przykładami (odtwarzacz
-   muzyki, aplikacja bankowa HRTBT). */
+   jaskrawozielony — celowo bardziej nasycony niż stonowana zieleń
+   semantyczna (--grn, używana do wskaźników "pozytywnie"), żeby oba
+   kolory pozostały rozróżnialne mimo tego samego odcienia bazowego. */
 [data-theme="neu-dark"]{
   --bg:#1b1e25;--sur:#1b1e25;--sur2:#21252d;--sur3:#262b34;
   --brd:#262b34;--brd2:#2f353f;
-  --acc:#ff7a5c;--acc-glow:rgba(255,122,92,.18);--acc-rgb:255,122,92;
+  --acc:#2ee673;--acc-glow:rgba(46,230,115,.18);--acc-rgb:46,230,115;
   --tx:#e8e9ee;--tx2:#9aa0ae;--tx3:#656b7a;
   --red:#ff5c5c;--warn:#ffab52;--grn:#4ade80;
   --fd:'Outfit',sans-serif;--fb:'Outfit',sans-serif;
@@ -184,7 +185,7 @@ input,select,textarea{font-family:var(--fb)}
 .tdot[data-t="arctic"]{background:linear-gradient(135deg,#0891b2 40%,#e0f2fe)}
 .tdot[data-t="parchment"]{background:linear-gradient(135deg,#b45309 40%,#faf7f0)}
 .tdot[data-t="neu-light"]{background:linear-gradient(135deg,#7b6ef6 40%,#e9edf3);box-shadow:inset 0 0 0 1px rgba(163,177,198,.4)}
-.tdot[data-t="neu-dark"]{background:linear-gradient(135deg,#ff7a5c 40%,#1b1e25)}
+.tdot[data-t="neu-dark"]{background:linear-gradient(135deg,#2ee673 40%,#1b1e25)}
 .cur-btns{display:flex;gap:4px}
 .cur-btn{flex:1;padding:5px 0;background:var(--sur2);border:1px solid var(--brd);color:var(--tx2);border-radius:6px;font-size:.7rem;font-weight:500;transition:all .15s}
 .cur-btn.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
@@ -949,7 +950,7 @@ textarea.fi{resize:vertical}
 /* — Przyciski: podniesione, wciśnięcie = inset. Primary = pastelowa wypełniona pigułka z poświatą — */
 [data-theme="neu-dark"] .btn{border:none;box-shadow:var(--neu-out-sm);background:var(--sur);color:var(--tx2)}
 [data-theme="neu-dark"] .btn:active{box-shadow:var(--neu-in-sm)}
-[data-theme="neu-dark"] .btn-p{background:linear-gradient(135deg,var(--acc),#ff9b80);color:#1b1e25;box-shadow:4px 4px 12px rgba(255,122,92,.45),-2px -2px 8px rgba(52,58,70,.4)}
+[data-theme="neu-dark"] .btn-p{background:linear-gradient(135deg,var(--acc),#7dffb3);color:#0d2117;box-shadow:4px 4px 12px rgba(46,230,115,.45),-2px -2px 8px rgba(52,58,70,.4)}
 [data-theme="neu-dark"] .btn-p:active{box-shadow:inset 3px 3px 7px rgba(0,0,0,.5),inset -2px -2px 6px rgba(52,58,70,.3)}
 [data-theme="neu-dark"] .btn-s{background:var(--sur);color:var(--tx2);border:none;box-shadow:var(--neu-out-sm)}
 [data-theme="neu-dark"] .btn-s:active{box-shadow:var(--neu-in-sm)}
@@ -1198,13 +1199,13 @@ textarea.fi{resize:vertical}
 [data-theme="neu-dark"] .mgrid-btn:hover{background:var(--sur);box-shadow:var(--neu-in-sm);color:var(--acc)}
 [data-theme="neu-dark"] .mgrid-btn.has{box-shadow:var(--neu-flat);color:var(--acc)}
 [data-theme="neu-dark"] .mgrid-btn.cur,
-[data-theme="neu-dark"] .mgrid-btn.has.cur{background:linear-gradient(135deg,var(--acc),#ff9b80);color:#1b1e25;box-shadow:2px 2px 8px rgba(255,122,92,.45)}
+[data-theme="neu-dark"] .mgrid-btn.has.cur{background:linear-gradient(135deg,var(--acc),#7dffb3);color:#0d2117;box-shadow:2px 2px 8px rgba(46,230,115,.45)}
 [data-theme="neu-dark"] .dp-title{border-bottom:none}
 
 /* — Mini kalendarz dnia: płaskie komórki, wybrany dzień = solidna pastelowa pigułka — */
 [data-theme="neu-dark"] .cal-d:hover{background:var(--sur);box-shadow:var(--neu-flat);color:var(--tx)}
 [data-theme="neu-dark"] .cal-d.rng{background:var(--sur);box-shadow:var(--neu-flat);color:var(--acc)}
-[data-theme="neu-dark"] .cal-d.sel{background:linear-gradient(135deg,var(--acc),#ff9b80)!important;color:#1b1e25!important;box-shadow:2px 2px 8px rgba(255,122,92,.45)}
+[data-theme="neu-dark"] .cal-d.sel{background:linear-gradient(135deg,var(--acc),#7dffb3)!important;color:#0d2117!important;box-shadow:2px 2px 8px rgba(46,230,115,2,.45)}
 
 /* ══════════════════════════════════════════════════════════
    ETAP 5/6: WYKRESY I WIDŻETY SPECJALNE
@@ -1256,7 +1257,7 @@ textarea.fi{resize:vertical}
 [data-theme="neu-dark"] .conn-badge{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
 [data-theme="neu-dark"] .rate-badge{background:var(--sur);border:none;box-shadow:var(--neu-flat)}
 [data-theme="neu-dark"] .cur-btn{background:var(--sur);border:none;box-shadow:var(--neu-flat);color:var(--tx2)}
-[data-theme="neu-dark"] .cur-btn.on{background:linear-gradient(135deg,var(--acc),#ff9b80);color:#1b1e25;box-shadow:2px 2px 8px rgba(255,122,92,.45)}
+[data-theme="neu-dark"] .cur-btn.on{background:linear-gradient(135deg,var(--acc),#7dffb3);color:#0d2117;box-shadow:2px 2px 8px rgba(46,230,115,.45)}
 [data-theme="neu-dark"] #hamburger{background:var(--sur);border:none;box-shadow:var(--neu-out-sm)}
 [data-theme="neu-dark"] .help-close,
 [data-theme="neu-dark"] .help-topbar-ver,
