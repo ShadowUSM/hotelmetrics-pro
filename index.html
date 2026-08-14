@@ -536,6 +536,9 @@ textarea.fi{resize:vertical}
   #main{padding-top:8px}
   .kpi-grid{grid-template-columns:repeat(4,1fr)}
   .oc-grid{grid-template-columns:repeat(3,1fr)}
+  /* Mniejszy pasek w poziomie ma inne proporcje — dopasuj "bąbelek" aktywnej ikony (Neu) */
+  [data-theme="neu-light"] .bnav-item.active::before,
+  [data-theme="neu-dark"] .bnav-item.active::before{top:7px;width:28px;height:22px}
 }
 
 /* ── RANKING ── */
@@ -1167,7 +1170,7 @@ textarea.fi{resize:vertical}
 
 /* — Aktywna ikona w dolnej belce (mobile): delikatna wypukła "pastylka" pod ikoną — */
 [data-theme="neu-light"] .bnav-item{position:relative}
-[data-theme="neu-light"] .bnav-item.active::before{content:'';position:absolute;top:2px;left:50%;transform:translateX(-50%);width:34px;height:28px;border-radius:10px;background:var(--sur);box-shadow:var(--neu-in-sm);z-index:-1}
+[data-theme="neu-light"] .bnav-item.active::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:34px;height:28px;border-radius:10px;background:var(--sur);box-shadow:var(--neu-in-sm);z-index:-1}
 
 /* — Mapa (Leaflet): ramka kontenera w duchu neumorfizmu zamiast twardej linii — */
 [data-theme="neu-light"] #map-picker-container{border:none;box-shadow:var(--neu-in)}
@@ -1270,7 +1273,7 @@ textarea.fi{resize:vertical}
 
 /* — Aktywna ikona w dolnej belce (mobile): delikatna wypukła "pastylka" pod ikoną — */
 [data-theme="neu-dark"] .bnav-item{position:relative}
-[data-theme="neu-dark"] .bnav-item.active::before{content:'';position:absolute;top:2px;left:50%;transform:translateX(-50%);width:34px;height:28px;border-radius:10px;background:var(--sur);box-shadow:var(--neu-in-sm);z-index:-1}
+[data-theme="neu-dark"] .bnav-item.active::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:34px;height:28px;border-radius:10px;background:var(--sur);box-shadow:var(--neu-in-sm);z-index:-1}
 
 /* — Mapa (Leaflet): ramka kontenera w duchu neumorfizmu zamiast twardej linii — */
 [data-theme="neu-dark"] #map-picker-container{border:none;box-shadow:var(--neu-in)}
