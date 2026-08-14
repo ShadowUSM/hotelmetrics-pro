@@ -240,6 +240,10 @@ input,select,textarea{font-family:var(--fb)}
 .oc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .oc-name{font-size:.85rem;font-weight:600;letter-spacing:.03em}
 .oc-rank{font-size:.6rem;background:var(--sur2);border:1px solid var(--brd2);color:var(--tx3);padding:2px 7px;border-radius:20px}
+.oc-head-right{display:flex;align-items:center;gap:8px}
+.oc-check{width:16px;height:16px;accent-color:var(--acc);cursor:pointer;flex-shrink:0}
+.oc.oc-excluded{opacity:.5}
+.oc.oc-excluded .oc-val,.oc.oc-excluded .prog-fill{filter:grayscale(.6)}
 .oc-val{font-size:1.4rem;font-family:var(--fd);font-weight:700;line-height:1;margin-bottom:3px}
 .oc-meta{font-size:.65rem;color:var(--tx3);margin-bottom:10px}
 .prog{height:4px;background:var(--sur2);border-radius:2px;overflow:hidden;margin-bottom:5px}
@@ -1770,7 +1774,7 @@ function getAllDailyData(pid){
   });
   return r;
 }
-function dailyDayTotal(dayData){return dayData?Object.values(dayData).reduce(function(s,v){return s+v},0):0}
+function dailyDayTotal(dayData){return sumActive(dayData)}
 function dailyMonthTotal(dd){
   if(!dd||!dd.days)return 0;
   return Object.values(dd.days).reduce(function(s,dayData){return s+dailyDayTotal(dayData)},0);
@@ -2266,7 +2270,7 @@ function linearRegression(values){
 function forecastNextMonth(allData,outlets){
   var months=Object.keys(allData).sort();
   if(months.length<3)return null;
-  var totals=months.map(function(m){return Object.values(allData[m].a||{}).reduce(function(a,b){return a+b},0)});
+  var totals=months.map(function(m){return sumActive(allData[m].a||{})});
   var reg=linearRegression(totals);
   if(!reg)return null;
   var next=reg.predict(months.length);
@@ -2347,7 +2351,7 @@ function renderHeatmap(container,pid,month){
   var daysInMo=new Date(yr,mo,0).getDate();
   var firstDay=(new Date(yr,mo-1,1).getDay()+6)%7;
   var md=getMD(pid,month)||{};
-  var total=Object.values(md.a||{}).reduce(function(x,y){return x+y},0);
+  var total=sumActive(md.a||{});
   var dailyAvg=md.dr>0?total/md.dr:0;
   var dd=getDailyData(pid,month);
   var hasRealDays=dd.days&&Object.keys(dd.days).length>0;
@@ -2729,10 +2733,10 @@ function renderAnalytics(){
   var M=calcM(S.outlets,d)||{_t:{b:0,a:0,avg:0,proj:0,DR:0,M:dim(S.month),DL:dim(S.month)}};
   var allD=getAllMD(S.pid),T=M._t;
   var yr=S.month.split('-')[0];
-  var ytd=Object.entries(allD).filter(function(e){return e[0].startsWith(yr)}).reduce(function(s,e){return s+Object.values(e[1].a||{}).reduce(function(x,y){return x+y},0)},0);
+  var ytd=Object.entries(allD).filter(function(e){return e[0].startsWith(yr)}).reduce(function(s,e){return s+sumActive(e[1].a||{})},0);
   var months=Object.keys(allD).sort();
   var ci=months.indexOf(S.month),mom='—';
-  if(ci>0){var c2=Object.values(allD[months[ci]].a||{}).reduce(function(x,y){return x+y},0),p2=Object.values(allD[months[ci-1]].a||{}).reduce(function(x,y){return x+y},0);if(p2)mom=(c2>=p2?'▲ +':'▼ ')+Math.abs((c2-p2)/p2*100).toFixed(1)+'%'}
+  if(ci>0){var c2=sumActive(allD[months[ci]].a||{}),p2=sumActive(allD[months[ci-1]].a||{});if(p2)mom=(c2>=p2?'▲ +':'▼ ')+Math.abs((c2-p2)/p2*100).toFixed(1)+'%'}
 
   // AI-style forecast
   var forecast=forecastNextMonth(allD,S.outlets);
@@ -2741,7 +2745,8 @@ function renderAnalytics(){
   var h='<div class="kpi-grid">';
   h+='<div class="kpi"><div class="kpi-lbl">YTD '+yr+'</div><div class="kpi-val">'+fmt(ytd,true)+'</div></div>';
   h+='<div class="kpi"><div class="kpi-lbl">Momentum MoM</div><div class="kpi-val" style="font-size:1rem">'+mom+'</div></div>';
-  var best=S.outlets.reduce(function(b2,o){return (M[okey(o.name)]&&M[okey(o.name)].a||0)>(M[okey(b2.name)]&&M[okey(b2.name)].a||0)?o:b2},S.outlets[0]);
+  var activeOutletsList=S.outlets.filter(function(o){return isOutletActive(okey(o.name))});
+  var best=activeOutletsList.length?activeOutletsList.reduce(function(b2,o){return (M[okey(o.name)]&&M[okey(o.name)].a||0)>(M[okey(b2.name)]&&M[okey(b2.name)].a||0)?o:b2},activeOutletsList[0]):null;
   h+='<div class="kpi"><div class="kpi-lbl">Lider</div><div class="kpi-val" style="font-size:.95rem">'+(best?best.name:'—')+'</div></div>';
   if(forecast){
     h+='<div class="kpi"><div class="kpi-lbl">Prognoza '+mLabel(nextMo)+'</div><div class="kpi-val">'+fmt(forecast.value,true)+'</div>';
@@ -2805,7 +2810,7 @@ function renderAnalytics(){
   S.charts['ch-hbar']=new Chart(document.getElementById('ch-hbar'),{type:'bar',data:{labels:ns,datasets:[{label:'% budżetu',data:bp,backgroundColor:bp.map(function(v){return v>=100?'rgba(34,197,94,.7)':v>=75?'rgba(245,158,11,.7)':'rgba(255,77,109,.7)'}),borderRadius:3}]},options:Object.assign({},chOpts(function(v){return v+'%'}),{indexAxis:'y',plugins:{legend:{display:false}}})});
 
   dChart('ch-trend');
-  S.charts['ch-trend']=new Chart(document.getElementById('ch-trend'),{type:'line',data:{labels:months.map(mLabel),datasets:[{label:'Wynik netto',data:months.map(function(m){return conv(Object.values(allD[m].a||{}).reduce(function(x,y){return x+y},0))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:acHex(),pointBorderColor:surHex(),pointBorderWidth:2}]},options:chOpts(function(v){return fmtR(v)})});
+  S.charts['ch-trend']=new Chart(document.getElementById('ch-trend'),{type:'line',data:{labels:months.map(mLabel),datasets:[{label:'Wynik netto',data:months.map(function(m){return conv(sumActive(allD[m].a||{}))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:acHex(),pointBorderColor:surHex(),pointBorderWidth:2}]},options:chOpts(function(v){return fmtR(v)})});
 
   // Pre-render ranking / what-if / nowe analizy
   renderRanking(document.getElementById('at-ranking'),M,allD);
@@ -3565,7 +3570,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.8.0';
+var APP_VERSION='3.8.1';
 var APP_BUILD_DATE='2026-08-13';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -3574,6 +3579,14 @@ var APP_BUILD_DATE='2026-08-13';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.8.1',date:'2026-08-13',changes:[
+    'Motyw „Neu Light" (neumorfizm) ukończony w całości — Dashboard, tabele i formularze, modale i pickery, wykresy i widżety specjalne, nawigacja dolna. Jasny, pastelowy styl z miękkimi podwójnymi cieniami zamiast twardych krawędzi, z zachowaną czytelnością danych finansowych w tabelach',
+    'Nowy motyw „Neu Dark" — ciemna wersja neumorfizmu (głęboka antracytowa czerń, jaskrawozielony akcent), lustrzane odbicie pełnego zakresu motywu Neu Light. Wybór dostępny jako 6. kropka w sidebarze',
+    'Poprawiony kontrast tekstu w motywie Neu Light — jasnoszare kolory czcionek (etykiety, podpisy) zamienione na ciemniejszy grafit, zgodnie ze standardem WCAG AA (min. 4.5:1)',
+    'Nowa sekcja na Dashboard: „Komentarz synoptyka" — automatyczna analiza wpływu pogody na sprzedaż dla wybranego miesiąca, osobno dla każdego outletu (np. outlety plenerowe vs wewnętrzne mogą reagować na pogodę odwrotnie). Liczona na żywo, zmienia się przy przełączaniu miesiąca i w miarę uzupełniania danych. Szczegóły w oknie po kliknięciu, z podsumowaniem pogody miesiąca (temperatura, dni z opadami, dni wietrzne)',
+    'Gdy pogoda w miesiącu jest zbyt jednolita, aby ocenić jej wpływ — aplikacja pokazuje sam opis warunków (ile dni słonecznych/deszczowych/wietrznych itd.) zamiast fikcyjnej oceny',
+    'Poprawiona obsługa gestu „wstecz" na telefonie (Android/przeglądarka) — zamyka aktualnie otwarte okienko (modal, instrukcję obsługi, wyszukiwarkę), a dopiero gdy nic nie jest otwarte, cofa do poprzednio otwartej zakładki'
+  ]},
   {v:'3.8.0',date:'2026-08-13',changes:[
     'Nowy motyw „Neu Light" (Etap 1/6 wdrożenia neumorfizmu) — jasny, pastelowy styl z miękkimi podwójnymi cieniami zamiast twardych krawędzi',
     'Etap 1 obejmuje: sidebar, górny pasek, przyciski, pola tekstowe i nawigację dolną (mobile). Kolejne etapy obejmą Dashboard, tabele, modale i wykresy',
@@ -3777,8 +3790,29 @@ var S={
   outlets:[],
   charts:{},
   weatherFrom:null,
-  weatherTo:null
+  weatherTo:null,
+  // Outlety czasowo wyłączone z sum (wynik netto, budżet) — narzędzie "co jeśli bez tego punktu".
+  // Celowo TYLKO w pamięci (nie localStorage) — zawsze resetuje się do "wszystko włączone"
+  // przy każdym ponownym wejściu do aplikacji.
+  excludedOutlets:new Set()
 };
+
+// ── FILTR AKTYWNYCH OUTLETÓW: "co jeśli bez tego punktu" ──
+function isOutletActive(key){return !S.excludedOutlets.has(key)}
+// Sumuje obiekt {outletKey: wartość} pomijając wyłączone outlety — używane wszędzie
+// tam, gdzie liczona jest suma/wynik netto/budżet (Dashboard, Analityka, Porównania, raporty PDF).
+function sumActive(valuesObj){
+  if(!valuesObj)return 0;
+  var s=0;
+  Object.keys(valuesObj).forEach(function(k){if(isOutletActive(k))s+=(Number(valuesObj[k])||0)});
+  return s;
+}
+function toggleOutletActive(key){
+  if(S.excludedOutlets.has(key))S.excludedOutlets.delete(key);
+  else S.excludedOutlets.add(key);
+  haptic(6);
+  renderCur();
+}
 
 /* ═══════════════════════════════════════════
    STORAGE — localStorage (cache) + Firestore (cloud)
@@ -4067,7 +4101,7 @@ function calcM(outlets,d){
   outlets.forEach(function(o){
     var k=okey(o.name),bv=b[k]||0,av=a[k]||0,avg=DR>0?av/DR:0,proj=avg*M;
     res[k]={b:bv,a:av,avg:avg,proj:proj,rem:bv-av,reqD:DL>0?(bv-av)/DL:0,pct:bv>0?av/bv:null,be:avg>0&&bv>0?Math.ceil(bv/avg):null,DR:DR,M:M,DL:DL};
-    tB+=bv;tA+=av;
+    if(isOutletActive(k)){tB+=bv;tA+=av;}
   });
   var tAvg=DR>0?tA/DR:0;
   res._t={b:tB,a:tA,avg:tAvg,proj:tAvg*M,rem:tB-tA,reqD:DL>0?(tB-tA)/DL:0,pct:tB>0?tA/tB:null,DR:DR,M:M,DL:DL};
@@ -4262,7 +4296,7 @@ function renderDashboard(){
   var M=calcM(S.outlets,d)||{_t:{b:0,a:0,avg:0,proj:0,rem:0,reqD:0,pct:null,DR:0,M:dim(S.month),DL:dim(S.month)}};
   var T=M._t,al=alerts(M,S.outlets),com=d.c||'';
   var pd=getMD(S.pid,prevM(S.month))||{};
-  var pA=Object.values(pd.a||{}).reduce(function(s,v){return s+v},0);
+  var pA=sumActive(pd.a||{});
   var mom=pA>0?(T.a-pA)/pA*100:null;
 
   if(!T.a&&!Object.keys(d).length){
@@ -4275,14 +4309,19 @@ function renderDashboard(){
   var allD=getAllMD(S.pid);
   var monthsSorted=Object.keys(allD).sort();
   var last6=monthsSorted.slice(-6);
-  var heroSparkVals=last6.map(function(m){return conv(Object.values(allD[m].a||{}).reduce(function(x,y){return x+y},0))});
-  var pctSparkVals=last6.map(function(m){var md=allD[m];var mb=Object.values(md.b||{}).reduce(function(x,y){return x+y},0);var ma=Object.values(md.a||{}).reduce(function(x,y){return x+y},0);return mb>0?(ma/mb*100):null}).filter(function(v){return v!==null});
+  var heroSparkVals=last6.map(function(m){return conv(sumActive(allD[m].a||{}))});
+  var pctSparkVals=last6.map(function(m){var md=allD[m];var mb=sumActive(md.b||{});var ma=sumActive(md.a||{});return mb>0?(ma/mb*100):null}).filter(function(v){return v!==null});
 
   var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">';
   h+='<div class="badge">'+mLabelFull(S.month)+'</div>';
   h+='<span style="font-size:.68rem;color:var(--tx3)">'+T.DR+'/'+T.M+' dni · pozostało: '+T.DL+'</span>';
   if(com)h+='<span style="font-size:.65rem;background:var(--sur2);padding:2px 8px;border-radius:6px;border:1px solid var(--brd);color:var(--tx3)">📝 '+com+'</span>';
   h+='<button class="btn btn-g btn-sm" onclick="openCommentM()" style="margin-left:auto">📝</button></div>';
+
+  if(S.excludedOutlets.size){
+    var exclNames=S.outlets.filter(function(o){return !isOutletActive(okey(o.name))}).map(function(o){return o.name});
+    h+='<div class="hs-warn" style="margin-bottom:12px">⚠️ Wynik netto i budżet liczone są <strong>bez</strong>: '+exclNames.join(', ')+'. <a href="#" onclick="event.preventDefault();S.excludedOutlets.clear();renderCur();" style="color:var(--acc);font-weight:600">Przywróć wszystkie</a></div>';
+  }
 
   // ── HERO CARD: podsumowanie miesiąca ──
   h+='<div class="hero-card"><div class="hero-top">';
@@ -4336,8 +4375,9 @@ function renderDashboard(){
     var sh=T.a>0?(m.a/T.a*100).toFixed(1):0;
     var goalVal=goals[k];
     var ocol=outletColor(k);
+    var active=isOutletActive(k);
     h+='<div class="oc-swipe-wrap"><div class="oc-swipe-hint left">📈 Trend</div><div class="oc-swipe-hint right">📝 Notatki</div>';
-    h+='<div class="oc" data-outlet-name="'+o.name.replace(/"/g,'&quot;')+'" style="border-left:3px solid '+ocol+'"><div class="oc-head"><div class="oc-name">'+o.name+'</div><div class="oc-rank">#'+(i+1)+'</div></div>';
+    h+='<div class="oc'+(active?'':' oc-excluded')+'" data-outlet-name="'+o.name.replace(/"/g,'&quot;')+'" style="border-left:3px solid '+ocol+'"><div class="oc-head"><div class="oc-name">'+o.name+'</div><div class="oc-head-right"><input type="checkbox" class="oc-check" '+(active?'checked':'')+' onclick="event.stopPropagation();toggleOutletActive(\''+k+'\')" title="Uwzględnij w wyniku netto i budżecie"><div class="oc-rank">#'+(i+1)+'</div></div></div>';
     h+='<div class="oc-val">'+fmt(m.a||0,true)+'</div><div class="oc-meta">'+sh+'% udziału'+(goalVal?' · <span class="goal-badge">🎯 '+Math.min(100,(m.a/goalVal*100)).toFixed(0)+'% celu</span>':'')+'</div>';
     if(m.b){h+='<div class="prog"><div class="prog-fill '+bc+'" style="width:'+bw+'%"></div></div><div class="prog-lbl"><span>'+(p*100).toFixed(1)+'%</span><span>'+fmt(m.b,true)+'</span></div>';}
     else{h+='<div style="font-size:.65rem;color:var(--tx3)">Brak budżetu</div>';}
@@ -4960,9 +5000,9 @@ function renderCompare(){
   var pm=prevM(S.month),p=S.month.split('-'),ym=p[0],mm=p[1];
   var yoyM=(+ym-1)+'-'+mm;
   var cD=allD[S.month]||{},pD=allD[pm]||{},yD=allD[yoyM]||{};
-  var cA=Object.values(cD.a||{}).reduce(function(x,y){return x+y},0);
-  var pA=Object.values(pD.a||{}).reduce(function(x,y){return x+y},0);
-  var yA=Object.values(yD.a||{}).reduce(function(x,y){return x+y},0);
+  var cA=sumActive(cD.a||{});
+  var pA=sumActive(pD.a||{});
+  var yA=sumActive(yD.a||{});
   var mom=pA>0?(cA-pA)/pA*100:null,yoy=yA>0?(cA-yA)/yA*100:null;
 
   var h='<div class="tabs" id="ctabs"><button class="tab on" onclick="cTab(\'mom\',this)">MoM</button><button class="tab" onclick="cTab(\'yoy\',this)">YoY</button><button class="tab" onclick="cTab(\'ytd\',this)">YTD</button><button class="tab" onclick="cTab(\'season\',this)">🌊 Sezonowość</button><button class="tab" onclick="cTab(\'range\',this)">📆 Zakres</button></div>';
@@ -4991,14 +5031,14 @@ function renderCompare(){
   h+='<div id="ct-ytd" style="display:none">';
   var ytdMs=Object.keys(allD).filter(function(m){return m.startsWith(ym)}).sort(),run=0;
   h+='<div class="tbl-wrap"><table><thead><tr><th>Miesiąc</th><th>Wynik</th><th>Budżet</th><th>Real.%</th><th>Narastająco</th></tr></thead><tbody>';
-  ytdMs.forEach(function(m){var md=allD[m],ma=Object.values(md.a||{}).reduce(function(x,y){return x+y},0),mb=Object.values(md.b||{}).reduce(function(x,y){return x+y},0);run+=ma;h+='<tr><td>'+mLabelFull(m)+'</td><td>'+fmt(ma)+'</td><td>'+(mb?fmt(mb):'—')+'</td><td>'+(mb?'<span class="pill '+pc(ma/mb)+'">'+(ma/mb*100).toFixed(1)+'%</span>':'—')+'</td><td class="td-acc">'+fmt(run)+'</td></tr>'});
+  ytdMs.forEach(function(m){var md=allD[m],ma=sumActive(md.a||{}),mb=sumActive(md.b||{});run+=ma;h+='<tr><td>'+mLabelFull(m)+'</td><td>'+fmt(ma)+'</td><td>'+(mb?fmt(mb):'—')+'</td><td>'+(mb?'<span class="pill '+pc(ma/mb)+'">'+(ma/mb*100).toFixed(1)+'%</span>':'—')+'</td><td class="td-acc">'+fmt(run)+'</td></tr>'});
   h+='</tbody></table></div></div>';
 
   // Sezonowość (#9) — obecny miesiąc vs średnia tego samego miesiąca w poprzednich latach
   h+='<div id="ct-season" style="display:none">';
   var sameMonthYears=Object.keys(allD).filter(function(m){return m.endsWith('-'+mm)&&m!==S.month});
   if(sameMonthYears.length){
-    var histTotals=sameMonthYears.map(function(m){return Object.values(allD[m].a||{}).reduce(function(x,y){return x+y},0)});
+    var histTotals=sameMonthYears.map(function(m){return sumActive(allD[m].a||{})});
     var histAvg=histTotals.reduce(function(s,v){return s+v},0)/histTotals.length;
     var seasonIdx=histAvg>0?(cA/histAvg*100):null;
     h+='<div style="font-size:.72rem;color:var(--tx3);margin-bottom:10px">'+mLabelFull(S.month)+' vs średnia z '+sameMonthYears.length+' poprzednich lat (ten sam miesiąc)</div>';
@@ -5038,8 +5078,8 @@ function renderCompare(){
   dChart('ch-cmp');
   var sm=Object.keys(allD).sort();
   S.charts['ch-cmp']=new Chart(document.getElementById('ch-cmp'),{type:'line',data:{labels:sm.map(mLabel),datasets:[
-    {label:'Wynik',data:sm.map(function(m){return conv(Object.values(allD[m].a||{}).reduce(function(x,y){return x+y},0))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.3,fill:false,pointRadius:4,pointBackgroundColor:acHex()},
-    {label:'Budżet',data:sm.map(function(m){return conv(Object.values(allD[m].b||{}).reduce(function(x,y){return x+y},0))}),borderColor:tx2Hex(),backgroundColor:'transparent',tension:.3,borderDash:[4,4],pointRadius:3}
+    {label:'Wynik',data:sm.map(function(m){return conv(sumActive(allD[m].a||{}))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.3,fill:false,pointRadius:4,pointBackgroundColor:acHex()},
+    {label:'Budżet',data:sm.map(function(m){return conv(sumActive(allD[m].b||{}))}),borderColor:tx2Hex(),backgroundColor:'transparent',tension:.3,borderDash:[4,4],pointRadius:3}
   ]},options:chOpts(function(v){return fmtR(v)})});
 }
 
@@ -5144,7 +5184,7 @@ function resyncOutletsToCloud(){
   haptic([10,5,10]);
 }
 
-function selProp(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);updatePropSel();refreshCurrentRole();renderCur()}
+function selProp(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);S.excludedOutlets.clear();updatePropSel();refreshCurrentRole();renderCur()}
 function saveProp(){
   var n=document.getElementById('np-name')&&document.getElementById('np-name').value.trim();
   var a=document.getElementById('np-addr')&&document.getElementById('np-addr').value.trim()||'';
@@ -6029,7 +6069,7 @@ function computeHeatmapRangeData(pid,fromStr,toStr){
     var month=yr+'-'+String(mo).padStart(2,'0');
     var dd=getDailyData(pid,month);
     var md=getMD(pid,month)||{};
-    var total=Object.values(md.a||{}).reduce(function(x,y){return x+y},0);
+    var total=sumActive(md.a||{});
     var dailyAvg=md.dr>0?total/md.dr:0;
     var dayData=dd.days&&dd.days[day]?dd.days[day]:null;
     var realVal=dayData?dailyDayTotal(dayData):null;
@@ -6494,8 +6534,8 @@ function pdfSeasonalityReport(){
   var sameMonthYears=Object.keys(allD).filter(function(m){return m.endsWith('-'+mm)&&m!==S.month});
   if(!sameMonthYears.length){toast('Brak danych z tego samego miesiąca w poprzednich latach','er');return;}
 
-  var cD=getMD(S.pid,S.month)||{},cA=Object.values(cD.a||{}).reduce(function(x,y){return x+y},0);
-  var histTotals=sameMonthYears.map(function(m){return Object.values(allD[m].a||{}).reduce(function(x,y){return x+y},0)});
+  var cD=getMD(S.pid,S.month)||{},cA=sumActive(cD.a||{});
+  var histTotals=sameMonthYears.map(function(m){return sumActive(allD[m].a||{})});
   var histAvg=histTotals.reduce(function(s,v){return s+v},0)/histTotals.length;
   var seasonIdx=histAvg>0?(cA/histAvg*100):null;
 
@@ -6723,7 +6763,7 @@ function updatePropSel(){
   if(!S.props.length){sel.innerHTML='<option value="">Brak obiektów</option>';return;}
   S.props.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===S.pid)o.selected=true;sel.appendChild(o)});
 }
-function onPropChange(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);refreshCurrentRole();renderCur()}
+function onPropChange(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);S.excludedOutlets.clear();refreshCurrentRole();renderCur()}
 function onMonthChange(v){S.month=v;syncMonthUI();renderCur()}
 
 function renderCur(){
@@ -6788,6 +6828,12 @@ var HELP_CONTENT=`
 
 <div class="hs-h2">Automatyczne podsumowanie (Insights)</div>
 <div class="hs-p">Poniżej karty głównej pojawia się krótki, wygenerowany automatycznie akapit w prostym języku — np. który outlet rósł najszybciej, który jest poniżej planu, ile procent budżetu wykonano. Pozwala szybko zorientować się w sytuacji bez analizowania wszystkich wykresów osobno.</div>
+
+<div class="hs-h2">🌦️ Komentarz synoptyka — pogoda a sprzedaż</div>
+<div class="hs-p">Na dole karty „Podsumowanie miesiąca" (jeśli obiekt ma ustawioną lokalizację) pojawia się krótka linijka analizująca, czy pogoda w wybranym miesiącu sprzyjała sprzedaży — <strong>osobno dla każdego outletu</strong>. Uwzględnia to, że różne typy outletów mogą reagować na pogodę odwrotnie: outlet plenerowy (np. Beach Bar) zwykle korzysta na słońcu, a restauracja wewnętrzna może wręcz zyskiwać w deszczowe dni, gdy goście zostają w hotelu.</div>
+<div class="hs-p">Kliknięcie linijki otwiera okno ze szczegółami: podsumowanie pogody miesiąca (średnia temperatura, dni z opadami, dni wietrzne, przeważające warunki) oraz werdykt dla każdego outletu z procentową różnicą sprzedaży między dniami o dobrej i złej pogodzie.</div>
+<div class="hs-tip">Analiza liczona jest zawsze na żywo dla aktualnie wybranego miesiąca — zmienia się automatycznie przy przełączaniu miesiąca oraz w miarę uzupełniania danych w pod-zakładce Dzienne (w Danych). Wymaga minimum kilku dni z jednocześnie wpisaną sprzedażą i dopasowaną pogodą.</div>
+<div class="hs-p">Jeśli pogoda w danym miesiącu była zbyt jednolita (np. same dni słoneczne), aby cokolwiek ocenić — aplikacja nie zgaduje, tylko pokazuje sam opis warunków (ile dni było jakich).</div>
 
 <div class="hs-h2">Karty KPI (6 wskaźników)</div>
 <ul class="hs-ul">
@@ -7148,13 +7194,16 @@ var HELP_CONTENT=`
 <div class="hs-p">Menu w sidebarze jest podzielone na sekcje <strong>Główne</strong> i <strong>Zarządzanie</strong>. Kliknięcie nagłówka sekcji zwija lub rozwija listę zakładek w niej zawartych — przydatne na telefonie, żeby menu nie było zbyt długie. Sekcja zawierająca aktualnie otwartą zakładkę rozwija się automatycznie, więc zawsze widać gdzie aktualnie jesteś.</div>
 
 <div class="hs-h2">Motywy kolorystyczne</div>
-<div class="hs-p">Cztery kolorowe kropki na dole sidebara — kliknij aby zmienić motyw. Wybór jest zapamiętywany w przeglądarce.</div>
+<div class="hs-p">Sześć kolorowych kropek na dole sidebara — kliknij aby zmienić motyw. Wybór jest zapamiętywany w przeglądarce.</div>
 <ul class="hs-ul">
   <li>⚫ <strong>Obsidian</strong> — ciemny, cyan, font Syne. Domyślny, idealny na monitorach.</li>
   <li>🟠 <strong>Ember</strong> — ciemny, złoto-bursztynowy, font Bebas Neue. Premium feel.</li>
   <li>🔵 <strong>Arctic</strong> — jasny, teal, font Outfit. Czytelny w dziennym świetle.</li>
   <li>🟤 <strong>Parchment</strong> — jasny, brązowy, font Jost. Ciepły, klasyczny styl.</li>
+  <li>🟣 <strong>Neu Light</strong> — jasny neumorfizm: pastelowy fiolet, miękkie podwójne cienie zamiast twardych krawędzi, elementy „wtapiające się" w tło. Dane w tabelach zachowują pełną czytelność.</li>
+  <li>🟢 <strong>Neu Dark</strong> — ciemny neumorfizm: głęboka antracytowa czerń, jaskrawozielony akcent, ta sama technika miękkich cieni odwrócona kolorystycznie.</li>
 </ul>
+<div class="hs-tip">Motywy neumorficzne mają celowo niski kontrast między tłem a elementami (na tym polega efekt "wtopienia") — jeśli wolisz maksymalną czytelność przy dużej ilości danych liczbowych, pozostałe cztery motywy klasyczne mogą być wygodniejsze do codziennej pracy z tabelami.</div>
 
 <div class="hs-h2">Waluty — PLN / EUR / USD</div>
 <div class="hs-p">Trzy przyciski walut na dole sidebara. Zmiana waluty przelicza wszystkie wartości pieniężne używając aktualnych kursów NBP (Narodowy Bank Polski). Kursy są pobierane automatycznie przy starcie aplikacji z <em>api.nbp.pl</em> — kurs średni, aktualizowany każdy dzień roboczy ok. godz. 12:00.</div>
