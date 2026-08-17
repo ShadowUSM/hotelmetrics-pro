@@ -561,6 +561,13 @@ textarea.fi{resize:vertical}
 .rank-bar{height:100%;border-radius:2px;transition:width .6s}
 
 /* ── HEATMAP ── */
+.hmap-holiday-mark{position:absolute;top:4px;right:5px;font-size:.7rem;line-height:1;filter:saturate(.9);z-index:1}
+.hmap-cell.holiday{box-shadow:inset 0 0 0 1px rgba(255,215,0,.45)}
+.hmap-holiday-label{font-size:.5rem;color:var(--tx3);line-height:1.05;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hmap-holiday-legend{display:inline-flex;align-items:center;gap:4px;margin-left:12px;font-size:.65rem;color:var(--tx3)}
+.hmap-holiday-legend-mark{font-size:.75rem}
+.hmap-holiday-info{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:9px 12px;border-radius:8px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);font-size:.8rem;color:var(--tx)}
+.hmap-holiday-info strong{color:var(--tx)}
 .hmap-grid{display:grid;grid-template-columns:repeat(7,minmax(72px,1fr));gap:5px;margin:8px 0}
 .hmap-cell{min-height:78px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.66rem;color:var(--tx);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;padding:5px;text-align:center;border:1px solid rgba(255,255,255,.08)}
 .hmap-cell:hover{transform:scale(1.04);z-index:2;box-shadow:0 5px 18px rgba(0,0,0,.22)}
@@ -2346,6 +2353,45 @@ function renderRanking(container,metrics,allData){
 }
 
 /* ═══════════════════════════════════════════
+   POLSKIE ŚWIĘTA USTAWOWO WOLNE OD PRACY
+   Daty ruchome są wyliczane automatycznie dla dowolnego roku.
+   Wigilia (24 grudnia) jest uwzględniana jako dzień ustawowo wolny od 2025 r.
+═══════════════════════════════════════════ */
+function getEasterSunday(year){
+  var a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
+  var h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+  var month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;
+  return new Date(year,month-1,day);
+}
+
+function getPolishHoliday(year,month,day){
+  var d=new Date(year,month-1,day),e=getEasterSunday(year);
+  var key=month+'-'+day;
+  var fixed={
+    '1-1':'Nowy Rok',
+    '1-6':'Święto Trzech Króli',
+    '5-1':'Święto Pracy',
+    '5-3':'Święto Konstytucji 3 Maja',
+    '8-15':'Wniebowzięcie Najświętszej Maryi Panny',
+    '11-1':'Wszystkich Świętych',
+    '11-11':'Narodowe Święto Niepodległości',
+    '12-25':'Boże Narodzenie (pierwszy dzień)',
+    '12-26':'Boże Narodzenie (drugi dzień)'
+  };
+  if(fixed[key])return {name:fixed[key],type:'holiday'};
+  if(month===12&&day===24&&year>=2025)return {name:'Wigilia Bożego Narodzenia',type:'holiday'};
+  var easterTs=e.getTime();
+  var dayTs=d.getTime();
+  var diff=Math.round((dayTs-easterTs)/86400000);
+  if(diff===1)return {name:'Poniedziałek Wielkanocny',type:'holiday'};
+  if(diff===49)return {name:'Zielone Świątki',type:'holiday'};
+  if(diff===60)return {name:'Boże Ciało',type:'holiday'};
+  return null;
+}
+
+function isPolishHoliday(year,month,day){return !!getPolishHoliday(year,month,day);}
+
+/* ═══════════════════════════════════════════
    RENDER: HEATMAP
 ═══════════════════════════════════════════ */
 function renderHeatmap(container,pid,month){
@@ -2382,16 +2428,21 @@ function renderHeatmap(container,pid,month){
     var saleText=realVal!==null?fmt(realVal,true):(isDone?('~ '+fmt(dailyAvg,true)):'—');
     var wx=w?weatherIcon(w.c)+' '+Math.round(w.t)+'°C'+(w.wind!==undefined?' · 💨 '+Math.round(w.wind)+' km/h':''):'🌡️ —';
     var wxLabel=w?weatherLabel(w.c):'Brak danych';
+    var holiday=getPolishHoliday(yr,mo,d);
+    var holidayClass=holiday?' holiday':'';
+    var holidayMark=holiday?'<span class="hmap-holiday-mark" title="'+holiday.name+'">★</span>':'';
+    var holidayLabel=holiday?'<div class="hmap-holiday-label">🇵🇱 '+holiday.name+'</div>':'';
     var click=(realVal!==null||isDone)?' onclick="openHeatmapDay(\''+pid+'\',\''+month+'\','+d+')"':'';
-    h+='<div class="hmap-cell" style="background:'+color+';opacity:'+opacity+'"'+click+' title="Kliknij, aby zobaczyć szczegóły dnia">';
-    h+='<div class="hm-day-no">'+d+'</div><div class="hm-sale">'+saleText+'</div><div class="hm-weather">'+wx+'</div>';
-    h+='<div class="hm-est">'+(w?wxLabel:(isDone?'szacunek':'brak danych'))+'</div></div>';
+    var title=holiday?'Święto: '+holiday.name+' — kliknij, aby zobaczyć szczegóły dnia':'Kliknij, aby zobaczyć szczegóły dnia';
+    h+='<div class="hmap-cell'+holidayClass+'" style="background:'+color+';opacity:'+opacity+'"'+click+' title="'+title+'">';
+    h+=holidayMark+'<div class="hm-day-no">'+d+'</div><div class="hm-sale">'+saleText+'</div><div class="hm-weather">'+wx+'</div>';
+    h+='<div class="hm-est">'+(w?wxLabel:(isDone?'szacunek':'brak danych'))+'</div>'+holidayLabel+'</div>';
   }
   h+='</div></div>';
   if(!hasRealDays)h+='<div class="hs-tip" style="margin-top:10px">Kolory poniżej to szacunek na bazie średniej dziennej. Wprowadź dane w zakładce <a href="#" onclick="goDaily()">Dane → Dzienne</a>, aby zobaczyć rzeczywisty rozkład sprzedaży w poszczególnych dniach.</div>';
   h+='<div class="hmap-legend"><span>Mniej</span><div class="hmap-legend-boxes">';
   ['rgba(255,77,109,.3)','rgba(245,158,11,.3)','rgba(245,158,11,.6)','rgba(34,197,94,.5)','rgba(34,197,94,.8)'].forEach(function(c){h+='<div class="hmap-legend-box" style="background:'+c+'"></div>'});
-  h+='</div><span>Więcej</span></div>';
+  h+='</div><span>Więcej</span><span class="hmap-holiday-legend"><span class="hmap-holiday-legend-mark">★</span> Święto ustawowo wolne</span></div>';
   container.innerHTML=h;
 
   var prop=S.props.find(function(p){return p.id===pid});
@@ -2421,8 +2472,10 @@ function openHeatmapDay(pid,month,day){
   var dateLabel=date.toLocaleDateString('pl-PL',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   var total=dailyDayTotal(dayData);
   document.getElementById('m-heatday-title').textContent='📅 '+dateLabel;
+  var holiday=getPolishHoliday(+p[0],+p[1],day);
   document.getElementById('m-heatday-sub').textContent='Szczegółowe podsumowanie sprzedaży i pogody';
-  var h='<div class="kpi-grid" style="margin-bottom:14px"><div class="kpi"><div class="kpi-lbl">Sprzedaż netto</div><div class="kpi-val">'+fmt(total,true)+'</div><div class="kpi-sub">łącznie</div></div>';
+  var h=holiday?'<div class="hmap-holiday-info"><span style="font-size:1.05rem">🇵🇱 ★</span><span><strong>Dzień świąteczny, ustawowo wolny od pracy</strong><br>'+holiday.name+'</span></div>':'';
+  h+='<div class="kpi-grid" style="margin-bottom:14px"><div class="kpi"><div class="kpi-lbl">Sprzedaż netto</div><div class="kpi-val">'+fmt(total,true)+'</div><div class="kpi-sub">łącznie</div></div>';
   if(w){
     h+='<div class="kpi"><div class="kpi-lbl">Pogoda</div><div class="kpi-val" style="font-size:1.5rem">'+weatherIcon(w.c)+'</div><div class="kpi-sub">'+weatherLabel(w.c)+'</div></div>';
     h+='<div class="kpi"><div class="kpi-lbl">Temperatura</div><div class="kpi-val">'+Math.round(w.t)+'°C</div><div class="kpi-sub">maksymalna dobowa</div></div>';
