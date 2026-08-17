@@ -803,6 +803,10 @@ textarea.fi{resize:vertical}
 .cl-date{font-size:.65rem;color:var(--tx3)}
 .cl-list{margin:0;padding-left:18px}
 .cl-list li{font-size:.76rem;color:var(--tx2);line-height:1.6;margin-bottom:2px}
+
+/* i18n language selector */
+.lang-switch{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:7px 9px;border:1px solid var(--brd);border-radius:9px;background:var(--sur2)}
+.lang-switch label{font-size:.68rem;color:var(--tx2);margin:0}.lang-buttons{display:flex;gap:3px}.lang-btn{border:1px solid var(--brd);background:transparent;color:var(--tx2);border-radius:6px;padding:4px 7px;font-size:.65rem;cursor:pointer}.lang-btn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
@@ -1524,6 +1528,7 @@ textarea.fi{resize:vertical}
           <button class="cur-btn" id="c-EUR" onclick="setCur('EUR')">EUR</button>
           <button class="cur-btn" id="c-USD" onclick="setCur('USD')">USD</button>
         </div>
+        <div class="lang-switch" id="lang-switch"><label data-i18n="language">Język:</label><div class="lang-buttons"><button type="button" class="lang-btn on" id="lang-pl" onclick="setLanguage('pl')">🇵🇱 PL</button><button type="button" class="lang-btn" id="lang-en" onclick="setLanguage('en')">🇬🇧 EN</button></div></div>
       </div>
       <div style="display:flex;gap:6px;margin-top:2px">
         <button class="btn btn-g btn-sm" style="flex:1;justify-content:center;font-size:.7rem" onclick="showHelp()">📖 Instrukcja</button>
@@ -1697,6 +1702,43 @@ textarea.fi{resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+
+/* ===== HotelMetrics Pro i18n ===== */
+(function(){
+  const I18N={"Język:": "Language:", "Dostępna nowa wersja aplikacji": "New version available", "Odśwież teraz": "Refresh now", "Nowy obiekt": "New property", "Nazwa obiektu *": "Property name *", "Adres": "Address", "Miasto (dla danych pogodowych)": "City (for weather data)", "Utwórz": "Create", "Anuluj": "Cancel", "📍 Lokalizacja obiektu": "📍 Property location", "Miasto": "City", "Zapisz z nazwy miasta": "Save from city name", "🗺️ Wybierz lokalizację na mapie": "🗺️ Choose location on map", "Kliknij dokładne miejsce hotelu — mapę możesz przewijać i powiększać (scroll / uszczypnięcie)": "Click the exact hotel location. You can pan and zoom the map.", "Szukaj": "Search", "Ustaw tę lokalizację": "Set this location", "📅 Szczegóły dnia": "📅 Day details", "Komentarz do miesiąca": "Monthly comment", "Notatka": "Note", "Zapisz": "Save", "🌦️ Pogoda a sprzedaż —": "🌦️ Weather vs sales —", "Zainstaluj aplikację na telefonie — działa jak natywna, bez paska przeglądarki.": "Install the app on your phone. It works like a native app without the browser bar.", "⬇ Zainstaluj": "⬇ Install", "Nie teraz": "Not now", "Logowanie": "Login", "Rejestracja": "Registration", "⏳ Łączenie...": "⏳ Connecting...", "Hasło": "Password", "Zapomniałem hasła": "Forgot password", "Zaloguj się": "Log in", "Hasło (min. 6 znaków)": "Password (min. 6 characters)", "Powtórz hasło": "Repeat password", "Utwórz konto": "Create account", "Wyloguj": "Log out", "Obiekt": "Property", "Brak obiektów": "No properties", "Miesiąc analizy": "Analysis month", "Główne": "Main", "Wprowadź dane": "Enter data", "Zarządzanie": "Management", "Obiekty i outlety": "Properties & outlets", "Eksport / Import": "Export / Import", "Budżet roczny": "Annual budget", "Zespół": "Team", "Motyw:": "Theme:", "Waluta:": "Currency:", "📖 Instrukcja": "📖 Manual", "ℹ️ O programie": "ℹ️ About", "↻ Odśwież": "↻ Refresh", "Dane": "Data", "📝 Notatki": "📝 Notes", "📈 Trend": "📈 Trend", "⚠️ Nietypowa wartość": "⚠️ Unusual value", "✅ Zapisz mimo to": "✅ Save anyway", "Popraw dane": "Correct data", "📖 Instrukcja obsługi — HotelMetrics Pro": "📖 HotelMetrics Pro User Manual", "Wersja": "Version", "Data wydania": "Release date", "Platforma": "Platform", "Baza danych": "Database", "Kursy walut": "Exchange rates", "Offline": "Offline", "📋 Historia zmian (Changelog)": "📋 Changelog", "Otwórz instrukcję": "Open manual", "Dashboard": "Dashboard", "Analityka": "Analytics", "Heatmapa": "Heatmap", "Porównania": "Comparisons", "Zespół i role": "Team & roles", "Wynik": "Result", "Wynik netto": "Net revenue", "Sprzedaż netto": "Net revenue", "Budżet": "Budget", "Prognoza": "Forecast", "Pogoda": "Weather", "Brak danych": "No data", "Brak danych do analizy": "No data for analysis", "Brak obiektu lub outletów": "No property or outlets", "Wybierz obiekt": "Select a property", "Wybierz obiekt docelowy w sidebarze": "Select a target property in the sidebar", "Brak wybranego obiektu": "No property selected", "Podgląd": "Viewer", "Brak uprawnień do edycji": "No edit permissions", "Brak uprawnień administratora": "No administrator permissions", "Zapisano": "Saved", "Dane zapisane!": "Data saved!", "Usunięto": "Deleted", "Dodaj obiekt hotelowy i outlety, a następnie wprowadź wyniki, aby zobaczyć wykresy, ranking i prognozy.": "Add a hotel property and outlets, then enter results to see charts, ranking and forecasts.", "+ Przejdź do obiektów": "+ Go to properties", "Outlet": "Outlet", "Średnia sprzedaż / dzień": "Average sales / day", "Brak danych pogodowych": "No weather data", "Brak danych pogodowych dla tego dnia.": "No weather data for this day.", "Brak danych pogodowych dla tego miesiąca.": "No weather data for this month.", "Słonecznie": "Sunny", "Częściowo pochmurno": "Partly cloudy", "Mgła": "Fog", "Mgła (szadź)": "Freezing fog", "Mżawka słaba": "Light drizzle", "Mżawka": "Drizzle", "Mżawka silna": "Heavy drizzle", "Marznąca mżawka": "Freezing drizzle", "Marznąca mżawka silna": "Heavy freezing drizzle", "Deszcz słaby": "Light rain", "Marznący deszcz": "Freezing rain", "Marznący deszcz silny": "Heavy freezing rain", "Śnieg słaby": "Light snow", "Śnieg": "Snow", "Śnieg silny": "Heavy snow", "Ziarna śniegu": "Snow grains", "Gwałtowny deszcz": "Heavy rain", "Przelotny śnieg": "Snow showers", "Przelotny śnieg (silny)": "Heavy snow showers", "Wybierz dokładną lokalizację na mapie": "Choose the exact location on the map", "Podanie miasta pozwoli aplikacji automatycznie dopasować temperaturę i stan pogody do dni w pod-zakładce Dzienne (w Danych). Dla pełnej precyzji (np. gdy miasto ma tę samą nazwę co inne w kraju) użyj wyboru na mapie — nadpisze on wpisane miasto dokładnymi współrzędnymi.": "Entering a city lets the app automatically match temperature and weather conditions to daily data. For full precision, especially when cities share the same name, use the map picker.", "Wybór na mapie jest dokładniejszy niż samo wpisanie miasta — szczególnie gdy Twoje miasto ma tę samą nazwę co inne w kraju.": "Choosing on the map is more accurate than entering a city name, especially when another city in Poland has the same name.", "Zmień miesiąc": "Change month", "Szukaj outletu, miesiąca lub notatki...": "Search outlet, month or note...", "Zamknij": "Close", "Przenieś w górę": "Move up", "Przenieś w dół": "Move down", "Zmień nazwę": "Rename", "Usuń outlet": "Delete outlet", "Zmieniono kolejność outletów": "Outlet order changed", "Nazwa outletu nie może być pusta": "Outlet name cannot be empty", "Outlet o takiej nazwie już istnieje": "An outlet with this name already exists", "Zmieniono nazwę: „": "Renamed: “", "Usunąć outlet?": "Delete outlet?", "Brak outletów do synchronizacji": "No outlets to synchronize", "Synchronizuj outlety z chmurą": "Sync outlets to cloud", "Brak połączenia lub obiektu": "No connection or property", "Wpisz nazwę miasta.": "Enter a city name.", "Nie znaleziono takiego miasta. Spróbuj innej pisowni.": "City not found. Try a different spelling.", "Błąd wyszukiwania": "Search error", "Błąd połączenia. Spróbuj ponownie.": "Connection error. Try again.", "📅 Heatmapa miesiąca —": "📅 Monthly heatmap —", "Święto: ": "Holiday: ", " — kliknij, aby zobaczyć szczegóły dnia": " — click to see day details", "Kliknij, aby zobaczyć szczegóły dnia": "Click to see day details", "Święto ustawowo wolne": "Public holiday", "Dzień świąteczny, ustawowo wolny od pracy": "Public holiday / non-working day", "Szczegółowe podsumowanie sprzedaży i pogody": "Detailed sales and weather summary", "łącznie": "total", "maksymalna dobowa": "daily maximum", "maks. prędkość": "max speed", "Sprzedaż netto według outletów": "Net revenue by outlet", "Udział": "Share", "RAZEM": "TOTAL", "Symulator \"Co jeśli?\"": "“What if?” simulator", "Co jeśli?": "What if?", "Przesuń suwak aby zobaczyć wpływ zmiany wyników outletu na łączną prognozę miesiąca.": "Move the slider to see how changing an outlet result affects the total monthly forecast.", "Prognoza łączna przy obecnych ustawieniach": "Total forecast with current settings", "bez zmian": "no change", "Trafność": "Accuracy", "Trafność budżetowania": "Budget accuracy", "zamknięte": "closed", "zamkniętych miesięcy": "closed months", "Potrzeba co najmniej 2 zamkniętych miesięcy (z pełnym zakresem dni) z ustawionym budżetem, aby ocenić trafność planowania.": "At least 2 closed months with a full day range and a budget are required to assess planning accuracy.", "Średnie odchylenie wyniku rzeczywistego od budżetu w zamkniętych miesiącach. Wartość dodatnia = zwykle przekraczacie budżet, ujemna = zwykle poniżej planu.": "Average deviation of actual results from budget in closed months. Positive means the budget is usually exceeded; negative means results are usually below plan.", "Miesięcy z budżetem": "Months with budget", "Ocena": "Rating", "Niska trafność": "Low accuracy", "Brak wystarczających danych budżetowych.": "Not enough budget data.", "Kwadranty": "Quadrants", "Wzrost × Udział w przychodzie": "Growth × Revenue share", "tempo wzrostu": "growth rate", "poprzedni miesiąc": "previous month", "udział w łącznym wyniku": "share of total result", "rosnące gwiazdy": "rising stars", "punkty wymagające uwagi": "points needing attention", "Odchylenia": "Variances", "Rozkład odchylenia od budżetu": "Budget variance distribution", "Ustaw budżet dla outletów w tym miesiącu, aby zobaczyć rozkład odchyleń.": "Set outlet budgets for this month to see the variance distribution.", "Pogoda a sprzedaż": "Weather vs sales", "Zakres analizy": "Analysis range", "Od": "From", "Do": "To", "🔎 Analizuj": "🔎 Analyze", "Analizowane są wyłącznie dni z wprowadzoną sprzedażą i dopasowaną pogodą.": "Only days with entered sales and matched weather data are analyzed.", "Brak dni z jednocześnie wprowadzoną sprzedażą i danymi pogodowymi.": "No days have both entered sales and weather data.", "Brak danych dla wybranego zakresu.": "No data for the selected range.", "Warunki": "Conditions", "Dni": "Days", "Sprzedaż łącznie": "Total sales", "Śr./dzień": "Avg./day", "vs śr. zakresu": "vs range avg.", "Liczba dni": "Number of days", "Sprzedaż poszczególnych outletów według pogody": "Outlet sales by weather", "Przy małej liczbie dni wynik może być przypadkowy. Szczególnie ostrożnie interpretuj kategorie z 1–2 dniami.": "With few days, results may be random. Interpret categories with 1–2 days especially carefully.", "Wykresy": "Charts", "Wyniki vs Budżet": "Results vs Budget", "Udział outletów": "Outlet share", "% realizacji budżetu": "Budget achievement %", "Trend miesięczny": "Monthly trend", "Prog.%": "Forecast %", "B-E": "Break-even", "Sezonowość": "Seasonality", "Raporty": "Reports", "Zapisz budżet roczny": "Save annual budget", "Przenieś do miesięcy": "Apply to months", "Budżet roczny zapisany!": "Annual budget saved!", "Wybierz rok": "Select year", "Mój profil": "My profile", "Imię i nazwisko (wyświetlane w raportach i notatkach)": "Full name (shown in reports and notes)", "Zapisz profil": "Save profile", "Zaproś do zespołu": "Invite to team", "Manager — edycja": "Manager — edit", "Podgląd — tylko odczyt": "Viewer — read only", "+ Zaproś": "+ Invite", "Zapisz zmiany": "Save changes", "Tylko właściciel może usunąć obiekt": "Only the owner can delete the property", "Usunąć obiekt i wszystkie jego dane?": "Delete the property and all its data?", "Eksport raportów": "Report exports", "Wszystkie miesiące": "All months", "Wyniki bieżącego miesiąca": "Current month results", "Wyniki narastające roczne": "Year-to-date results", "Sprzedaż wg warunków pogodowych": "Sales by weather conditions", "Trafność budżetowania per outlet": "Budget accuracy per outlet", "Miesiąc vs poprzednie lata": "Month vs previous years", "Pełne zestawienie dzienne": "Full daily report", "Pełna kopia bazy danych (wszystkie obiekty, outlety, dane miesięczne)": "Full database backup (all properties, outlets, monthly data)", "Przywróć bazę z pliku .json (kopia zapasowa)": "Restore database from .json backup", "Nieprawidłowy plik JSON": "Invalid JSON file", "Brak rozpoznanych danych": "No recognized data", "Nie udało się odczytać pliku": "Could not read file", "Brak danych do zatwierdzenia": "No data to confirm", "Import JSON zakończony! Zaimportowano ": "JSON import complete! Imported ", "Błąd importu Excel: ": "Excel import error: ", "Błąd odczytu pliku PDF": "PDF file read error", "Biblioteka PDF nie załadowana": "PDF library not loaded", "Biblioteka XLSX nie załadowana": "XLSX library not loaded", "Import zakończony": "Import complete", "Dane dzienne": "Daily data", "Nie rozpoznano żadnych wierszy z danymi w pliku.": "No data rows were recognized in the file.", "Raport: Heatmapa i Tablica rekordow": "Report: Heatmap & Records", "Raport zarzad - ": "Management report - ", "Raport operacyjny managera - ": "Manager operational report - ", "Raport narastajacy YTD ": "YTD report ", "Raport: Pogoda a sprzedaz": "Report: Weather vs Sales", "Raport: Trafnosc budzetowania": "Report: Budget Accuracy", "Raport: Sezonowosc - ": "Report: Seasonality - ", "Raport dzienny szczegolowy - ": "Detailed daily report - ", "Raport: Analiza zaawansowana - ": "Report: Advanced Analysis - ", "Raport PDF wygenerowany": "PDF report generated", "Styczeń": "January", "Luty": "February", "Marzec": "March", "Kwiecień": "April", "Maj": "May", "Czerwiec": "June", "Lipiec": "July", "Sierpień": "August", "Wrzesień": "September", "Październik": "October", "Listopad": "November", "Grudzień": "December", "Sty": "Jan", "Lut": "Feb", "Mar": "Mar", "Kwi": "Apr", "Cze": "Jun", "Lip": "Jul", "Sie": "Aug", "Wrz": "Sep", "Paź": "Oct", "Lis": "Nov", "Gru": "Dec", "styczeń": "January", "kwiecień": "April", "sierpień": "August", "wrzesień": "September", "październik": "October", "grudzień": "December", "Święto Trzech Króli": "Epiphany", "Święto Pracy": "Labour Day", "Święto Konstytucji 3 Maja": "Constitution Day", "Wniebowzięcie Najświętszej Maryi Panny": "Assumption of the Blessed Virgin Mary", "Wszystkich Świętych": "All Saints’ Day", "Narodowe Święto Niepodległości": "Independence Day", "Boże Narodzenie (pierwszy dzień)": "Christmas Day", "Boże Narodzenie (drugi dzień)": "Second Day of Christmas", "Wigilia Bożego Narodzenia": "Christmas Eve", "Poniedziałek Wielkanocny": "Easter Monday", "Zielone Świątki": "Whit Sunday", "Boże Ciało": "Corpus Christi", "Pogoda wyraźnie sprzyjała": "Weather strongly favoured", "Pogoda lekko sprzyjała": "Weather slightly favoured", "Brak wyraźnego wpływu": "No clear impact", "Gorsza pogoda lekko sprzyjała": "Worse weather slightly favoured", "Zła pogoda wyraźnie sprzyjała": "Poor weather strongly favoured", "Odświeżono": "Refreshed", "Nowa wersja dostępna": "New version available", "Ładowanie danych...": "Loading data...", "Wypełnij email i hasło.": "Enter email and password.", "Wypełnij wszystkie pola.": "Fill in all fields.", "Hasła nie są identyczne.": "Passwords do not match.", "Tworzę konto...": "Creating account...", "Wysyłam email...": "Sending email...", "Email do resetu hasła wysłany! Sprawdź skrzynkę.": "Password reset email sent. Check your inbox.", "Wylogować się?": "Log out?", "Nieprawidłowy adres email": "Invalid email address", "Nieprawidłowy adres email.": "Invalid email address.", "Nie znaleziono konta z tym emailem.": "No account found with this email.", "Nieprawidłowe hasło.": "Incorrect password.", "Konto z tym emailem już istnieje.": "An account with this email already exists.", "Zbyt wiele prób. Spróbuj później.": "Too many attempts. Try again later.", "Brak połączenia z internetem.": "No internet connection.", "Nieprawidłowy email lub hasło.": "Invalid email or password.", "Błąd: ": "Error: ", "Wpisz email powyżej, aby zresetować hasło.": "Enter your email above to reset your password.", "Uzupełnij dane w pod-zakładce Dzienne, aby zobaczyć wpływ pogody na sprzedaż w tym miesiącu.": "Enter daily data to see the impact of weather on sales this month.", "słoneczny": "sunny", "śnieżny": "snowy", "słonecznych": "sunny", "śnieżnych": "snowy"};
+  const I18N_EXTRA={"% budżetu": "% of budget", "Średnia sprzedaż / dzień": "Average sales / day", "Prawie bezchmurnie": "Mostly clear", "Pochmurno": "Cloudy", "Deszcz": "Rain", "Deszcz silny": "Heavy rain", "Przelotny deszcz": "Rain showers", "Burza": "Thunderstorm", "Burza z gradem": "Hailstorm", "Burza z gradem (silna)": "Severe hailstorm", "Wietrznie": "Windy", "Sprzedaż": "Sales", "Realizacja budżetu": "Budget achievement", "Trend": "Trend", "Śr./dz.": "Avg./day", "Prog.%": "Forecast %", "B-E": "Break-even", "Twoje konto": "Your account", "Właściciel obiektu": "Property owner", "Zaproszony członek": "Invited member", "Tylko administrator (właściciel obiektu) może zapraszać i usuwać członków zespołu.": "Only the administrator (property owner) can invite and remove team members.", "Ostatnia kopia zapasowa była ponad tydzień temu. Zalecamy wykonanie kopii JSON.": "The last backup was more than a week ago. We recommend creating a JSON backup.", "Wykonaj teraz": "Back up now", "Wybierz lub utwórz obiekt.": "Select or create a property.", "Outlety: ": "Outlets: ", "Wybierz obiekt hotelowy, aby zarządzać jego zespołem.": "Select a hotel property to manage its team.", "Miesiąc": "Month", "Data": "Date", "Współrzędne": "Coordinates", "Brak adresu": "No address", "Podsumowanie": "Summary", "Suma": "Total", "Suma wyniku": "Total result", "Suma budżetu": "Total budget", "Realizacja": "Achievement", "Wykres porównawczy": "Comparison chart", "Wybierz obie daty.": "Select both dates.", "Miesiąc początkowy musi być wcześniejszy niż końcowy.": "The start month must be earlier than the end month.", "Brak danych w wybranym zakresie.": "No data in the selected range.", "Wybierz zakres dat dla raportu": "Select a date range for the report", "Data \"od\" musi być wcześniejsza niż \"do\"": "The From date must be earlier than the To date", "Zakres zbyt duży (maks. 366 dni)": "Range too large (max. 366 days)", "language": "Language:"}; Object.assign(I18N,I18N_EXTRA);
+  const REV=Object.fromEntries(Object.entries(I18N).map(([pl,en])=>[en,pl]));
+  let currentLang=localStorage.getItem('hotelmetrics-language')||'pl';
+  window.getAppLanguage=function(){return currentLang};
+  window.getAppLocale=function(){return currentLang==='en'?'en-US':'pl-PL'};
+  window.t=function(key){ if(I18N[key]===undefined)return key; return currentLang==='en'?I18N[key]:key; };
+  function dict(){return currentLang==='en'?I18N:REV}
+  function translateValue(v){
+    if(!v||typeof v!=='string')return v;
+    const d=dict(); if(d[v]!==undefined)return d[v];
+    let out=v;
+    Object.keys(d).sort((a,b)=>b.length-a.length).forEach(k=>{if(k.length>1&&out.includes(k))out=out.split(k).join(d[k])});
+    return out;
+  }
+  window.translateText=translateValue;
+  window.applyI18n=function(root){
+    root=root||document.body;
+    if(!root)return;
+    root.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.getAttribute('data-i18n');el.textContent=t(key)});
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    const nodes=[]; let n; while(n=walker.nextNode()){if(n.parentElement&&['SCRIPT','STYLE','NOSCRIPT'].indexOf(n.parentElement.tagName)<0)nodes.push(n)}
+    nodes.forEach(n=>{const v=translateValue(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v});
+    root.querySelectorAll('input[placeholder],textarea[placeholder],[title],[aria-label]').forEach(el=>['placeholder','title','aria-label'].forEach(a=>{if(el.hasAttribute(a)){const v=translateValue(el.getAttribute(a));if(v!==el.getAttribute(a))el.setAttribute(a,v)}}));
+    const pl=document.getElementById('lang-pl'),en=document.getElementById('lang-en'); if(pl&&en){pl.classList.toggle('on',currentLang==='pl');en.classList.toggle('on',currentLang==='en')}
+    document.documentElement.lang=currentLang;
+  };
+  window.setLanguage=function(lang){if(lang!=='pl'&&lang!=='en')return;currentLang=lang;localStorage.setItem('hotelmetrics-language',lang);document.documentElement.lang=lang;var md=document.querySelector('meta[name=description]');if(md)md.setAttribute('content',lang==='en'?'F&B Revenue Analytics for hotels':'F&B Revenue Analytics dla hoteli');applyI18n(document.body); if(typeof renderAll==='function'){try{renderAll()}catch(e){}} else if(typeof refreshAll==='function'){try{refreshAll()}catch(e){}}};
+  document.addEventListener('DOMContentLoaded',function(){
+    applyI18n(document.body);
+    const obs=new MutationObserver(function(ms){if(window.__i18nBusy)return; window.__i18nBusy=true; try{ms.forEach(m=>{m.addedNodes&&m.addedNodes.forEach(x=>{if(x.nodeType===1)applyI18n(x)}); if(m.type==='characterData'&&m.target.parentElement){const v=translateValue(m.target.nodeValue);if(v!==m.target.nodeValue)m.target.nodeValue=v}})}finally{window.__i18nBusy=false}});
+    obs.observe(document.body,{childList:true,subtree:true,characterData:true});
+  });
+})();
 /* ═══════════════════════════════════════════
    HAPTIC FEEDBACK
 ═══════════════════════════════════════════ */
@@ -1810,7 +1852,7 @@ var WMO_MAP={
   95:{ic:'⛈️',lb:'Burza'},96:{ic:'⛈️',lb:'Burza z gradem'},99:{ic:'⛈️',lb:'Burza z gradem (silna)'}
 };
 function weatherIcon(code){return (WMO_MAP[code]&&WMO_MAP[code].ic)||'🌡️'}
-function weatherLabel(code){return (WMO_MAP[code]&&WMO_MAP[code].lb)||'Brak danych'}
+function weatherLabel(code){return t((WMO_MAP[code]&&WMO_MAP[code].lb)||'Brak danych')}
 function weatherCategory(w){
   if(!w||w.c===undefined||w.c===null)return null;
   var code=w.c,wind=Number(w.wind)||0;
@@ -1978,7 +2020,7 @@ function openWeatherInsightModal(){
 
 // Geokodowanie nazwy miasta na współrzędne (Open-Meteo Geocoding API)
 function geocodeCity(cityName){
-  var url='https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(cityName)+'&count=1&language=pl&format=json';
+  var url='https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(cityName)+'&count=1&language='+encodeURIComponent(getAppLanguage()==='en'?'en':'pl')+'&format=json';
   return fetch(url).then(function(r){return r.json()}).then(function(d){
     if(d.results&&d.results.length){
       var r0=d.results[0];
@@ -2204,7 +2246,7 @@ function ensureMonthWeather(pid,month,forceRefresh){
 function getNotes(pid,outletKey){return lsGet(uk('notes-'+pid+'-'+outletKey),[])}
 function saveNote(pid,outletKey,text){
   var notes=getNotes(pid,outletKey);
-  notes.unshift({id:'n'+Date.now(),text:text,date:new Date().toLocaleDateString('pl-PL'),author:S.userEmail||''});
+  notes.unshift({id:'n'+Date.now(),text:text,date:new Date().toLocaleDateString(getAppLocale()),author:S.userEmail||''});
   if(notes.length>50)notes=notes.slice(0,50);
   lsSet(uk('notes-'+pid+'-'+outletKey),notes);
   if(S.uid)fsWrite(db.collection('properties/'+pid+'/notes').doc(outletKey),{notes:notes});
@@ -2471,7 +2513,7 @@ function renderHeatmapView(){
 function openHeatmapDay(pid,month,day){
   var dd=getDailyData(pid,month),dayData=dd.days&&dd.days[day]?dd.days[day]:{},w=dd.weather&&dd.weather[day],prop=S.props.find(function(p){return p.id===pid});
   var p=month.split('-'),date=new Date(+p[0],+p[1]-1,day);
-  var dateLabel=date.toLocaleDateString('pl-PL',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  var dateLabel=date.toLocaleDateString(getAppLocale(),{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   var total=dailyDayTotal(dayData);
   document.getElementById('m-heatday-title').textContent='📅 '+dateLabel;
   var holiday=getPolishHoliday(+p[0],+p[1],day);
@@ -2729,7 +2771,7 @@ function renderWeatherCorrelation(el,pid){
   h+='<div class="fg" style="margin:0"><label>Od</label><input type="date" class="fi" id="weather-from" value="'+from+'" min="'+minKey+'" max="'+maxKey+'" onchange="setWeatherRange()"></div>';
   h+='<div class="fg" style="margin:0"><label>Do</label><input type="date" class="fi" id="weather-to" value="'+to+'" min="'+minKey+'" max="'+maxKey+'" onchange="setWeatherRange()"></div>';
   h+='<button class="btn btn-p" onclick="setWeatherRange()">🔎 Analizuj</button></div>';
-  h+='<div class="hs-tip" style="margin-top:9px">Analizowane są wyłącznie dni z wprowadzoną sprzedażą i dopasowaną pogodą. Zakres: '+new Date(from+'T12:00:00').toLocaleDateString('pl-PL')+' – '+new Date(to+'T12:00:00').toLocaleDateString('pl-PL')+'.</div></div>';
+  h+='<div class="hs-tip" style="margin-top:9px">Analizowane są wyłącznie dni z wprowadzoną sprzedażą i dopasowaną pogodą. Zakres: '+new Date(from+'T12:00:00').toLocaleDateString(getAppLocale())+' – '+new Date(to+'T12:00:00').toLocaleDateString(getAppLocale())+'.</div></div>';
 
   var buckets={},sample=0;
   Object.keys(allDaily).forEach(function(month){
@@ -2767,7 +2809,7 @@ function renderWeatherCorrelation(el,pid){
   h+='<div class="hs-tip" style="margin-top:10px">Przy małej liczbie dni wynik może być przypadkowy. Szczególnie ostrożnie interpretuj kategorie z 1–2 dniami.</div>';
   el.innerHTML=h;
   dChart('ch-weather');
-  S.charts['ch-weather']=new Chart(document.getElementById('ch-weather'),{type:'bar',data:{labels:rows.map(function(r){return r.cat}),datasets:[{label:'Średnia sprzedaż / dzień',data:rows.map(function(r){return conv(r.b.total/r.b.days)}),backgroundColor:rows.map(function(r){return r.cat==='Słonecznie'?'rgba(245,158,11,.75)':r.cat==='Pochmurno'?'rgba(148,163,184,.75)':r.cat==='Śnieg'?'rgba(147,197,253,.75)':r.cat==='Wietrznie'?'rgba(14,165,233,.75)':r.cat==='Burza'?'rgba(124,58,237,.75)':'rgba(59,130,246,.75)'}),borderRadius:4}]},options:Object.assign({},chOpts(function(v){return fmtR(v)}),{plugins:{legend:{display:false}}})});
+  S.charts['ch-weather']=new Chart(document.getElementById('ch-weather'),{type:'bar',data:{labels:rows.map(function(r){return t(r.cat)}),datasets:[{label:t('Średnia sprzedaż / dzień'),data:rows.map(function(r){return conv(r.b.total/r.b.days)}),backgroundColor:rows.map(function(r){return r.cat==='Słonecznie'?'rgba(245,158,11,.75)':r.cat==='Pochmurno'?'rgba(148,163,184,.75)':r.cat==='Śnieg'?'rgba(147,197,253,.75)':r.cat==='Wietrznie'?'rgba(14,165,233,.75)':r.cat==='Burza'?'rgba(124,58,237,.75)':'rgba(59,130,246,.75)'}),borderRadius:4}]},options:Object.assign({},chOpts(function(v){return fmtR(v)}),{plugins:{legend:{display:false}}})});
 }
 function setWeatherRange(){
   var a=document.getElementById('weather-from'),b=document.getElementById('weather-to');if(!a||!b)return;
@@ -2856,8 +2898,8 @@ function renderAnalytics(){
   var outletCols=ks.map(function(k){return outletColor(k)});
   dChart('ch-bar');
   S.charts['ch-bar']=new Chart(document.getElementById('ch-bar'),{type:'bar',data:{labels:ns,datasets:[
-    {label:'Budżet',data:ks.map(function(k){return conv(M[k]&&M[k].b||0)}),backgroundColor:brdHex()+'88',borderColor:tx2Hex(),borderWidth:1,borderRadius:3},
-    {label:'Wynik',data:ks.map(function(k){return conv(M[k]&&M[k].a||0)}),backgroundColor:outletCols.map(function(c){return c+'99'}),borderColor:outletCols,borderWidth:1.5,borderRadius:3}
+    {label:t('Budżet'),data:ks.map(function(k){return conv(M[k]&&M[k].b||0)}),backgroundColor:brdHex()+'88',borderColor:tx2Hex(),borderWidth:1,borderRadius:3},
+    {label:t('Wynik'),data:ks.map(function(k){return conv(M[k]&&M[k].a||0)}),backgroundColor:outletCols.map(function(c){return c+'99'}),borderColor:outletCols,borderWidth:1.5,borderRadius:3}
   ]},options:chOpts(function(v){return fmtR(v)})});
 
   dChart('ch-donut');
@@ -2865,10 +2907,10 @@ function renderAnalytics(){
 
   dChart('ch-hbar');
   var bp=ks.map(function(k){return ((M[k]&&M[k].pct||0)*100)});
-  S.charts['ch-hbar']=new Chart(document.getElementById('ch-hbar'),{type:'bar',data:{labels:ns,datasets:[{label:'% budżetu',data:bp,backgroundColor:bp.map(function(v){return v>=100?'rgba(34,197,94,.7)':v>=75?'rgba(245,158,11,.7)':'rgba(255,77,109,.7)'}),borderRadius:3}]},options:Object.assign({},chOpts(function(v){return v+'%'}),{indexAxis:'y',plugins:{legend:{display:false}}})});
+  S.charts['ch-hbar']=new Chart(document.getElementById('ch-hbar'),{type:'bar',data:{labels:ns,datasets:[{label:t('% budżetu'),data:bp,backgroundColor:bp.map(function(v){return v>=100?'rgba(34,197,94,.7)':v>=75?'rgba(245,158,11,.7)':'rgba(255,77,109,.7)'}),borderRadius:3}]},options:Object.assign({},chOpts(function(v){return v+'%'}),{indexAxis:'y',plugins:{legend:{display:false}}})});
 
   dChart('ch-trend');
-  S.charts['ch-trend']=new Chart(document.getElementById('ch-trend'),{type:'line',data:{labels:months.map(mLabel),datasets:[{label:'Wynik netto',data:months.map(function(m){return conv(sumActive(allD[m].a||{}))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:acHex(),pointBorderColor:surHex(),pointBorderWidth:2}]},options:chOpts(function(v){return fmtR(v)})});
+  S.charts['ch-trend']=new Chart(document.getElementById('ch-trend'),{type:'line',data:{labels:months.map(mLabel),datasets:[{label:t('Wynik netto'),data:months.map(function(m){return conv(sumActive(allD[m].a||{}))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:acHex(),pointBorderColor:surHex(),pointBorderWidth:2}]},options:chOpts(function(v){return fmtR(v)})});
 
   // Pre-render ranking / what-if / nowe analizy
   renderRanking(document.getElementById('at-ranking'),M,allD);
@@ -2936,7 +2978,7 @@ function renderBudget(){
       var v=mData[k]||'';
       h+='<input type="number" class="ab-input" id="ab-'+mKey+'-'+k+'" value="'+(v||'')+'" placeholder="0" oninput="abUpdateTotal(\''+mKey+'\')"'+roAttr+'>';
     });
-    h+='<div class="ab-total" id="ab-tot-'+mKey+'">'+(rowTotal?rowTotal.toLocaleString('pl-PL'):'—')+'</div>';
+    h+='<div class="ab-total" id="ab-tot-'+mKey+'">'+(rowTotal?rowTotal.toLocaleString(getAppLocale()):'—')+'</div>';
     h+='</div></div>';
   }
 
@@ -2948,9 +2990,9 @@ function renderBudget(){
   S.outlets.forEach(function(o){
     var k=okey(o.name);
     var tot=Object.entries(ab).reduce(function(s,e){return s+(parseFloat(e[1][k])||0)},0);
-    h+='<div class="ab-total" style="color:var(--acc)">'+( tot?tot.toLocaleString('pl-PL'):'—')+'</div>';
+    h+='<div class="ab-total" style="color:var(--acc)">'+( tot?tot.toLocaleString(getAppLocale()):'—')+'</div>';
   });
-  h+='<div class="ab-total" style="font-size:.9rem">'+( yearTotal?yearTotal.toLocaleString('pl-PL'):'—')+'</div>';
+  h+='<div class="ab-total" style="font-size:.9rem">'+( yearTotal?yearTotal.toLocaleString(getAppLocale()):'—')+'</div>';
   h+='</div></div>';
   h+='</div>';
   if(!ro)h+='<div class="fa"><button class="btn btn-p" onclick="abSave()">💾 Zapisz budżet roczny</button><button class="btn btn-s" onclick="abApplyToMonths()">📤 Przenieś do miesięcy</button></div>';
@@ -2965,7 +3007,7 @@ function abUpdateTotal(mKey){
     total+=parseFloat(inp&&inp.value)||0;
   });
   var t=document.getElementById('ab-tot-'+mKey);
-  if(t)t.textContent=total?total.toLocaleString('pl-PL'):'—';
+  if(t)t.textContent=total?total.toLocaleString(getAppLocale()):'—';
 }
 
 function abSave(){
@@ -4052,7 +4094,7 @@ function fetchRates(){
 }
 function conv(v){if(S.cur==='EUR'&&S.rates.EUR)return v/S.rates.EUR;if(S.cur==='USD'&&S.rates.USD)return v/S.rates.USD;return v}
 function sym(){return S.cur==='EUR'?'€':S.cur==='USD'?'$':'PLN'}
-function fmt(v,compact){var c=conv(v),s=sym();if(compact&&Math.abs(c)>=1000000)return (c/1000000).toFixed(1)+'M '+s;if(compact&&Math.abs(c)>=1000)return (c/1000).toFixed(1)+'k '+s;return c.toLocaleString('pl-PL',{maximumFractionDigits:0})+' '+s}
+function fmt(v,compact){var c=conv(v),s=sym();if(compact&&Math.abs(c)>=1000000)return (c/1000000).toFixed(1)+'M '+s;if(compact&&Math.abs(c)>=1000)return (c/1000).toFixed(1)+'k '+s;return c.toLocaleString(getAppLocale(),{maximumFractionDigits:0})+' '+s}
 function fmtR(v){var c=conv(v),s=sym();if(Math.abs(c)>=1000000)return (c/1000000).toFixed(1)+'M '+s;if(Math.abs(c)>=1000)return (c/1000).toFixed(0)+'k '+s;return Math.round(c)+' '+s}
 function setCur(c){S.cur=c;localStorage.setItem('hm-cur',c);['PLN','EUR','USD'].forEach(function(x){var b=document.getElementById('c-'+x);if(b)b.classList.toggle('on',x===c)});renderCur()}
 
@@ -4147,12 +4189,13 @@ function syncNavSections(){
 function okey(name){return name.replace(/\s+/g,'_').toUpperCase()}
 function dim(ym){var p=ym.split('-');return new Date(+p[0],+p[1],0).getDate()}
 function prevM(ym){var p=ym.split('-'),y=+p[0],m=+p[1];return m===1?(y-1)+'-12':y+'-'+String(m-1).padStart(2,'0')}
-function mLabel(ym){if(!ym)return '—';var mn=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];var p=ym.split('-');return mn[+p[1]-1]+' '+p[0]}
-function mLabelFull(ym){if(!ym)return '—';var mn=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];var p=ym.split('-');return mn[+p[1]-1]+' '+p[0]}
+function mLabel(ym){if(!ym)return '—';var mn=getAppLanguage()==='en'?['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']:['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];var p=ym.split('-');return mn[+p[1]-1]+' '+p[0]}
+function mLabelFull(ym){if(!ym)return '—';var mn=getAppLanguage()==='en'?['January','February','March','April','May','June','July','August','September','October','November','December']:['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];var p=ym.split('-');return mn[+p[1]-1]+' '+p[0]}
 
 // ASCII transliteration for PDF/CSV exports (jsPDF doesn't support Polish chars)
 function dePL(s){
   if(s===null||s===undefined)return '';
+  s=window.translateText?window.translateText(String(s)):String(s);
   return String(s)
     .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l').replace(/ń/g,'n')
     .replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z')
@@ -4817,7 +4860,7 @@ function dailyRecalc(){
     tot+=parseFloat(inp&&inp.value)||0;
   });
   var t=document.getElementById('daily-tot');
-  if(t)t.textContent=tot.toLocaleString('pl-PL')+' PLN';
+  if(t)t.textContent=tot.toLocaleString(getAppLocale())+' PLN';
 }
 
 function saveDailyEntry(){
@@ -4954,8 +4997,8 @@ function recalc(){
     if(pi){if(bv>0){var p=av/bv;pi.innerHTML='<span class="pill '+pc(p)+'">'+(p*100).toFixed(1)+'%</span>'}else pi.textContent='—';}
   });
   var tb=document.getElementById('tot-b'),ta=document.getElementById('tot-a'),tp=document.getElementById('tot-p');
-  if(tb)tb.textContent=tB.toLocaleString('pl-PL')+' PLN';
-  if(ta)ta.textContent=tA.toLocaleString('pl-PL')+' PLN';
+  if(tb)tb.textContent=tB.toLocaleString(getAppLocale())+' PLN';
+  if(ta)ta.textContent=tA.toLocaleString(getAppLocale())+' PLN';
   if(tp){if(tB>0){var pp=tA/tB;tp.innerHTML='<span class="pill '+pc(pp)+'">'+(pp*100).toFixed(1)+'%</span>'}else tp.textContent='—';}
 }
 
@@ -6302,7 +6345,7 @@ function pdfDrawHeader(doc,pw,subtitle,rightText){
 function pdfDrawFooter(doc,pw,ph,extra){
   doc.setDrawColor.apply(doc,PDF_STYLE.footerLine);doc.line(10,ph-10,pw-10,ph-10);
   doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor.apply(doc,PDF_STYLE.footerText);
-  doc.text('HotelMetrics Pro | Wygenerowano: '+new Date().toLocaleString('pl-PL'),10,ph-5);
+  doc.text('HotelMetrics Pro | Wygenerowano: '+new Date().toLocaleString(getAppLocale()),10,ph-5);
   if(extra)doc.text(dePL(extra),pw-10,ph-5,{align:'right'});
 }
 
@@ -6337,7 +6380,7 @@ function pdfHeatmapRecords(){
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
 
-  pdfDrawHeader(doc,pw,'Raport: Heatmapa i Tablica rekordow',dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport: Heatmapa i Tablica rekordow',dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString(getAppLocale()));
 
   doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
   doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
@@ -6395,7 +6438,7 @@ function pdfMgmt(){
   var d=getMD(S.pid,S.month)||{},M=calcM(S.outlets,d)||{_t:{b:0,a:0,avg:0,proj:0,DR:0,M:dim(S.month),DL:dim(S.month)}};
   var T=M._t,prop=S.props.find(function(p){return p.id===S.pid}),pw=210,ph=297;
 
-  pdfDrawHeader(doc,pw,'Raport zarzad - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport zarzad - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString(getAppLocale()));
 
   var kpis=[['Wynik netto',fmt(T.a,true)],['Budzet',T.b?fmt(T.b,true):'-'],['Realizacja',T.pct!==null?(T.pct*100).toFixed(1)+'%':'-'],['Sr./dzien',fmt(T.avg,true)],['Prognoza',fmt(T.proj,true)],['Break-even',T.b&&T.avg>0?'dzien '+Math.ceil(T.b/T.avg):'-']];
   var y=pdfDrawKpiBoxes(doc,kpis,28,pw,3)+4;
@@ -6445,7 +6488,7 @@ function pdfMgr(){
   var dr=d.dr||1,DM=d.dim||30,com=dePL(d.c||'');
 
   // ── HEADER (wspólny styl) ──
-  pdfDrawHeader(doc,pw,'Raport operacyjny managera - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport operacyjny managera - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString(getAppLocale()));
 
   // ── PASEK STATUSU ──
   doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
@@ -6555,7 +6598,7 @@ function pdfYTD(){
   var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   var allD=getAllMD(S.pid),prop=S.props.find(function(p){return p.id===S.pid}),yr=S.month.split('-')[0],pw=297,ph=210;
 
-  pdfDrawHeader(doc,pw,'Raport narastajacy YTD '+yr,dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport narastajacy YTD '+yr,dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString(getAppLocale()));
 
   var ym=Object.keys(allD).filter(function(m){return m.startsWith(yr)}).sort(),run=0;
   var rows=ym.map(function(m){var d=allD[m],ma=Object.values(d.a||{}).reduce(function(x,yv){return x+yv},0),mb=Object.values(d.b||{}).reduce(function(x,yv){return x+yv},0);run+=ma;return[mLabelX(m)].concat(S.outlets.map(function(o){return fmt(d.a&&d.a[okey(o.name)]||0)})).concat([fmt(ma),mb?fmt(mb):'-',mb?(ma/mb*100).toFixed(1)+'%':'-',fmt(run)])});
@@ -6602,7 +6645,7 @@ function pdfWeatherReport(){
 
   var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   var pw=297,ph=210;
-  pdfDrawHeader(doc,pw,'Raport: Pogoda a sprzedaz',dePL(prop.name)+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport: Pogoda a sprzedaz',dePL(prop.name)+' | '+new Date().toLocaleDateString(getAppLocale()));
   doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
   doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
   doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
@@ -6670,7 +6713,7 @@ function pdfAccuracyReport(){
 
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
-  pdfDrawHeader(doc,pw,'Raport: Trafnosc budzetowania',dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport: Trafnosc budzetowania',dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString(getAppLocale()));
   doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
   doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
   doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
@@ -6726,7 +6769,7 @@ function pdfSeasonalityReport(){
 
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
-  pdfDrawHeader(doc,pw,'Raport: Sezonowosc - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport: Sezonowosc - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString(getAppLocale()));
 
   var kpis=[['Wynik '+mLabel(S.month)+' (teraz)',fmt(cA,true)],['Sr. z '+sameMonthYears.length+' poprz. lat',fmt(histAvg,true)],['Indeks sezonowosci',seasonIdx!==null?seasonIdx.toFixed(0):'-']];
   var y=pdfDrawKpiBoxes(doc,kpis,28,pw,3)+4;
@@ -6773,7 +6816,7 @@ function pdfDailyDetailReport(){
 
   var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   var pw=297,ph=210;
-  pdfDrawHeader(doc,pw,'Raport dzienny szczegolowy - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport dzienny szczegolowy - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString(getAppLocale()));
   doc.setFillColor.apply(doc,PDF_STYLE.statusBg);doc.rect(0,22,pw,10,'F');
   doc.setDrawColor.apply(doc,PDF_STYLE.statusLine);doc.line(0,32,pw,32);
   doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
@@ -6819,7 +6862,7 @@ function pdfAdvancedReport(){
 
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
-  pdfDrawHeader(doc,pw,'Raport: Analiza zaawansowana - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString('pl-PL'));
+  pdfDrawHeader(doc,pw,'Raport: Analiza zaawansowana - '+mLabelX(S.month),dePL(prop?prop.name:'')+' | '+new Date().toLocaleDateString(getAppLocale()));
 
   var y=28;
 
