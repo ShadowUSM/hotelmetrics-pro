@@ -381,7 +381,9 @@ textarea.fi{resize:vertical}
 .pi-acts{display:flex;gap:4px;flex-shrink:0}
 .oc-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .oc-chip{display:inline-flex;align-items:center;gap:5px;background:var(--sur2);border:1px solid var(--brd2);border-radius:20px;padding:4px 10px;font-size:.72rem;color:var(--tx)}
-.oc-chip-x{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:13px;line-height:1;padding:0;display:flex}
+.oc-chip-name{display:inline-block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.oc-chip-edit,.oc-chip-x{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:13px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
+.oc-chip-edit:hover{color:var(--acc)}
 .oc-chip-x:hover{color:var(--red)}
 
 /* Export grid */
@@ -5214,7 +5216,14 @@ function renderProperties(){
     h+='<div class="stitle">Outlety: '+(cp?cp.name:'')+' <small>'+outs.length+'</small></div>';
     if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Tryb tylko do odczytu — nie możesz dodawać ani usuwać outletów.</div>';
     h+='<div class="oc-list">';
-    outs.forEach(function(o){h+='<div class="oc-chip">'+o.name+(ro?'':'<button class="oc-chip-x" onclick="delOut(\''+o.id+'\')">✕</button>')+'</div>'});
+    outs.forEach(function(o){
+      h+='<div class="oc-chip"><span class="oc-chip-name">'+o.name+'</span>';
+      if(!ro){
+        h+='<button class="oc-chip-edit" onclick="renameOut(\''+o.id+'\')" title="Zmień nazwę" aria-label="Zmień nazwę">✎</button>';
+        h+='<button class="oc-chip-x" onclick="delOut(\''+o.id+'\')" title="Usuń outlet" aria-label="Usuń outlet">✕</button>';
+      }
+      h+='</div>';
+    });
     h+='</div>';
     if(!ro){
       h+='<div style="display:flex;gap:8px;margin-bottom:14px">';
@@ -5324,6 +5333,95 @@ function delOut(oid){
   if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   if(!confirm('Usunąć outlet?'))return;
   delOutletItem(S.pid,oid);S.outlets=getOutlets(S.pid);renderCur();toast('Usunięto','in');
+}
+
+/* Zmiana nazwy outletu bez utraty istniejących danych.
+   Dane historyczne są indeksowane po kluczu wynikającym z nazwy,
+   dlatego przy zmianie nazwy przenosimy klucz w:
+   monthlyData, dailyData oraz goals, zarówno lokalnie, jak i w Firestore. */
+function renameOut(oid){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var outs=getOutlets(S.pid);
+  var outlet=outs.find(function(o){return o.id===oid});
+  if(!outlet)return;
+
+  var oldName=outlet.name;
+  var newName=prompt('Nowa nazwa outletu:',oldName);
+  if(newName===null)return;
+  newName=newName.trim();
+  if(!newName){toast('Nazwa outletu nie może być pusta','er');return;}
+  if(newName===oldName)return;
+
+  var newKey=okey(newName),oldKey=okey(oldName);
+  var duplicate=outs.some(function(o){return o.id!==oid&&okey(o.name)===newKey});
+  if(duplicate){toast('Outlet o takiej nazwie już istnieje','er');return;}
+
+  function moveKey(obj){
+    if(!obj||typeof obj!=='object')return false;
+    if(Object.prototype.hasOwnProperty.call(obj,oldKey)){
+      if(!Object.prototype.hasOwnProperty.call(obj,newKey))obj[newKey]=obj[oldKey];
+      delete obj[oldKey];
+      return true;
+    }
+    return false;
+  }
+
+  var changedMonths={};
+
+  /* Miesięczne dane sprzedażowe */
+  var mdPrefix=uk('md-'+S.pid+'-');
+  Object.keys(localStorage).filter(function(k){return k.indexOf(mdPrefix)===0}).forEach(function(k){
+    var data=lsGet(k,null);
+    var changed=false;
+    if(data){
+      changed=moveKey(data.a)||changed;
+      changed=moveKey(data.b)||changed;
+      if(changed){lsSet(k,data);changedMonths[k]=data;}
+    }
+  });
+
+  /* Dane dzienne */
+  var dailyPrefix=uk('daily-'+S.pid+'-');
+  Object.keys(localStorage).filter(function(k){return k.indexOf(dailyPrefix)===0}).forEach(function(k){
+    var data=lsGet(k,null),changed=false;
+    if(data&&data.days){
+      Object.keys(data.days).forEach(function(day){changed=moveKey(data.days[day])||changed;});
+      if(changed){lsSet(k,data);changedMonths[k]=data;}
+    }
+  });
+
+  /* Cele outletów */
+  var goalsPrefix=uk('goals-'+S.pid+'-');
+  Object.keys(localStorage).filter(function(k){return k.indexOf(goalsPrefix)===0}).forEach(function(k){
+    var data=lsGet(k,null);
+    if(data&&moveKey(data)){lsSet(k,data);changedMonths[k]=data;}
+  });
+
+  /* Aktualizacja nazwy outletu */
+  outlet.name=newName;
+  saveOutletItem(S.pid,outlet);
+  S.outlets=getOutlets(S.pid);
+
+  /* Synchronizacja przeniesionych kluczy do chmury.
+     Stare dokumenty są nadpisywane z nową strukturą, więc historia pozostaje zachowana. */
+  if(S.uid&&db){
+    Object.keys(changedMonths).forEach(function(k){
+      var data=changedMonths[k];
+      if(k.indexOf(mdPrefix)===0){
+        var month=k.slice(mdPrefix.length);
+        fsWrite(db.collection('properties/'+S.pid+'/monthlyData').doc(month),data);
+      }else if(k.indexOf(dailyPrefix)===0){
+        var month=k.slice(dailyPrefix.length);
+        fsWrite(db.collection('properties/'+S.pid+'/dailyData').doc(month),data);
+      }else if(k.indexOf(goalsPrefix)===0){
+        var month=k.slice(goalsPrefix.length);
+        fsWrite(db.collection('properties/'+S.pid+'/goals').doc(month),data);
+      }
+    });
+  }
+
+  renderCur();
+  toast('Zmieniono nazwę: „'+oldName+'” → „'+newName+'”','ok');
 }
 /* ═══════════════════════════════════════════
    RENDER: EXPORT / IMPORT
