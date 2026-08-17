@@ -3926,8 +3926,21 @@ function delPropItem(id){
 }
 
 // ── OUTLETS ──
-function getOutlets(pid){return lsGet(uk('out-'+pid),[])}
-function saveOutlets(pid,a){lsSet(uk('out-'+pid),a)}
+function getOutlets(pid){
+  var a=lsGet(uk('out-'+pid),[]);
+  if(!Array.isArray(a))return [];
+  /* Kolejność jest zapisywana w polu order. Dla starszych danych, które
+     nie miały tego pola, zachowujemy dotychczasową kolejność tablicy. */
+  var changed=false;
+  a.forEach(function(o,i){if(typeof o.order!=='number'){o.order=i;changed=true;}});
+  if(changed)lsSet(uk('out-'+pid),a);
+  return a.slice().sort(function(x,y){return (Number(x.order)||0)-(Number(y.order)||0)});
+}
+function saveOutlets(pid,a){
+  /* Zawsze zapisujemy kolejność zgodną z pozycją w tablicy. */
+  a.forEach(function(o,i){o.order=i});
+  lsSet(uk('out-'+pid),a);
+}
 function saveOutletItem(pid,o){
   var a=getOutlets(pid),i=a.findIndex(function(x){return x.id===o.id});
   if(i>=0)a[i]=o;else a.push(o);
@@ -5219,6 +5232,9 @@ function renderProperties(){
     outs.forEach(function(o){
       h+='<div class="oc-chip"><span class="oc-chip-name">'+o.name+'</span>';
       if(!ro){
+        var oi=outs.findIndex(function(x){return x.id===o.id});
+        h+='<button class="oc-chip-edit" onclick="moveOut(\''+o.id+'\',-1)" title="Przenieś w górę" aria-label="Przenieś w górę"'+(oi<=0?' disabled style="opacity:.25;cursor:default"':'')+'>↑</button>';
+        h+='<button class="oc-chip-edit" onclick="moveOut(\''+o.id+'\',1)" title="Przenieś w dół" aria-label="Przenieś w dół"'+(oi>=outs.length-1?' disabled style="opacity:.25;cursor:default"':'')+'>↓</button>';
         h+='<button class="oc-chip-edit" onclick="renameOut(\''+o.id+'\')" title="Zmień nazwę" aria-label="Zmień nazwę">✎</button>';
         h+='<button class="oc-chip-x" onclick="delOut(\''+o.id+'\')" title="Usuń outlet" aria-label="Usuń outlet">✕</button>';
       }
@@ -5333,6 +5349,21 @@ function delOut(oid){
   if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   if(!confirm('Usunąć outlet?'))return;
   delOutletItem(S.pid,oid);S.outlets=getOutlets(S.pid);renderCur();toast('Usunięto','in');
+}
+
+/* Zmiana kolejności outletów. Kolejność wpływa na listy i zestawienia,
+   ale nie zmienia żadnych danych sprzedażowych ani kluczy outletów. */
+function moveOut(oid,direction){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var outs=getOutlets(S.pid),idx=outs.findIndex(function(o){return o.id===oid});
+  if(idx<0)return;
+  var target=idx+direction;
+  if(target<0||target>=outs.length)return;
+  var tmp=outs[idx];outs[idx]=outs[target];outs[target]=tmp;
+  outs.forEach(function(o,i){o.order=i;saveOutletItem(S.pid,o)});
+  S.outlets=getOutlets(S.pid);
+  renderCur();
+  toast('Zmieniono kolejność outletów','ok');
 }
 
 /* Zmiana nazwy outletu bez utraty istniejących danych.
