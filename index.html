@@ -4386,6 +4386,7 @@ function dChart(id){if(S.charts[id]){try{S.charts[id].destroy()}catch(e){}delete
 
 function chOpts(yFn){
   return{responsive:true,maintainAspectRatio:true,
+    animation:{duration:650,easing:'easeOutQuart'},
     plugins:{legend:{labels:{color:txHex(),font:{size:10},boxWidth:10}},
       tooltip:{backgroundColor:sur2Hex(),borderColor:brdHex(),borderWidth:1,titleColor:txHex(),bodyColor:tx2Hex(),
         callbacks:{label:function(ctx){return yFn?yFn(ctx.raw):(ctx.dataset.label+': '+ctx.raw)}}}},
@@ -7936,14 +7937,6 @@ function startApp(){
    INIT
 ═══════════════════════════════════════════ */
 function init(){
-  // Spójne ustawienia animacji dla WSZYSTKICH wykresów Chart.js (bar/donut/scatter/line/waterfall) —
-  // ten sam czas trwania i easing, jakiego używają natywne komponenty SVG (sparkline, karty .cc)
-  if(window.Chart){
-    Chart.defaults.animation={duration:650,easing:'easeOutQuart'};
-    Chart.defaults.font.family="'Barlow','Outfit',sans-serif";
-    Chart.defaults.elements.bar.borderRadius=3;
-    Chart.defaults.elements.point.hoverBorderWidth=2;
-  }
   // Wersja aplikacji w sidebarze
   var verEl=document.getElementById('s-ver');
   if(verEl)verEl.textContent='v'+APP_VERSION;
