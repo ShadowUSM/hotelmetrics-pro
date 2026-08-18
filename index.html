@@ -620,6 +620,7 @@ body.presentation-mode #presentation-exit{display:flex}
 .hmap-holiday-info{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:9px 12px;border-radius:8px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);font-size:.8rem;color:var(--tx)}
 .hmap-holiday-info strong{color:var(--tx)}
 .hmap-grid{display:grid;grid-template-columns:repeat(7,minmax(72px,1fr));gap:5px;margin:8px 0}
+.hmap-grid-compact{grid-template-columns:repeat(4,minmax(0,1fr))}
 .hmap-cell{min-height:78px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.66rem;color:var(--tx);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;padding:5px;text-align:center;border:1px solid rgba(255,255,255,.08)}
 .hmap-cell:hover{transform:scale(1.04);z-index:2;box-shadow:0 5px 18px rgba(0,0,0,.22)}
 .hmap-cell .hm-day-no{font-size:.7rem;font-weight:700;color:var(--tx2)}
@@ -2451,7 +2452,7 @@ function isPolishHoliday(year,month,day){return !!getPolishHoliday(year,month,da
 /* ═══════════════════════════════════════════
    RENDER: HEATMAP
 ═══════════════════════════════════════════ */
-function renderHeatmap(container,pid,month){
+function renderHeatmap(container,pid,month,compact){
   if(!container)return;
   var p=month.split('-'),yr=+p[0],mo=+p[1];
   var daysInMo=new Date(yr,mo,0).getDate();
@@ -2465,10 +2466,14 @@ function renderHeatmap(container,pid,month){
   var maxDay=Math.max(dailyAvg*1.5||0,realVals.length?Math.max.apply(null,realVals)*1.15:0)||1;
 
   var h='<div class="stitle">📅 Heatmapa miesiąca — '+mLabelFull(month)+(hasRealDays?' <small style="color:var(--grn)">● dane rzeczywiste</small>':'')+'</div>';
-  h+='<div class="hmap-wrap"><div class="hmap-days">';
-  ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].forEach(function(d){h+='<div class="hmap-day">'+d+'</div>'});
-  h+='</div><div class="hmap-grid">';
-  for(var i=0;i<firstDay;i++)h+='<div class="hmap-cell empty"></div>';
+  h+='<div class="hmap-wrap">';
+  if(!compact){
+    h+='<div class="hmap-days">';
+    ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].forEach(function(d){h+='<div class="hmap-day">'+d+'</div>'});
+    h+='</div>';
+  }
+  h+='<div class="hmap-grid'+(compact?' hmap-grid-compact':'')+'">';
+  if(!compact)for(var i=0;i<firstDay;i++)h+='<div class="hmap-cell empty"></div>';
   for(var d=1;d<=daysInMo;d++){
     var dayData=dd.days&&dd.days[d]?dd.days[d]:null;
     var realVal=dayData?dailyDayTotal(dayData):null;
@@ -2505,10 +2510,12 @@ function renderHeatmap(container,pid,month){
   var prop=S.props.find(function(p){return p.id===pid});
   if(prop&&prop.lat){
     ensureMonthWeather(pid,month).then(function(res){
-      if(res.fetched&&S.view==='heatmap'&&S.pid===pid&&S.month===month){
+      if(!res.fetched||S.pid!==pid||S.month!==month)return;
+      if(S.view==='heatmap'){
         var vHeat=document.getElementById('v-heatmap');
         if(vHeat)renderHeatmap(vHeat,pid,month);
       }
+      if(compact)renderSidePanel();
     });
   }
 }
@@ -7184,7 +7191,7 @@ function renderSidePanel(){
     var M=calcM(S.outlets,d)||{_t:{}};
     renderRanking(body,M,getAllMD(S.pid));
   } else {
-    renderHeatmap(body,S.pid,S.month);
+    renderHeatmap(body,S.pid,S.month,true);
   }
 }
 function setSidePanelWidget(v){localStorage.setItem('hm-sidepanel-widget',v);renderSidePanel()}
