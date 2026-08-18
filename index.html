@@ -624,9 +624,15 @@ body.presentation-mode #presentation-exit{display:flex}
 .hmap-cell{min-height:78px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.66rem;color:var(--tx);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;padding:5px;text-align:center;border:1px solid rgba(255,255,255,.08)}
 .hmap-cell:hover{transform:scale(1.04);z-index:2;box-shadow:0 5px 18px rgba(0,0,0,.22)}
 .hmap-cell .hm-day-no{font-size:.7rem;font-weight:700;color:var(--tx2)}
-.hmap-cell .hm-sale{font-family:var(--fm);font-size:.7rem;font-weight:800;line-height:1.05}
+.hmap-cell .hm-sale{font-family:var(--fb);font-size:.7rem;font-weight:800;line-height:1.05}
 .hmap-cell .hm-weather{font-size:.68rem;line-height:1.05}
 .hmap-cell .hm-est{font-size:.5rem;color:var(--tx3);line-height:1.05}
+
+/* Jasne motywy: --tx3 jest zbyt jasny na jasnym tle kafelka heatmapy —
+   opis pogody i nazwa święta dostają ciemniejszy, lepiej czytelny kolor. */
+[data-theme="arctic"] .hm-est,[data-theme="arctic"] .hmap-holiday-label,
+[data-theme="parchment"] .hm-est,[data-theme="parchment"] .hmap-holiday-label,
+[data-theme="neu-light"] .hm-est,[data-theme="neu-light"] .hmap-holiday-label{color:var(--tx2)}
 .hmap-cell.empty{background:transparent;cursor:default;border:none}
 .hmap-cell.no-data{background:var(--sur2);color:var(--tx3)}
 @media(max-width:600px){.hmap-grid,.hmap-days{min-width:560px}.hmap-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}.hmap-cell{min-height:74px}.weather-range-grid{grid-template-columns:1fr 1fr!important}.weather-range-grid .btn{grid-column:1/-1;width:100%;justify-content:center}}
