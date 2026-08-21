@@ -1706,6 +1706,19 @@ body.presentation-mode #presentation-exit{display:flex}
   <div class="fa"><button class="btn btn-p" onclick="confirmAnomalySave()">✅ Zapisz mimo to</button><button class="btn btn-s" onclick="cancelAnomalySave()">Popraw dane</button></div>
 </div></div>
 
+<!-- SPRZEDAŻ MENU: KONFLIKT ZAPISU MODAL -->
+<div class="moverlay" id="m-msales-conflict">
+<div class="modal">
+  <div class="mtitle">🍽️ Dane już istnieją</div>
+  <button class="mclose" onclick="closeM('m-msales-conflict')">✕</button>
+  <p class="hs-p">Dla tego miesiąca zapisano już dane sprzedaży pozycji menu. Co zrobić z nowo wklejonymi danymi?</p>
+  <div class="fa">
+    <button class="btn btn-p" onclick="msalesDoSave('overwrite')">🔁 Nadpisz całkowicie</button>
+    <button class="btn btn-g" onclick="msalesDoSave('merge')">➕ Sumuj z istniejącymi</button>
+    <button class="btn btn-s" onclick="closeM('m-msales-conflict')">Anuluj</button>
+  </div>
+</div></div>
+
 <!-- HELP MODAL -->
 <div id="help-modal">
   <div class="help-topbar">
@@ -3920,7 +3933,11 @@ var S={
   // Outlety czasowo wyłączone z sum (wynik netto, budżet) — narzędzie "co jeśli bez tego punktu".
   // Celowo TYLKO w pamięci (nie localStorage) — zawsze resetuje się do "wszystko włączone"
   // przy każdym ponownym wejściu do aplikacji.
-  excludedOutlets:new Set()
+  excludedOutlets:new Set(),
+  // Karta "Sprzedaż menu" (Wprowadź dane) — stan podglądu wklejonego raportu, w pamięci
+  _msalesParsed:null,
+  _msalesRawInput:'',
+  _msalesViewMonth:null
 };
 
 // ── FILTR AKTYWNYCH OUTLETÓW: "co jeśli bez tego punktu" ──
@@ -3949,6 +3966,7 @@ function toggleOutletActive(key){
 function uk(suffix){return 'hm-'+(S.uid||'anon')+'-'+suffix}
 function lsGet(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
 
 // ── ROLE HELPERS ──
 function getMyRole(prop){
@@ -4033,6 +4051,28 @@ function getAllMD(pid){
     var m=k.slice(prefix.length);r[m]=lsGet(k,null);
   });
   return r;
+}
+
+// ── SPRZEDAŻ POZYCJI MENU (karta "Sprzedaż menu" w zakładce Wprowadź dane) ──
+function getMenuSales(pid,month){return lsGet(uk('msales-'+pid+'-'+month),null)}
+function saveMenuSales(pid,month,d){
+  d.ts=Date.now();
+  lsSet(uk('msales-'+pid+'-'+month),d);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuSales').doc(month),d);
+}
+function delMenuSales(pid,month){
+  lsDel(uk('msales-'+pid+'-'+month));
+  if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/menuSales').doc(month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+}
+function getAllMenuSalesMonths(pid){
+  var prefix=uk('msales-'+pid+'-');
+  return Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).map(function(k){return k.slice(prefix.length)}).sort().reverse();
+}
+// Mapowanie "nazwa outletu z raportu" -> id outletu w aplikacji (per obiekt), zapamiętywane między wklejeniami.
+function getMsalesMap(pid){return lsGet(uk('msales-map-'+pid),{})}
+function saveMsalesMap(pid,map){
+  lsSet(uk('msales-map-'+pid),map);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuSales').doc('_outletMap'),{map:map});
 }
 
 /* ═══════════════════════════════════════════
@@ -4310,6 +4350,113 @@ function mLabelX(ym){
   if(!ym)return '—';
   var mn=['Styczen','Luty','Marzec','Kwiecien','Maj','Czerwiec','Lipiec','Sierpien','Wrzesien','Pazdziernik','Listopad','Grudzien'];
   var p=ym.split('-');return mn[+p[1]-1]+' '+p[0];
+}
+
+/* ═══════════════════════════════════════════
+   PARSER: SPRZEDAŻ POZYCJI MENU
+   Wejście: surowy tekst raportu wklejony z systemu POS (kolumny rozdzielone
+   tabulatorami: Nazwa / Ilość / Netto / Brutto). Struktura raportu:
+     OUTLET (wielkie litery)
+       GRUPA TOWAROWA
+         pozycja  ilość  netto  brutto
+         ...
+        Podsuma  netto  brutto     ← koniec grupy towarowej
+       ...
+      Razem  netto  brutto          ← koniec outletu
+   Outlety z zerową sprzedażą (np. "M&E", "MINI BAR" bez żadnych pozycji)
+   nie mają linii Podsuma/Razem — są automatycznie pomijane, bo licząca się
+   nazwa outletu/grupy to zawsze OSTATNIA z serii kolejnych "gołych" linii
+   tekstowych bezpośrednio poprzedzających pierwszą pozycję z liczbami.
+═══════════════════════════════════════════ */
+function plNum(s){
+  if(s===undefined||s===null)return 0;
+  var n=parseFloat(String(s).replace(/\s+/g,'').replace(',','.'));
+  return isNaN(n)?0:n;
+}
+function isNumTok(s){s=String(s).trim();return s!==''&&/^-?[\d\s]+([.,]\d+)?$/.test(s)}
+function splitMsalesFields(line){
+  var t=String(line).replace(/\u00A0/g,' ');
+  var byTab=t.split(/\t+/).map(function(s){return s.trim()}).filter(function(s){return s.length>0});
+  if(byTab.length>=2)return byTab;
+  var bySp=t.split(/ {2,}/).map(function(s){return s.trim()}).filter(function(s){return s.length>0});
+  if(bySp.length)return bySp;
+  t=t.trim();
+  return t?[t]:[];
+}
+function parseMenuSalesReport(raw){
+  var lines=String(raw||'').split(/\r?\n/);
+  var outlets=[],curOutlet=null,curCategory=null,runBuffer=[],grandTotal=null,sourceRange=null,warnings=[];
+  var mRange=String(raw||'').match(/Zakres od:\s*([\d.]+)\s*-\s*do:\s*([\d.]+)/i);
+  if(mRange)sourceRange={from:mRange[1],to:mRange[2]};
+
+  function isJunk(text){
+    return /^Zakres od\s*:/i.test(text)||/^SPRZEDA[ŻZ] POZYCJI MENU$/i.test(text)||/^Ilo[śs][ćc]\s+Netto\s+Brutto$/i.test(text);
+  }
+
+  for(var li=0;li<lines.length;li++){
+    var fields=splitMsalesFields(lines[li]);
+    if(!fields.length)continue;
+    var n=fields.length;
+    var lastNum=isNumTok(fields[n-1]);
+    var prevNum=n>=2&&isNumTok(fields[n-2]);
+    var prev2Num=n>=3&&isNumTok(fields[n-3]);
+
+    if(lastNum&&prevNum&&prev2Num&&n>=4){
+      // ── WIERSZ POZYCJI: nazwa + ilość + netto + brutto ──
+      var item={name:fields.slice(0,n-3).join(' '),qty:plNum(fields[n-3]),netto:plNum(fields[n-2]),brutto:plNum(fields[n-1])};
+      if(!curOutlet){
+        var oName=runBuffer.length>=2?runBuffer[runBuffer.length-2]:(runBuffer[0]||'Nieznany outlet');
+        var cName=runBuffer.length>=1?runBuffer[runBuffer.length-1]:'Bez kategorii';
+        curOutlet={rawName:oName,categories:[],totalNetto:0,totalBrutto:0};
+        outlets.push(curOutlet);
+        curCategory={name:cName,items:[],statedNetto:null,statedBrutto:null};
+        curOutlet.categories.push(curCategory);
+      } else if(runBuffer.length){
+        curCategory={name:runBuffer[runBuffer.length-1],items:[],statedNetto:null,statedBrutto:null};
+        curOutlet.categories.push(curCategory);
+      }
+      runBuffer=[];
+      curCategory.items.push(item);
+      continue;
+    }
+
+    if(lastNum&&prevNum&&n>=3&&!prev2Num){
+      // ── PODSUMA / RAZEM / ŁĄCZNIE ──
+      var label=fields.slice(0,n-2).join(' ');
+      var netto=plNum(fields[n-2]),brutto=plNum(fields[n-1]);
+      if(/^Podsuma$/i.test(label)){
+        if(curCategory){curCategory.statedNetto=netto;curCategory.statedBrutto=brutto;}
+        runBuffer=[];continue;
+      }
+      if(/^Razem$/i.test(label)){
+        if(curOutlet){curOutlet.totalNetto=netto;curOutlet.totalBrutto=brutto;}
+        curOutlet=null;curCategory=null;runBuffer=[];continue;
+      }
+      if(/^[ŁL]ączn?ie$/i.test(label)){grandTotal={netto:netto,brutto:brutto};break;}
+      var joined=fields.join(' ');
+      if(!isJunk(joined))runBuffer.push(joined);
+      continue;
+    }
+
+    // ── LINIA TEKSTOWA (kandydat na nazwę outletu/kategorii) ──
+    var text=fields.join(' ');
+    if(!isJunk(text))runBuffer.push(text);
+  }
+
+  outlets.forEach(function(o){
+    var compN=0,compB=0;
+    o.categories.forEach(function(c){
+      var cn=0,cb=0;
+      c.items.forEach(function(it){cn+=it.netto;cb+=it.brutto});
+      c.compNetto=cn;c.compBrutto=cb;
+      if(c.statedNetto!==null&&Math.abs(cn-c.statedNetto)>0.05)warnings.push('Grupa "'+c.name+'" ('+o.rawName+'): suma pozycji '+fmt(cn,true)+' ≠ podsuma w raporcie '+fmt(c.statedNetto,true));
+      compN+=cn;compB+=cb;
+    });
+    o.compNetto=compN;o.compBrutto=compB;
+    if(o.totalNetto&&Math.abs(compN-o.totalNetto)>0.1)warnings.push('Outlet "'+o.rawName+'": suma pozycji '+fmt(compN,true)+' ≠ Razem w raporcie '+fmt(o.totalNetto,true));
+  });
+
+  return {outlets:outlets,sourceRange:sourceRange,grandTotal:grandTotal,warnings:warnings};
 }
 
 function calcM(outlets,d){
@@ -4651,6 +4798,7 @@ function renderData(){
   h+='<div class="tabs" id="data-tabs">';
   h+='<button class="tab on" id="data-tab-monthly" onclick="switchDataTab(\'monthly\',this)">📝 Miesięczne</button>';
   h+='<button class="tab" id="data-tab-daily" onclick="switchDataTab(\'daily\',this)">📆 Dzienne</button>';
+  h+='<button class="tab" id="data-tab-menusales" onclick="switchDataTab(\'menusales\',this)">🍽️ Sprzedaż menu</button>';
   h+='</div>';
 
   h+='<div id="data-sub-monthly">';
@@ -4723,18 +4871,22 @@ function renderData(){
 
   // ── POD-ZAKŁADKA: Dane dzienne (renderowana osobno przez renderDaily() do #v-daily) ──
   h+='<div id="v-daily" style="display:none"></div>';
+  // ── POD-ZAKŁADKA: Sprzedaż menu (renderowana osobno przez renderMenuSales() do #v-menusales) ──
+  h+='<div id="v-menusales" style="display:none"></div>';
 
   el.innerHTML=h;
   recalc();
   buildMGrid();
   buildCal();
   renderDaily();
+  renderMenuSales();
 }
 
 function switchDataTab(tab,btn){
-  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily');
+  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales');
   if(monthly)monthly.style.display=tab==='monthly'?'block':'none';
   if(daily)daily.style.display=tab==='daily'?'block':'none';
+  if(msales)msales.style.display=tab==='menusales'?'block':'none';
   document.querySelectorAll('#data-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -4747,6 +4899,211 @@ function goDaily(){
   go('data');
   var btn=document.getElementById('data-tab-daily');
   if(btn)switchDataTab('daily',btn);
+}
+
+/* ═══════════════════════════════════════════
+   UI: SPRZEDAŻ POZYCJI MENU
+═══════════════════════════════════════════ */
+function renderMenuSales(){
+  var el=document.getElementById('v-menusales');if(!el)return;
+  var ro=!canEdit();
+  var parsed=S._msalesParsed;
+  var savedMonths=getAllMenuSalesMonths(S.pid);
+
+  var h='';
+  h+='<div class="card" style="margin-bottom:14px">';
+  h+='<div class="fsect">📋 Wklej raport sprzedaży pozycji menu</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Wklej treść raportu "Sprzedaż pozycji menu" skopiowaną z systemu POS (Ilość / Netto / Brutto). Dane zostaną przypisane do miesiąca <strong>'+mLabelFull(S.month)+'</strong> (zmień miesiąc powyżej, jeśli trzeba).</p>';
+  h+='<textarea class="fi" id="msales-input" rows="8" placeholder="Wklej tutaj cały raport..."'+(ro?' disabled':'')+'>'+(S._msalesRawInput||'')+'</textarea>';
+  if(!ro)h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="msalesParse()">🔍 Wczytaj i przeanalizuj</button>'+(parsed?'<button class="btn btn-s" onclick="msalesClearParsed()">✕ Wyczyść podgląd</button>':'')+'</div>';
+  h+='</div>';
+
+  if(parsed&&!ro){
+    h+=renderMsalesPreview(parsed);
+  }
+
+  // ── PODGLĄD ZAPISANYCH MIESIĘCY ──
+  h+='<div class="card">';
+  h+='<div class="fsect">📅 Zapisane miesiące</div>';
+  if(!savedMonths.length){
+    h+='<p class="hs-p">Brak jeszcze zapisanych danych sprzedaży pozycji menu dla tego obiektu.</p>';
+  } else {
+    h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">';
+    savedMonths.forEach(function(m){
+      h+='<button class="btn btn-g btn-sm'+(m===S._msalesViewMonth?' on':'')+'" onclick="msalesViewMonth(\''+m+'\')">'+mLabel(m)+'</button>';
+    });
+    h+='</div>';
+    if(S._msalesViewMonth){
+      var vd=getMenuSales(S.pid,S._msalesViewMonth);
+      if(vd)h+=renderMsalesSavedTable(vd,S._msalesViewMonth);
+    }
+  }
+  h+='</div>';
+
+  el.innerHTML=h;
+}
+
+function renderMsalesPreview(parsed){
+  var pid=S.pid,map=getMsalesMap(pid);
+  var h='<div class="card" style="margin-bottom:14px">';
+  h+='<div class="fsect">👁️ Podgląd — dopasuj outlety</div>';
+  if(parsed.sourceRange)h+='<p class="hs-p">Wykryty zakres w raporcie: <strong>'+parsed.sourceRange.from+' – '+parsed.sourceRange.to+'</strong></p>';
+  if(parsed.warnings.length){
+    h+='<div class="hs-warn" style="margin-bottom:10px">⚠️ Wykryto '+parsed.warnings.length+' rozbieżności między sumami w raporcie a przeliczonymi sumami pozycji:<br><small>'+parsed.warnings.slice(0,5).join('<br>')+(parsed.warnings.length>5?'<br>…':'')+'</small></div>';
+  }
+  parsed.outlets.forEach(function(o,oi){
+    var key=o.rawName.trim().toUpperCase();
+    var mappedId=map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName);
+    var okClass=(!o.totalNetto||Math.abs(o.compNetto-o.totalNetto)<=0.1)?'grn':'warn';
+    h+='<div style="border:1px solid var(--brd);border-radius:10px;padding:10px 12px;margin-bottom:8px">';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
+    h+='<strong style="font-size:.82rem">'+o.rawName+'</strong>';
+    h+='<span style="font-size:.68rem;color:var(--'+okClass+')">'+fmt(o.compNetto,true)+' netto · '+o.categories.reduce(function(s,c){return s+c.items.length},0)+' pozycji</span>';
+    h+='</div>';
+    h+='<select class="fi" style="font-size:.78rem" onchange="msalesMapChange(\''+key.replace(/'/g,"\\'")+'\',this.value)">';
+    h+='<option value="">— wybierz outlet w aplikacji —</option>';
+    S.outlets.forEach(function(so){h+='<option value="'+so.id+'"'+(mappedId===so.id?' selected':'')+'>'+so.name+'</option>'});
+    h+='<option value="__skip__"'+(mappedId==='__skip__'?' selected':'')+'>— pomiń ten outlet —</option>';
+    h+='</select>';
+    h+='</div>';
+  });
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="msalesSaveClick()">💾 Zapisz do miesiąca '+mLabel(S.month)+'</button></div>';
+  h+='</div>';
+  return h;
+}
+
+// Zgaduje dopasowanie outletu po nazwie (dokładne lub częściowe dopasowanie tekstu), gdy nie ma jeszcze zapamiętanego mapowania.
+function msalesGuessOutlet(rawName){
+  var rn=rawName.trim().toUpperCase();
+  var exact=S.outlets.find(function(o){return o.name.trim().toUpperCase()===rn});
+  if(exact)return exact.id;
+  var partial=S.outlets.find(function(o){var n=o.name.trim().toUpperCase();return n.indexOf(rn)>=0||rn.indexOf(n)>=0});
+  return partial?partial.id:undefined;
+}
+
+function msalesParse(){
+  var ta=document.getElementById('msales-input');if(!ta)return;
+  var raw=ta.value;
+  if(!raw||!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
+  var parsed=parseMenuSalesReport(raw);
+  if(!parsed.outlets.length){toast('Nie udało się rozpoznać żadnego outletu w tekście — sprawdź format','er');return;}
+  S._msalesRawInput=raw;
+  S._msalesParsed=parsed;
+  renderMenuSales();
+  toast('Rozpoznano '+parsed.outlets.length+' outlet(ów)','ok');
+}
+function msalesClearParsed(){
+  S._msalesParsed=null;S._msalesRawInput='';
+  renderMenuSales();
+}
+function msalesMapChange(rawKey,val){
+  var map=getMsalesMap(S.pid);
+  map[rawKey]=val||undefined;
+  if(!val)delete map[rawKey];
+  saveMsalesMap(S.pid,map);
+}
+
+function msalesSaveClick(){
+  var parsed=S._msalesParsed;if(!parsed)return;
+  var map=getMsalesMap(S.pid);
+  // upewnij się, że każdy outlet ma jakąś decyzję (mapowanie lub pominięcie) — jeśli nie, weź to, co aktualnie pokazuje select
+  var missing=parsed.outlets.some(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    return map[key]===undefined&&msalesGuessOutlet(o.rawName)===undefined;
+  });
+  if(missing){toast('Dopasuj wszystkie outlety (lub wybierz "pomiń") przed zapisem','er');return;}
+  var existing=getMenuSales(S.pid,S.month);
+  if(existing){
+    openM('m-msales-conflict');
+  } else {
+    msalesDoSave('overwrite');
+  }
+}
+function msalesDoSave(mode){
+  closeM('m-msales-conflict');
+  var parsed=S._msalesParsed;if(!parsed)return;
+  var map=getMsalesMap(S.pid);
+  var outletsOut=[];
+  parsed.outlets.forEach(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    var mapped=map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName);
+    if(mapped==='__skip__')return;
+    var so=S.outlets.find(function(x){return x.id===mapped});
+    outletsOut.push({
+      outletId:so?so.id:null,outletName:so?so.name:null,rawName:o.rawName,
+      categories:o.categories.map(function(c){return {name:c.name,items:c.items}}),
+      totalNetto:o.compNetto,totalBrutto:o.compBrutto
+    });
+  });
+  var data={outlets:outletsOut,sourceRange:parsed.sourceRange,grandTotal:parsed.grandTotal};
+
+  if(mode==='merge'){
+    var prev=getMenuSales(S.pid,S.month);
+    if(prev&&prev.outlets){
+      data.outlets.forEach(function(no){
+        var po=prev.outlets.find(function(x){return (x.outletId&&x.outletId===no.outletId)||(!x.outletId&&x.rawName===no.rawName)});
+        if(!po)return;
+        no.categories.forEach(function(nc){
+          var pc=po.categories.find(function(x){return x.name===nc.name});
+          if(!pc)return;
+          nc.items.forEach(function(ni){
+            var pi=pc.items.find(function(x){return x.name===ni.name});
+            if(pi){ni.qty+=pi.qty;ni.netto+=pi.netto;ni.brutto+=pi.brutto;}
+          });
+          // pozycje z poprzedniego zapisu, których nie ma w nowym wklejeniu — dopisz bez zmian
+          pc.items.forEach(function(pi){
+            if(!nc.items.find(function(x){return x.name===pi.name}))nc.items.push(pi);
+          });
+        });
+        // kategorie z poprzedniego zapisu, których nie ma w nowym wklejeniu — dopisz bez zmian
+        po.categories.forEach(function(pc){
+          if(!no.categories.find(function(x){return x.name===pc.name}))no.categories.push(pc);
+        });
+        no.totalNetto=no.categories.reduce(function(s,c){return s+c.items.reduce(function(s2,i){return s2+i.netto},0)},0);
+        no.totalBrutto=no.categories.reduce(function(s,c){return s+c.items.reduce(function(s2,i){return s2+i.brutto},0)},0);
+      });
+      // outlety z poprzedniego zapisu, których w ogóle nie ma w nowym wklejeniu — dopisz bez zmian
+      prev.outlets.forEach(function(po){
+        if(!data.outlets.find(function(x){return (x.outletId&&x.outletId===po.outletId)||(!x.outletId&&x.rawName===po.rawName)}))data.outlets.push(po);
+      });
+    }
+  }
+
+  saveMenuSales(S.pid,S.month,data);
+  S._msalesParsed=null;S._msalesRawInput='';S._msalesViewMonth=S.month;
+  renderMenuSales();
+  toast(mode==='merge'?'Dane zsumowane i zapisane':'Dane zapisane','ok');
+}
+function msalesViewMonth(m){S._msalesViewMonth=(S._msalesViewMonth===m?null:m);renderMenuSales();}
+
+function renderMsalesSavedTable(data,month){
+  var h='<div style="margin-top:10px">';
+  var grandN=0,grandB=0;
+  data.outlets.forEach(function(o){grandN+=o.totalNetto;grandB+=o.totalBrutto;});
+  h+='<div class="hs-p" style="margin-bottom:8px">Razem za '+mLabel(month)+': <strong>'+fmt(grandN,true)+' netto</strong> / '+fmt(grandB,true)+' brutto'+(data.sourceRange?' · zakres w źródle: '+data.sourceRange.from+'–'+data.sourceRange.to:'')+'</div>';
+  data.outlets.forEach(function(o){
+    h+='<details style="margin-bottom:6px"><summary style="cursor:pointer;font-size:.8rem;font-weight:700;padding:6px 0">'+(o.outletName||'⚠️ '+o.rawName+' (niedopasowany)')+' — '+fmt(o.totalNetto,true)+'</summary>';
+    o.categories.forEach(function(c){
+      var cn=c.items.reduce(function(s,i){return s+i.netto},0);
+      h+='<div style="font-size:.72rem;font-weight:700;color:var(--tx2);margin:6px 0 2px">'+c.name+' — '+fmt(cn,true)+'</div>';
+      h+='<div style="overflow-x:auto"><table class="det" style="font-size:.72rem"><thead><tr><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Brutto</th></tr></thead><tbody>';
+      c.items.forEach(function(i){
+        h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmt(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    });
+    h+='</details>';
+  });
+  h+='<div class="fa" style="margin-top:8px"><button class="btn btn-s btn-sm" onclick="msalesDeleteMonth(\''+month+'\')">🗑 Usuń dane tego miesiąca</button></div>';
+  h+='</div>';
+  return h;
+}
+function msalesDeleteMonth(month){
+  if(!confirm('Usunąć dane sprzedaży pozycji menu za '+mLabel(month)+'?'))return;
+  delMenuSales(S.pid,month);
+  if(S._msalesViewMonth===month)S._msalesViewMonth=null;
+  renderMenuSales();
+  toast('Usunięto','in');
 }
 
 /* ── GOALS UI ── */
