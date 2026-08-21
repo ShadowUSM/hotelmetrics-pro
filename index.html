@@ -4214,7 +4214,13 @@ function loadUserDataFromFirestore(){
       var t5=db.collection('properties/'+p.id+'/dailyData').get().then(function(s){
         s.docs.forEach(function(d){lsSet(uk('daily-'+p.id+'-'+d.id),d.data())});
       });
-      return Promise.all([t1,t2,t3,t4,t5]);
+      var t6=db.collection('properties/'+p.id+'/menuSales').get().then(function(s){
+        s.docs.forEach(function(d){
+          if(d.id==='_outletMap'){var md=d.data();lsSet(uk('msales-map-'+p.id),(md&&md.map)||{});}
+          else lsSet(uk('msales-'+p.id+'-'+d.id),d.data());
+        });
+      });
+      return Promise.all([t1,t2,t3,t4,t5,t6]);
     });
     return Promise.all(tasks);
   });
