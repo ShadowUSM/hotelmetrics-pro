@@ -6003,6 +6003,44 @@ function ctmOutletLabel(outletId){
 }
 
 // #1 — Pozycje miesiąc do miesiąca
+/* ═══════════════════════════════════════════
+   SORTOWANIE NAGŁÓWKÓW (Excel-style) dla głównych raportów porównawczych
+   Porównania → Sprzedaż menu (Miesiąc do miesiąca / Top zmiany / Bestsellery /
+   Trend pozycji / Grupy towarowe / Mix sprzedażowy). Ta sama konwencja co dla
+   tabel "Zapisane miesiące" i "Sprzedaż pozycji" (klasa .msales-sort, ▲/▼).
+   Dopóki użytkownik nie kliknie żadnego nagłówka danej tabeli, kolejność
+   pozostaje taka, jaką sam raport ustawia domyślnie (np. wg rozwijanej listy).
+═══════════════════════════════════════════ */
+function ctmSortState(scope){
+  S._ctmTableSort=S._ctmTableSort||{};
+  return S._ctmTableSort[scope]||{key:null,dir:1};
+}
+function ctmToggleSort(scope,key,rerender){
+  S._ctmTableSort=S._ctmTableSort||{};
+  var st=S._ctmTableSort[scope]||{key:null,dir:1};
+  if(st.key===key) st.dir*=-1; else {st.key=key;st.dir=1;}
+  S._ctmTableSort[scope]=st;
+  rerender();
+}
+function ctmApplySort(rows,scope){
+  var st=ctmSortState(scope);
+  if(!st.key)return rows;
+  var key=st.key,dir=st.dir;
+  return rows.slice().sort(function(a,b){
+    var av=(typeof a[key]==='string')?String(a[key]||'').toLocaleLowerCase('pl-PL'):(Number(a[key])||0);
+    var bv=(typeof b[key]==='string')?String(b[key]||'').toLocaleLowerCase('pl-PL'):(Number(b[key])||0);
+    if(av<bv)return -1*dir;
+    if(av>bv)return 1*dir;
+    return 0;
+  });
+}
+function ctmSortHeader(label,key,scope,rerenderFnName){
+  var st=ctmSortState(scope),active=st.key===key,tri=active?(st.dir===1?'▲':'▼'):'';
+  var sc=String(scope).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  var ky=String(key).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  return '<th class="msales-sort '+(active?'active':'')+'" data-scope="'+sc+'" data-key="'+ky+'" onclick="ctmToggleSort(this.dataset.scope,this.dataset.key,function(){'+rerenderFnName+'()})">'+label+'<span class="sort-tri">'+tri+'</span></th>';
+}
+
 function ctmRunM2M(){
   var m1El=document.getElementById('ctm-m1'),m2El=document.getElementById('ctm-m2');
   var res=document.getElementById('ctm-m2m-results');if(!res||!m1El||!m2El)return;
@@ -6016,8 +6054,9 @@ function ctmRunM2M(){
     if(sortBy==='netto_b')return y.bNetto-x.bNetto;
     return x.name.localeCompare(y.name);
   });
+  rows=ctmApplySort(rows,'m2m');
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m1)+' vs '+mLabelFull(m2)+' · '+ctmOutletLabel(outlet)+' · '+rows.length+' pozycji</div>';
-  h+='<div class="tbl-wrap"><table><thead><tr><th>Pozycja</th><th>Ilość '+mLabel(m1)+'</th><th>Ilość '+mLabel(m2)+'</th><th>Δ Ilość</th><th>Netto '+mLabel(m1)+'</th><th>Netto '+mLabel(m2)+'</th><th>Δ Netto</th></tr></thead><tbody>';
+  h+='<div class="tbl-wrap"><table class="msales-table" style="min-width:640px"><colgroup><col style="width:28%"><col><col><col><col><col><col></colgroup><thead><tr>'+ctmSortHeader('Pozycja','name','m2m','ctmRunM2M')+ctmSortHeader('Ilość '+mLabel(m1),'aQty','m2m','ctmRunM2M')+ctmSortHeader('Ilość '+mLabel(m2),'bQty','m2m','ctmRunM2M')+ctmSortHeader('Δ Ilość','dQty','m2m','ctmRunM2M')+ctmSortHeader('Netto '+mLabel(m1),'aNetto','m2m','ctmRunM2M')+ctmSortHeader('Netto '+mLabel(m2),'bNetto','m2m','ctmRunM2M')+ctmSortHeader('Δ Netto','dNetto','m2m','ctmRunM2M')+'</tr></thead><tbody>';
   rows.forEach(function(r){
     h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmtN(r.aQty)+'</td><td>'+fmtN(r.bQty)+'</td>';
     h+='<td class="'+(r.dQty>=0?'td-pos':'td-neg')+'">'+(r.dQty>=0?'+':'')+fmtN(r.dQty)+(r.pQty!==null?' ('+(r.pQty>=0?'+':'')+r.pQty.toFixed(0)+'%)':' (nowość)')+'</td>';
@@ -6038,18 +6077,19 @@ function ctmRunTop(){
   var rows=msalesCompareRows(S.pid,m1,m2,outlet);
   if(!rows.length){res.innerHTML='<div class="empty"><p>Brak danych sprzedaży pozycji menu dla wybranych miesięcy ('+ctmOutletLabel(outlet)+').</p></div>';return;}
   var dKey=metric==='qty'?'dQty':'dNetto',bKey=metric==='qty'?'bQty':'bNetto';
-  var up=rows.slice().sort(function(a,b){return b[dKey]-a[dKey]}).filter(function(r){return r[dKey]>0}).slice(0,10);
-  var down=rows.slice().sort(function(a,b){return a[dKey]-b[dKey]}).filter(function(r){return r[dKey]<0}).slice(0,10);
+  rows.forEach(function(r){r.delta=r[dKey];r.bval=r[bKey];});
+  var up=ctmApplySort(rows.slice().sort(function(a,b){return b.delta-a.delta}).filter(function(r){return r.delta>0}).slice(0,10),'top-up');
+  var down=ctmApplySort(rows.slice().sort(function(a,b){return a.delta-b.delta}).filter(function(r){return r.delta<0}).slice(0,10),'top-down');
   var fmtV=function(v){return metric==='qty'?fmtN(v):fmt(v,true)};
   var unitLbl=metric==='qty'?'Δ Ilość':'Δ Netto';
   function rowsHTML(list,cls){
     if(!list.length)return '<tr><td colspan="3" style="text-align:center;color:var(--tx3);font-size:.72rem">Brak</td></tr>';
-    return list.map(function(r){return '<tr><td class="lbl">'+r.name+'</td><td class="'+cls+'">'+(r[dKey]>=0?'+':'')+fmtV(r[dKey])+'</td><td>'+fmtV(r[bKey])+'</td></tr>'}).join('');
+    return list.map(function(r){return '<tr><td class="lbl">'+r.name+'</td><td class="'+cls+'">'+(r.delta>=0?'+':'')+fmtV(r.delta)+'</td><td>'+fmtV(r.bval)+'</td></tr>'}).join('');
   }
   var h='<div class="hs-p" style="margin-bottom:10px">'+mLabelFull(m1)+' vs '+mLabelFull(m2)+' · '+ctmOutletLabel(outlet)+'</div>';
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">';
-  h+='<div><div class="stitle" style="margin-bottom:8px">📈 Największe wzrosty</div><div class="tbl-wrap"><table><thead><tr><th>Pozycja</th><th>'+unitLbl+'</th><th>'+mLabel(m2)+'</th></tr></thead><tbody>'+rowsHTML(up,'td-pos')+'</tbody></table></div></div>';
-  h+='<div><div class="stitle" style="margin-bottom:8px">📉 Największe spadki</div><div class="tbl-wrap"><table><thead><tr><th>Pozycja</th><th>'+unitLbl+'</th><th>'+mLabel(m2)+'</th></tr></thead><tbody>'+rowsHTML(down,'td-neg')+'</tbody></table></div></div>';
+  h+='<div><div class="stitle" style="margin-bottom:8px">📈 Największe wzrosty</div><div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:52%"><col><col></colgroup><thead><tr>'+ctmSortHeader('Pozycja','name','top-up','ctmRunTop')+ctmSortHeader(unitLbl,'delta','top-up','ctmRunTop')+ctmSortHeader(mLabel(m2),'bval','top-up','ctmRunTop')+'</tr></thead><tbody>'+rowsHTML(up,'td-pos')+'</tbody></table></div></div>';
+  h+='<div><div class="stitle" style="margin-bottom:8px">📉 Największe spadki</div><div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:52%"><col><col></colgroup><thead><tr>'+ctmSortHeader('Pozycja','name','top-down','ctmRunTop')+ctmSortHeader(unitLbl,'delta','top-down','ctmRunTop')+ctmSortHeader(mLabel(m2),'bval','top-down','ctmRunTop')+'</tr></thead><tbody>'+rowsHTML(down,'td-neg')+'</tbody></table></div></div>';
   h+='</div>';
   res.innerHTML=h;
   haptic(8);
@@ -6069,8 +6109,9 @@ function ctmRunBest(){
   var rows=names.map(function(n){return {name:n,qty:map[n].qty,netto:map[n].netto,share:totalNetto>0?map[n].netto/totalNetto*100:0}});
   rows.sort(function(a,b){return metric==='qty'?b.qty-a.qty:b.netto-a.netto});
   rows=rows.slice(0,Math.max(1,topN));
+  rows=ctmApplySort(rows,'best');
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m)+' · '+ctmOutletLabel(outlet)+' · łącznie '+fmt(totalNetto,true)+' netto</div>';
-  h+='<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Udział</th></tr></thead><tbody>';
+  h+='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:8%"><col style="width:44%"><col><col><col></colgroup><thead><tr><th>#</th>'+ctmSortHeader('Pozycja','name','best','ctmRunBest')+ctmSortHeader('Ilość','qty','best','ctmRunBest')+ctmSortHeader('Netto','netto','best','ctmRunBest')+ctmSortHeader('Udział','share','best','ctmRunBest')+'</tr></thead><tbody>';
   rows.forEach(function(r,i){
     h+='<tr><td>'+(i+1)+'</td><td class="lbl">'+r.name+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';
   });
@@ -6130,6 +6171,11 @@ function ctmRunTrend(){
   var h='<div class="ccards"><div class="ccard"><div class="ccard-l">Łącznie ilość</div><div class="ccard-v">'+fmtN(totalQty)+'</div></div>';
   h+='<div class="ccard"><div class="ccard-l">Łącznie netto</div><div class="ccard-v">'+fmt(totalNetto,true)+'</div></div>';
   h+='<div class="ccard"><div class="ccard-l">Śr./miesiąc</div><div class="ccard-v">'+(metric==='qty'?fmtN(totalQty/months.length):fmt(totalNetto/months.length,true))+'</div></div></div>';
+  var monthRows=months.map(function(m,i){return {m:m,mLbl:mLabel(m),qty:qtys[i],netto:nettos[i]}});
+  monthRows=ctmApplySort(monthRows,'trend');
+  h+='<div class="tbl-wrap" style="margin-top:12px"><table class="msales-table"><colgroup><col style="width:34%"><col><col></colgroup><thead><tr>'+ctmSortHeader('Miesiąc','m','trend','ctmRunTrend')+ctmSortHeader('Ilość','qty','trend','ctmRunTrend')+ctmSortHeader('Netto','netto','trend','ctmRunTrend')+'</tr></thead><tbody>';
+  monthRows.forEach(function(r){h+='<tr><td class="lbl">'+r.mLbl+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td></tr>';});
+  h+='</tbody></table></div>';
   res.innerHTML=h;
 
   if(chartWrap)chartWrap.style.display='block';
@@ -6160,9 +6206,10 @@ function ctmRunCat(){
     return {name:c,aNetto:a.netto,bNetto:b.netto,dNetto:b.netto-a.netto};
   });
   rows.sort(function(x,y){return y.bNetto-x.bNetto});
+  rows=ctmApplySort(rows,'cat');
 
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m1)+' vs '+mLabelFull(m2)+' · '+ctmOutletLabel(outlet)+'</div>';
-  h+='<div class="tbl-wrap"><table><thead><tr><th>Grupa towarowa</th><th>Netto '+mLabel(m1)+'</th><th>Netto '+mLabel(m2)+'</th><th>Δ Netto</th></tr></thead><tbody>';
+  h+='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:40%"><col><col><col></colgroup><thead><tr>'+ctmSortHeader('Grupa towarowa','name','cat','ctmRunCat')+ctmSortHeader('Netto '+mLabel(m1),'aNetto','cat','ctmRunCat')+ctmSortHeader('Netto '+mLabel(m2),'bNetto','cat','ctmRunCat')+ctmSortHeader('Δ Netto','dNetto','cat','ctmRunCat')+'</tr></thead><tbody>';
   rows.forEach(function(r){
     var pct=r.aNetto>0?(r.dNetto/r.aNetto*100):null;
     h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmt(r.aNetto,true)+'</td><td>'+fmt(r.bNetto,true)+'</td>';
@@ -6203,9 +6250,10 @@ function ctmRunMix(){
   var top=rows.slice(0,Math.max(1,topN));
   var restNetto=rows.slice(top.length).reduce(function(s,r){return s+r.netto},0);
   var restShare=totalNetto>0?restNetto/totalNetto*100:0;
+  top=ctmApplySort(top,'mix');
 
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m)+' · '+ctmOutletLabel(outlet)+' · łącznie '+fmt(totalNetto,true)+' netto</div>';
-  h+='<div class="tbl-wrap"><table><thead><tr><th>Pozycja</th><th>Netto</th><th>Udział</th></tr></thead><tbody>';
+  h+='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:52%"><col><col></colgroup><thead><tr>'+ctmSortHeader('Pozycja','name','mix','ctmRunMix')+ctmSortHeader('Netto','netto','mix','ctmRunMix')+ctmSortHeader('Udział','share','mix','ctmRunMix')+'</tr></thead><tbody>';
   top.forEach(function(r){h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';});
   if(restNetto>0)h+='<tr style="color:var(--tx3)"><td>Pozostałe ('+(rows.length-top.length)+' pozycji)</td><td>'+fmt(restNetto,true)+'</td><td>'+restShare.toFixed(1)+'%</td></tr>';
   h+='</tbody></table></div>';
@@ -6246,6 +6294,7 @@ function pdfCtmM2M(){
     if(sortBy==='netto_b')return y.bNetto-x.bNetto;
     return x.name.localeCompare(y.name);
   });
+  rows=ctmApplySort(rows,'m2m');
   var prop=S.props.find(function(p){return p.id===S.pid});
   var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   var pw=297,ph=210;
@@ -6276,8 +6325,9 @@ function pdfCtmTop(){
   var rows=msalesCompareRows(S.pid,m1,m2,outlet);
   if(!rows.length){toast('Brak danych do eksportu','er');return;}
   var dKey=metric==='qty'?'dQty':'dNetto',bKey=metric==='qty'?'bQty':'bNetto';
-  var up=rows.slice().sort(function(a,b){return b[dKey]-a[dKey]}).filter(function(r){return r[dKey]>0}).slice(0,10);
-  var down=rows.slice().sort(function(a,b){return a[dKey]-b[dKey]}).filter(function(r){return r[dKey]<0}).slice(0,10);
+  rows.forEach(function(r){r.delta=r[dKey];r.bval=r[bKey];});
+  var up=ctmApplySort(rows.slice().sort(function(a,b){return b.delta-a.delta}).filter(function(r){return r.delta>0}).slice(0,10),'top-up');
+  var down=ctmApplySort(rows.slice().sort(function(a,b){return a.delta-b.delta}).filter(function(r){return r.delta<0}).slice(0,10),'top-down');
   var fmtV=function(v){return metric==='qty'?fmtN(v):fmt(v,true)};
   var prop=S.props.find(function(p){return p.id===S.pid});
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -6287,7 +6337,7 @@ function pdfCtmTop(){
   doc.text('Najwieksze wzrosty',10,29);
   doc.autoTable({
     startY:33,head:[['Pozycja',(metric==='qty'?'Delta ilosc':'Delta netto'),mLabelX(m2)]],
-    body:up.map(function(r){return [dePL(r.name),(r[dKey]>=0?'+':'')+fmtV(r[dKey]),fmtV(r[bKey])]}),
+    body:up.map(function(r){return [dePL(r.name),(r.delta>=0?'+':'')+fmtV(r.delta),fmtV(r.bval)]}),
     theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
     bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
     columnStyles:{1:{halign:'right'},2:{halign:'right'}},
@@ -6298,7 +6348,7 @@ function pdfCtmTop(){
   doc.text('Najwieksze spadki',10,y2);
   doc.autoTable({
     startY:y2+4,head:[['Pozycja',(metric==='qty'?'Delta ilosc':'Delta netto'),mLabelX(m2)]],
-    body:down.map(function(r){return [dePL(r.name),fmtV(r[dKey]),fmtV(r[bKey])]}),
+    body:down.map(function(r){return [dePL(r.name),fmtV(r.delta),fmtV(r.bval)]}),
     theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
     bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
     columnStyles:{1:{halign:'right'},2:{halign:'right'}},
@@ -6323,6 +6373,7 @@ function pdfCtmBest(){
   var rows=names.map(function(n){return {name:n,qty:map[n].qty,netto:map[n].netto,share:totalNetto>0?map[n].netto/totalNetto*100:0}});
   rows.sort(function(a,b){return metric==='qty'?b.qty-a.qty:b.netto-a.netto});
   rows=rows.slice(0,Math.max(1,topN));
+  rows=ctmApplySort(rows,'best');
   var prop=S.props.find(function(p){return p.id===S.pid});
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
@@ -6351,6 +6402,7 @@ function pdfCtmTrend(){
   var rows=months.map(function(m){var v=(msalesItemMap(S.pid,m,outlet))[item]||{qty:0,netto:0};return {m:m,qty:v.qty,netto:v.netto}});
   if(!rows.some(function(r){return r.qty>0||r.netto>0})){toast('Brak sprzedaży tej pozycji','er');return;}
   var totalQty=rows.reduce(function(s,r){return s+r.qty},0),totalNetto=rows.reduce(function(s,r){return s+r.netto},0);
+  rows=ctmApplySort(rows,'trend');
   var prop=S.props.find(function(p){return p.id===S.pid});
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
@@ -6379,6 +6431,7 @@ function pdfCtmCat(){
   if(!cats.length){toast('Brak danych do eksportu','er');return;}
   var rows=cats.map(function(c){var a=map1[c]||{netto:0},b=map2[c]||{netto:0};return {name:c,aNetto:a.netto,bNetto:b.netto,dNetto:b.netto-a.netto}});
   rows.sort(function(x,y){return y.bNetto-x.bNetto});
+  rows=ctmApplySort(rows,'cat');
   var prop=S.props.find(function(p){return p.id===S.pid});
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
@@ -6411,6 +6464,7 @@ function pdfCtmMix(){
   var top=rows.slice(0,Math.max(1,topN));
   var restNetto=rows.slice(top.length).reduce(function(s,r){return s+r.netto},0);
   var restShare=totalNetto>0?restNetto/totalNetto*100:0;
+  top=ctmApplySort(top,'mix');
   var prop=S.props.find(function(p){return p.id===S.pid});
   var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var pw=210,ph=297;
