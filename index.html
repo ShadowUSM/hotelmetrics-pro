@@ -5785,7 +5785,7 @@ function renderCompare(){
     h+='<div class="empty"><p>Brak jeszcze zapisanych danych sprzedaży pozycji menu — wklej pierwszy raport w zakładce <a href="#" onclick="goMenuSales()">Wprowadź dane → Sprzedaż menu</a>.</p></div>';
   } else {
     var defM2=msSaved[0],defM1=msSaved[1]||prevM(defM2);
-    h+='<div class="tabs" id="ctm-tabs"><button class="tab on" onclick="ctmTab(\'m2m\',this)">🔁 Miesiąc do miesiąca</button><button class="tab" onclick="ctmTab(\'top\',this)">📊 Top zmiany</button><button class="tab" onclick="ctmTab(\'best\',this)">🏆 Bestsellery</button><button class="tab" onclick="ctmTab(\'trend\',this)">📈 Trend pozycji</button><button class="tab" onclick="ctmTab(\'cat\',this)">📦 Grupy towarowe</button><button class="tab" onclick="ctmTab(\'mix\',this)">🥧 Mix sprzedażowy</button></div>';
+    h+='<div class="tabs" id="ctm-tabs"><button class="tab on" onclick="ctmTab(\'m2m\',this)">🔁 Miesiąc do miesiąca</button><button class="tab" onclick="ctmTab(\'top\',this)">📊 Top zmiany</button><button class="tab" onclick="ctmTab(\'best\',this)">🏆 Bestsellery</button><button class="tab" onclick="ctmTab(\'trend\',this)">📈 Trend pozycji</button><button class="tab" onclick="ctmTab(\'cat\',this)">📦 Grupy towarowe</button><button class="tab" onclick="ctmTab(\'mix\',this)">🥧 Mix sprzedażowy</button><button class="tab" onclick="ctmTab(\'items\',this)">🧾 Sprzedaż pozycji</button></div>';
 
     // #1 — Pozycje miesiąc do miesiąca
     h+='<div id="ctm-m2m">';
@@ -5847,13 +5847,25 @@ function renderCompare(){
     h+='<div class="fg" style="margin-bottom:0;max-width:90px"><label>Top N</label><input type="number" class="fi" id="ctm6-n" value="10" min="3" max="30"></div>';
     h+='<button class="btn btn-p" onclick="ctmRunMix()">Pokaż</button>';
     h+='</div><div id="ctm-mix-results"></div><div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfCtmMix()">📄 Zapisz do PDF</button></div></div>';
+
+    // #7 — Sprzedaż pozycji (to samo co po kliknięciu w kartę outletu na Dashboardzie),
+    // z możliwością wyboru pojedynczego miesiąca ALBO zakresu miesięcy (sumowanie).
+    h+='<div id="ctm-items" style="display:none">';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm7-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="ctm7-range-toggle" onchange="ctm7ToggleRange()" style="width:auto"> Zakres miesięcy</label></div>';
+    h+='<div class="fg" style="margin-bottom:0" id="ctm7-single-wrap"><label>Miesiąc</label><input type="month" class="fi" id="ctm7-m" value="'+defM2+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0;display:none" id="ctm7-from-wrap"><label>Od miesiąca</label><input type="month" class="fi" id="ctm7-from" value="'+defM1+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0;display:none" id="ctm7-to-wrap"><label>Do miesiąca</label><input type="month" class="fi" id="ctm7-to" value="'+defM2+'"></div>';
+    h+='<button class="btn btn-p" onclick="ctmRunItems()">Pokaż</button>';
+    h+='</div><div id="ctm-items-results"></div><div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfCtmItems()">📄 Zapisz do PDF</button></div></div>';
   }
   h+='</div>';
 
   h+='<div class="cc" style="margin-top:14px"><div class="card-title">Wykres porównawczy</div><canvas id="ch-cmp" style="max-height:220px"></canvas></div>';
   el.innerHTML=h;
 
-  if(msSaved.length){ctmRunM2M();ctmRunTop();ctmRunBest();ctmRunTrend();ctmRunCat();ctmRunMix();}
+  if(msSaved.length){ctmRunM2M();ctmRunTop();ctmRunBest();ctmRunTrend();ctmRunCat();ctmRunMix();ctmRunItems();}
 
   dChart('ch-cmp');
   var sm=Object.keys(allD).sort();
@@ -6371,6 +6383,107 @@ function pdfCtmMix(){
   toast('PDF zapisany','ok');
 }
 
+// #7 — Sprzedaż pozycji (jak modal outletu z Dashboardu): budowa struktury outlet→kategoria→pozycje,
+// zsumowana dla jednego miesiąca lub całego zakresu miesięcy (np. Q1 = styczeń-marzec).
+function msalesMonthsInRange(from,to){
+  var months=[],cur=from,guard=0;
+  while(cur<=to&&guard<600){months.push(cur);cur=nextM(cur);guard++;}
+  return months;
+}
+function msalesOutletDetail(pid,outletId,months){
+  var catMap={};
+  months.forEach(function(m){
+    var d=getMenuSales(pid,m);
+    if(!d||!d.outlets)return;
+    d.outlets.forEach(function(o){
+      if(outletId!=='__all__'&&o.outletId!==outletId)return;
+      o.categories.forEach(function(c){
+        if(!catMap[c.name])catMap[c.name]={name:c.name,items:{}};
+        c.items.forEach(function(it){
+          if(!catMap[c.name].items[it.name])catMap[c.name].items[it.name]={name:it.name,qty:0,netto:0,brutto:0};
+          catMap[c.name].items[it.name].qty+=it.qty;
+          catMap[c.name].items[it.name].netto+=it.netto;
+          catMap[c.name].items[it.name].brutto+=it.brutto;
+        });
+      });
+    });
+  });
+  var categories=Object.keys(catMap).map(function(cn){
+    var items=Object.keys(catMap[cn].items).map(function(k){return catMap[cn].items[k]}).sort(function(a,b){return b.netto-a.netto});
+    return {name:cn,items:items,netto:items.reduce(function(s,i){return s+i.netto},0),brutto:items.reduce(function(s,i){return s+i.brutto},0)};
+  }).sort(function(a,b){return b.netto-a.netto});
+  return {categories:categories,totalNetto:categories.reduce(function(s,c){return s+c.netto},0),totalBrutto:categories.reduce(function(s,c){return s+c.brutto},0)};
+}
+function ctm7ToggleRange(){
+  var on=document.getElementById('ctm7-range-toggle').checked;
+  document.getElementById('ctm7-single-wrap').style.display=on?'none':'';
+  document.getElementById('ctm7-from-wrap').style.display=on?'':'none';
+  document.getElementById('ctm7-to-wrap').style.display=on?'':'none';
+}
+// Zwraca {months:[...], label:string} na podstawie aktualnego stanu kontrolek (pojedynczy miesiąc lub zakres).
+// Zwraca null i pokazuje ostrzeżenie w `res`, jeśli wybór jest niekompletny.
+function ctm7ReadSelection(res){
+  var isRange=document.getElementById('ctm7-range-toggle').checked;
+  if(isRange){
+    var from=document.getElementById('ctm7-from').value,to=document.getElementById('ctm7-to').value;
+    if(!from||!to){if(res)res.innerHTML='<div class="hs-warn">Wybierz zakres miesięcy (od-do).</div>';return null;}
+    if(from>to){var t=from;from=to;to=t;}
+    return {months:msalesMonthsInRange(from,to),label:mLabelFull(from)+' – '+mLabelFull(to),labelX:mLabelX(from)+' - '+mLabelX(to),from:from,to:to};
+  }
+  var mEl=document.getElementById('ctm7-m');
+  if(!mEl||!mEl.value){if(res)res.innerHTML='<div class="hs-warn">Wybierz miesiąc.</div>';return null;}
+  return {months:[mEl.value],label:mLabelFull(mEl.value),labelX:mLabelX(mEl.value),from:mEl.value,to:mEl.value};
+}
+function ctmRunItems(){
+  var outletEl=document.getElementById('ctm7-outlet');
+  var res=document.getElementById('ctm-items-results');if(!res||!outletEl)return;
+  var outlet=outletEl.value;
+  var sel=ctm7ReadSelection(res);if(!sel)return;
+  var detail=msalesOutletDetail(S.pid,outlet,sel.months);
+  if(!detail.categories.length){res.innerHTML='<div class="empty"><p>Brak danych sprzedaży pozycji menu dla '+sel.label+' ('+ctmOutletLabel(outlet)+').</p></div>';return;}
+  var h='<div class="hs-p" style="margin-bottom:8px">'+sel.label+' · '+ctmOutletLabel(outlet)+' · Razem: <strong>'+fmt(detail.totalNetto,true)+' netto</strong> / '+fmt(detail.totalBrutto,true)+' brutto</div>';
+  detail.categories.forEach(function(c){
+    h+='<div style="font-size:.75rem;font-weight:700;color:var(--tx2);margin:10px 0 4px">'+c.name+' — '+fmt(c.netto,true)+'</div>';
+    h+='<div class="tbl-wrap"><table><thead><tr><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Brutto</th></tr></thead><tbody>';
+    c.items.forEach(function(i){
+      h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmtN(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  });
+  res.innerHTML=h;
+  haptic(8);
+}
+function pdfCtmItems(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Błąd jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var outletEl=document.getElementById('ctm7-outlet');if(!outletEl)return;
+  var outlet=outletEl.value;
+  var sel=ctm7ReadSelection(null);
+  if(!sel){toast('Uzupełnij wybór miesiąca/zakresu','er');return;}
+  var detail=msalesOutletDetail(S.pid,outlet,sel.months);
+  if(!detail.categories.length){toast('Brak danych do eksportu','er');return;}
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297;
+  pdfDrawHeader(doc,pw,'Sprzedaz pozycji: '+sel.labelX,dePL(prop?prop.name:'')+' | '+dePL(ctmOutletLabel(outlet)));
+  doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(90,100,120);
+  doc.text('Razem: '+fmt(detail.totalNetto,true)+' netto / '+fmt(detail.totalBrutto,true)+' brutto',10,29);
+  var body=[];
+  detail.categories.forEach(function(c){
+    body.push([{content:dePL(c.name)+' — '+fmt(c.netto,true),colSpan:4,styles:{fontStyle:'bold',fillColor:PDF_STYLE.statusBg,textColor:[30,40,60]}}]);
+    c.items.forEach(function(i){body.push([dePL(i.name),fmtN(i.qty),fmt(i.netto,true),fmt(i.brutto,true)])});
+  });
+  doc.autoTable({
+    startY:34,head:[['Pozycja','Ilosc','Netto','Brutto']],body:body,theme:'grid',
+    headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'}}
+  });
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('Sprzedaz_pozycji_'+sel.from+(sel.from!==sel.to?'_'+sel.to:'')+'.pdf');
+  toast('PDF zapisany','ok');
+}
+
 function cTab(t,btn){
   ['mom','yoy','ytd','season','range','menu'].forEach(function(x){var e=document.getElementById('ct-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctabs .tab').forEach(function(b){b.classList.remove('on')});
@@ -6379,7 +6492,7 @@ function cTab(t,btn){
   haptic(6);
 }
 function ctmTab(t,btn){
-  ['m2m','top','best','trend','cat','mix'].forEach(function(x){var e=document.getElementById('ctm-'+x);if(e)e.style.display=x===t?'block':'none'});
+  ['m2m','top','best','trend','cat','mix','items'].forEach(function(x){var e=document.getElementById('ctm-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctm-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
