@@ -3460,7 +3460,7 @@ function renderMsalesOutletModal(){
     h+='<div style="font-size:.75rem;font-weight:700;color:var(--tx2);margin:10px 0 4px">'+c.name+' — '+fmt(cn,true)+'</div>';
     h+='<div style="overflow-x:auto"><table class="det" style="font-size:.74rem"><thead><tr><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Brutto</th></tr></thead><tbody>';
     c.items.slice().sort(function(a,b){return b.netto-a.netto}).forEach(function(i){
-      h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmt(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
+      h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmtN(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
     });
     h+='</tbody></table></div>';
   });
@@ -4248,6 +4248,9 @@ function conv(v){if(S.cur==='EUR'&&S.rates.EUR)return v/S.rates.EUR;if(S.cur==='
 function sym(){return S.cur==='EUR'?'€':S.cur==='USD'?'$':'PLN'}
 function fmt(v,compact){var c=conv(v),s=sym();if(compact&&Math.abs(c)>=1000000)return (c/1000000).toFixed(1)+'M '+s;if(compact&&Math.abs(c)>=1000)return (c/1000).toFixed(1)+'k '+s;return c.toLocaleString('pl-PL',{maximumFractionDigits:0})+' '+s}
 function fmtR(v){var c=conv(v),s=sym();if(Math.abs(c)>=1000000)return (c/1000000).toFixed(1)+'M '+s;if(Math.abs(c)>=1000)return (c/1000).toFixed(0)+'k '+s;return Math.round(c)+' '+s}
+// Formatuje "gołą" liczbę (np. sztuki sprzedanych pozycji) — BEZ przeliczenia walutowego i BEZ symbolu waluty,
+// w odróżnieniu od fmt()/fmtR(), które zawsze traktują wartość jako kwotę pieniężną.
+function fmtN(v){return (v||0).toLocaleString('pl-PL',{maximumFractionDigits:0})}
 function setCur(c){S.cur=c;localStorage.setItem('hm-cur',c);['PLN','EUR','USD'].forEach(function(x){var b=document.getElementById('c-'+x);if(b)b.classList.toggle('on',x===c)});renderCur()}
 
 /* ═══════════════════════════════════════════
@@ -5211,7 +5214,7 @@ function renderMsalesSavedTable(data,month){
       h+='<div style="font-size:.72rem;font-weight:700;color:var(--tx2);margin:6px 0 2px">'+c.name+' — '+fmt(cn,true)+'</div>';
       h+='<div style="overflow-x:auto"><table class="det" style="font-size:.72rem"><thead><tr><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Brutto</th></tr></thead><tbody>';
       c.items.forEach(function(i){
-        h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmt(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
+        h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmtN(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
       });
       h+='</tbody></table></div>';
     });
@@ -5926,8 +5929,8 @@ function ctmRunM2M(){
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m1)+' vs '+mLabelFull(m2)+' · '+ctmOutletLabel(outlet)+' · '+rows.length+' pozycji</div>';
   h+='<div class="tbl-wrap"><table><thead><tr><th>Pozycja</th><th>Ilość '+mLabel(m1)+'</th><th>Ilość '+mLabel(m2)+'</th><th>Δ Ilość</th><th>Netto '+mLabel(m1)+'</th><th>Netto '+mLabel(m2)+'</th><th>Δ Netto</th></tr></thead><tbody>';
   rows.forEach(function(r){
-    h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmt(r.aQty)+'</td><td>'+fmt(r.bQty)+'</td>';
-    h+='<td class="'+(r.dQty>=0?'td-pos':'td-neg')+'">'+(r.dQty>=0?'+':'')+fmt(r.dQty)+(r.pQty!==null?' ('+(r.pQty>=0?'+':'')+r.pQty.toFixed(0)+'%)':' (nowość)')+'</td>';
+    h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmtN(r.aQty)+'</td><td>'+fmtN(r.bQty)+'</td>';
+    h+='<td class="'+(r.dQty>=0?'td-pos':'td-neg')+'">'+(r.dQty>=0?'+':'')+fmtN(r.dQty)+(r.pQty!==null?' ('+(r.pQty>=0?'+':'')+r.pQty.toFixed(0)+'%)':' (nowość)')+'</td>';
     h+='<td>'+fmt(r.aNetto,true)+'</td><td>'+fmt(r.bNetto,true)+'</td>';
     h+='<td class="'+(r.dNetto>=0?'td-pos':'td-neg')+'">'+(r.dNetto>=0?'+':'')+fmt(r.dNetto,true)+(r.pNetto!==null?' ('+(r.pNetto>=0?'+':'')+r.pNetto.toFixed(0)+'%)':'')+'</td></tr>';
   });
@@ -5947,7 +5950,7 @@ function ctmRunTop(){
   var dKey=metric==='qty'?'dQty':'dNetto',bKey=metric==='qty'?'bQty':'bNetto';
   var up=rows.slice().sort(function(a,b){return b[dKey]-a[dKey]}).filter(function(r){return r[dKey]>0}).slice(0,10);
   var down=rows.slice().sort(function(a,b){return a[dKey]-b[dKey]}).filter(function(r){return r[dKey]<0}).slice(0,10);
-  var fmtV=function(v){return metric==='qty'?fmt(v):fmt(v,true)};
+  var fmtV=function(v){return metric==='qty'?fmtN(v):fmt(v,true)};
   var unitLbl=metric==='qty'?'Δ Ilość':'Δ Netto';
   function rowsHTML(list,cls){
     if(!list.length)return '<tr><td colspan="3" style="text-align:center;color:var(--tx3);font-size:.72rem">Brak</td></tr>';
@@ -5979,7 +5982,7 @@ function ctmRunBest(){
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m)+' · '+ctmOutletLabel(outlet)+' · łącznie '+fmt(totalNetto,true)+' netto</div>';
   h+='<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Udział</th></tr></thead><tbody>';
   rows.forEach(function(r,i){
-    h+='<tr><td>'+(i+1)+'</td><td class="lbl">'+r.name+'</td><td>'+fmt(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';
+    h+='<tr><td>'+(i+1)+'</td><td class="lbl">'+r.name+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';
   });
   h+='</tbody></table></div>';
   res.innerHTML=h;
