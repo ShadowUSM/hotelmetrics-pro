@@ -337,6 +337,14 @@ textarea.fi{resize:vertical}
 /* Data entry table */
 .det{width:100%;border-collapse:collapse}
 .det th{background:var(--sur2);padding:7px 8px;text-align:left;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);border-bottom:1px solid var(--brd);white-space:nowrap}
+.msales-table{table-layout:fixed;min-width:560px}
+.msales-table th,.msales-table td{overflow:hidden;text-overflow:ellipsis}
+.msales-table th:first-child,.msales-table td:first-child{width:52%}
+.msales-table th:nth-child(2),.msales-table td:nth-child(2),.msales-table th:nth-child(3),.msales-table td:nth-child(3),.msales-table th:nth-child(4),.msales-table td:nth-child(4){width:16%}
+.msales-sort{cursor:pointer;user-select:none;position:relative;padding-right:18px!important}
+.msales-sort:hover{color:var(--tx)}
+.msales-sort .sort-tri{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:.55rem;color:#30343b;line-height:1}
+.msales-sort:not(.active) .sort-tri{display:none}
 .det td{padding:5px 5px;border-bottom:1px solid var(--brd)}
 .det td.lbl{padding:7px 8px;font-size:.78rem;font-weight:600;color:var(--tx);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ni{background:var(--sur2);border:1px solid var(--brd);color:var(--tx);border-radius:7px;padding:6px 6px;font-size:.78rem;width:95px;font-family:var(--fm);outline:none;text-align:right;transition:border-color .15s}
@@ -3458,8 +3466,9 @@ function renderMsalesOutletModal(){
   outletData.categories.forEach(function(c){
     var cn=c.items.reduce(function(s,i){return s+i.netto},0);
     h+='<div style="font-size:.75rem;font-weight:700;color:var(--tx2);margin:10px 0 4px">'+c.name+' — '+fmt(cn,true)+'</div>';
-    h+='<div style="overflow-x:auto"><table class="det" style="font-size:.74rem"><thead><tr><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Brutto</th></tr></thead><tbody>';
-    c.items.slice().sort(function(a,b){return b.netto-a.netto}).forEach(function(i){
+    var sortScope='modal|'+month+'|'+outletId+'|'+c.name;
+    h+='<div style="overflow-x:auto"><table class="det msales-table" style="font-size:.74rem"><colgroup><col style="width:52%"><col style="width:16%"><col style="width:16%"><col style="width:16%"></colgroup><thead><tr>'+msalesSortHeaderModal('Pozycja','name',sortScope)+msalesSortHeaderModal('Ilość','qty',sortScope)+msalesSortHeaderModal('Netto','netto',sortScope)+msalesSortHeaderModal('Brutto','brutto',sortScope)+'</tr></thead><tbody>';
+    msalesSortedItems(c.items,sortScope).forEach(function(i){
       h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmtN(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
     });
     h+='</tbody></table></div>';
@@ -5202,6 +5211,43 @@ function msalesDoSave(mode){
 }
 function msalesViewMonth(m){S._msalesViewMonth=(S._msalesViewMonth===m?null:m);renderMenuSales();}
 
+function msalesSortState(scope){
+  S._msalesTableSort=S._msalesTableSort||{};
+  return S._msalesTableSort[scope]||{key:null,dir:1};
+}
+function msalesToggleSort(scope,key,rerender){
+  S._msalesTableSort=S._msalesTableSort||{};
+  var st=S._msalesTableSort[scope]||{key:null,dir:1};
+  if(st.key===key) st.dir*=-1; else {st.key=key;st.dir=1;}
+  S._msalesTableSort[scope]=st;
+  rerender();
+}
+function msalesSortedItems(items,scope){
+  var st=msalesSortState(scope);
+  var arr=items.slice();
+  if(!st.key)return arr;
+  arr.sort(function(a,b){
+    var av=st.key==='name'?String(a.name||'').toLocaleLowerCase('pl-PL'):(Number(a[st.key])||0);
+    var bv=st.key==='name'?String(b.name||'').toLocaleLowerCase('pl-PL'):(Number(b[st.key])||0);
+    if(av<bv)return -1*st.dir;
+    if(av>bv)return 1*st.dir;
+    return String(a.name||'').localeCompare(String(b.name||''),'pl-PL')*st.dir;
+  });
+  return arr;
+}
+function msalesSortHeader(label,key,scope){
+  var st=msalesSortState(scope),active=st.key===key,tri=active?(st.dir===1?'▲':'▼'):'▲';
+  var sc=String(scope).replace(/&/g,'&amp;').replace(/\"/g,'&quot;');
+  var ky=String(key).replace(/&/g,'&amp;').replace(/\"/g,'&quot;');
+  return '<th class="msales-sort '+(active?'active':'')+'" data-scope="'+sc+'" data-key="'+ky+'" onclick="msalesToggleSort(this.dataset.scope,this.dataset.key,function(){renderMenuSales()})">'+label+'<span class="sort-tri">'+tri+'</span></th>';
+}
+function msalesSortHeaderModal(label,key,scope){
+  var st=msalesSortState(scope),active=st.key===key,tri=active?(st.dir===1?'▲':'▼'):'▲';
+  var sc=String(scope).replace(/&/g,'&amp;').replace(/\"/g,'&quot;');
+  var ky=String(key).replace(/&/g,'&amp;').replace(/\"/g,'&quot;');
+  return '<th class="msales-sort '+(active?'active':'')+'" data-scope="'+sc+'" data-key="'+ky+'" onclick="msalesToggleSort(this.dataset.scope,this.dataset.key,function(){renderMsalesOutletModal()})">'+label+'<span class="sort-tri">'+tri+'</span></th>';
+}
+
 function renderMsalesSavedTable(data,month){
   var h='<div style="margin-top:10px">';
   var grandN=0,grandB=0;
@@ -5212,8 +5258,9 @@ function renderMsalesSavedTable(data,month){
     o.categories.forEach(function(c){
       var cn=c.items.reduce(function(s,i){return s+i.netto},0);
       h+='<div style="font-size:.72rem;font-weight:700;color:var(--tx2);margin:6px 0 2px">'+c.name+' — '+fmt(cn,true)+'</div>';
-      h+='<div style="overflow-x:auto"><table class="det" style="font-size:.72rem"><thead><tr><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Brutto</th></tr></thead><tbody>';
-      c.items.forEach(function(i){
+      var sortScope='saved|'+month+'|'+(o.outletId||o.rawName)+'|'+c.name;
+      h+='<div style="overflow-x:auto"><table class="det msales-table" style="font-size:.72rem"><colgroup><col style="width:52%"><col style="width:16%"><col style="width:16%"><col style="width:16%"></colgroup><thead><tr>'+msalesSortHeader('Pozycja','name',sortScope)+msalesSortHeader('Ilość','qty',sortScope)+msalesSortHeader('Netto','netto',sortScope)+msalesSortHeader('Brutto','brutto',sortScope)+'</tr></thead><tbody>';
+      msalesSortedItems(c.items,sortScope).forEach(function(i){
         h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmtN(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
       });
       h+='</tbody></table></div>';
