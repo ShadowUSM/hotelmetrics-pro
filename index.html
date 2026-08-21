@@ -4143,6 +4143,11 @@ function getAllMenuSalesMonths(pid){
   var prefix=uk('msales-'+pid+'-');
   return Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).map(function(k){return k.slice(prefix.length)}).sort().reverse();
 }
+function getAllMenuSalesMap(pid){
+  var prefix=uk('msales-'+pid+'-'),r={};
+  Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).forEach(function(k){r[k.slice(prefix.length)]=true});
+  return r;
+}
 // Mapowanie "nazwa outletu z raportu" -> id outletu w aplikacji (per obiekt), zapamiętywane między wklejeniami.
 function getMsalesMap(pid){return lsGet(uk('msales-map-'+pid),{})}
 function saveMsalesMap(pid,map){
@@ -5010,11 +5015,17 @@ function renderMenuSales(){
   if(!savedMonths.length){
     h+='<p class="hs-p">Brak jeszcze zapisanych danych sprzedaży pozycji menu dla tego obiektu.</p>';
   } else {
-    h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">';
-    savedMonths.forEach(function(m){
-      h+='<button class="btn btn-g btn-sm'+(m===S._msalesViewMonth?' on':'')+'" onclick="msalesViewMonth(\''+m+'\')">'+mLabel(m)+'</button>';
-    });
-    h+='</div>';
+    h+='<div class="pick-wrap" id="mp-wrap-msales" style="margin-bottom:12px">';
+    h+='<button class="mpick-btn" id="mpick-btn-msales" onclick="toggleMPicker(event,\'-msales\')">';
+    h+='<span>📅 '+(S._msalesViewMonth?mLabelFull(S._msalesViewMonth):'Wybierz miesiąc do podglądu')+'</span><span class="arr">▾</span></button>';
+    h+='<div class="picker-pop" id="mp-pop-msales" style="display:none">';
+    h+='<div class="yr-nav">';
+    h+='<button class="yr-btn" onclick="mpYearNav(-1,\'-msales\');event.stopPropagation()">◀</button>';
+    h+='<strong id="mp-yr-msales"></strong>';
+    h+='<button class="yr-btn" onclick="mpYearNav(1,\'-msales\');event.stopPropagation()">▶</button>';
+    h+='</div><div class="mgrid" id="mp-grid-msales"></div>';
+    h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z zapisaną sprzedażą menu</div>';
+    h+='</div></div>';
     if(S._msalesViewMonth){
       var vd=getMenuSales(S.pid,S._msalesViewMonth);
       if(vd)h+=renderMsalesSavedTable(vd,S._msalesViewMonth);
@@ -5480,12 +5491,12 @@ function buildMGrid(suf){
   suf=suf||'';
   var yrEl=document.getElementById('mp-yr'+suf);if(!yrEl)return;
   var yr=parseInt(yrEl.textContent)||parseInt(S.month.split('-')[0]);
-  var haveData=suf==='-daily'?getAllDailyData(S.pid):getAllMD(S.pid);
+  var haveData=suf==='-daily'?getAllDailyData(S.pid):suf==='-msales'?getAllMenuSalesMap(S.pid):getAllMD(S.pid);
   var mn=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
   var h='';
   for(var i=0;i<12;i++){
     var ym=yr+'-'+String(i+1).padStart(2,'0');
-    var has=!!haveData[ym],cur=ym===S.month;
+    var has=!!haveData[ym],cur=suf==='-msales'?ym===S._msalesViewMonth:ym===S.month;
     var cls='mgrid-btn'+(cur?' cur':has?' has':'');
     h+='<button class="'+cls+'" onclick="setDMonth(\''+ym+'\',\''+suf+'\');event.stopPropagation()">'+mn[i]+'</button>';
   }
@@ -5509,6 +5520,7 @@ function syncMonthUI(){
 }
 
 function setDMonth(ym,suf){
+  if(suf==='-msales'){msalesViewMonth(ym);closeAllPickers();return;}
   S.month=ym;
   syncMonthUI();
   closeAllPickers();
@@ -5554,7 +5566,7 @@ function setDR(d){
 }
 
 function closeAllPickers(){
-  ['','-daily','-global'].forEach(function(suf){
+  ['','-daily','-global','-msales'].forEach(function(suf){
     var mp=document.getElementById('mp-pop'+suf),dp=document.getElementById('dp-pop'+suf);
     var mb=document.getElementById('mpick-btn'+suf),db2=document.getElementById('dpick-btn'+suf);
     if(mp)mp.style.display='none';
