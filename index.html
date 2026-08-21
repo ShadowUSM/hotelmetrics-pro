@@ -5785,7 +5785,7 @@ function renderCompare(){
     h+='<div class="empty"><p>Brak jeszcze zapisanych danych sprzedaży pozycji menu — wklej pierwszy raport w zakładce <a href="#" onclick="goMenuSales()">Wprowadź dane → Sprzedaż menu</a>.</p></div>';
   } else {
     var defM2=msSaved[0],defM1=msSaved[1]||prevM(defM2);
-    h+='<div class="tabs" id="ctm-tabs"><button class="tab on" onclick="ctmTab(\'m2m\',this)">🔁 Miesiąc do miesiąca</button><button class="tab" onclick="ctmTab(\'top\',this)">📊 Top zmiany</button><button class="tab" onclick="ctmTab(\'best\',this)">🏆 Bestsellery</button></div>';
+    h+='<div class="tabs" id="ctm-tabs"><button class="tab on" onclick="ctmTab(\'m2m\',this)">🔁 Miesiąc do miesiąca</button><button class="tab" onclick="ctmTab(\'top\',this)">📊 Top zmiany</button><button class="tab" onclick="ctmTab(\'best\',this)">🏆 Bestsellery</button><button class="tab" onclick="ctmTab(\'trend\',this)">📈 Trend pozycji</button><button class="tab" onclick="ctmTab(\'cat\',this)">📦 Grupy towarowe</button><button class="tab" onclick="ctmTab(\'mix\',this)">🥧 Mix sprzedażowy</button></div>';
 
     // #1 — Pozycje miesiąc do miesiąca
     h+='<div id="ctm-m2m">';
@@ -5816,13 +5816,43 @@ function renderCompare(){
     h+='<div class="fg" style="margin-bottom:0;max-width:90px"><label>Top N</label><input type="number" class="fi" id="ctm3-n" value="15" min="3" max="100"></div>';
     h+='<button class="btn btn-p" onclick="ctmRunBest()">Pokaż</button>';
     h+='</div><div id="ctm-best-results"></div></div>';
+
+    // #4 — Trend pozycji w czasie
+    var trendItems=msalesAllItemNames(S.pid,'__all__');
+    h+='<div id="ctm-trend" style="display:none">';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm4-outlet" onchange="ctm4RefreshItems()">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0;min-width:220px"><label>Pozycja</label><select class="fi" id="ctm4-item">'+trendItems.map(function(n){return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'}).join('')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Metryka</label><select class="fi" id="ctm4-metric"><option value="netto">Wartość (netto)</option><option value="qty">Ilość</option></select></div>';
+    h+='<button class="btn btn-p" onclick="ctmRunTrend()">Pokaż trend</button>';
+    h+='</div><div id="ctm-trend-results"></div>';
+    h+='<div class="cc" style="margin-top:14px;display:none" id="ctm-trend-chart-wrap"><div class="card-title" id="ctm-trend-chart-title">Trend</div><canvas id="ctm-trend-chart" style="max-height:260px"></canvas></div>';
+    h+='</div>';
+
+    // #5 — Porównanie grup towarowych
+    h+='<div id="ctm-cat" style="display:none">';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc A</label><input type="month" class="fi" id="ctm5-m1" value="'+defM1+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc B</label><input type="month" class="fi" id="ctm5-m2" value="'+defM2+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm5-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<button class="btn btn-p" onclick="ctmRunCat()">Porównaj</button>';
+    h+='</div><div id="ctm-cat-results"></div></div>';
+
+    // #6 — Mix sprzedażowy (udział pozycji)
+    h+='<div id="ctm-mix" style="display:none">';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc</label><input type="month" class="fi" id="ctm6-m" value="'+defM2+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm6-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0;max-width:90px"><label>Top N</label><input type="number" class="fi" id="ctm6-n" value="10" min="3" max="30"></div>';
+    h+='<button class="btn btn-p" onclick="ctmRunMix()">Pokaż</button>';
+    h+='</div><div id="ctm-mix-results"></div></div>';
   }
   h+='</div>';
 
   h+='<div class="cc" style="margin-top:14px"><div class="card-title">Wykres porównawczy</div><canvas id="ch-cmp" style="max-height:220px"></canvas></div>';
   el.innerHTML=h;
 
-  if(msSaved.length){ctmRunM2M();ctmRunTop();ctmRunBest();}
+  if(msSaved.length){ctmRunM2M();ctmRunTop();ctmRunBest();ctmRunTrend();ctmRunCat();ctmRunMix();}
 
   dChart('ch-cmp');
   var sm=Object.keys(allD).sort();
@@ -5989,6 +6019,154 @@ function ctmRunBest(){
   haptic(8);
 }
 
+// Zbiera unikalne nazwy pozycji występujące w KTÓRYMKOLWIEK zapisanym miesiącu (opcjonalnie dla jednego outletu).
+function msalesAllItemNames(pid,outletId){
+  var months=getAllMenuSalesMonths(pid),names={};
+  months.forEach(function(m){
+    var map=msalesItemMap(pid,m,outletId);
+    Object.keys(map).forEach(function(n){names[n]=true});
+  });
+  return Object.keys(names).sort(function(a,b){return a.localeCompare(b)});
+}
+// Agreguje pozycje po grupie towarowej (kategorii) zamiast po nazwie pozycji, dla jednego miesiąca.
+function msalesCategoryMap(pid,month,outletId){
+  var d=getMenuSales(pid,month),map={};
+  if(!d||!d.outlets)return map;
+  d.outlets.forEach(function(o){
+    if(outletId&&outletId!=='__all__'&&o.outletId!==outletId)return;
+    o.categories.forEach(function(c){
+      if(!map[c.name])map[c.name]={qty:0,netto:0,brutto:0};
+      c.items.forEach(function(it){map[c.name].qty+=it.qty;map[c.name].netto+=it.netto;map[c.name].brutto+=it.brutto;});
+    });
+  });
+  return map;
+}
+
+// #4 — Trend pozycji w czasie
+function ctm4RefreshItems(){
+  var outlet=document.getElementById('ctm4-outlet');
+  var itemSel=document.getElementById('ctm4-item');
+  if(!outlet||!itemSel)return;
+  var names=msalesAllItemNames(S.pid,outlet.value);
+  var prevVal=itemSel.value;
+  itemSel.innerHTML=names.map(function(n){return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'}).join('');
+  if(names.indexOf(prevVal)>=0)itemSel.value=prevVal;
+}
+function ctmRunTrend(){
+  var outletEl=document.getElementById('ctm4-outlet'),itemEl=document.getElementById('ctm4-item');
+  var res=document.getElementById('ctm-trend-results'),chartWrap=document.getElementById('ctm-trend-chart-wrap');
+  if(!res||!outletEl||!itemEl)return;
+  var outlet=outletEl.value,item=itemEl.value,metric=document.getElementById('ctm4-metric').value;
+  if(!item){res.innerHTML='<div class="hs-warn">Brak pozycji do wyboru — wklej najpierw dane sprzedaży menu.</div>';if(chartWrap)chartWrap.style.display='none';return;}
+  var months=getAllMenuSalesMonths(S.pid).slice().sort();
+  var qtys=[],nettos=[];
+  months.forEach(function(m){
+    var v=(msalesItemMap(S.pid,m,outlet))[item]||{qty:0,netto:0,brutto:0};
+    qtys.push(v.qty);nettos.push(v.netto);
+  });
+  var hasAny=nettos.some(function(v){return v>0})||qtys.some(function(v){return v>0});
+  if(!hasAny){res.innerHTML='<div class="empty"><p>Brak sprzedaży pozycji "'+item+'" w zapisanych miesiącach ('+ctmOutletLabel(outlet)+').</p></div>';if(chartWrap)chartWrap.style.display='none';return;}
+  var totalQty=qtys.reduce(function(s,v){return s+v},0),totalNetto=nettos.reduce(function(s,v){return s+v},0);
+  var h='<div class="ccards"><div class="ccard"><div class="ccard-l">Łącznie ilość</div><div class="ccard-v">'+fmtN(totalQty)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Łącznie netto</div><div class="ccard-v">'+fmt(totalNetto,true)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Śr./miesiąc</div><div class="ccard-v">'+(metric==='qty'?fmtN(totalQty/months.length):fmt(totalNetto/months.length,true))+'</div></div></div>';
+  res.innerHTML=h;
+
+  if(chartWrap)chartWrap.style.display='block';
+  var titleEl=document.getElementById('ctm-trend-chart-title');
+  if(titleEl)titleEl.textContent='📈 '+item+' — '+(metric==='qty'?'ilość sprzedaży':'wartość sprzedaży')+' w czasie ('+ctmOutletLabel(outlet)+')';
+  dChart('ctm-trend-chart');
+  var ctx=document.getElementById('ctm-trend-chart');if(!ctx)return;
+  var raw=metric==='qty'?qtys:nettos;
+  S.charts['ctm-trend-chart']=new Chart(ctx,{
+    type:'line',
+    data:{labels:months.map(mLabel),datasets:[{label:item,data:metric==='qty'?raw:raw.map(conv),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.3,fill:true,pointRadius:4,pointBackgroundColor:acHex()}]},
+    options:chOpts(metric==='qty'?function(v){return fmtN(v)}:function(v){return fmtR(v)})
+  });
+  haptic(8);
+}
+
+// #5 — Porównanie grup towarowych
+function ctmRunCat(){
+  var m1El=document.getElementById('ctm5-m1'),m2El=document.getElementById('ctm5-m2');
+  var res=document.getElementById('ctm-cat-results');if(!res||!m1El||!m2El)return;
+  var m1=m1El.value,m2=m2El.value,outlet=document.getElementById('ctm5-outlet').value;
+  if(!m1||!m2){res.innerHTML='<div class="hs-warn">Wybierz oba miesiące.</div>';return;}
+  var map1=msalesCategoryMap(S.pid,m1,outlet),map2=msalesCategoryMap(S.pid,m2,outlet);
+  var cats=Object.keys(map1).concat(Object.keys(map2)).filter(function(n,i,arr){return arr.indexOf(n)===i});
+  if(!cats.length){res.innerHTML='<div class="empty"><p>Brak danych dla wybranych miesięcy ('+ctmOutletLabel(outlet)+').</p></div>';return;}
+  var rows=cats.map(function(c){
+    var a=map1[c]||{qty:0,netto:0},b=map2[c]||{qty:0,netto:0};
+    return {name:c,aNetto:a.netto,bNetto:b.netto,dNetto:b.netto-a.netto};
+  });
+  rows.sort(function(x,y){return y.bNetto-x.bNetto});
+
+  var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m1)+' vs '+mLabelFull(m2)+' · '+ctmOutletLabel(outlet)+'</div>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Grupa towarowa</th><th>Netto '+mLabel(m1)+'</th><th>Netto '+mLabel(m2)+'</th><th>Δ Netto</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var pct=r.aNetto>0?(r.dNetto/r.aNetto*100):null;
+    h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmt(r.aNetto,true)+'</td><td>'+fmt(r.bNetto,true)+'</td>';
+    h+='<td class="'+(r.dNetto>=0?'td-pos':'td-neg')+'">'+(r.dNetto>=0?'+':'')+fmt(r.dNetto,true)+(pct!==null?' ('+(pct>=0?'+':'')+pct.toFixed(0)+'%)':'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="cc" style="margin-top:14px"><div class="card-title">Porównanie grup towarowych</div><canvas id="ctm-cat-chart" style="max-height:280px"></canvas></div>';
+  res.innerHTML=h;
+
+  dChart('ctm-cat-chart');
+  var ctx=document.getElementById('ctm-cat-chart');
+  if(ctx){
+    S.charts['ctm-cat-chart']=new Chart(ctx,{
+      type:'bar',
+      data:{labels:rows.map(function(r){return r.name}),datasets:[
+        {label:mLabel(m1),data:rows.map(function(r){return conv(r.aNetto)}),backgroundColor:tx2Hex()+'66',borderRadius:3},
+        {label:mLabel(m2),data:rows.map(function(r){return conv(r.bNetto)}),backgroundColor:acHex(),borderRadius:3}
+      ]},
+      options:chOpts(function(v){return fmtR(v)})
+    });
+  }
+  haptic(8);
+}
+
+// #6 — Mix sprzedażowy (udział pozycji w łącznej sprzedaży)
+function ctmRunMix(){
+  var mEl=document.getElementById('ctm6-m');
+  var res=document.getElementById('ctm-mix-results');if(!res||!mEl)return;
+  var m=mEl.value,outlet=document.getElementById('ctm6-outlet').value;
+  var topN=parseInt(document.getElementById('ctm6-n').value)||10;
+  if(!m){res.innerHTML='<div class="hs-warn">Wybierz miesiąc.</div>';return;}
+  var map=msalesItemMap(S.pid,m,outlet);
+  var names=Object.keys(map);
+  if(!names.length){res.innerHTML='<div class="empty"><p>Brak danych sprzedaży pozycji menu dla '+mLabelFull(m)+' ('+ctmOutletLabel(outlet)+').</p></div>';return;}
+  var totalNetto=names.reduce(function(s,n){return s+map[n].netto},0);
+  var rows=names.map(function(n){return {name:n,netto:map[n].netto,share:totalNetto>0?map[n].netto/totalNetto*100:0}});
+  rows.sort(function(a,b){return b.netto-a.netto});
+  var top=rows.slice(0,Math.max(1,topN));
+  var restNetto=rows.slice(top.length).reduce(function(s,r){return s+r.netto},0);
+  var restShare=totalNetto>0?restNetto/totalNetto*100:0;
+
+  var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m)+' · '+ctmOutletLabel(outlet)+' · łącznie '+fmt(totalNetto,true)+' netto</div>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Pozycja</th><th>Netto</th><th>Udział</th></tr></thead><tbody>';
+  top.forEach(function(r){h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';});
+  if(restNetto>0)h+='<tr style="color:var(--tx3)"><td>Pozostałe ('+(rows.length-top.length)+' pozycji)</td><td>'+fmt(restNetto,true)+'</td><td>'+restShare.toFixed(1)+'%</td></tr>';
+  h+='</tbody></table></div>';
+  h+='<div class="cc" style="margin-top:14px;max-width:420px"><div class="card-title">Udział w sprzedaży</div><canvas id="ctm-mix-chart" style="max-height:280px"></canvas></div>';
+  res.innerHTML=h;
+
+  dChart('ctm-mix-chart');
+  var ctx=document.getElementById('ctm-mix-chart');
+  if(ctx){
+    var labels=top.map(function(r){return r.name}).concat(restNetto>0?['Pozostałe']:[]);
+    var data=top.map(function(r){return conv(r.netto)}).concat(restNetto>0?[conv(restNetto)]:[]);
+    var palette=[acHex(),'#f59e0b','#22c55e','#a78bfa','#f472b6','#38bdf8','#fb923c','#4ade80','#c084fc','#fb7185',tx2Hex()];
+    S.charts['ctm-mix-chart']=new Chart(ctx,{
+      type:'doughnut',
+      data:{labels:labels,datasets:[{data:data,backgroundColor:labels.map(function(_,i){return palette[i%palette.length]})}]},
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{color:txHex(),font:{size:9},boxWidth:9}},tooltip:{callbacks:{label:function(ctx){return ctx.label+': '+fmtR(ctx.raw)}}}}}
+    });
+  }
+  haptic(8);
+}
+
 function cTab(t,btn){
   ['mom','yoy','ytd','season','range','menu'].forEach(function(x){var e=document.getElementById('ct-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctabs .tab').forEach(function(b){b.classList.remove('on')});
@@ -5997,7 +6175,7 @@ function cTab(t,btn){
   haptic(6);
 }
 function ctmTab(t,btn){
-  ['m2m','top','best'].forEach(function(x){var e=document.getElementById('ctm-'+x);if(e)e.style.display=x===t?'block':'none'});
+  ['m2m','top','best','trend','cat','mix'].forEach(function(x){var e=document.getElementById('ctm-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctm-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
