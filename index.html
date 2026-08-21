@@ -2443,7 +2443,7 @@ function renderRanking(container,metrics,allData){
   });
   h+='<div id="at-records" style="margin-top:20px"></div>';
   container.innerHTML=h;
-  var recordsEl=document.getElementById('at-records');if(recordsEl)renderRecords(recordsEl);
+  var recordsEl=container.querySelector ? container.querySelector('#at-records') : null;if(recordsEl)renderRecords(recordsEl);
 }
 
 /* ═══════════════════════════════════════════
@@ -4743,7 +4743,7 @@ function renderRecords(target){
   var monthList=Object.keys(monthsToFetch);
   if(monthList.length){
     Promise.all(monthList.map(function(m){return ensureMonthWeather(S.pid,m)})).then(function(){
-      if(S.view==='analytics'){var rr=document.getElementById('at-records');if(rr)renderRecords(rr);}
+      if(el&&document.body.contains(el)){renderRecords(el);}
     });
   }
 }
@@ -6481,6 +6481,36 @@ function ctm7ReadSelection(res){
   if(!mEl||!mEl.value){if(res)res.innerHTML='<div class="hs-warn">Wybierz miesiąc.</div>';return null;}
   return {months:[mEl.value],label:mLabelFull(mEl.value),labelX:mLabelX(mEl.value),from:mEl.value,to:mEl.value};
 }
+function ctmItemsSortState(scope){
+  S._ctmItemsTableSort=S._ctmItemsTableSort||{};
+  return S._ctmItemsTableSort[scope]||{key:null,dir:1};
+}
+function ctmItemsToggleSort(scope,key){
+  S._ctmItemsTableSort=S._ctmItemsTableSort||{};
+  var st=S._ctmItemsTableSort[scope]||{key:null,dir:1};
+  if(st.key===key) st.dir*=-1; else {st.key=key;st.dir=1;}
+  S._ctmItemsTableSort[scope]=st;
+  ctmRunItems();
+}
+function ctmItemsSorted(items,scope){
+  var st=ctmItemsSortState(scope);
+  var arr=items.slice();
+  if(!st.key)return arr;
+  arr.sort(function(a,b){
+    var av=st.key==='name'?String(a.name||'').toLocaleLowerCase('pl-PL'):(Number(a[st.key])||0);
+    var bv=st.key==='name'?String(b.name||'').toLocaleLowerCase('pl-PL'):(Number(b[st.key])||0);
+    if(av<bv)return -1*st.dir;
+    if(av>bv)return 1*st.dir;
+    return String(a.name||'').localeCompare(String(b.name||''),'pl-PL')*st.dir;
+  });
+  return arr;
+}
+function ctmItemsSortHeader(label,key,scope){
+  var st=ctmItemsSortState(scope),active=st.key===key,tri=active?(st.dir===1?'▲':'▼'):'';
+  var sc=String(scope).replace(/&/g,'&amp;').replace(/\"/g,'&quot;');
+  var ky=String(key).replace(/&/g,'&amp;').replace(/\"/g,'&quot;');
+  return '<th class="msales-sort '+(active?'active':'')+'" data-scope="'+sc+'" data-key="'+ky+'" onclick="ctmItemsToggleSort(this.dataset.scope,this.dataset.key)">'+label+'<span class="sort-tri">'+tri+'</span></th>';
+}
 function ctmRunItems(){
   var outletEl=document.getElementById('ctm7-outlet');
   var res=document.getElementById('ctm-items-results');if(!res||!outletEl)return;
@@ -6490,9 +6520,10 @@ function ctmRunItems(){
   if(!detail.categories.length){res.innerHTML='<div class="empty"><p>Brak danych sprzedaży pozycji menu dla '+sel.label+' ('+ctmOutletLabel(outlet)+').</p></div>';return;}
   var h='<div class="hs-p" style="margin-bottom:8px">'+sel.label+' · '+ctmOutletLabel(outlet)+' · Razem: <strong>'+fmt(detail.totalNetto,true)+' netto</strong> / '+fmt(detail.totalBrutto,true)+' brutto</div>';
   detail.categories.forEach(function(c){
+    var sortScope='ctm-items|'+outlet+'|'+sel.months.join(',')+'|'+c.name;
     h+='<div style="font-size:.75rem;font-weight:700;color:var(--tx2);margin:10px 0 4px">'+c.name+' — '+fmt(c.netto,true)+'</div>';
-    h+='<div class="tbl-wrap"><table><thead><tr><th>Pozycja</th><th>Ilość</th><th>Netto</th><th>Brutto</th></tr></thead><tbody>';
-    c.items.forEach(function(i){
+    h+='<div class="tbl-wrap"><table class="det msales-table" style="font-size:.72rem"><colgroup><col style="width:52%"><col style="width:16%"><col style="width:16%"><col style="width:16%"></colgroup><thead><tr>'+ctmItemsSortHeader('Pozycja','name',sortScope)+ctmItemsSortHeader('Ilość','qty',sortScope)+ctmItemsSortHeader('Netto','netto',sortScope)+ctmItemsSortHeader('Brutto','brutto',sortScope)+'</tr></thead><tbody>';
+    ctmItemsSorted(c.items,sortScope).forEach(function(i){
       h+='<tr><td class="lbl">'+i.name+'</td><td>'+fmtN(i.qty)+'</td><td>'+fmt(i.netto,true)+'</td><td>'+fmt(i.brutto,true)+'</td></tr>';
     });
     h+='</tbody></table></div>';
