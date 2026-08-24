@@ -1748,6 +1748,18 @@ body.presentation-mode #presentation-exit{display:flex}
   </div>
 </div></div>
 
+<!-- MENU ENGINEERING: KONFLIKT ZAPISU MODAL -->
+<div class="moverlay" id="m-meng-conflict">
+<div class="modal">
+  <div class="mtitle">📊 Dane już istnieją</div>
+  <button class="mclose" onclick="closeM('m-meng-conflict')">✕</button>
+  <div id="meng-conflict-body"></div>
+  <div class="fa">
+    <button class="btn btn-p" onclick="mengDoSave()">🔁 Nadpisz</button>
+    <button class="btn btn-s" onclick="closeM('m-meng-conflict')">Anuluj</button>
+  </div>
+</div></div>
+
 <!-- HELP MODAL -->
 <div id="help-modal">
   <div class="help-topbar">
@@ -4033,7 +4045,13 @@ var S={
   _msalesTargetMonth:null,
   _msalesModalOutlet:null,
   _msalesModalOutletId:null,
-  _msalesModalMonth:null
+  _msalesModalMonth:null,
+  // Menu Engineering (import XLSX z Material Control, per outlet + miesiąc)
+  _mengParsed:null,
+  _mengOutlet:null,
+  _mengMonth:null,
+  _mengViewOutlet:null,
+  _mengViewMonth:null
 };
 
 // ── FILTR AKTYWNYCH OUTLETÓW: "co jeśli bez tego punktu" ──
@@ -4176,6 +4194,135 @@ function saveMsalesMap(pid,map){
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuSales').doc('_outletMap'),{map:map});
 }
 
+// ── MENU ENGINEERING (karta "Menu Engineering" w zakładce Wprowadź dane) ──
+// Dane per outlet i miesiąc — w odróżnieniu od "Sprzedaż menu" (całościowy raport POS),
+// tu wgrywany jest plik XLSX z Material Control osobno dla KAŻDEGO outletu, więc można
+// liczyć Food cost/Beverage cost i rentowność per punkt sprzedaży.
+function getMenuEng(pid,outletId,month){return lsGet(uk('meng-'+pid+'-'+outletId+'-'+month),null)}
+function saveMenuEng(pid,outletId,month,d){
+  d.ts=Date.now();
+  lsSet(uk('meng-'+pid+'-'+outletId+'-'+month),d);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuEngineering').doc(outletId+'_'+month),d);
+}
+function delMenuEng(pid,outletId,month){
+  lsDel(uk('meng-'+pid+'-'+outletId+'-'+month));
+  if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/menuEngineering').doc(outletId+'_'+month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+}
+// Zwraca listę {outletId,month} dla wszystkich zapisanych importów danego obiektu (posortowane malejąco wg miesiąca).
+function getAllMenuEngKeys(pid){
+  var prefix=uk('meng-'+pid+'-');
+  return Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).map(function(k){
+    var rest=k.slice(prefix.length),us=rest.lastIndexOf('-');
+    // miesiąc to zawsze ostatnie 7 znaków w formacie YYYY-MM; outletId to reszta przed nim
+    var month=rest.slice(-7),outletId=rest.slice(0,rest.length-8);
+    return {outletId:outletId,month:month};
+  }).sort(function(a,b){return b.month.localeCompare(a.month)});
+}
+function getMenuEngMonthsForOutlet(pid,outletId){
+  return getAllMenuEngKeys(pid).filter(function(k){return k.outletId===outletId}).map(function(k){return k.month});
+}
+// Mapowanie "nazwa outletu z pliku MC" -> id outletu w aplikacji, zapamiętywane między importami.
+function getMengMap(pid){return lsGet(uk('meng-map-'+pid),{})}
+function saveMengMap(pid,map){
+  lsSet(uk('meng-map-'+pid),map);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuEngineering').doc('_outletMap'),{map:map});
+}
+
+/* ═══════════════════════════════════════════
+   PARSER: MENU ENGINEERING (plik XLSX/XLSM z Material Control)
+   Arkusz "Data": kolumny (0-indeksowane) — 1=Nr, 2=CK/Magazyn (outlet, format
+   "HOSPOS RVC {Nazwa}"), 4=Artykuł/Produkt, 5=Ilość, 6=S.Cena, 7=KS, 8=DB,
+   9=Sprzedaż, 10=KS Razem, 11=DB Razem, 12=KS Razem%, 13=Sprzedaż Mieszana,
+   18=Klasyfikacja (kwadrant), 19=Gr. Główna.
+   Plik może zawierać WSZYSTKIE outlety naraz (rozdzielone kolumną CK/Magazyn) —
+   parser grupuje pozycje po tej kolumnie, więc wystarczy jeden import na miesiąc.
+   VAT wyciągany z nazwy grupy (np. "Żywność 8%" -> 8%), żeby liczyć koszt
+   towaru względem sprzedaży NETTO — tak samo jak robi to sam Material Control.
+═══════════════════════════════════════════ */
+function mengVatRate(cat){
+  var m=String(cat||'').match(/(\d+)\s*%/);
+  return m?(+m[1]/100):0;
+}
+// food / beverage / other — na podstawie prefiksu grupy głównej (VAT-owej) z pliku MC.
+function mengCatType(cat){
+  var g=String(cat||'');
+  if(/^Żywność/i.test(g))return 'food';
+  if(/^(Alkohol|Wino|Piwo|Napoje)/i.test(g))return 'beverage';
+  return 'other';
+}
+// "HOSPOS RVC Sky Caffe" -> "Sky Caffe" (usuwa stały prefiks systemu POS, jeśli występuje).
+function mengStripCk(raw){
+  var s=String(raw||'').trim();
+  var m=s.match(/^HOSPOS\s+RVC\s+(.+)$/i);
+  return (m?m[1]:s).trim();
+}
+function parseMenuEngXlsx(arrayBuffer){
+  var wb;
+  try{wb=XLSX.read(arrayBuffer,{type:'array'});}catch(e){return {outlets:[],error:'Nie udało się odczytać pliku — sprawdź, czy to poprawny plik Excel.'};}
+  var sheetName=wb.SheetNames.indexOf('Data')>=0?'Data':(wb.SheetNames.find(function(n){return n!=='Info'})||wb.SheetNames[0]);
+  var ws=wb.Sheets[sheetName];
+  if(!ws)return {outlets:[],error:'Brak arkusza z danymi w pliku.'};
+  var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+  if(rows.length<2)return {outlets:[],error:'Arkusz jest pusty.'};
+  var byOutlet={},order=[];
+  for(var i=1;i<rows.length;i++){
+    var r=rows[i];
+    if(!r||!r[4])continue; // brak nazwy pozycji — pomiń
+    var rawOutlet=mengStripCk(r[2]);
+    var cat=String(r[19]||'').trim();
+    var vat=mengVatRate(cat);
+    var saleTotal=round2(Number(r[9])||0);
+    var netSale=round2(saleTotal/(1+vat));
+    var item={
+      code:String(r[1]||''),
+      name:String(r[4]).trim(),
+      category:cat,
+      catType:mengCatType(cat),
+      qty:Number(r[5])||0,
+      priceUnit:Number(r[6])||0,
+      costUnit:Number(r[7])||0,
+      marginUnit:Number(r[8])||0,
+      saleTotal:saleTotal,
+      netSale:netSale,
+      costTotal:round2(Number(r[10])||0),
+      marginTotal:round2(Number(r[11])||0),
+      costPct:Number(r[12])||0,
+      mixPct:Number(r[13])||0,
+      quadrant:String(r[18]||'').trim()
+    };
+    if(!byOutlet[rawOutlet]){byOutlet[rawOutlet]=[];order.push(rawOutlet);}
+    byOutlet[rawOutlet].push(item);
+  }
+  var outlets=order.map(function(rn){return {rawName:rn,items:byOutlet[rn]}});
+  if(!outlets.length)return {outlets:[],error:'Nie rozpoznano żadnej pozycji — sprawdź, czy to eksport Menu Engineering z Material Control.'};
+  return {outlets:outlets};
+}
+// Sumy zbiorcze: sprzedaż/koszt/marża razem oraz osobno Food cost % i Beverage cost %
+// (liczone względem sprzedaży NETTO właściwej kategorii — tak jak w źródłowym pliku).
+function mengComputeTotals(items){
+  var t={sale:0,cost:0,margin:0,netSale:0,foodNetSale:0,foodCost:0,bevNetSale:0,bevCost:0,otherNetSale:0,otherCost:0,quadrantCounts:{}};
+  items.forEach(function(it){
+    t.sale+=it.saleTotal;t.cost+=it.costTotal;t.margin+=it.marginTotal;t.netSale+=it.netSale;
+    if(it.catType==='food'){t.foodNetSale+=it.netSale;t.foodCost+=it.costTotal;}
+    else if(it.catType==='beverage'){t.bevNetSale+=it.netSale;t.bevCost+=it.costTotal;}
+    else {t.otherNetSale+=it.netSale;t.otherCost+=it.costTotal;}
+    t.quadrantCounts[it.quadrant]=(t.quadrantCounts[it.quadrant]||0)+1;
+  });
+  ['sale','cost','margin','netSale','foodNetSale','foodCost','bevNetSale','bevCost','otherNetSale','otherCost'].forEach(function(k){t[k]=round2(t[k]);});
+  t.foodCostPct=t.foodNetSale>0?round2(t.foodCost/t.foodNetSale*100):null;
+  t.bevCostPct=t.bevNetSale>0?round2(t.bevCost/t.bevNetSale*100):null;
+  t.overallCostPct=t.netSale>0?round2(t.cost/t.netSale*100):null;
+  return t;
+}
+// Zgaduje dopasowanie surowej nazwy outletu (z pliku MC) do outletu w aplikacji — dokładne, potem częściowe.
+function mengGuessOutlet(rawName){
+  var rn=rawName.trim().toUpperCase();
+  var exact=S.outlets.find(function(o){return o.name.trim().toUpperCase()===rn});
+  if(exact)return exact.id;
+  var partial=S.outlets.find(function(o){var n=o.name.trim().toUpperCase();return n.indexOf(rn)>=0||rn.indexOf(n)>=0});
+  return partial?partial.id:undefined;
+}
+
 /* ═══════════════════════════════════════════
    MIGRACJA starych danych (users/{uid}/properties → properties/{pid})
    Uruchamiana raz po zalogowaniu — bezpieczna, nie nadpisuje istniejących.
@@ -4246,7 +4393,13 @@ function loadUserDataFromFirestore(){
           else lsSet(uk('msales-'+p.id+'-'+d.id),d.data());
         });
       });
-      return Promise.all([t1,t2,t3,t4,t5,t6]);
+      var t7=db.collection('properties/'+p.id+'/menuEngineering').get().then(function(s){
+        s.docs.forEach(function(d){
+          if(d.id==='_outletMap'){var md=d.data();lsSet(uk('meng-map-'+p.id),(md&&md.map)||{});}
+          else lsSet(uk('meng-'+p.id+'-'+d.id.replace('_','-')),d.data());
+        });
+      });
+      return Promise.all([t1,t2,t3,t4,t5,t6,t7]);
     });
     return Promise.all(tasks);
   });
@@ -4913,6 +5066,7 @@ function renderData(){
   h+='<button class="tab on" id="data-tab-monthly" onclick="switchDataTab(\'monthly\',this)">📝 Miesięczne</button>';
   h+='<button class="tab" id="data-tab-daily" onclick="switchDataTab(\'daily\',this)">📆 Dzienne</button>';
   h+='<button class="tab" id="data-tab-menusales" onclick="switchDataTab(\'menusales\',this)">🍽️ Sprzedaż menu</button>';
+  h+='<button class="tab" id="data-tab-menuengineering" onclick="switchDataTab(\'menuengineering\',this)">📊 Menu Engineering</button>';
   h+='</div>';
 
   h+='<div id="data-sub-monthly">';
@@ -4987,6 +5141,8 @@ function renderData(){
   h+='<div id="v-daily" style="display:none"></div>';
   // ── POD-ZAKŁADKA: Sprzedaż menu (renderowana osobno przez renderMenuSales() do #v-menusales) ──
   h+='<div id="v-menusales" style="display:none"></div>';
+  // ── POD-ZAKŁADKA: Menu Engineering (renderowana osobno przez renderMenuEng() do #v-menueng) ──
+  h+='<div id="v-menueng" style="display:none"></div>';
 
   el.innerHTML=h;
   recalc();
@@ -4994,13 +5150,15 @@ function renderData(){
   buildCal();
   renderDaily();
   renderMenuSales();
+  renderMenuEng();
 }
 
 function switchDataTab(tab,btn){
-  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales');
+  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales'),meng=document.getElementById('v-menueng');
   if(monthly)monthly.style.display=tab==='monthly'?'block':'none';
   if(daily)daily.style.display=tab==='daily'?'block':'none';
   if(msales)msales.style.display=tab==='menusales'?'block':'none';
+  if(meng)meng.style.display=tab==='menuengineering'?'block':'none';
   document.querySelectorAll('#data-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -5374,6 +5532,228 @@ function msalesDeleteMonth(month){
   toast('Usunięto','in');
 }
 
+/* ═══════════════════════════════════════════
+   UI: MENU ENGINEERING (import XLSX z Material Control, per outlet + miesiąc)
+═══════════════════════════════════════════ */
+function mengMonthsMap(){
+  var out=S._mengViewOutlet||S._mengOutlet;
+  var r={};
+  if(!out)return r;
+  getMenuEngMonthsForOutlet(S.pid,out).forEach(function(m){r[m]=true});
+  return r;
+}
+function mengOutletSelectHTML(id,selected){
+  var h='';
+  S.outlets.forEach(function(o){h+='<option value="'+o.id+'"'+(selected===o.id?' selected':'')+'>'+o.name+'</option>'});
+  return h;
+}
+function renderMenuEng(){
+  var el=document.getElementById('v-menueng');if(!el)return;
+  var ro=!canEdit();
+  if(!S._mengMonth)S._mengMonth=S.month;
+  if(!S._mengViewOutlet&&S.outlets.length)S._mengViewOutlet=S.outlets[0].id;
+
+  var h='';
+  h+='<div class="card" style="margin-bottom:14px">';
+  h+='<div class="fsect">📊 Wgraj plik Menu Engineering (Material Control)</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Wgraj eksport .xlsx/.xlsm z analizy Menu Engineering — jeśli plik zawiera wiele outletów naraz (kolumna CK/Magazyn), aplikacja sama rozdzieli pozycje na poszczególne punkty. Pozwoli to liczyć Food cost i Beverage cost osobno dla każdego punktu, w podziale na miesiące.</p>';
+  h+='<div class="fg" style="max-width:220px"><label>Miesiąc</label><input type="month" class="fi" id="meng-month" value="'+S._mengMonth+'"></div>';
+  if(!ro){
+    h+='<input type="file" id="meng-file" accept=".xlsx,.xlsm" style="display:none" onchange="mengFileSelected(this)">';
+    h+='<button class="btn btn-p" onclick="document.getElementById(\'meng-file\').click()">📂 Wybierz plik i wczytaj</button>';
+  }
+  h+='<div id="meng-preview" style="margin-top:12px"></div>';
+  h+='</div>';
+
+  // ── ZAPISANE IMPORTY ──
+  h+='<div class="card">';
+  h+='<div class="fsect">📅 Zapisane dane</div>';
+  h+='<div class="fg" style="max-width:280px"><label>Outlet do podglądu</label><select class="fi" id="meng-view-outlet" onchange="mengViewOutletChange(this.value)">'+mengOutletSelectHTML('meng-view-outlet',S._mengViewOutlet)+'</select></div>';
+  var savedMonths=S._mengViewOutlet?getMenuEngMonthsForOutlet(S.pid,S._mengViewOutlet):[];
+  if(!savedMonths.length){
+    h+='<p class="hs-p">Brak jeszcze zapisanych danych Menu Engineering dla tego outletu.</p>';
+  } else {
+    h+='<div class="pick-wrap" id="mp-wrap-meng" style="margin:12px 0">';
+    h+='<button class="mpick-btn" id="mpick-btn-meng" onclick="toggleMPicker(event,\'-meng\')">';
+    h+='<span>📅 '+(S._mengViewMonth?mLabelFull(S._mengViewMonth):'Wybierz miesiąc do podglądu')+'</span><span class="arr">▾</span></button>';
+    h+='<div class="picker-pop" id="mp-pop-meng" style="display:none">';
+    h+='<div class="yr-nav"><button class="yr-btn" onclick="mpYearNav(-1,\'-meng\');event.stopPropagation()">◀</button><strong id="mp-yr-meng"></strong><button class="yr-btn" onclick="mpYearNav(1,\'-meng\');event.stopPropagation()">▶</button></div>';
+    h+='<div class="mgrid" id="mp-grid-meng"></div>';
+    h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z zapisanym importem dla tego outletu</div>';
+    h+='</div></div>';
+  }
+  h+='<div id="meng-view-body"></div>';
+  h+='</div>';
+
+  el.innerHTML=h;
+  if(S._mengParsed)mengRenderPreview();
+  if(S._mengViewMonth)mengRenderView();
+}
+
+function mengViewOutletChange(outletId){
+  S._mengViewOutlet=outletId;
+  S._mengViewMonth=null;
+  renderMenuEng();
+}
+function mengViewMonth(m){S._mengViewMonth=(S._mengViewMonth===m?null:m);renderMenuEng();}
+
+function mengFileSelected(input){
+  var file=input.files&&input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var res=parseMenuEngXlsx(e.target.result);
+    if(res.error){toast(res.error,'er');return;}
+    S._mengParsed=res.outlets;
+    S._mengMonth=document.getElementById('meng-month').value;
+    mengRenderPreview();
+    var totalItems=res.outlets.reduce(function(s,o){return s+o.items.length},0);
+    toast('Wczytano '+totalItems+' pozycji z '+res.outlets.length+' outlet(ów)','ok');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function mengRenderPreview(){
+  var box=document.getElementById('meng-preview');if(!box)return;
+  var outlets=S._mengParsed;
+  if(!outlets){box.innerHTML='';return;}
+  var map=getMengMap(S.pid);
+  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px">';
+  h+='<div class="hs-p" style="margin-bottom:10px">Podgląd — dopasuj outlety dla <strong>'+mLabelFull(S._mengMonth)+'</strong></div>';
+  outlets.forEach(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    var mappedId=map[key]!==undefined?map[key]:mengGuessOutlet(o.rawName);
+    var t=mengComputeTotals(o.items);
+    h+='<div style="border:1px solid var(--brd);border-radius:10px;padding:10px 12px;margin-bottom:8px">';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
+    h+='<strong style="font-size:.82rem">'+o.rawName+'</strong>';
+    h+='<span style="font-size:.68rem;color:var(--tx3)">'+fmt(t.sale,true)+' sprzedaży · '+o.items.length+' pozycji · Food '+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+' · Bev '+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+'</span>';
+    h+='</div>';
+    h+='<select class="fi" style="font-size:.78rem" onchange="mengMapChange(\''+key.replace(/'/g,"\\'")+'\',this.value)">';
+    h+='<option value="">— wybierz outlet w aplikacji —</option>';
+    S.outlets.forEach(function(so){h+='<option value="'+so.id+'"'+(mappedId===so.id?' selected':'')+'>'+so.name+'</option>'});
+    h+='<option value="__skip__"'+(mappedId==='__skip__'?' selected':'')+'>— pomiń ten outlet —</option>';
+    h+='</select>';
+    h+='</div>';
+  });
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="mengSaveClick()">💾 Zapisz wszystkie</button><button class="btn btn-s" onclick="S._mengParsed=null;mengRenderPreview()">✕ Anuluj</button></div>';
+  h+='</div>';
+  box.innerHTML=h;
+}
+function mengMapChange(rawKey,val){
+  var map=getMengMap(S.pid);
+  if(val)map[rawKey]=val;else delete map[rawKey];
+  saveMengMap(S.pid,map);
+}
+function mengSaveClick(){
+  var outlets=S._mengParsed;if(!outlets)return;
+  var month=document.getElementById('meng-month').value;
+  if(!month){toast('Wybierz miesiąc','er');return;}
+  S._mengMonth=month;
+  var map=getMengMap(S.pid);
+  var missing=outlets.some(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    return map[key]===undefined&&mengGuessOutlet(o.rawName)===undefined;
+  });
+  if(missing){toast('Dopasuj wszystkie outlety (lub wybierz "pomiń") przed zapisem','er');return;}
+
+  var conflicts=[];
+  outlets.forEach(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    var mapped=map[key]!==undefined?map[key]:mengGuessOutlet(o.rawName);
+    if(mapped==='__skip__')return;
+    var so=S.outlets.find(function(x){return x.id===mapped});
+    if(so&&getMenuEng(S.pid,mapped,month))conflicts.push(so.name);
+  });
+  if(conflicts.length){
+    document.getElementById('meng-conflict-body').innerHTML='<p class="hs-p">Dla '+mLabelFull(month)+' dane już istnieją dla: <strong>'+conflicts.join(', ')+'</strong>. Import zastąpi je nowymi (dane z Material Control nie są sumowalne).</p>';
+    openM('m-meng-conflict');
+  } else {
+    mengDoSave();
+  }
+}
+function mengDoSave(){
+  closeM('m-meng-conflict');
+  var outlets=S._mengParsed;if(!outlets)return;
+  var month=S._mengMonth;
+  var map=getMengMap(S.pid);
+  var savedCount=0,lastOutletId=null;
+  outlets.forEach(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    var mapped=map[key]!==undefined?map[key]:mengGuessOutlet(o.rawName);
+    if(mapped==='__skip__')return;
+    var so=S.outlets.find(function(x){return x.id===mapped});
+    if(!so)return;
+    saveMenuEng(S.pid,so.id,month,{outletName:so.name,items:o.items,totals:mengComputeTotals(o.items)});
+    savedCount++;lastOutletId=so.id;
+  });
+  S._mengParsed=null;
+  if(lastOutletId){S._mengViewOutlet=lastOutletId;S._mengViewMonth=month;}
+  renderMenuEng();
+  toast('Zapisano dane dla '+savedCount+' outlet(ów)','ok');
+}
+function mengDeleteMonth(outletId,month){
+  if(!confirm('Usunąć dane Menu Engineering za '+mLabel(month)+' dla tego outletu?'))return;
+  delMenuEng(S.pid,outletId,month);
+  if(S._mengViewMonth===month)S._mengViewMonth=null;
+  renderMenuEng();
+  toast('Usunięto','in');
+}
+
+function mengRenderView(){
+  var body=document.getElementById('meng-view-body');if(!body)return;
+  var data=getMenuEng(S.pid,S._mengViewOutlet,S._mengViewMonth);
+  if(!data){body.innerHTML='';return;}
+  var t=data.totals||mengComputeTotals(data.items);
+  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:6px">';
+  h+='<div class="ccards">';
+  h+='<div class="ccard"><div class="ccard-l">Sprzedaż (brutto)</div><div class="ccard-v">'+fmt(t.sale,true)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Koszt towaru</div><div class="ccard-v">'+fmt(t.cost,true)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Marża</div><div class="ccard-v">'+fmt(t.margin,true)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Food cost %</div><div class="ccard-v">'+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Beverage cost %</div><div class="ccard-v">'+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='</div>';
+
+  // ── filtry tabeli ──
+  var catFilter=S._mengFilterCat||'__all__',qFilter=S._mengFilterQuadrant||'__all__';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">';
+  h+='<select class="fi" style="max-width:180px" onchange="mengSetFilter(\'cat\',this.value)">';
+  h+='<option value="__all__">Wszystkie typy</option><option value="food"'+(catFilter==='food'?' selected':'')+'>Tylko Food</option><option value="beverage"'+(catFilter==='beverage'?' selected':'')+'>Tylko Beverage</option><option value="other"'+(catFilter==='other'?' selected':'')+'>Pozostałe</option>';
+  h+='</select>';
+  h+='<select class="fi" style="max-width:180px" onchange="mengSetFilter(\'quadrant\',this.value)">';
+  h+='<option value="__all__">Wszystkie kwadranty</option>';
+  ['Zwycięzca','Plowhorse','Puzzle','Przegrany'].forEach(function(q){h+='<option value="'+q+'"'+(qFilter===q?' selected':'')+'>'+q+'</option>'});
+  h+='</select>';
+  h+='</div>';
+
+  var items=data.items.filter(function(it){
+    if(catFilter!=='__all__'&&it.catType!==catFilter)return false;
+    if(qFilter!=='__all__'&&it.quadrant!==qFilter)return false;
+    return true;
+  });
+  items=ctmApplySort(items,'meng');
+
+  h+='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:30%"><col><col><col><col><col><col></colgroup><thead><tr>';
+  h+=ctmSortHeader('Pozycja','name','meng','mengRenderView');
+  h+=ctmSortHeader('Kategoria','category','meng','mengRenderView');
+  h+=ctmSortHeader('Ilość','qty','meng','mengRenderView');
+  h+=ctmSortHeader('Sprzedaż','saleTotal','meng','mengRenderView');
+  h+=ctmSortHeader('Koszt','costTotal','meng','mengRenderView');
+  h+=ctmSortHeader('Koszt %','costPct','meng','mengRenderView');
+  h+=ctmSortHeader('Kwadrant','quadrant','meng','mengRenderView');
+  h+='</tr></thead><tbody>';
+  items.forEach(function(it){
+    h+='<tr><td class="lbl">'+it.name+'</td><td style="font-size:.68rem;color:var(--tx3)">'+it.category+'</td><td>'+fmtN(it.qty)+'</td><td>'+fmt(it.saleTotal,true)+'</td><td>'+fmt(it.costTotal,true)+'</td><td>'+(it.costPct*100).toFixed(1)+'%</td><td>'+it.quadrant+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="mengDeleteMonth(\''+S._mengViewOutlet+'\',\''+S._mengViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
+  h+='</div>';
+  body.innerHTML=h;
+}
+function mengSetFilter(kind,val){
+  if(kind==='cat')S._mengFilterCat=val;else S._mengFilterQuadrant=val;
+  mengRenderView();
+}
+
 /* ── GOALS UI ── */
 function goalsRecalc(k){
   var gv=parseFloat(document.getElementById('goal-'+k)&&document.getElementById('goal-'+k).value)||0;
@@ -5636,12 +6016,12 @@ function buildMGrid(suf){
   suf=suf||'';
   var yrEl=document.getElementById('mp-yr'+suf);if(!yrEl)return;
   var yr=parseInt(yrEl.textContent)||parseInt(S.month.split('-')[0]);
-  var haveData=suf==='-daily'?getAllDailyData(S.pid):suf==='-msales'?getAllMenuSalesMap(S.pid):getAllMD(S.pid);
+  var haveData=suf==='-daily'?getAllDailyData(S.pid):suf==='-msales'?getAllMenuSalesMap(S.pid):suf==='-meng'?mengMonthsMap():getAllMD(S.pid);
   var mn=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
   var h='';
   for(var i=0;i<12;i++){
     var ym=yr+'-'+String(i+1).padStart(2,'0');
-    var has=!!haveData[ym],cur=suf==='-msales'?ym===S._msalesViewMonth:ym===S.month;
+    var has=!!haveData[ym],cur=suf==='-msales'?ym===S._msalesViewMonth:suf==='-meng'?ym===S._mengViewMonth:ym===S.month;
     var cls='mgrid-btn'+(cur?' cur':has?' has':'');
     h+='<button class="'+cls+'" onclick="setDMonth(\''+ym+'\',\''+suf+'\');event.stopPropagation()">'+mn[i]+'</button>';
   }
@@ -5666,6 +6046,7 @@ function syncMonthUI(){
 
 function setDMonth(ym,suf){
   if(suf==='-msales'){msalesViewMonth(ym);closeAllPickers();return;}
+  if(suf==='-meng'){mengViewMonth(ym);closeAllPickers();return;}
   S.month=ym;
   syncMonthUI();
   closeAllPickers();
@@ -5711,7 +6092,7 @@ function setDR(d){
 }
 
 function closeAllPickers(){
-  ['','-daily','-global','-msales'].forEach(function(suf){
+  ['','-daily','-global','-msales','-meng'].forEach(function(suf){
     var mp=document.getElementById('mp-pop'+suf),dp=document.getElementById('dp-pop'+suf);
     var mb=document.getElementById('mpick-btn'+suf),db2=document.getElementById('dpick-btn'+suf);
     if(mp)mp.style.display='none';
