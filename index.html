@@ -4322,6 +4322,29 @@ function mengComputeTotals(items){
   t.fcBcCostPct=t.fcBcNetSale>0?round2(t.fcBcCost/t.fcBcNetSale*100):null;
   return t;
 }
+// Sumuje totale Menu Engineering z KILKU zapisanych miesięcy dla jednego outletu (np. kwartał, sezon) —
+// wykorzystuje już policzone per-miesięczne sumy (data.totals), gdy są dostępne, dla szybkości.
+function mengComputeRangeTotals(pid,outletId,months){
+  var t={sale:0,cost:0,margin:0,netSale:0,foodNetSale:0,foodCost:0,bevNetSale:0,bevCost:0,otherNetSale:0,otherCost:0,monthsFound:0};
+  months.forEach(function(m){
+    var d=getMenuEng(pid,outletId,m);
+    if(!d)return;
+    t.monthsFound++;
+    var dt=(d.totals&&d.totals.fcBcCostPct!==undefined)?d.totals:mengComputeTotals(d.items);
+    t.sale+=dt.sale;t.cost+=dt.cost;t.margin+=dt.margin;t.netSale+=dt.netSale;
+    t.foodNetSale+=dt.foodNetSale;t.foodCost+=dt.foodCost;
+    t.bevNetSale+=dt.bevNetSale;t.bevCost+=dt.bevCost;
+    t.otherNetSale+=dt.otherNetSale;t.otherCost+=dt.otherCost;
+  });
+  ['sale','cost','margin','netSale','foodNetSale','foodCost','bevNetSale','bevCost','otherNetSale','otherCost'].forEach(function(k){t[k]=round2(t[k]);});
+  t.foodCostPct=t.foodNetSale>0?round2(t.foodCost/t.foodNetSale*100):null;
+  t.bevCostPct=t.bevNetSale>0?round2(t.bevCost/t.bevNetSale*100):null;
+  t.overallCostPct=t.netSale>0?round2(t.cost/t.netSale*100):null;
+  t.fcBcNetSale=round2(t.foodNetSale+t.bevNetSale);
+  t.fcBcCost=round2(t.foodCost+t.bevCost);
+  t.fcBcCostPct=t.fcBcNetSale>0?round2(t.fcBcCost/t.fcBcNetSale*100):null;
+  return t;
+}
 // Zgaduje dopasowanie surowej nazwy outletu (z pliku MC) do outletu w aplikacji — dokładne, potem częściowe.
 function mengGuessOutlet(rawName){
   var rn=rawName.trim().toUpperCase();
@@ -5661,10 +5684,10 @@ function renderMenuEng(){
   if(!savedMonths.length){
     h+='<p class="hs-p">Brak jeszcze zapisanych danych Menu Engineering dla tego outletu.</p>';
   } else {
-    h+='<div class="pick-wrap" id="mp-wrap-meng" style="margin:12px 0">';
-    h+='<button class="mpick-btn" id="mpick-btn-meng" onclick="toggleMPicker(event,\'-meng\')">';
+    h+='<div class="pick-wrap" id="mp-wrap-meng" style="margin:12px 0;display:inline-block">';
+    h+='<button class="mpick-btn" id="mpick-btn-meng" style="display:inline-flex;width:auto;white-space:nowrap" onclick="toggleMPicker(event,\'-meng\')">';
     h+='<span>📅 '+(S._mengViewMonth?mLabelFull(S._mengViewMonth):'Wybierz miesiąc do podglądu')+'</span><span class="arr">▾</span></button>';
-    h+='<div class="picker-pop" id="mp-pop-meng" style="display:none">';
+    h+='<div class="picker-pop" id="mp-pop-meng" style="display:none;left:0;right:auto;width:260px">';
     h+='<div class="yr-nav"><button class="yr-btn" onclick="mpYearNav(-1,\'-meng\');event.stopPropagation()">◀</button><strong id="mp-yr-meng"></strong><button class="yr-btn" onclick="mpYearNav(1,\'-meng\');event.stopPropagation()">▶</button></div>';
     h+='<div class="mgrid" id="mp-grid-meng"></div>';
     h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z zapisanym importem dla tego outletu</div>';
@@ -5672,6 +5695,18 @@ function renderMenuEng(){
   }
   h+='<div id="meng-view-body"></div>';
   h+='</div>';
+
+  // ── ZESTAWIENIE FC/BC ZA OKRES (nie tylko pojedynczy miesiąc) ──
+  h+='<div class="card" style="margin-top:14px">';
+  h+='<div class="fsect">📅 Zestawienie za okres</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Food cost, Beverage cost i FC+BC łącznie policzone ze wszystkich zapisanych miesięcy w wybranym zakresie (dla outletu wybranego wyżej) — np. kwartał albo cały sezon.</p>';
+  var rangeMonths=S._mengViewOutlet?getMenuEngMonthsForOutlet(S.pid,S._mengViewOutlet).slice().sort():[];
+  var rangeTo=rangeMonths[rangeMonths.length-1]||S._mengMonth,rangeFrom=rangeMonths[0]||rangeTo;
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+  h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="meng-range-from" value="'+rangeFrom+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="meng-range-to" value="'+rangeTo+'"></div>';
+  h+='<button class="btn btn-p" onclick="mengRunRange()">Oblicz</button>';
+  h+='</div><div id="meng-range-results"></div></div>';
 
   // ── ZMIANA KWADRANTU MIĘDZY MIESIĄCAMI ──
   h+='<div class="card" style="margin-top:14px">';
@@ -5689,6 +5724,7 @@ function renderMenuEng(){
   el.innerHTML=h;
   if(S._mengParsed)mengRenderPreview();
   if(S._mengViewMonth)mengRenderView();
+  if(rangeMonths.length>=1)mengRunRange();
   if(chgMonths.length>=2)mengRenderChange();
 }
 
@@ -5929,6 +5965,53 @@ function mengRenderChange(){
   h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfMengChange()">📄 Zapisz do PDF</button></div>';
   res.innerHTML=h;
   haptic(8);
+}
+
+// ── ZESTAWIENIE FC/BC ZA DOWOLNY OKRES (kilka miesięcy naraz, np. kwartał) ──
+function mengRunRange(){
+  var outletId=S._mengViewOutlet;
+  var fromEl=document.getElementById('meng-range-from'),toEl=document.getElementById('meng-range-to');
+  var res=document.getElementById('meng-range-results');if(!res||!fromEl||!toEl)return;
+  if(!outletId){res.innerHTML='<div class="hs-warn">Wybierz outlet.</div>';return;}
+  var from=fromEl.value,to=toEl.value;
+  if(!from||!to){res.innerHTML='<div class="hs-warn">Wybierz zakres miesięcy (od-do).</div>';return;}
+  if(from>to){var tmp=from;from=to;to=tmp;}
+  var months=msalesMonthsInRange(from,to);
+  var t=mengComputeRangeTotals(S.pid,outletId,months);
+  if(!t.monthsFound){res.innerHTML='<div class="empty"><p>Brak zapisanych danych Menu Engineering dla tego outletu w wybranym zakresie.</p></div>';return;}
+  var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(from)+' – '+mLabelFull(to)+' · dane z '+t.monthsFound+'/'+months.length+' miesięcy</div>';
+  h+='<div class="ccards">';
+  h+='<div class="ccard"><div class="ccard-l">Sprzedaż (brutto)</div><div class="ccard-v">'+fmt(t.sale,true)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Koszt towaru</div><div class="ccard-v">'+fmt(t.cost,true)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Marża</div><div class="ccard-v">'+fmt(t.margin,true)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Food cost %</div><div class="ccard-v">'+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Beverage cost %</div><div class="ccard-v">'+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='<div class="ccard" style="border-color:var(--acc)"><div class="ccard-l">FC+BC (łącznie)</div><div class="ccard-v" style="color:var(--acc)">'+(t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='</div>';
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfMengRange()">📄 Zapisz do PDF</button></div>';
+  res.innerHTML=h;
+  haptic(8);
+}
+function pdfMengRange(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Błąd jsPDF','er');return;}
+  if(!S.pid||!S._mengViewOutlet){toast('Wybierz outlet','er');return;}
+  var fromEl=document.getElementById('meng-range-from'),toEl=document.getElementById('meng-range-to');
+  if(!fromEl||!toEl)return;
+  var from=fromEl.value,to=toEl.value;
+  if(!from||!to){toast('Wybierz zakres miesięcy','er');return;}
+  if(from>to){var tmp=from;from=to;to=tmp;}
+  var months=msalesMonthsInRange(from,to);
+  var t=mengComputeRangeTotals(S.pid,S._mengViewOutlet,months);
+  if(!t.monthsFound){toast('Brak danych do eksportu','er');return;}
+  var outlet=S.outlets.find(function(o){return o.id===S._mengViewOutlet});
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297;
+  pdfDrawHeader(doc,pw,'Menu Engineering - zestawienie za okres',dePL(prop?prop.name:'')+' | '+dePL(outlet?outlet.name:'')+' | '+mLabelX(from)+' - '+mLabelX(to));
+  pdfDrawKpiBoxes(doc,[['Sprzedaz',fmt(t.sale,true)],['Koszt towaru',fmt(t.cost,true)],['Marza',fmt(t.margin,true)],['Food cost %',t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'-'],['Beverage cost %',t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'-'],['FC+BC lacznie',t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'-']],26,pw,3);
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('MenuEngineering_okres_'+from+'_'+to+'.pdf');
+  toast('PDF zapisany','ok');
 }
 
 /* ── EKSPORT PDF: MENU ENGINEERING ── */
