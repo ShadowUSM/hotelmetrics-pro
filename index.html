@@ -1736,6 +1736,18 @@ body.presentation-mode #presentation-exit{display:flex}
   <div class="fa"><button class="btn btn-s" onclick="closeM('m-msales-outlet')">Zamknij</button></div>
 </div></div>
 
+<!-- SPRZEDAŻ MENU: PRZEPISANIE SUM NETTO DO "MIESIĘCZNE" MODAL -->
+<div class="moverlay" id="m-msales-tomiesieczne">
+<div class="modal" style="max-width:560px">
+  <div class="mtitle">📋 Przepisz do Miesięcznych?</div>
+  <button class="mclose" onclick="closeM('m-msales-tomiesieczne')">✕</button>
+  <div id="msales-tomiesieczne-body"></div>
+  <div class="fa">
+    <button class="btn btn-p" onclick="msalesConfirmToMiesieczne()">✅ Przepisz</button>
+    <button class="btn btn-s" onclick="closeM('m-msales-tomiesieczne')">Anuluj</button>
+  </div>
+</div></div>
+
 <!-- HELP MODAL -->
 <div id="help-modal">
   <div class="help-topbar">
@@ -5058,6 +5070,11 @@ function guessMonthFromRange(from){
   if(mm<1||mm>12)return null;
   return yy+'-'+String(mm).padStart(2,'0');
 }
+// Wyciąga numer dnia z daty w formacie "DD.MM.RR" (np. "01.08.26" -> 1).
+function msalesDayOfDMY(s){
+  var m=String(s||'').match(/^(\d{1,2})\./);
+  return m?+m[1]:null;
+}
 function msalesShiftMonth(delta){
   S._msalesTargetMonth=delta>0?nextM(S._msalesTargetMonth):prevM(S._msalesTargetMonth);
   renderMenuSales();
@@ -5081,6 +5098,14 @@ function renderMsalesPreview(parsed){
   h+='<strong style="min-width:120px;text-align:center">'+mLabelFull(S._msalesTargetMonth)+'</strong>';
   h+='<button class="btn-icon" onclick="msalesShiftMonth(1)">▶</button>';
   h+='</div></div>';
+
+  // ── Propozycja przepisania sum netto do zakładki "Miesięczne" ──
+  // Tylko gdy zakres w raporcie zaczyna się od 1. dnia miesiąca I nie zmieniono ręcznie miesiąca docelowego
+  // (inaczej dzień "do" z raportu nie odpowiadałby wybranemu miesiącowi).
+  if(parsed.sourceRange&&msalesDayOfDMY(parsed.sourceRange.from)===1&&guessMonthFromRange(parsed.sourceRange.from)===S._msalesTargetMonth){
+    var toDay=msalesDayOfDMY(parsed.sourceRange.to)||1;
+    h+='<div class="hs-tip" style="margin-bottom:12px">💡 Ten raport obejmuje pełny zakres od 1. dnia miesiąca (01–'+String(toDay).padStart(2,'0')+') — mogę też przepisać sumy netto do zakładki <strong>Miesięczne</strong> dla '+mLabelFull(S._msalesTargetMonth)+'. <button class="btn btn-g btn-sm" style="margin-top:6px" onclick="msalesProposeToMiesieczne()">📋 Przepisz do Miesięcznych</button></div>';
+  }
 
   if(parsed.warnings.length){
     h+='<div class="hs-warn" style="margin-bottom:10px">⚠️ Wykryto '+parsed.warnings.length+' rozbieżności między sumami w raporcie a przeliczonymi sumami pozycji:<br><small>'+parsed.warnings.slice(0,5).join('<br>')+(parsed.warnings.length>5?'<br>…':'')+'</small></div>';
@@ -5113,6 +5138,73 @@ function msalesGuessOutlet(rawName){
   if(exact)return exact.id;
   var partial=S.outlets.find(function(o){var n=o.name.trim().toUpperCase();return n.indexOf(rn)>=0||rn.indexOf(n)>=0});
   return partial?partial.id:undefined;
+}
+
+/* ═══════════════════════════════════════════
+   PRZEPISANIE SUM NETTO ZE "SPRZEDAŻY MENU" DO "MIESIĘCZNE"
+   Proponowane TYLKO gdy wykryty zakres dat w raporcie zaczyna się od 1. dnia
+   miesiąca (inaczej suma nie reprezentowałaby pełnego miesiąca od początku).
+═══════════════════════════════════════════ */
+// Dokładne dopasowanie nazwy outletu z raportu do outletu w aplikacji — bez korzystania z zapamiętanego
+// mapowania z karty "Sprzedaż menu" (tam Room Service mógł być np. celowo zmapowany na Furu; tutaj,
+// przy przepisywaniu do "Miesięczne", chcemy WYŁĄCZNIE dokładne dopasowanie nazwa-do-nazwy).
+function msalesExactOutletMatch(rawName){
+  var rn=rawName.trim().toUpperCase();
+  return S.outlets.find(function(o){return o.name.trim().toUpperCase()===rn})||null;
+}
+function msalesProposeToMiesieczne(){
+  var parsed=S._msalesParsed;if(!parsed||!parsed.sourceRange)return;
+  var month=S._msalesTargetMonth;
+  var toDay=msalesDayOfDMY(parsed.sourceRange.to)||1;
+  var newA={},skipped=[];
+  parsed.outlets.forEach(function(o){
+    var so=msalesExactOutletMatch(o.rawName);
+    if(!so){skipped.push(o.rawName);return;}
+    var k=okey(so.name);
+    newA[k]=(newA[k]||0)+o.compNetto;
+  });
+  var keys=Object.keys(newA);
+  if(!keys.length){toast('Żaden outlet z raportu nie ma dokładnie tak samo nazwanego odpowiednika w aplikacji','er');return;}
+
+  var existing=getMD(S.pid,month);
+  S._msalesToMiesieczneCtx={month:month,dr:toDay,newA:newA};
+
+  var body=document.getElementById('msales-tomiesieczne-body');
+  if(!body)return;
+  var h='<p class="hs-p" style="margin-bottom:10px">Do zakładki <strong>Miesięczne</strong> dla <strong>'+mLabelFull(month)+'</strong> zostaną wpisane poniższe wartości netto (jako "Wynik"), a zakres dni zostanie ustawiony na <strong>'+toDay+'/'+(existing&&existing.dim||dim(month))+'</strong>. Budżety i komentarz pozostaną bez zmian. Dopasowanie tylko po dokładnie takiej samej nazwie outletu — żadne dane nie są tu łączone między różnymi punktami.</p>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Outlet</th><th>Nowa wartość</th><th>Obecna wartość</th></tr></thead><tbody>';
+  var anyOverwrite=false;
+  keys.forEach(function(k){
+    var so=S.outlets.find(function(x){return okey(x.name)===k});
+    var oldVal=existing&&existing.a&&existing.a[k]||0;
+    var changed=oldVal>0&&Math.abs(oldVal-newA[k])>0.01;
+    if(changed)anyOverwrite=true;
+    h+='<tr><td class="lbl">'+(so?so.name:k)+'</td><td>'+fmt(newA[k],true)+'</td><td'+(changed?' class="td-neg"':'')+'>'+(oldVal>0?fmt(oldVal,true):'—')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  if(skipped.length){
+    h+='<div class="hs-p" style="margin-top:10px;color:var(--tx3)">Pominięte (brak outletu o dokładnie takiej nazwie w aplikacji): '+skipped.map(dePL).join(', ')+'.</div>';
+  }
+  if(anyOverwrite){
+    h+='<div class="hs-warn" style="margin-top:10px">⚠️ Dla tego miesiąca istnieją już inne wartości w Miesięcznych — zostaną nadpisane nowymi sumami z tego raportu.</div>';
+  } else if(existing&&existing.dr&&existing.dr!==toDay){
+    h+='<div class="hs-warn" style="margin-top:10px">⚠️ Zakres dni w Miesięcznych zostanie zmieniony z '+existing.dr+' na '+toDay+'.</div>';
+  }
+  body.innerHTML=h;
+  openM('m-msales-tomiesieczne');
+}
+function msalesConfirmToMiesieczne(){
+  var ctx=S._msalesToMiesieczneCtx;if(!ctx)return;
+  var existing=getMD(S.pid,ctx.month)||{};
+  var a={};
+  Object.keys(existing.a||{}).forEach(function(k){a[k]=existing.a[k]});
+  Object.keys(ctx.newA).forEach(function(k){a[k]=ctx.newA[k]});
+  var payload={dim:existing.dim||dim(ctx.month),dr:ctx.dr,b:existing.b||{},a:a,c:existing.c||''};
+  saveMD(S.pid,ctx.month,payload);
+  closeM('m-msales-tomiesieczne');
+  toast('Przepisano do Miesięcznych ('+mLabel(ctx.month)+')','ok');
+  haptic(10);
+  if(S.view==='data')renderCur();
 }
 
 function msalesParse(){
