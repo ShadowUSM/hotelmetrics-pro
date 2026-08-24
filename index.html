@@ -7448,18 +7448,21 @@ function ctmRunPivot(){
   if(!names.length){res.innerHTML='<div class="empty"><p>Brak danych sprzedaży pozycji menu ('+ctmOutletLabel(outlet)+').</p></div>';return;}
 
   var fmtV=function(v){return metric==='qty'?fmtN(v):fmt(v,true)};
+  var nameW=170,colW=76;
   var h='<div class="hs-p" style="margin-bottom:8px">'+ctmOutletLabel(outlet)+' · Top '+names.length+' pozycji · '+months.length+' mies.</div>';
-  h+='<div class="tbl-wrap"><table class="msales-table" style="min-width:'+(160+months.length*68)+'px"><thead><tr><th style="text-align:left;width:220px">Pozycja</th>';
+  h+='<div class="tbl-wrap"><table class="msales-table" style="min-width:'+(nameW+months.length*colW)+'px"><colgroup><col style="width:'+nameW+'px">';
+  months.forEach(function(){h+='<col style="width:'+colW+'px">'});
+  h+='</colgroup><thead><tr><th style="text-align:left">Pozycja</th>';
   months.forEach(function(m){h+='<th>'+mLabel(m)+'</th>'});
   h+='</tr></thead><tbody>';
   names.forEach(function(n){
     var rowVals=maps.map(function(map){return map[n]?map[n][key]:0});
     var rowMax=Math.max.apply(null,rowVals)||1;
-    h+='<tr><td class="lbl">'+n+msalesFavStar(n,'ctmRunPivot')+'</td>';
+    h+='<tr><td style="padding:6px 8px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+n.replace(/"/g,'&quot;')+'">'+msalesFavStar(n,'ctmRunPivot')+n+'</td>';
     rowVals.forEach(function(v){
       var intensity=v>0?Math.min(0.85,0.15+0.7*(v/rowMax)):0;
       var bg=v>0?'rgba(34,197,94,'+intensity.toFixed(2)+')':'transparent';
-      h+='<td style="text-align:center;background:'+bg+'">'+(v>0?fmtV(v):'—')+'</td>';
+      h+='<td style="text-align:center;padding:6px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:'+bg+'">'+(v>0?fmtV(v):'—')+'</td>';
     });
     h+='</tr>';
   });
