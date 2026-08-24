@@ -345,6 +345,9 @@ textarea.fi{resize:vertical}
 .msales-sort:hover{color:var(--tx)}
 .msales-sort .sort-tri{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:.55rem;color:#30343b;line-height:1}
 .msales-sort:not(.active) .sort-tri{display:none}
+.fav-star{cursor:pointer;margin-right:5px;color:var(--tx3);font-size:.9em;user-select:none}
+.fav-star.on{color:#f59e0b}
+.fav-star:hover{color:#f59e0b}
 .det td{padding:5px 5px;border-bottom:1px solid var(--brd)}
 .det td.lbl{padding:7px 8px;font-size:.78rem;font-weight:600;color:var(--tx);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ni{background:var(--sur2);border:1px solid var(--brd);color:var(--tx);border-radius:7px;padding:6px 6px;font-size:.78rem;width:95px;font-family:var(--fm);outline:none;text-align:right;transition:border-color .15s}
@@ -4312,6 +4315,11 @@ function mengComputeTotals(items){
   t.foodCostPct=t.foodNetSale>0?round2(t.foodCost/t.foodNetSale*100):null;
   t.bevCostPct=t.bevNetSale>0?round2(t.bevCost/t.bevNetSale*100):null;
   t.overallCostPct=t.netSale>0?round2(t.cost/t.netSale*100):null;
+  // Sumaryczny wskaźnik FC+BC: łączny koszt Food+Beverage względem łącznej sprzedaży netto Food+Beverage
+  // (bez kategorii "Inne", np. SPA — to nie jest koszt towarowy F&B).
+  t.fcBcNetSale=round2(t.foodNetSale+t.bevNetSale);
+  t.fcBcCost=round2(t.foodCost+t.bevCost);
+  t.fcBcCostPct=t.fcBcNetSale>0?round2(t.fcBcCost/t.fcBcNetSale*100):null;
   return t;
 }
 // Zgaduje dopasowanie surowej nazwy outletu (z pliku MC) do outletu w aplikacji — dokładne, potem częściowe.
@@ -4390,6 +4398,8 @@ function loadUserDataFromFirestore(){
       var t6=db.collection('properties/'+p.id+'/menuSales').get().then(function(s){
         s.docs.forEach(function(d){
           if(d.id==='_outletMap'){var md=d.data();lsSet(uk('msales-map-'+p.id),(md&&md.map)||{});}
+          else if(d.id==='_aliases'){var ad=d.data();lsSet(uk('msales-aliases-'+p.id),(ad&&ad.map)||{});}
+          else if(d.id==='_favorites'){var fd=d.data();lsSet(uk('msales-favs-'+p.id),(fd&&fd.list)||[]);}
           else lsSet(uk('msales-'+p.id+'-'+d.id),d.data());
         });
       });
@@ -5176,17 +5186,36 @@ function goDaily(){
 /* ═══════════════════════════════════════════
    UI: SPRZEDAŻ POZYCJI MENU
 ═══════════════════════════════════════════ */
+// ── AUTOZAPIS wklejanego, jeszcze niezanalizowanego tekstu (zabezpieczenie przed odświeżeniem strony) ──
+var _msalesDraftTimer=null;
+function msalesDraftSave(v){
+  S._msalesRawInput=v;
+  clearTimeout(_msalesDraftTimer);
+  _msalesDraftTimer=setTimeout(function(){
+    if(v&&v.trim())lsSet(uk('msales-draft-'+S.pid),v);
+    else lsDel(uk('msales-draft-'+S.pid));
+  },400);
+}
+function msalesLoadDraft(){
+  if(S._msalesRawInput)return S._msalesRawInput;
+  var d=lsGet(uk('msales-draft-'+S.pid),'');
+  S._msalesRawInput=d||'';
+  return S._msalesRawInput;
+}
+function msalesClearDraft(){lsDel(uk('msales-draft-'+S.pid))}
+
 function renderMenuSales(){
   var el=document.getElementById('v-menusales');if(!el)return;
   var ro=!canEdit();
   var parsed=S._msalesParsed;
   var savedMonths=getAllMenuSalesMonths(S.pid);
+  var draftText=msalesLoadDraft();
 
   var h='';
   h+='<div class="card" style="margin-bottom:14px">';
   h+='<div class="fsect">📋 Wklej raport sprzedaży pozycji menu</div>';
   h+='<p class="hs-p" style="margin-bottom:10px">Wklej treść raportu "Sprzedaż pozycji menu" skopiowaną z systemu POS (Ilość / Netto / Brutto). Aplikacja sama rozpozna zakres dat w raporcie i zaproponuje miesiąc — będzie go można zmienić ręcznie przed zapisem.</p>';
-  h+='<textarea class="fi" id="msales-input" rows="8" placeholder="Wklej tutaj cały raport..."'+(ro?' disabled':'')+'>'+(S._msalesRawInput||'')+'</textarea>';
+  h+='<textarea class="fi" id="msales-input" rows="8" placeholder="Wklej tutaj cały raport..."'+(ro?' disabled':'')+' oninput="msalesDraftSave(this.value)">'+draftText+'</textarea>';
   if(!ro)h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="msalesParse()">🔍 Wczytaj i przeanalizuj</button>'+(parsed?'<button class="btn btn-s" onclick="msalesClearParsed()">✕ Wyczyść podgląd</button>':'')+'</div>';
   h+='</div>';
 
@@ -5215,6 +5244,31 @@ function renderMenuSales(){
       var vd=getMenuSales(S.pid,S._msalesViewMonth);
       if(vd)h+=renderMsalesSavedTable(vd,S._msalesViewMonth);
     }
+  }
+  h+='</div>';
+
+  // ── ALIASY POZYCJI (scalanie duplikatów, np. różna pisownia tej samej pozycji) ──
+  h+='<div class="card" style="margin-top:14px">';
+  h+='<div class="fsect">🔗 Aliasy pozycji</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Jeśli ta sama pozycja bywa zapisywana w POS pod różnymi nazwami (np. "KOZEL0.5L" i "KOZEL 0.5L"), połącz je tutaj — wszystkie raporty (Trend, Bestsellery, Mix...) będą je odtąd liczyć jako jedną pozycję.</p>';
+  var allNames=msalesAllItemNames(S.pid,'__all__');
+  if(allNames.length<2){
+    h+='<p class="hs-p" style="color:var(--tx3)">Potrzeba przynajmniej dwóch różnych nazw pozycji w zapisanych danych, żeby móc je połączyć.</p>';
+  } else {
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0;min-width:200px"><label>Nazwa A (zostanie ukryta)</label><select class="fi" id="msales-alias-from"><option value="">— wybierz —</option>'+allNames.map(function(n){return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'}).join('')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0;min-width:200px"><label>Nazwa B (kanoniczna)</label><select class="fi" id="msales-alias-to"><option value="">— wybierz —</option>'+allNames.map(function(n){return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'}).join('')+'</select></div>';
+    h+='<button class="btn btn-p" onclick="msalesAliasAddClick()">🔗 Połącz</button>';
+    h+='</div>';
+  }
+  var aliases=getMsalesAliases(S.pid);
+  var aliasKeys=Object.keys(aliases);
+  if(aliasKeys.length){
+    h+='<div class="tbl-wrap"><table><thead><tr><th>Nazwa (ukryta)</th><th>Liczona jako</th><th></th></tr></thead><tbody>';
+    aliasKeys.forEach(function(k){
+      h+='<tr><td class="lbl">'+k+'</td><td class="lbl">'+aliases[k]+'</td><td><button class="btn btn-s btn-sm" onclick="msalesAliasRemoveClick(\''+k.replace(/'/g,"\\'")+'\')">✕ Rozłącz</button></td></tr>';
+    });
+    h+='</tbody></table></div>';
   }
   h+='</div>';
 
@@ -5271,6 +5325,10 @@ function renderMsalesPreview(parsed){
   if(parsed.warnings.length){
     h+='<div class="hs-warn" style="margin-bottom:10px">⚠️ Wykryto '+parsed.warnings.length+' rozbieżności między sumami w raporcie a przeliczonymi sumami pozycji:<br><small>'+parsed.warnings.slice(0,5).join('<br>')+(parsed.warnings.length>5?'<br>…':'')+'</small></div>';
   }
+  var anomalies=msalesDetectAnomalies(parsed,S._msalesTargetMonth);
+  if(anomalies.length){
+    h+='<div class="hs-warn" style="margin-bottom:10px">🔎 Nietypowe wartości względem poprzednich miesięcy — sprawdź, zanim zapiszesz:<br><small>'+anomalies.join('<br>')+'</small></div>';
+  }
   parsed.outlets.forEach(function(o,oi){
     var key=o.rawName.trim().toUpperCase();
     var mappedId=map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName);
@@ -5299,6 +5357,34 @@ function msalesGuessOutlet(rawName){
   if(exact)return exact.id;
   var partial=S.outlets.find(function(o){var n=o.name.trim().toUpperCase();return n.indexOf(rn)>=0||rn.indexOf(n)>=0});
   return partial?partial.id:undefined;
+}
+// Porównuje sprzedaż netto każdego (zmapowanego) outletu z wklejanego raportu do średniej z jego poprzednich
+// zapisanych miesięcy — flaguje wartości rażąco odbiegające (literówka, podwójne wklejenie, brakujące dane).
+function msalesDetectAnomalies(parsed,targetMonth){
+  var map=getMsalesMap(S.pid),warnings=[];
+  var savedMonths=getAllMenuSalesMonths(S.pid);
+  parsed.outlets.forEach(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    var mappedId=map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName);
+    if(!mappedId||mappedId==='__skip__')return;
+    var so=S.outlets.find(function(x){return x.id===mappedId});
+    if(!so)return;
+    var hist=[];
+    savedMonths.forEach(function(m){
+      if(m===targetMonth)return;
+      var d=getMenuSales(S.pid,m);
+      if(!d||!d.outlets)return;
+      var match=d.outlets.find(function(x){return x.outletId===so.id});
+      if(match&&match.totalNetto>0)hist.push(match.totalNetto);
+    });
+    if(hist.length<2)return; // za mało historii, nie oceniamy
+    var avg=hist.reduce(function(s,v){return s+v},0)/hist.length;
+    if(avg<=0)return;
+    var ratio=o.compNetto/avg;
+    if(ratio>=2.2)warnings.push('"'+so.name+'": '+fmt(o.compNetto,true)+' netto to '+ratio.toFixed(1)+'× średniej z poprzednich miesięcy ('+fmt(avg,true)+') — sprawdź, czy raport nie wkleił się podwójnie.');
+    else if(ratio<=0.4)warnings.push('"'+so.name+'": '+fmt(o.compNetto,true)+' netto to tylko '+(ratio*100).toFixed(0)+'% średniej z poprzednich miesięcy ('+fmt(avg,true)+') — sprawdź, czy nic nie zostało pominięte.');
+  });
+  return warnings;
 }
 
 /* ═══════════════════════════════════════════
@@ -5382,6 +5468,7 @@ function msalesParse(){
 }
 function msalesClearParsed(){
   S._msalesParsed=null;S._msalesRawInput='';
+  msalesClearDraft();
   renderMenuSales();
 }
 function msalesMapChange(rawKey,val){
@@ -5459,6 +5546,7 @@ function msalesDoSave(mode){
 
   saveMenuSales(S.pid,S._msalesTargetMonth,data);
   S._msalesParsed=null;S._msalesRawInput='';S._msalesViewMonth=S._msalesTargetMonth;
+  msalesClearDraft();
   renderMenuSales();
   toast(mode==='merge'?'Dane zsumowane i zapisane':'Dane zapisane','ok');
 }
@@ -5640,7 +5728,7 @@ function mengRenderPreview(){
     h+='<div style="border:1px solid var(--brd);border-radius:10px;padding:10px 12px;margin-bottom:8px">';
     h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
     h+='<strong style="font-size:.82rem">'+o.rawName+'</strong>';
-    h+='<span style="font-size:.68rem;color:var(--tx3)">'+fmt(t.sale,true)+' sprzedaży · '+o.items.length+' pozycji · Food '+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+' · Bev '+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+'</span>';
+    h+='<span style="font-size:.68rem;color:var(--tx3)">'+fmt(t.sale,true)+' sprzedaży · '+o.items.length+' pozycji · Food '+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+' · Bev '+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+' · FC+BC '+(t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'—')+'</span>';
     h+='</div>';
     h+='<select class="fi" style="font-size:.78rem" onchange="mengMapChange(\''+key.replace(/'/g,"\\'")+'\',this.value)">';
     h+='<option value="">— wybierz outlet w aplikacji —</option>';
@@ -5717,7 +5805,7 @@ function mengRenderView(){
   var body=document.getElementById('meng-view-body');if(!body)return;
   var data=getMenuEng(S.pid,S._mengViewOutlet,S._mengViewMonth);
   if(!data){body.innerHTML='';return;}
-  var t=data.totals||mengComputeTotals(data.items);
+  var t=(data.totals&&data.totals.fcBcCostPct!==undefined)?data.totals:mengComputeTotals(data.items);
   var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:6px">';
   h+='<div class="ccards">';
   h+='<div class="ccard"><div class="ccard-l">Sprzedaż (brutto)</div><div class="ccard-v">'+fmt(t.sale,true)+'</div></div>';
@@ -5725,6 +5813,7 @@ function mengRenderView(){
   h+='<div class="ccard"><div class="ccard-l">Marża</div><div class="ccard-v">'+fmt(t.margin,true)+'</div></div>';
   h+='<div class="ccard"><div class="ccard-l">Food cost %</div><div class="ccard-v">'+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+'</div></div>';
   h+='<div class="ccard"><div class="ccard-l">Beverage cost %</div><div class="ccard-v">'+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='<div class="ccard" style="border-color:var(--acc)"><div class="ccard-l">FC+BC (łącznie)</div><div class="ccard-v" style="color:var(--acc)">'+(t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'—')+'</div></div>';
   h+='</div>';
 
   // ── Macierz Menu Engineering (popularność × marża na sztukę) ──
@@ -5848,7 +5937,7 @@ function pdfMengMonth(){
   if(!S.pid||!S._mengViewOutlet||!S._mengViewMonth){toast('Wybierz outlet i miesiąc','er');return;}
   var data=getMenuEng(S.pid,S._mengViewOutlet,S._mengViewMonth);
   if(!data){toast('Brak danych do eksportu','er');return;}
-  var t=data.totals||mengComputeTotals(data.items);
+  var t=(data.totals&&data.totals.fcBcCostPct!==undefined)?data.totals:mengComputeTotals(data.items);
   var catFilter=S._mengFilterCat||'__all__',qFilter=S._mengFilterQuadrant||'__all__';
   var items=data.items.filter(function(it){
     if(catFilter!=='__all__'&&it.catType!==catFilter)return false;
@@ -5860,7 +5949,7 @@ function pdfMengMonth(){
   var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   var pw=297,ph=210;
   pdfDrawHeader(doc,pw,'Menu Engineering: '+(data.outletName||'')+' - '+mLabelX(S._mengViewMonth),dePL(prop?prop.name:''));
-  var y=pdfDrawKpiBoxes(doc,[['Sprzedaz',fmt(t.sale,true)],['Koszt towaru',fmt(t.cost,true)],['Marza',fmt(t.margin,true)],['Food cost %',t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'-'],['Beverage cost %',t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'-']],26,pw,5);
+  var y=pdfDrawKpiBoxes(doc,[['Sprzedaz',fmt(t.sale,true)],['Koszt towaru',fmt(t.cost,true)],['Marza',fmt(t.margin,true)],['Food cost %',t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'-'],['Beverage cost %',t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'-'],['FC+BC lacznie',t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'-']],26,pw,6);
   doc.autoTable({
     startY:y+4,head:[['Pozycja','Kategoria','Ilosc','Sprzedaz','Koszt','Koszt %','Kwadrant']],
     body:items.map(function(it){return [dePL(it.name),dePL(it.category),fmtN(it.qty),fmt(it.saleTotal,true),fmt(it.costTotal,true),(it.costPct*100).toFixed(1)+'%',dePL(it.quadrant)]}),
@@ -6457,7 +6546,18 @@ function renderCompare(){
     h+='<div class="empty"><p>Brak jeszcze zapisanych danych sprzedaży pozycji menu — wklej pierwszy raport w zakładce <a href="#" onclick="goMenuSales()">Wprowadź dane → Sprzedaż menu</a>.</p></div>';
   } else {
     var defM2=msSaved[0],defM1=msSaved[1]||prevM(defM2);
-    h+='<div class="tabs" id="ctm-tabs"><button class="tab on" onclick="ctmTab(\'m2m\',this)">🔁 Miesiąc do miesiąca</button><button class="tab" onclick="ctmTab(\'top\',this)">📊 Top zmiany</button><button class="tab" onclick="ctmTab(\'best\',this)">🏆 Bestsellery</button><button class="tab" onclick="ctmTab(\'trend\',this)">📈 Trend pozycji</button><button class="tab" onclick="ctmTab(\'cat\',this)">📦 Grupy towarowe</button><button class="tab" onclick="ctmTab(\'mix\',this)">🥧 Mix sprzedażowy</button><button class="tab" onclick="ctmTab(\'items\',this)">🧾 Sprzedaż pozycji</button></div>';
+
+    // ── Zbiorczy PDF "pakiet miesięczny" (Bestsellery + Top zmiany + Grupy towarowe w jednym pliku) ──
+    h+='<div class="card" style="margin-bottom:14px">';
+    h+='<div class="fsect">📦 Pakiet miesięczny (PDF)</div>';
+    h+='<p class="hs-p" style="margin-bottom:10px">Jeden plik PDF na spotkanie zarządu — Bestsellery, Top zmiany (vs poprzedni miesiąc) i Grupy towarowe, każde na osobnej stronie.</p>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc</label><input type="month" class="fi" id="ctm-pkg-m" value="'+defM2+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm-pkg-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<button class="btn btn-p" onclick="pdfCtmPackage()">📦 Generuj pakiet PDF</button>';
+    h+='</div></div>';
+
+    h+='<div class="tabs" id="ctm-tabs"><button class="tab on" onclick="ctmTab(\'m2m\',this)">🔁 Miesiąc do miesiąca</button><button class="tab" onclick="ctmTab(\'top\',this)">📊 Top zmiany</button><button class="tab" onclick="ctmTab(\'best\',this)">🏆 Bestsellery</button><button class="tab" onclick="ctmTab(\'trend\',this)">📈 Trend pozycji</button><button class="tab" onclick="ctmTab(\'cat\',this)">📦 Grupy towarowe</button><button class="tab" onclick="ctmTab(\'mix\',this)">🥧 Mix sprzedażowy</button><button class="tab" onclick="ctmTab(\'items\',this)">🧾 Sprzedaż pozycji</button><button class="tab" onclick="ctmTab(\'pivot\',this)">🗓️ Pozycje w czasie</button></div>';
 
     // #1 — Pozycje miesiąc do miesiąca
     h+='<div id="ctm-m2m">';
@@ -6494,7 +6594,7 @@ function renderCompare(){
     h+='<div id="ctm-trend" style="display:none">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm4-outlet" onchange="ctm4RefreshItems()">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
-    h+='<div class="fg" style="margin-bottom:0;min-width:220px"><label>Pozycja</label><select class="fi" id="ctm4-item">'+trendItems.map(function(n){return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'}).join('')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0;min-width:220px"><label>Pozycja</label><select class="fi" id="ctm4-item">'+ctm4ItemOptionsHTML(trendItems)+'</select></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Metryka</label><select class="fi" id="ctm4-metric"><option value="netto">Wartość (netto)</option><option value="qty">Ilość</option></select></div>';
     h+='<button class="btn btn-p" onclick="ctmRunTrend()">Pokaż trend</button>';
     h+='</div><div id="ctm-trend-results"></div>';
@@ -6531,13 +6631,22 @@ function renderCompare(){
     h+='<div class="fg" style="margin-bottom:0;display:none" id="ctm7-to-wrap"><label>Do miesiąca</label><input type="month" class="fi" id="ctm7-to" value="'+defM2+'"></div>';
     h+='<button class="btn btn-p" onclick="ctmRunItems()">Pokaż</button>';
     h+='</div><div id="ctm-items-results"></div><div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfCtmItems()">📄 Zapisz do PDF</button></div></div>';
+
+    // #8 — Pozycje w czasie (pivot: pozycja × miesiąc, heatmapa wartości)
+    h+='<div id="ctm-pivot" style="display:none">';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm8-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Metryka</label><select class="fi" id="ctm8-metric"><option value="netto">Wartość (netto)</option><option value="qty">Ilość</option></select></div>';
+    h+='<div class="fg" style="margin-bottom:0;max-width:90px"><label>Top N</label><input type="number" class="fi" id="ctm8-n" value="15" min="3" max="40"></div>';
+    h+='<button class="btn btn-p" onclick="ctmRunPivot()">Pokaż</button>';
+    h+='</div><div id="ctm-pivot-results"></div></div>';
   }
   h+='</div>';
 
   h+='<div class="cc" style="margin-top:14px"><div class="card-title">Wykres porównawczy</div><canvas id="ch-cmp" style="max-height:220px"></canvas></div>';
   el.innerHTML=h;
 
-  if(msSaved.length){ctmRunM2M();ctmRunTop();ctmRunBest();ctmRunTrend();ctmRunCat();ctmRunMix();ctmRunItems();}
+  if(msSaved.length){ctmRunM2M();ctmRunTop();ctmRunBest();ctmRunTrend();ctmRunCat();ctmRunMix();ctmRunItems();ctmRunPivot();}
 
   dChart('ch-cmp');
   var sm=Object.keys(allD).sort();
@@ -6590,6 +6699,65 @@ function computeCustomRange(){
    Raporty 1-3: pozycje miesiąc do miesiąca, top wzrosty/spadki, bestsellery.
    Wszystkie bazują na danych zapisanych w karcie "Sprzedaż menu".
 ═══════════════════════════════════════════ */
+// ── ALIASY POZYCJI (scalanie tej samej pozycji zapisanej pod różnymi nazwami w POS) ──
+function getMsalesAliases(pid){return lsGet(uk('msales-aliases-'+pid),{})}
+function saveMsalesAliases(pid,map){
+  lsSet(uk('msales-aliases-'+pid),map);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuSales').doc('_aliases'),{map:map});
+}
+// Zwraca "kanoniczną" nazwę pozycji — jeśli rawName jest zarejestrowany jako alias innej nazwy, zwraca tę drugą.
+function msalesCanonicalName(pid,rawName){
+  var aliases=getMsalesAliases(pid);
+  var key=String(rawName||'').trim().toUpperCase();
+  return aliases[key]||rawName;
+}
+function msalesAddAlias(pid,fromName,toName){
+  if(!fromName||!toName||fromName===toName)return;
+  var aliases=getMsalesAliases(pid);
+  aliases[fromName.trim().toUpperCase()]=toName;
+  saveMsalesAliases(pid,aliases);
+}
+function msalesRemoveAlias(pid,fromKey){
+  var aliases=getMsalesAliases(pid);
+  delete aliases[fromKey];
+  saveMsalesAliases(pid,aliases);
+}
+function msalesAliasAddClick(){
+  var fromEl=document.getElementById('msales-alias-from'),toEl=document.getElementById('msales-alias-to');
+  if(!fromEl||!toEl)return;
+  var from=fromEl.value,to=toEl.value;
+  if(!from||!to){toast('Wybierz obie pozycje','er');return;}
+  if(from===to){toast('Wybierz dwie różne pozycje','er');return;}
+  msalesAddAlias(S.pid,from,to);
+  toast('Pozycje połączone','ok');
+  renderMenuSales();
+}
+function msalesAliasRemoveClick(key){
+  msalesRemoveAlias(S.pid,key);
+  toast('Rozłączono','in');
+  renderMenuSales();
+}
+
+// ── ULUBIONE POZYCJE (gwiazdka w Bestsellerach/Mix, szybszy wybór w raporcie Trend) ──
+function getMsalesFavorites(pid){return lsGet(uk('msales-favs-'+pid),[])}
+function saveMsalesFavorites(pid,list){
+  lsSet(uk('msales-favs-'+pid),list);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuSales').doc('_favorites'),{list:list});
+}
+function msalesIsFavorite(pid,name){return getMsalesFavorites(pid).indexOf(name)>=0}
+function msalesToggleFavorite(name,rerenderFnName){
+  var list=getMsalesFavorites(S.pid);
+  var i=list.indexOf(name);
+  if(i>=0)list.splice(i,1);else list.push(name);
+  saveMsalesFavorites(S.pid,list);
+  haptic(8);
+  if(rerenderFnName&&window[rerenderFnName])window[rerenderFnName]();
+}
+function msalesFavStar(name,rerenderFnName){
+  var on=msalesIsFavorite(S.pid,name);
+  return '<span class="fav-star'+(on?' on':'')+'" title="'+(on?'Usuń z ulubionych':'Dodaj do ulubionych')+'" onclick="event.stopPropagation();msalesToggleFavorite(\''+name.replace(/'/g,"\\'")+'\',\''+rerenderFnName+'\')">'+(on?'★':'☆')+'</span>';
+}
+
 function msalesOutletOptionsHTML(selected){
   var h='<option value="__all__"'+(selected==='__all__'?' selected':'')+'>Wszystkie outlety</option>';
   S.outlets.forEach(function(o){h+='<option value="'+o.id+'"'+(selected===o.id?' selected':'')+'>'+o.name+'</option>'});
@@ -6603,8 +6771,9 @@ function msalesItemMap(pid,month,outletId){
     if(outletId&&outletId!=='__all__'&&o.outletId!==outletId)return;
     o.categories.forEach(function(c){
       c.items.forEach(function(it){
-        if(!map[it.name])map[it.name]={qty:0,netto:0,brutto:0};
-        map[it.name].qty+=it.qty;map[it.name].netto+=it.netto;map[it.name].brutto+=it.brutto;
+        var nm=msalesCanonicalName(pid,it.name);
+        if(!map[nm])map[nm]={qty:0,netto:0,brutto:0};
+        map[nm].qty+=it.qty;map[nm].netto+=it.netto;map[nm].brutto+=it.brutto;
       });
     });
   });
@@ -6739,7 +6908,7 @@ function ctmRunBest(){
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m)+' · '+ctmOutletLabel(outlet)+' · łącznie '+fmt(totalNetto,true)+' netto</div>';
   h+='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:8%"><col style="width:44%"><col><col><col></colgroup><thead><tr><th>#</th>'+ctmSortHeader('Pozycja','name','best','ctmRunBest')+ctmSortHeader('Ilość','qty','best','ctmRunBest')+ctmSortHeader('Netto','netto','best','ctmRunBest')+ctmSortHeader('Udział','share','best','ctmRunBest')+'</tr></thead><tbody>';
   rows.forEach(function(r,i){
-    h+='<tr><td>'+(i+1)+'</td><td class="lbl">'+r.name+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';
+    h+='<tr><td>'+(i+1)+'</td><td class="lbl">'+msalesFavStar(r.name,'ctmRunBest')+r.name+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';
   });
   h+='</tbody></table></div>';
   res.innerHTML=h;
@@ -6777,8 +6946,24 @@ function ctm4RefreshItems(){
   if(!outlet||!itemSel)return;
   var names=msalesAllItemNames(S.pid,outlet.value);
   var prevVal=itemSel.value;
-  itemSel.innerHTML=names.map(function(n){return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'}).join('');
+  itemSel.innerHTML=ctm4ItemOptionsHTML(names);
   if(names.indexOf(prevVal)>=0)itemSel.value=prevVal;
+}
+// Buduje listę <option> dla wyboru pozycji w raporcie Trend — ulubione (⭐) na górze, potem reszta alfabetycznie.
+function ctm4ItemOptionsHTML(names){
+  var favs=getMsalesFavorites(S.pid);
+  var favNames=names.filter(function(n){return favs.indexOf(n)>=0});
+  var restNames=names.filter(function(n){return favs.indexOf(n)<0});
+  var h='';
+  if(favNames.length){
+    h+='<optgroup label="⭐ Ulubione">';
+    favNames.forEach(function(n){h+='<option value="'+n.replace(/"/g,'&quot;')+'">⭐ '+n+'</option>'});
+    h+='</optgroup>';
+  }
+  h+='<optgroup label="Wszystkie pozycje">';
+  restNames.forEach(function(n){h+='<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'});
+  h+='</optgroup>';
+  return h;
 }
 function ctmRunTrend(){
   var outletEl=document.getElementById('ctm4-outlet'),itemEl=document.getElementById('ctm4-item');
@@ -6881,7 +7066,7 @@ function ctmRunMix(){
 
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m)+' · '+ctmOutletLabel(outlet)+' · łącznie '+fmt(totalNetto,true)+' netto</div>';
   h+='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:52%"><col><col></colgroup><thead><tr>'+ctmSortHeader('Pozycja','name','mix','ctmRunMix')+ctmSortHeader('Netto','netto','mix','ctmRunMix')+ctmSortHeader('Udział','share','mix','ctmRunMix')+'</tr></thead><tbody>';
-  top.forEach(function(r){h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';});
+  top.forEach(function(r){h+='<tr><td class="lbl">'+msalesFavStar(r.name,'ctmRunMix')+r.name+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';});
   if(restNetto>0)h+='<tr style="color:var(--tx3)"><td>Pozostałe ('+(rows.length-top.length)+' pozycji)</td><td>'+fmt(restNetto,true)+'</td><td>'+restShare.toFixed(1)+'%</td></tr>';
   h+='</tbody></table></div>';
   h+='<div class="cc" style="margin-top:14px;max-width:420px"><div class="card-title">Udział w sprzedaży</div><canvas id="ctm-mix-chart" style="max-height:280px"></canvas></div>';
@@ -7128,10 +7313,11 @@ function msalesOutletDetail(pid,outletId,months){
       o.categories.forEach(function(c){
         if(!catMap[c.name])catMap[c.name]={name:c.name,items:{}};
         c.items.forEach(function(it){
-          if(!catMap[c.name].items[it.name])catMap[c.name].items[it.name]={name:it.name,qty:0,netto:0,brutto:0};
-          catMap[c.name].items[it.name].qty+=it.qty;
-          catMap[c.name].items[it.name].netto+=it.netto;
-          catMap[c.name].items[it.name].brutto+=it.brutto;
+          var nm=msalesCanonicalName(pid,it.name);
+          if(!catMap[c.name].items[nm])catMap[c.name].items[nm]={name:nm,qty:0,netto:0,brutto:0};
+          catMap[c.name].items[nm].qty+=it.qty;
+          catMap[c.name].items[nm].netto+=it.netto;
+          catMap[c.name].items[nm].brutto+=it.brutto;
         });
       });
     });
@@ -7243,6 +7429,162 @@ function pdfCtmItems(){
   toast('PDF zapisany','ok');
 }
 
+// #8 — Pozycje w czasie: pivot tabela (wiersze = top pozycje, kolumny = miesiące), z podświetleniem
+// intensywności koloru wg wartości w danym wierszu — jedno miejsce na sprawdzenie sezonowości top pozycji.
+function ctmRunPivot(){
+  var outletEl=document.getElementById('ctm8-outlet');
+  var res=document.getElementById('ctm-pivot-results');if(!res||!outletEl)return;
+  var outlet=outletEl.value,metric=document.getElementById('ctm8-metric').value;
+  var topN=parseInt(document.getElementById('ctm8-n').value)||15;
+  var months=getAllMenuSalesMonths(S.pid).slice().sort();
+  if(!months.length){res.innerHTML='<div class="empty"><p>Brak zapisanych danych sprzedaży pozycji menu.</p></div>';return;}
+  var maps=months.map(function(m){return msalesItemMap(S.pid,m,outlet)});
+  var key=metric==='qty'?'qty':'netto';
+  var totals={};
+  maps.forEach(function(map){
+    Object.keys(map).forEach(function(n){totals[n]=(totals[n]||0)+map[n][key];});
+  });
+  var names=Object.keys(totals).sort(function(a,b){return totals[b]-totals[a]}).slice(0,Math.max(1,topN));
+  if(!names.length){res.innerHTML='<div class="empty"><p>Brak danych sprzedaży pozycji menu ('+ctmOutletLabel(outlet)+').</p></div>';return;}
+
+  var fmtV=function(v){return metric==='qty'?fmtN(v):fmt(v,true)};
+  var h='<div class="hs-p" style="margin-bottom:8px">'+ctmOutletLabel(outlet)+' · Top '+names.length+' pozycji · '+months.length+' mies.</div>';
+  h+='<div class="tbl-wrap"><table class="msales-table" style="min-width:'+(160+months.length*68)+'px"><thead><tr><th style="text-align:left;width:220px">Pozycja</th>';
+  months.forEach(function(m){h+='<th>'+mLabel(m)+'</th>'});
+  h+='</tr></thead><tbody>';
+  names.forEach(function(n){
+    var rowVals=maps.map(function(map){return map[n]?map[n][key]:0});
+    var rowMax=Math.max.apply(null,rowVals)||1;
+    h+='<tr><td class="lbl">'+n+msalesFavStar(n,'ctmRunPivot')+'</td>';
+    rowVals.forEach(function(v){
+      var intensity=v>0?Math.min(0.85,0.15+0.7*(v/rowMax)):0;
+      var bg=v>0?'rgba(34,197,94,'+intensity.toFixed(2)+')':'transparent';
+      h+='<td style="text-align:center;background:'+bg+'">'+(v>0?fmtV(v):'—')+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfCtmPivot()">📄 Zapisz do PDF</button></div>';
+  res.innerHTML=h;
+  haptic(8);
+}
+// ── PAKIET MIESIĘCZNY (PDF): Bestsellery + Top zmiany + Grupy towarowe w jednym pliku, po jednej stronie każde ──
+function pdfCtmPackage(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Błąd jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var mEl=document.getElementById('ctm-pkg-m');if(!mEl)return;
+  var m=mEl.value,outlet=document.getElementById('ctm-pkg-outlet').value;
+  if(!m){toast('Wybierz miesiąc','er');return;}
+  var prevMonth=prevM(m);
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297;
+
+  // Strona 1 — Bestsellery
+  var map=msalesItemMap(S.pid,m,outlet);
+  var names=Object.keys(map);
+  pdfDrawHeader(doc,pw,'Pakiet miesięczny: Bestsellery',dePL(prop?prop.name:'')+' | '+mLabelX(m)+' | '+dePL(ctmOutletLabel(outlet)));
+  if(names.length){
+    var totalNetto=round2(names.reduce(function(s,n){return s+map[n].netto},0));
+    var rows=names.map(function(n){return {name:n,qty:map[n].qty,netto:map[n].netto,share:totalNetto>0?map[n].netto/totalNetto*100:0}});
+    rows.sort(function(a,b){return b.netto-a.netto});
+    rows=rows.slice(0,20);
+    doc.autoTable({
+      startY:26,head:[['#','Pozycja','Ilosc','Netto','Udzial']],
+      body:rows.map(function(r,i){return [i+1,dePL(r.name),fmtN(r.qty),fmt(r.netto,true),r.share.toFixed(1)+'%']}),
+      theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+      bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+      columnStyles:{0:{halign:'center'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}}
+    });
+  } else {
+    doc.setFontSize(9);doc.setTextColor(90,100,120);doc.text('Brak danych sprzedazy pozycji menu dla tego miesiaca.',10,29);
+  }
+  pdfDrawFooter(doc,pw,ph);
+
+  // Strona 2 — Top zmiany (poprzedni miesiąc vs wybrany)
+  doc.addPage();
+  pdfDrawHeader(doc,pw,'Pakiet miesięczny: Top zmiany',dePL(prop?prop.name:'')+' | '+mLabelX(prevMonth)+' vs '+mLabelX(m)+' | '+dePL(ctmOutletLabel(outlet)));
+  var rows2=msalesCompareRows(S.pid,prevMonth,m,outlet);
+  if(rows2.length){
+    var up=rows2.slice().sort(function(a,b){return b.dNetto-a.dNetto}).filter(function(r){return r.dNetto>0}).slice(0,10);
+    var down=rows2.slice().sort(function(a,b){return a.dNetto-b.dNetto}).filter(function(r){return r.dNetto<0}).slice(0,10);
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
+    doc.text('Najwieksze wzrosty',10,29);
+    doc.autoTable({
+      startY:33,head:[['Pozycja','Delta netto',mLabelX(m)]],
+      body:up.length?up.map(function(r){return [dePL(r.name),'+'+fmt(r.dNetto,true),fmt(r.bNetto,true)]}):[['Brak wzrostow','','']],
+      theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+      bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+      columnStyles:{1:{halign:'right'},2:{halign:'right'}}
+    });
+    var y2=doc.lastAutoTable.finalY+8;
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,40,60);
+    doc.text('Najwieksze spadki',10,y2);
+    doc.autoTable({
+      startY:y2+4,head:[['Pozycja','Delta netto',mLabelX(m)]],
+      body:down.length?down.map(function(r){return [dePL(r.name),fmt(r.dNetto,true),fmt(r.bNetto,true)]}):[['Brak spadkow','','']],
+      theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8},
+      bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+      columnStyles:{1:{halign:'right'},2:{halign:'right'}}
+    });
+  } else {
+    doc.setFontSize(9);doc.setTextColor(90,100,120);doc.text('Brak danych do porownania (sprawdz, czy '+mLabelX(prevMonth)+' ma zapisane dane).',10,29);
+  }
+  pdfDrawFooter(doc,pw,ph);
+
+  // Strona 3 — Grupy towarowe
+  doc.addPage();
+  pdfDrawHeader(doc,pw,'Pakiet miesięczny: Grupy towarowe',dePL(prop?prop.name:'')+' | '+mLabelX(m)+' | '+dePL(ctmOutletLabel(outlet)));
+  var catMap=msalesCategoryMap(S.pid,m,outlet);
+  var cats=Object.keys(catMap);
+  if(cats.length){
+    var catRows=cats.map(function(c){return {name:c,netto:catMap[c].netto}}).sort(function(a,b){return b.netto-a.netto});
+    doc.autoTable({
+      startY:26,head:[['Grupa towarowa','Netto']],
+      body:catRows.map(function(r){return [dePL(r.name),fmt(r.netto,true)]}),
+      theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8.5},
+      bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8.5},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+      columnStyles:{1:{halign:'right'}}
+    });
+  } else {
+    doc.setFontSize(9);doc.setTextColor(90,100,120);doc.text('Brak danych sprzedazy pozycji menu dla tego miesiaca.',10,29);
+  }
+  pdfDrawFooter(doc,pw,ph);
+
+  doc.save('Pakiet_miesieczny_'+m+'.pdf');
+  toast('Pakiet PDF zapisany (3 strony)','ok');
+}
+
+function pdfCtmPivot(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Błąd jsPDF','er');return;}
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var outletEl=document.getElementById('ctm8-outlet');if(!outletEl)return;
+  var outlet=outletEl.value,metric=document.getElementById('ctm8-metric').value;
+  var topN=parseInt(document.getElementById('ctm8-n').value)||15;
+  var months=getAllMenuSalesMonths(S.pid).slice().sort();
+  if(!months.length){toast('Brak danych do eksportu','er');return;}
+  var maps=months.map(function(m){return msalesItemMap(S.pid,m,outlet)});
+  var key=metric==='qty'?'qty':'netto';
+  var totals={};
+  maps.forEach(function(map){Object.keys(map).forEach(function(n){totals[n]=(totals[n]||0)+map[n][key];});});
+  var names=Object.keys(totals).sort(function(a,b){return totals[b]-totals[a]}).slice(0,Math.max(1,topN));
+  if(!names.length){toast('Brak danych do eksportu','er');return;}
+  var fmtV=function(v){return metric==='qty'?fmtN(v):fmt(v,true)};
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  var pw=297,ph=210;
+  pdfDrawHeader(doc,pw,'Pozycje w czasie (Top '+names.length+')',dePL(prop?prop.name:'')+' | '+dePL(ctmOutletLabel(outlet)));
+  doc.autoTable({
+    startY:26,head:[['Pozycja'].concat(months.map(mLabelX))],
+    body:names.map(function(n){return [dePL(n)].concat(maps.map(function(map){return map[n]?fmtV(map[n][key]):'-'}))}),
+    theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:7},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7},alternateRowStyles:{fillColor:PDF_STYLE.altRow}
+  });
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('Pozycje_w_czasie.pdf');
+  toast('PDF zapisany','ok');
+}
+
 function cTab(t,btn){
   ['mom','yoy','ytd','season','range','menu'].forEach(function(x){var e=document.getElementById('ct-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctabs .tab').forEach(function(b){b.classList.remove('on')});
@@ -7251,7 +7593,7 @@ function cTab(t,btn){
   haptic(6);
 }
 function ctmTab(t,btn){
-  ['m2m','top','best','trend','cat','mix','items'].forEach(function(x){var e=document.getElementById('ctm-'+x);if(e)e.style.display=x===t?'block':'none'});
+  ['m2m','top','best','trend','cat','mix','items','pivot'].forEach(function(x){var e=document.getElementById('ctm-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctm-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
