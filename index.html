@@ -5585,9 +5585,23 @@ function renderMenuEng(){
   h+='<div id="meng-view-body"></div>';
   h+='</div>';
 
+  // ── ZMIANA KWADRANTU MIĘDZY MIESIĄCAMI ──
+  h+='<div class="card" style="margin-top:14px">';
+  h+='<div class="fsect">📈 Zmiana kwadrantu między miesiącami</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Porównanie klasyfikacji tych samych pozycji (dopasowanych po kodzie z Material Control) między dwoma miesiącami — dla outletu wybranego wyżej.</p>';
+  var chgMonths=S._mengViewOutlet?getMenuEngMonthsForOutlet(S.pid,S._mengViewOutlet).slice().sort():[];
+  var chgM2=chgMonths[chgMonths.length-1]||S._mengMonth,chgM1=chgMonths[chgMonths.length-2]||chgM2;
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+  h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc A</label><input type="month" class="fi" id="meng-chg-m1" value="'+chgM1+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc B</label><input type="month" class="fi" id="meng-chg-m2" value="'+chgM2+'"></div>';
+  h+='<label style="display:flex;align-items:center;gap:5px;font-size:.78rem;padding-bottom:8px"><input type="checkbox" id="meng-chg-onlychanged" style="width:auto" checked onchange="mengRenderChange()"> Tylko zmienione</label>';
+  h+='<button class="btn btn-p" onclick="mengRenderChange()">Porównaj</button>';
+  h+='</div><div id="meng-change-results"></div></div>';
+
   el.innerHTML=h;
   if(S._mengParsed)mengRenderPreview();
   if(S._mengViewMonth)mengRenderView();
+  if(chgMonths.length>=2)mengRenderChange();
 }
 
 function mengViewOutletChange(outletId){
@@ -5713,6 +5727,10 @@ function mengRenderView(){
   h+='<div class="ccard"><div class="ccard-l">Beverage cost %</div><div class="ccard-v">'+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+'</div></div>';
   h+='</div>';
 
+  // ── Macierz Menu Engineering (popularność × marża na sztukę) ──
+  h+='<div class="cc" style="margin:12px 0"><div class="card-title">Macierz Menu Engineering</div><canvas id="meng-matrix-chart" style="max-height:320px"></canvas>';
+  h+='<div style="font-size:.65rem;color:var(--tx3);margin-top:6px">Podział na kwadranty (kolor punktu) pochodzi bezpośrednio z pliku Material Control — X: udział pozycji w sprzedaży, Y: marża na sztukę.</div></div>';
+
   // ── filtry tabeli ──
   var catFilter=S._mengFilterCat||'__all__',qFilter=S._mengFilterQuadrant||'__all__';
   h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">';
@@ -5745,13 +5763,144 @@ function mengRenderView(){
     h+='<tr><td class="lbl">'+it.name+'</td><td style="font-size:.68rem;color:var(--tx3)">'+it.category+'</td><td>'+fmtN(it.qty)+'</td><td>'+fmt(it.saleTotal,true)+'</td><td>'+fmt(it.costTotal,true)+'</td><td>'+(it.costPct*100).toFixed(1)+'%</td><td>'+it.quadrant+'</td></tr>';
   });
   h+='</tbody></table></div>';
-  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="mengDeleteMonth(\''+S._mengViewOutlet+'\',\''+S._mengViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfMengMonth()">📄 Zapisz do PDF</button><button class="btn btn-s btn-sm" onclick="mengDeleteMonth(\''+S._mengViewOutlet+'\',\''+S._mengViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
   h+='</div>';
   body.innerHTML=h;
+  mengRenderMatrixChart(data.items);
+}
+// Wykres punktowy: X = udział w sprzedaży (%), Y = marża na sztukę, kolor = kwadrant (z pliku MC).
+function mengRenderMatrixChart(items){
+  dChart('meng-matrix-chart');
+  var ctx=document.getElementById('meng-matrix-chart');if(!ctx)return;
+  var colors={'Zwycięzca':'#22c55e','Puzzle':'#38bdf8','Plowhorse':'#f59e0b','Przegrany':'#ef4444'};
+  var datasets=['Zwycięzca','Puzzle','Plowhorse','Przegrany'].map(function(q){
+    return {
+      label:q,
+      data:items.filter(function(i){return i.quadrant===q}).map(function(i){return {x:round2(i.mixPct*100),y:i.marginUnit,name:i.name}}),
+      backgroundColor:colors[q],pointRadius:4,pointHoverRadius:6
+    };
+  });
+  S.charts['meng-matrix-chart']=new Chart(ctx,{
+    type:'scatter',
+    data:{datasets:datasets},
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{
+        legend:{labels:{color:txHex(),font:{size:10},boxWidth:10}},
+        tooltip:{callbacks:{label:function(c){var p=c.raw;return p.name+': '+p.x.toFixed(2)+'% udziału, '+fmt(p.y,true)+' marży/szt.'}}}
+      },
+      scales:{
+        x:{title:{display:true,text:'Udział w sprzedaży (%)',color:tx2Hex()},ticks:{color:tx2Hex(),font:{size:10}},grid:{color:brdHex()}},
+        y:{title:{display:true,text:'Marża na sztukę',color:tx2Hex()},ticks:{color:tx2Hex(),font:{size:10}},grid:{color:brdHex()}}
+      }
+    }
+  });
 }
 function mengSetFilter(kind,val){
   if(kind==='cat')S._mengFilterCat=val;else S._mengFilterQuadrant=val;
   mengRenderView();
+}
+
+// Przybliżone uporządkowanie kwadrantów do oceny "w górę/w dół" przy zmianie klasyfikacji
+// (Zwycięzca najlepszy, Przegrany najgorszy; Puzzle vs Plowhorse to inny kompromis popularność/marża,
+// więc kierunek między nimi jest orientacyjny, nie ścisłą hierarchią).
+function mengQuadrantScore(q){
+  var m={'Zwycięzca':3,'Puzzle':2,'Plowhorse':1,'Przegrany':0};
+  return m.hasOwnProperty(q)?m[q]:null;
+}
+function mengComputeChangeRows(outletId,m1,m2,onlyChanged){
+  var d1=getMenuEng(S.pid,outletId,m1),d2=getMenuEng(S.pid,outletId,m2);
+  if(!d1||!d2)return null;
+  var map1={};d1.items.forEach(function(i){map1[i.code]=i;});
+  var rows=[];
+  d2.items.forEach(function(i2){
+    var i1=map1[i2.code];
+    if(!i1)return; // brak tej pozycji w miesiącu A — brak punktu odniesienia
+    if(i1.quadrant===i2.quadrant&&onlyChanged)return;
+    var s1=mengQuadrantScore(i1.quadrant),s2=mengQuadrantScore(i2.quadrant);
+    rows.push({name:i2.name,q1:i1.quadrant,q2:i2.quadrant,dir:(s1!==null&&s2!==null)?(s2>s1?'up':s2<s1?'down':'same'):'same'});
+  });
+  return rows;
+}
+function mengRenderChange(){
+  var outletId=S._mengViewOutlet;
+  var m1El=document.getElementById('meng-chg-m1'),m2El=document.getElementById('meng-chg-m2');
+  var res=document.getElementById('meng-change-results');if(!res||!m1El||!m2El)return;
+  var m1=m1El.value,m2=m2El.value,onlyChanged=document.getElementById('meng-chg-onlychanged').checked;
+  if(!m1||!m2){res.innerHTML='<div class="hs-warn">Wybierz oba miesiące.</div>';return;}
+  var rows=mengComputeChangeRows(outletId,m1,m2,onlyChanged);
+  if(rows===null){res.innerHTML='<div class="empty"><p>Brak zapisanych danych Menu Engineering dla jednego z wybranych miesięcy (dla tego outletu).</p></div>';return;}
+  if(!rows.length){res.innerHTML='<div class="empty"><p>'+(onlyChanged?'Brak pozycji, które zmieniły kwadrant.':'Brak wspólnych pozycji między wybranymi miesiącami.')+'</p></div>';return;}
+  var h='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:44%"><col><col><col></colgroup><thead><tr><th>Pozycja</th><th>'+mLabel(m1)+'</th><th>'+mLabel(m2)+'</th><th>Zmiana</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var arrow=r.dir==='up'?'<span class="td-pos">▲</span>':r.dir==='down'?'<span class="td-neg">▼</span>':'—';
+    h+='<tr><td class="lbl">'+r.name+'</td><td>'+r.q1+'</td><td>'+r.q2+'</td><td>'+arrow+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfMengChange()">📄 Zapisz do PDF</button></div>';
+  res.innerHTML=h;
+  haptic(8);
+}
+
+/* ── EKSPORT PDF: MENU ENGINEERING ── */
+function pdfMengMonth(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Błąd jsPDF','er');return;}
+  if(!S.pid||!S._mengViewOutlet||!S._mengViewMonth){toast('Wybierz outlet i miesiąc','er');return;}
+  var data=getMenuEng(S.pid,S._mengViewOutlet,S._mengViewMonth);
+  if(!data){toast('Brak danych do eksportu','er');return;}
+  var t=data.totals||mengComputeTotals(data.items);
+  var catFilter=S._mengFilterCat||'__all__',qFilter=S._mengFilterQuadrant||'__all__';
+  var items=data.items.filter(function(it){
+    if(catFilter!=='__all__'&&it.catType!==catFilter)return false;
+    if(qFilter!=='__all__'&&it.quadrant!==qFilter)return false;
+    return true;
+  });
+  items=ctmApplySort(items,'meng');
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  var pw=297,ph=210;
+  pdfDrawHeader(doc,pw,'Menu Engineering: '+(data.outletName||'')+' - '+mLabelX(S._mengViewMonth),dePL(prop?prop.name:''));
+  var y=pdfDrawKpiBoxes(doc,[['Sprzedaz',fmt(t.sale,true)],['Koszt towaru',fmt(t.cost,true)],['Marza',fmt(t.margin,true)],['Food cost %',t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'-'],['Beverage cost %',t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'-']],26,pw,5);
+  doc.autoTable({
+    startY:y+4,head:[['Pozycja','Kategoria','Ilosc','Sprzedaz','Koszt','Koszt %','Kwadrant']],
+    body:items.map(function(it){return [dePL(it.name),dePL(it.category),fmtN(it.qty),fmt(it.saleTotal,true),fmt(it.costTotal,true),(it.costPct*100).toFixed(1)+'%',dePL(it.quadrant)]}),
+    theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:7.5},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'}}
+  });
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('MenuEngineering_'+dePL(data.outletName||'outlet').replace(/[^a-zA-Z0-9]+/g,'_')+'_'+S._mengViewMonth+'.pdf');
+  toast('PDF zapisany','ok');
+}
+function pdfMengChange(){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Błąd jsPDF','er');return;}
+  if(!S.pid||!S._mengViewOutlet){toast('Wybierz outlet','er');return;}
+  var m1=document.getElementById('meng-chg-m1').value,m2=document.getElementById('meng-chg-m2').value;
+  var onlyChanged=document.getElementById('meng-chg-onlychanged').checked;
+  if(!m1||!m2){toast('Wybierz oba miesiące','er');return;}
+  var rows=mengComputeChangeRows(S._mengViewOutlet,m1,m2,onlyChanged);
+  if(!rows||!rows.length){toast('Brak danych do eksportu','er');return;}
+  var outlet=S.outlets.find(function(o){return o.id===S._mengViewOutlet});
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297;
+  pdfDrawHeader(doc,pw,'Zmiana kwadrantu: '+(outlet?outlet.name:'')+' - '+mLabelX(m1)+' vs '+mLabelX(m2),dePL(prop?prop.name:''));
+  doc.autoTable({
+    startY:26,head:[['Pozycja',mLabelX(m1),mLabelX(m2),'Zmiana']],
+    body:rows.map(function(r){return [dePL(r.name),dePL(r.q1),dePL(r.q2),r.dir==='up'?'+':r.dir==='down'?'-':'=']}),
+    theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:8.5},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:8.5},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    columnStyles:{3:{halign:'center'}},
+    didParseCell:function(dt){
+      if(dt.section==='body'&&dt.column.index===3){
+        if(dt.cell.raw==='+'){dt.cell.styles.textColor=PDF_STYLE.good;dt.cell.styles.fontStyle='bold';}
+        else if(dt.cell.raw==='-'){dt.cell.styles.textColor=PDF_STYLE.bad;dt.cell.styles.fontStyle='bold';}
+      }
+    }
+  });
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('Zmiana_kwadrantu_'+m1+'_vs_'+m2+'.pdf');
+  toast('PDF zapisany','ok');
 }
 
 /* ── GOALS UI ── */
