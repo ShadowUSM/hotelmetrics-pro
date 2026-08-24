@@ -424,6 +424,10 @@ body.presentation-mode #presentation-exit{display:flex}
 .tabs{display:flex;gap:3px;background:var(--sur2);border-radius:9px;padding:3px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tab{padding:6px 13px;border-radius:7px;font-size:.74rem;font-weight:500;color:var(--tx2);background:transparent;border:none;cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;flex-shrink:0}
 .tab.on{background:var(--sur);color:var(--acc);box-shadow:0 1px 6px rgba(0,0,0,.2);font-weight:700}
+.tabs-row{display:flex;align-items:center;gap:6px;margin-bottom:16px}
+.tabs-row .tabs{margin-bottom:0;flex:1;min-width:0}
+.tab-order-gear{flex-shrink:0;width:30px;height:30px;border-radius:9px;background:var(--sur2);border:none;color:var(--tx2);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+.tab-order-gear:hover{color:var(--acc)}
 
 /* Section title */
 .stitle{font-size:.9rem;font-family:var(--fd);font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
@@ -1763,6 +1767,19 @@ body.presentation-mode #presentation-exit{display:flex}
   </div>
 </div></div>
 
+<!-- KOLEJNOŚĆ ZAKŁADEK MODAL -->
+<div class="moverlay" id="m-tab-order">
+<div class="modal" style="max-width:420px">
+  <div class="mtitle">⚙️ Kolejność zakładek</div>
+  <button class="mclose" onclick="closeM('m-tab-order')">✕</button>
+  <p class="hs-p" style="margin-bottom:10px">Strzałkami ustaw kolejność, w jakiej mają się wyświetlać zakładki.</p>
+  <div id="tab-order-list"></div>
+  <div class="fa">
+    <button class="btn btn-p" onclick="saveTabOrderClick()">💾 Zapisz</button>
+    <button class="btn btn-s" onclick="resetTabOrderClick()">↺ Domyślna</button>
+  </div>
+</div></div>
+
 <!-- HELP MODAL -->
 <div id="help-modal">
   <div class="help-topbar">
@@ -2938,18 +2955,11 @@ function renderAnalytics(){
   h+='</div>';
 
   // Analytics tabs
-  h+='<div class="tabs" id="atabs">';
-  h+='<button class="tab on" onclick="switchATab(\'charts\',this)">📊 Wykresy</button>';
-  h+='<button class="tab" onclick="switchATab(\'ranking\',this)">🏆 Ranking</button>';
-  h+='<button class="tab" onclick="switchATab(\'whatif\',this)">🔮 Co jeśli?</button>';
-  h+='<button class="tab" onclick="switchATab(\'accuracy\',this)">🎯 Trafność</button>';
-  h+='<button class="tab" onclick="switchATab(\'quadrant\',this)">🧭 Kwadranty</button>';
-  h+='<button class="tab" onclick="switchATab(\'waterfall\',this)">📉 Odchylenia</button>';
-  h+='<button class="tab" onclick="switchATab(\'weather\',this)">🌤️ Pogoda</button>';
-  h+='</div>';
+  var analyticsDefault=tabOrderDefault('analytics');
+  h+=buildTabsHTML('analytics',analyticsDefault,'switchATab','atabs');
 
   // Charts panel
-  h+='<div id="at-charts">';
+  h+='<div id="at-charts" style="display:'+(analyticsDefault==='charts'?'block':'none')+'">';
   h+='<div class="cgrid"><div class="cc"><div class="card-title">Wyniki vs Budżet</div><canvas id="ch-bar"></canvas></div>';
   h+='<div class="cc"><div class="card-title">Udział outletów</div><canvas id="ch-donut"></canvas></div>';
   h+='<div class="cc"><div class="card-title">% realizacji budżetu</div><canvas id="ch-hbar"></canvas></div>';
@@ -2965,14 +2975,14 @@ function renderAnalytics(){
   h+='</tbody></table></div></div>';
 
   // Ranking panel
-  h+='<div id="at-ranking" style="display:none"></div>';
+  h+='<div id="at-ranking" style="display:'+(analyticsDefault==='ranking'?'block':'none')+'"></div>';
   // What-if panel
-  h+='<div id="at-whatif" style="display:none"></div>';
+  h+='<div id="at-whatif" style="display:'+(analyticsDefault==='whatif'?'block':'none')+'"></div>';
   // Accuracy / quadrant / waterfall panels
-  h+='<div id="at-accuracy" style="display:none"></div>';
-  h+='<div id="at-quadrant" style="display:none"></div>';
-  h+='<div id="at-waterfall" style="display:none"></div>';
-  h+='<div id="at-weather" style="display:none"></div>';
+  h+='<div id="at-accuracy" style="display:'+(analyticsDefault==='accuracy'?'block':'none')+'"></div>';
+  h+='<div id="at-quadrant" style="display:'+(analyticsDefault==='quadrant'?'block':'none')+'"></div>';
+  h+='<div id="at-waterfall" style="display:'+(analyticsDefault==='waterfall'?'block':'none')+'"></div>';
+  h+='<div id="at-weather" style="display:'+(analyticsDefault==='weather'?'block':'none')+'"></div>';
 
   el.innerHTML=h;
 
@@ -5093,16 +5103,12 @@ function renderData(){
   var roAttr=ro?' disabled':'';
 
   var h='';
+  var dataDefault=tabOrderDefault('data');
 
-  // ── PRZEŁĄCZNIK: Miesięczne / Dzienne ──
-  h+='<div class="tabs" id="data-tabs">';
-  h+='<button class="tab on" id="data-tab-monthly" onclick="switchDataTab(\'monthly\',this)">📝 Miesięczne</button>';
-  h+='<button class="tab" id="data-tab-daily" onclick="switchDataTab(\'daily\',this)">📆 Dzienne</button>';
-  h+='<button class="tab" id="data-tab-menusales" onclick="switchDataTab(\'menusales\',this)">🍽️ Sprzedaż menu</button>';
-  h+='<button class="tab" id="data-tab-menuengineering" onclick="switchDataTab(\'menuengineering\',this)">📊 Menu Engineering</button>';
-  h+='</div>';
+  // ── PRZEŁĄCZNIK: Miesięczne / Dzienne / Sprzedaż menu / Menu Engineering ──
+  h+=buildTabsHTML('data',dataDefault,'switchDataTab','data-tabs','data-tab-');
 
-  h+='<div id="data-sub-monthly">';
+  h+='<div id="data-sub-monthly" style="display:'+(dataDefault==='monthly'?'block':'none')+'">';
 
   if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Masz uprawnienia tylko do odczytu (rola: Podgląd) — nie możesz edytować danych tego obiektu.</div>';
 
@@ -5171,11 +5177,11 @@ function renderData(){
   h+='</div>'; // koniec #data-sub-monthly
 
   // ── POD-ZAKŁADKA: Dane dzienne (renderowana osobno przez renderDaily() do #v-daily) ──
-  h+='<div id="v-daily" style="display:none"></div>';
+  h+='<div id="v-daily" style="display:'+(dataDefault==='daily'?'block':'none')+'"></div>';
   // ── POD-ZAKŁADKA: Sprzedaż menu (renderowana osobno przez renderMenuSales() do #v-menusales) ──
-  h+='<div id="v-menusales" style="display:none"></div>';
+  h+='<div id="v-menusales" style="display:'+(dataDefault==='menusales'?'block':'none')+'"></div>';
   // ── POD-ZAKŁADKA: Menu Engineering (renderowana osobno przez renderMenuEng() do #v-menueng) ──
-  h+='<div id="v-menueng" style="display:none"></div>';
+  h+='<div id="v-menueng" style="display:'+(dataDefault==='menuengineering'?'block':'none')+'"></div>';
 
   el.innerHTML=h;
   recalc();
@@ -5184,6 +5190,108 @@ function renderData(){
   renderDaily();
   renderMenuSales();
   renderMenuEng();
+}
+
+/* ═══════════════════════════════════════════
+   KOLEJNOŚĆ ZAKŁADEK (przestawialna) — Wprowadź dane / Analityka / Porównania.
+   Zmienia tylko WIDOCZNĄ kolejność przycisków — treść pod spodem (przełączana
+   przez pokazanie/schowanie odpowiedniego diva po id) działa niezależnie od
+   kolejności DOM-u, więc wystarczy przestawić same przyciski.
+═══════════════════════════════════════════ */
+var TAB_DEFS={
+  data:[
+    {id:'monthly',icon:'📝',label:'Miesięczne'},
+    {id:'daily',icon:'📆',label:'Dzienne'},
+    {id:'menusales',icon:'🍽️',label:'Sprzedaż menu'},
+    {id:'menuengineering',icon:'📊',label:'Menu Engineering'}
+  ],
+  analytics:[
+    {id:'charts',icon:'📊',label:'Wykresy'},
+    {id:'ranking',icon:'🏆',label:'Ranking'},
+    {id:'whatif',icon:'🔮',label:'Co jeśli?'},
+    {id:'accuracy',icon:'🎯',label:'Trafność'},
+    {id:'quadrant',icon:'🧭',label:'Kwadranty'},
+    {id:'waterfall',icon:'📉',label:'Odchylenia'},
+    {id:'weather',icon:'🌤️',label:'Pogoda'}
+  ],
+  compare:[
+    {id:'mom',icon:'',label:'MoM'},
+    {id:'yoy',icon:'',label:'YoY'},
+    {id:'ytd',icon:'',label:'YTD'},
+    {id:'season',icon:'🌊',label:'Sezonowość'},
+    {id:'range',icon:'📆',label:'Zakres'},
+    {id:'menu',icon:'🍽️',label:'Sprzedaż menu'}
+  ]
+};
+function getTabOrder(section){return lsGet(uk('taborder-'+section),null)}
+function saveTabOrderState(section,order){lsSet(uk('taborder-'+section),order)}
+// Zwraca definicje zakładek posortowane wg zapisanej kolejności; nowe/nierozpoznane id lądują
+// na końcu w kolejności domyślnej, a usunięte z aplikacji id są pomijane.
+function applyTabOrder(section,defs){
+  var saved=getTabOrder(section);
+  if(!saved||!saved.length)return defs.slice();
+  var byId={};defs.forEach(function(d){byId[d.id]=d});
+  var out=[];
+  saved.forEach(function(id){if(byId[id]){out.push(byId[id]);delete byId[id];}});
+  defs.forEach(function(d){if(byId[d.id])out.push(d)});
+  return out;
+}
+function tabOrderDefault(section){return applyTabOrder(section,TAB_DEFS[section])[0].id}
+// Buduje HTML paska zakładek (w zapisanej kolejności) + przycisk ⚙️ do zmiany kolejności.
+function buildTabsHTML(section,activeId,switchFnName,tabsId,idPrefix){
+  var ordered=applyTabOrder(section,TAB_DEFS[section]);
+  var h='<div class="tabs-row"><div class="tabs" id="'+tabsId+'">';
+  ordered.forEach(function(d){
+    h+='<button class="tab'+(d.id===activeId?' on':'')+'"'+(idPrefix?' id="'+idPrefix+d.id+'"':'')+' onclick="'+switchFnName+'(\''+d.id+'\',this)">'+(d.icon?d.icon+' ':'')+d.label+'</button>';
+  });
+  h+='</div><button class="tab-order-gear" onclick="openTabOrderModal(\''+section+'\')" title="Zmień kolejność zakładek">⚙️</button></div>';
+  return h;
+}
+function openTabOrderModal(section){
+  S._tabOrderEditing={section:section,order:applyTabOrder(section,TAB_DEFS[section]).map(function(d){return d.id})};
+  renderTabOrderList();
+  openM('m-tab-order');
+}
+function renderTabOrderList(){
+  var box=document.getElementById('tab-order-list');if(!box)return;
+  var st=S._tabOrderEditing;if(!st)return;
+  var byId={};TAB_DEFS[st.section].forEach(function(d){byId[d.id]=d});
+  var h='';
+  st.order.forEach(function(id,i){
+    var d=byId[id];if(!d)return;
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--brd);border-radius:8px;margin-bottom:6px">';
+    h+='<span style="flex:1;font-size:.82rem">'+(d.icon?d.icon+' ':'')+d.label+'</span>';
+    h+='<button class="btn-icon" onclick="tabOrderMove('+i+',-1)"'+(i===0?' disabled style="opacity:.3"':'')+'>▲</button>';
+    h+='<button class="btn-icon" onclick="tabOrderMove('+i+',1)"'+(i===st.order.length-1?' disabled style="opacity:.3"':'')+'>▼</button>';
+    h+='</div>';
+  });
+  box.innerHTML=h;
+}
+function tabOrderMove(idx,delta){
+  var st=S._tabOrderEditing;if(!st)return;
+  var j=idx+delta;if(j<0||j>=st.order.length)return;
+  var tmp=st.order[idx];st.order[idx]=st.order[j];st.order[j]=tmp;
+  renderTabOrderList();
+  haptic(6);
+}
+function saveTabOrderClick(){
+  var st=S._tabOrderEditing;if(!st)return;
+  saveTabOrderState(st.section,st.order);
+  closeM('m-tab-order');
+  toast('Kolejność zapisana','ok');
+  tabOrderRerender(st.section);
+}
+function resetTabOrderClick(){
+  var st=S._tabOrderEditing;if(!st)return;
+  lsDel(uk('taborder-'+st.section));
+  closeM('m-tab-order');
+  toast('Przywrócono domyślną kolejność','in');
+  tabOrderRerender(st.section);
+}
+function tabOrderRerender(section){
+  if(section==='data')renderData();
+  else if(section==='analytics')renderAnalytics();
+  else if(section==='compare')renderCompare();
 }
 
 function switchDataTab(tab,btn){
@@ -6555,10 +6663,11 @@ function renderCompare(){
   var yA=sumActive(yD.a||{});
   var mom=pA>0?(cA-pA)/pA*100:null,yoy=yA>0?(cA-yA)/yA*100:null;
 
-  var h='<div class="tabs" id="ctabs"><button class="tab on" onclick="cTab(\'mom\',this)">MoM</button><button class="tab" onclick="cTab(\'yoy\',this)">YoY</button><button class="tab" onclick="cTab(\'ytd\',this)">YTD</button><button class="tab" onclick="cTab(\'season\',this)">🌊 Sezonowość</button><button class="tab" onclick="cTab(\'range\',this)">📆 Zakres</button><button class="tab" onclick="cTab(\'menu\',this)">🍽️ Sprzedaż menu</button></div>';
+  var compareDefault=tabOrderDefault('compare');
+  var h=buildTabsHTML('compare',compareDefault,'cTab','ctabs');
 
   // MoM
-  h+='<div id="ct-mom">';
+  h+='<div id="ct-mom" style="display:'+(compareDefault==='mom'?'block':'none')+'">';
   h+='<div style="font-size:.72rem;color:var(--tx3);margin-bottom:10px">'+mLabelFull(S.month)+' vs '+mLabelFull(pm)+'</div>';
   h+='<div class="ccards"><div class="ccard"><div class="ccard-l">'+mLabel(S.month)+'</div><div class="ccard-v">'+fmt(cA,true)+'</div></div>';
   h+='<div class="ccard"><div class="ccard-l">'+mLabel(pm)+'</div><div class="ccard-v">'+fmt(pA,true)+'</div></div>';
@@ -6568,7 +6677,7 @@ function renderCompare(){
   h+='</tbody></table></div></div>';
 
   // YoY
-  h+='<div id="ct-yoy" style="display:none">';
+  h+='<div id="ct-yoy" style="display:'+(compareDefault==='yoy'?'block':'none')+'">';
   h+='<div style="font-size:.72rem;color:var(--tx3);margin-bottom:10px">'+mLabelFull(S.month)+' vs '+mLabelFull(yoyM)+'</div>';
   h+='<div class="ccards"><div class="ccard"><div class="ccard-l">'+mLabel(S.month)+'</div><div class="ccard-v">'+fmt(cA,true)+'</div></div>';
   h+='<div class="ccard"><div class="ccard-l">'+mLabel(yoyM)+'</div><div class="ccard-v">'+fmt(yA,true)+'</div></div>';
@@ -6578,14 +6687,14 @@ function renderCompare(){
   h+='</tbody></table></div></div>';
 
   // YTD
-  h+='<div id="ct-ytd" style="display:none">';
+  h+='<div id="ct-ytd" style="display:'+(compareDefault==='ytd'?'block':'none')+'">';
   var ytdMs=Object.keys(allD).filter(function(m){return m.startsWith(ym)}).sort(),run=0;
   h+='<div class="tbl-wrap"><table><thead><tr><th>Miesiąc</th><th>Wynik</th><th>Budżet</th><th>Real.%</th><th>Narastająco</th></tr></thead><tbody>';
   ytdMs.forEach(function(m){var md=allD[m],ma=sumActive(md.a||{}),mb=sumActive(md.b||{});run+=ma;h+='<tr><td>'+mLabelFull(m)+'</td><td>'+fmt(ma)+'</td><td>'+(mb?fmt(mb):'—')+'</td><td>'+(mb?'<span class="pill '+pc(ma/mb)+'">'+(ma/mb*100).toFixed(1)+'%</span>':'—')+'</td><td class="td-acc">'+fmt(run)+'</td></tr>'});
   h+='</tbody></table></div></div>';
 
   // Sezonowość (#9) — obecny miesiąc vs średnia tego samego miesiąca w poprzednich latach
-  h+='<div id="ct-season" style="display:none">';
+  h+='<div id="ct-season" style="display:'+(compareDefault==='season'?'block':'none')+'">';
   var sameMonthYears=Object.keys(allD).filter(function(m){return m.endsWith('-'+mm)&&m!==S.month});
   if(sameMonthYears.length){
     var histTotals=sameMonthYears.map(function(m){return sumActive(allD[m].a||{})});
@@ -6612,7 +6721,7 @@ function renderCompare(){
   h+='</div>';
 
   // Zakres niestandardowy (#10)
-  h+='<div id="ct-range" style="display:none">';
+  h+='<div id="ct-range" style="display:'+(compareDefault==='range'?'block':'none')+'">';
   h+='<p class="hs-p" style="margin-bottom:10px">Zsumuj dowolny zakres miesięcy — np. sezon letni czerwiec–sierpień lub kwartał.</p>';
   h+='<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">';
   h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="range-from" value="'+S.month+'"></div>';
@@ -6623,7 +6732,7 @@ function renderCompare(){
   h+='</div>';
 
   // ── SPRZEDAŻ MENU: podzakładki (#1 M2M, #2 Top zmiany, #3 Bestsellery) ──
-  h+='<div id="ct-menu" style="display:none">';
+  h+='<div id="ct-menu" style="display:'+(compareDefault==='menu'?'block':'none')+'">';
   var msSaved=getAllMenuSalesMonths(S.pid); // sort malejąco, najnowszy pierwszy
   if(!msSaved.length){
     h+='<div class="empty"><p>Brak jeszcze zapisanych danych sprzedaży pozycji menu — wklej pierwszy raport w zakładce <a href="#" onclick="goMenuSales()">Wprowadź dane → Sprzedaż menu</a>.</p></div>';
