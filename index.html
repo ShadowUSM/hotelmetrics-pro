@@ -5221,6 +5221,16 @@ var TAB_DEFS={
     {id:'season',icon:'🌊',label:'Sezonowość'},
     {id:'range',icon:'📆',label:'Zakres'},
     {id:'menu',icon:'🍽️',label:'Sprzedaż menu'}
+  ],
+  ctm:[
+    {id:'m2m',icon:'🔁',label:'Miesiąc do miesiąca'},
+    {id:'top',icon:'📊',label:'Top zmiany'},
+    {id:'best',icon:'🏆',label:'Bestsellery'},
+    {id:'trend',icon:'📈',label:'Trend pozycji'},
+    {id:'cat',icon:'📦',label:'Grupy towarowe'},
+    {id:'mix',icon:'🥧',label:'Mix sprzedażowy'},
+    {id:'items',icon:'🧾',label:'Sprzedaż pozycji'},
+    {id:'pivot',icon:'🗓️',label:'Pozycje w czasie'}
   ]
 };
 function getTabOrder(section){return lsGet(uk('taborder-'+section),null)}
@@ -5291,7 +5301,7 @@ function resetTabOrderClick(){
 function tabOrderRerender(section){
   if(section==='data')renderData();
   else if(section==='analytics')renderAnalytics();
-  else if(section==='compare')renderCompare();
+  else if(section==='compare'||section==='ctm')renderCompare();
 }
 
 function switchDataTab(tab,btn){
@@ -6749,10 +6759,11 @@ function renderCompare(){
     h+='<button class="btn btn-p" onclick="pdfCtmPackage()">📦 Generuj pakiet PDF</button>';
     h+='</div></div>';
 
-    h+='<div class="tabs" id="ctm-tabs"><button class="tab on" onclick="ctmTab(\'m2m\',this)">🔁 Miesiąc do miesiąca</button><button class="tab" onclick="ctmTab(\'top\',this)">📊 Top zmiany</button><button class="tab" onclick="ctmTab(\'best\',this)">🏆 Bestsellery</button><button class="tab" onclick="ctmTab(\'trend\',this)">📈 Trend pozycji</button><button class="tab" onclick="ctmTab(\'cat\',this)">📦 Grupy towarowe</button><button class="tab" onclick="ctmTab(\'mix\',this)">🥧 Mix sprzedażowy</button><button class="tab" onclick="ctmTab(\'items\',this)">🧾 Sprzedaż pozycji</button><button class="tab" onclick="ctmTab(\'pivot\',this)">🗓️ Pozycje w czasie</button></div>';
+    var ctmDefault=tabOrderDefault('ctm');
+    h+=buildTabsHTML('ctm',ctmDefault,'ctmTab','ctm-tabs');
 
     // #1 — Pozycje miesiąc do miesiąca
-    h+='<div id="ctm-m2m">';
+    h+='<div id="ctm-m2m" style="display:'+(ctmDefault==='m2m'?'block':'none')+'">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc A</label><input type="month" class="fi" id="ctm-m1" value="'+defM1+'"></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc B</label><input type="month" class="fi" id="ctm-m2" value="'+defM2+'"></div>';
@@ -6762,7 +6773,7 @@ function renderCompare(){
     h+='</div><div id="ctm-m2m-results"></div><div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfCtmM2M()">📄 Zapisz do PDF</button></div></div>';
 
     // #2 — Top wzrosty / spadki
-    h+='<div id="ctm-top" style="display:none">';
+    h+='<div id="ctm-top" style="display:'+(ctmDefault==='top'?'block':'none')+'">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc A</label><input type="month" class="fi" id="ctm2-m1" value="'+defM1+'"></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc B</label><input type="month" class="fi" id="ctm2-m2" value="'+defM2+'"></div>';
@@ -6772,7 +6783,7 @@ function renderCompare(){
     h+='</div><div id="ctm-top-results"></div><div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfCtmTop()">📄 Zapisz do PDF</button></div></div>';
 
     // #3 — Bestsellery miesiąca
-    h+='<div id="ctm-best" style="display:none">';
+    h+='<div id="ctm-best" style="display:'+(ctmDefault==='best'?'block':'none')+'">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc</label><input type="month" class="fi" id="ctm3-m" value="'+defM2+'"></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm3-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
@@ -6783,7 +6794,7 @@ function renderCompare(){
 
     // #4 — Trend pozycji w czasie
     var trendItems=msalesAllItemNames(S.pid,'__all__');
-    h+='<div id="ctm-trend" style="display:none">';
+    h+='<div id="ctm-trend" style="display:'+(ctmDefault==='trend'?'block':'none')+'">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm4-outlet" onchange="ctm4RefreshItems()">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
     h+='<div class="fg" style="margin-bottom:0;min-width:220px"><label>Pozycja</label><select class="fi" id="ctm4-item">'+ctm4ItemOptionsHTML(trendItems)+'</select></div>';
@@ -6795,7 +6806,7 @@ function renderCompare(){
     h+='</div>';
 
     // #5 — Porównanie grup towarowych
-    h+='<div id="ctm-cat" style="display:none">';
+    h+='<div id="ctm-cat" style="display:'+(ctmDefault==='cat'?'block':'none')+'">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc A</label><input type="month" class="fi" id="ctm5-m1" value="'+defM1+'"></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc B</label><input type="month" class="fi" id="ctm5-m2" value="'+defM2+'"></div>';
@@ -6804,7 +6815,7 @@ function renderCompare(){
     h+='</div><div id="ctm-cat-results"></div><div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfCtmCat()">📄 Zapisz do PDF</button></div></div>';
 
     // #6 — Mix sprzedażowy (udział pozycji)
-    h+='<div id="ctm-mix" style="display:none">';
+    h+='<div id="ctm-mix" style="display:'+(ctmDefault==='mix'?'block':'none')+'">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc</label><input type="month" class="fi" id="ctm6-m" value="'+defM2+'"></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm6-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
@@ -6814,7 +6825,7 @@ function renderCompare(){
 
     // #7 — Sprzedaż pozycji (to samo co po kliknięciu w kartę outletu na Dashboardzie),
     // z możliwością wyboru pojedynczego miesiąca ALBO zakresu miesięcy (sumowanie).
-    h+='<div id="ctm-items" style="display:none">';
+    h+='<div id="ctm-items" style="display:'+(ctmDefault==='items'?'block':'none')+'">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm7-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
     h+='<div class="fg" style="margin-bottom:0"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="ctm7-range-toggle" onchange="ctm7ToggleRange()" style="width:auto"> Zakres miesięcy</label></div>';
@@ -6825,7 +6836,7 @@ function renderCompare(){
     h+='</div><div id="ctm-items-results"></div><div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfCtmItems()">📄 Zapisz do PDF</button></div></div>';
 
     // #8 — Pozycje w czasie (pivot: pozycja × miesiąc, heatmapa wartości)
-    h+='<div id="ctm-pivot" style="display:none">';
+    h+='<div id="ctm-pivot" style="display:'+(ctmDefault==='pivot'?'block':'none')+'">';
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
     h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm8-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Metryka</label><select class="fi" id="ctm8-metric"><option value="netto">Wartość (netto)</option><option value="qty">Ilość</option></select></div>';
