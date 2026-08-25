@@ -577,7 +577,7 @@ body.presentation-mode #presentation-exit{display:flex}
 .dp-title{font-size:.78rem;font-weight:600;color:var(--tx);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
 
 /* Bottom spacer — każda zakładka ma 80px wolnego miejsca na dole */
-#v-dashboard,#v-data,#v-analytics,#v-heatmap,#v-compare,#v-properties,#v-export,
+#v-dashboard,#v-data,#v-analytics,#v-compare,#v-menuanalysis,#v-properties,#v-export,
 #v-budget,#v-team{padding-bottom:80px}
 
 /* ── AUTO THEME (system preference) ── */
@@ -1554,11 +1554,11 @@ body.presentation-mode #presentation-exit{display:flex}
     <div class="nav-i" data-v="analytics" onclick="go('analytics')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analityka
     </div>
-    <div class="nav-i" data-v="heatmap" onclick="go('heatmap')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/></svg>Heatmapa
-    </div>
     <div class="nav-i" data-v="compare" onclick="go('compare')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Porównania
+    </div>
+    <div class="nav-i" data-v="menuanalysis" onclick="go('menuanalysis')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Analiza Menu
     </div>
     </div>
     <div class="s-sect" id="s-sect-mgmt" onclick="toggleNavSection('mgmt')">
@@ -1570,7 +1570,7 @@ body.presentation-mode #presentation-exit{display:flex}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Obiekty i outlety
     </div>
     <div class="nav-i" data-v="export" onclick="go('export')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Eksport / Import
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Raporty i eksport
     </div>
     <div class="nav-i" data-v="budget" onclick="go('budget')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Budżet roczny
@@ -1656,7 +1656,7 @@ body.presentation-mode #presentation-exit{display:flex}
     <div id="v-dashboard"></div>
     <div id="v-data" style="display:none"></div>
     <div id="v-analytics" style="display:none"></div>
-    <div id="v-heatmap" style="display:none"></div>
+    <div id="v-menuanalysis" style="display:none"></div>
     <div id="v-compare" style="display:none"></div>
     <div id="v-properties" style="display:none"></div>
     <div id="v-export" style="display:none"></div>
@@ -1684,9 +1684,9 @@ body.presentation-mode #presentation-exit{display:flex}
     Analityka
   </button>
 
-  <button class="bnav-item" data-v="heatmap" onclick="go('heatmap')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/></svg>
-    Heatmapa
+  <button class="bnav-item" data-v="menuanalysis" onclick="go('menuanalysis')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+    Menu
   </button>
 
   <button class="bnav-item" data-v="compare" onclick="go('compare')">
@@ -2605,9 +2605,9 @@ function renderHeatmap(container,pid,month,compact){
   if(prop&&prop.lat){
     ensureMonthWeather(pid,month).then(function(res){
       if(!res.fetched||S.pid!==pid||S.month!==month)return;
-      if(S.view==='heatmap'){
-        var vHeat=document.getElementById('v-heatmap');
-        if(vHeat)renderHeatmap(vHeat,pid,month);
+      if(S.view==='analytics'){
+        var atHeat=document.getElementById('at-heatmap');
+        if(atHeat)renderHeatmap(atHeat,pid,month);
       }
       if(compact)renderSidePanel();
     });
@@ -2618,8 +2618,9 @@ function renderHeatmap(container,pid,month,compact){
    RENDER: HEATMAPA — samodzielny widok najwyższego poziomu
    (przeniesiona z zakładek Analityki na listwę dolną, obok Dashboard/Dane/Analityka/Porównania)
 ═══════════════════════════════════════════ */
-function renderHeatmapView(){
-  var el=document.getElementById('v-heatmap');if(!el)return;
+// Renderuje heatmapę do dowolnego kontenera — używane w Analityka → Heatmapa (dawniej osobny widok top-level).
+function renderHeatmapInto(el){
+  if(!el)return;
   if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('📅','Brak obiektu lub outletów','Dodaj obiekt hotelowy i outlety, aby zobaczyć heatmapę sprzedaży.','+ Przejdź do obiektów',"go('properties')");return;}
   renderHeatmap(el,S.pid,S.month);
 }
@@ -2990,6 +2991,8 @@ function renderAnalytics(){
 
   // Ranking panel
   h+='<div id="at-ranking" style="display:'+(analyticsDefault==='ranking'?'block':'none')+'"></div>';
+  // Heatmapa panel
+  h+='<div id="at-heatmap" style="display:'+(analyticsDefault==='heatmap'?'block':'none')+'"></div>';
   // What-if panel
   h+='<div id="at-whatif" style="display:'+(analyticsDefault==='whatif'?'block':'none')+'"></div>';
   // Accuracy / quadrant / waterfall panels
@@ -3019,8 +3022,9 @@ function renderAnalytics(){
   dChart('ch-trend');
   S.charts['ch-trend']=new Chart(document.getElementById('ch-trend'),{type:'line',data:{labels:months.map(mLabel),datasets:[{label:'Wynik netto',data:months.map(function(m){return conv(sumActive(allD[m].a||{}))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.35,fill:true,pointRadius:4,pointBackgroundColor:acHex(),pointBorderColor:surHex(),pointBorderWidth:2}]},options:chOpts(function(v){return fmtR(v)})});
 
-  // Pre-render ranking / what-if / nowe analizy
+  // Pre-render ranking / heatmapa / what-if / nowe analizy
   renderRanking(document.getElementById('at-ranking'),M,allD);
+  renderHeatmapInto(document.getElementById('at-heatmap'));
   renderWhatIf(document.getElementById('at-whatif'),M);
   renderAccuracy(document.getElementById('at-accuracy'),allD);
   renderQuadrant(document.getElementById('at-quadrant'),M,allD);
@@ -3029,7 +3033,7 @@ function renderAnalytics(){
 }
 
 function switchATab(tab,btn){
-  ['charts','ranking','whatif','accuracy','quadrant','waterfall','weather'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
+  ['charts','heatmap','ranking','whatif','accuracy','quadrant','waterfall','weather'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
   document.querySelectorAll('#atabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -3531,6 +3535,16 @@ function goMenuSales(){
   go('data');
   var btn=document.getElementById('data-tab-menusales');
   if(btn)switchDataTab('menusales',btn);
+}
+function goMenuEng(){
+  go('data');
+  var btn=document.getElementById('data-tab-menuengineering');
+  if(btn)switchDataTab('menuengineering',btn);
+}
+function goDataImport(){
+  go('data');
+  var btn=document.getElementById('data-tab-import');
+  if(btn)switchDataTab('import',btn);
 }
 
 function openNotesModal(outletName){
@@ -4559,12 +4573,12 @@ function setTheme(t){
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',heatmap:'Heatmapa',compare:'Porównania',properties:'Obiekty i outlety',export:'Eksport / Import',budget:'Budżet roczny',team:'Zespół'};
+var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',compare:'Porównania',menuanalysis:'Analiza Menu',properties:'Obiekty i outlety',export:'Raporty i eksport',budget:'Budżet roczny',team:'Zespół'};
 function go(v,_skipHistory){
   if(v!==S.view&&!_skipHistory)history.pushState({hmView:v},'',location.href);
   S.view=v;
   document.querySelectorAll('[data-v]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-v')===v)});
-  document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-heatmap,#v-compare,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
+  document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-compare,#v-menuanalysis,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
   var el=document.getElementById('v-'+v);if(el)el.style.display='block';
   var pt=document.getElementById('pg-title');if(pt)pt.textContent=TITLES[v]||v;
   syncNavSections();
@@ -4632,7 +4646,7 @@ function initBackGesture(){
 // ── ZWIJANE SEKCJE SIDEBARA ──
 // Sekcja zawierająca aktualnie wybraną zakładkę jest zawsze automatycznie rozwinięta
 // (żeby było widać gdzie jesteś), pozostałe domyślnie zwinięte — oszczędza miejsce na telefonie.
-var NAV_SECTIONS={main:['dashboard','data','analytics','heatmap','compare'],mgmt:['properties','export','budget','team']};
+var NAV_SECTIONS={main:['dashboard','data','analytics','compare','menuanalysis'],mgmt:['properties','export','budget','team']};
 
 function toggleNavSection(id){
   var group=document.getElementById('nav-group-'+id),header=document.getElementById('s-sect-'+id);
@@ -5313,6 +5327,8 @@ function renderData(){
   h+='<div id="v-menusales" style="display:'+(dataDefault==='menusales'?'block':'none')+'"></div>';
   // ── POD-ZAKŁADKA: Menu Engineering (renderowana osobno przez renderMenuEng() do #v-menueng) ──
   h+='<div id="v-menueng" style="display:'+(dataDefault==='menuengineering'?'block':'none')+'"></div>';
+  // ── POD-ZAKŁADKA: Import plików (renderowana osobno przez renderDataImport() do #v-data-import) ──
+  h+='<div id="v-data-import" style="display:'+(dataDefault==='import'?'block':'none')+'"></div>';
 
   el.innerHTML=h;
   recalc();
@@ -5321,6 +5337,7 @@ function renderData(){
   renderDaily();
   renderMenuSales();
   renderMenuEng();
+  renderDataImport();
 }
 
 /* ═══════════════════════════════════════════
@@ -5334,10 +5351,12 @@ var TAB_DEFS={
     {id:'monthly',icon:'📝',label:'Miesięczne'},
     {id:'daily',icon:'📆',label:'Dzienne'},
     {id:'menusales',icon:'🍽️',label:'Sprzedaż menu'},
-    {id:'menuengineering',icon:'📊',label:'Menu Engineering'}
+    {id:'menuengineering',icon:'📊',label:'Menu Engineering'},
+    {id:'import',icon:'📥',label:'Import plików'}
   ],
   analytics:[
     {id:'charts',icon:'📊',label:'Wykresy'},
+    {id:'heatmap',icon:'🗓️',label:'Heatmapa'},
     {id:'ranking',icon:'🏆',label:'Ranking'},
     {id:'whatif',icon:'🔮',label:'Co jeśli?'},
     {id:'accuracy',icon:'🎯',label:'Trafność'},
@@ -5350,8 +5369,7 @@ var TAB_DEFS={
     {id:'yoy',icon:'',label:'YoY'},
     {id:'ytd',icon:'',label:'YTD'},
     {id:'season',icon:'🌊',label:'Sezonowość'},
-    {id:'range',icon:'📆',label:'Zakres'},
-    {id:'menu',icon:'🍽️',label:'Sprzedaż menu'}
+    {id:'range',icon:'📆',label:'Zakres'}
   ],
   ctm:[
     {id:'m2m',icon:'🔁',label:'Miesiąc do miesiąca'},
@@ -5432,15 +5450,17 @@ function resetTabOrderClick(){
 function tabOrderRerender(section){
   if(section==='data')renderData();
   else if(section==='analytics')renderAnalytics();
-  else if(section==='compare'||section==='ctm')renderCompare();
+  else if(section==='compare')renderCompare();
+  else if(section==='ctm')renderMenuAnalysis();
 }
 
 function switchDataTab(tab,btn){
-  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales'),meng=document.getElementById('v-menueng');
+  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales'),meng=document.getElementById('v-menueng'),imp=document.getElementById('v-data-import');
   if(monthly)monthly.style.display=tab==='monthly'?'block':'none';
   if(daily)daily.style.display=tab==='daily'?'block':'none';
   if(msales)msales.style.display=tab==='menusales'?'block':'none';
   if(meng)meng.style.display=tab==='menuengineering'?'block':'none';
+  if(imp)imp.style.display=tab==='import'?'block':'none';
   document.querySelectorAll('#data-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -5917,6 +5937,7 @@ function renderMenuEng(){
   h+='<div class="card" style="margin-bottom:14px">';
   h+='<div class="fsect">📊 Wgraj plik Menu Engineering (Material Control)</div>';
   h+='<p class="hs-p" style="margin-bottom:10px">Wgraj eksport .xlsx/.xlsm z analizy Menu Engineering — jeśli plik zawiera wiele outletów naraz (kolumna CK/Magazyn), aplikacja sama rozdzieli pozycje na poszczególne punkty. Pozwoli to liczyć Food cost i Beverage cost osobno dla każdego punktu, w podziale na miesiące.</p>';
+  h+='<div class="hs-tip" style="margin-bottom:10px">Macierz 2×2, zmianę kwadrantu między miesiącami i zestawienie FC/BC za okres znajdziesz w zakładce <a href="#" onclick="go(\'menuanalysis\')">Analiza Menu</a>.</div>';
   h+='<div class="fg" style="max-width:220px"><label>Miesiąc</label><input type="month" class="fi" id="meng-month" value="'+S._mengMonth+'"></div>';
   if(!ro){
     h+='<input type="file" id="meng-file" accept=".xlsx,.xlsm" style="display:none" onchange="mengFileSelected(this)">';
@@ -5945,36 +5966,9 @@ function renderMenuEng(){
   h+='<div id="meng-view-body"></div>';
   h+='</div>';
 
-  // ── ZESTAWIENIE FC/BC ZA OKRES (nie tylko pojedynczy miesiąc) ──
-  h+='<div class="card" style="margin-top:14px">';
-  h+='<div class="fsect">📅 Zestawienie za okres</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Food cost, Beverage cost i FC+BC łącznie policzone ze wszystkich zapisanych miesięcy w wybranym zakresie (dla outletu wybranego wyżej) — np. kwartał albo cały sezon.</p>';
-  var rangeMonths=S._mengViewOutlet?getMenuEngMonthsForOutlet(S.pid,S._mengViewOutlet).slice().sort():[];
-  var rangeTo=rangeMonths[rangeMonths.length-1]||S._mengMonth,rangeFrom=rangeMonths[0]||rangeTo;
-  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
-  h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="meng-range-from" value="'+rangeFrom+'"></div>';
-  h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="meng-range-to" value="'+rangeTo+'"></div>';
-  h+='<button class="btn btn-p" onclick="mengRunRange()">Oblicz</button>';
-  h+='</div><div id="meng-range-results"></div></div>';
-
-  // ── ZMIANA KWADRANTU MIĘDZY MIESIĄCAMI ──
-  h+='<div class="card" style="margin-top:14px">';
-  h+='<div class="fsect">📈 Zmiana kwadrantu między miesiącami</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Porównanie klasyfikacji tych samych pozycji (dopasowanych po kodzie z Material Control) między dwoma miesiącami — dla outletu wybranego wyżej.</p>';
-  var chgMonths=S._mengViewOutlet?getMenuEngMonthsForOutlet(S.pid,S._mengViewOutlet).slice().sort():[];
-  var chgM2=chgMonths[chgMonths.length-1]||S._mengMonth,chgM1=chgMonths[chgMonths.length-2]||chgM2;
-  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
-  h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc A</label><input type="month" class="fi" id="meng-chg-m1" value="'+chgM1+'"></div>';
-  h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc B</label><input type="month" class="fi" id="meng-chg-m2" value="'+chgM2+'"></div>';
-  h+='<label style="display:flex;align-items:center;gap:5px;font-size:.78rem;padding-bottom:8px"><input type="checkbox" id="meng-chg-onlychanged" style="width:auto" checked onchange="mengRenderChange()"> Tylko zmienione</label>';
-  h+='<button class="btn btn-p" onclick="mengRenderChange()">Porównaj</button>';
-  h+='</div><div id="meng-change-results"></div></div>';
-
   el.innerHTML=h;
   if(S._mengParsed)mengRenderPreview();
   if(S._mengViewMonth)mengRenderView();
-  if(rangeMonths.length>=1)mengRunRange();
-  if(chgMonths.length>=2)mengRenderChange();
 }
 
 function mengViewOutletChange(outletId){
@@ -6101,10 +6095,6 @@ function mengRenderView(){
   h+='<div class="ccard" style="border-color:var(--acc)"><div class="ccard-l">FC+BC (łącznie)</div><div class="ccard-v" style="color:var(--acc)">'+(t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'—')+'</div></div>';
   h+='</div>';
 
-  // ── Macierz Menu Engineering (popularność × marża na sztukę) ──
-  h+='<div class="cc" style="margin:12px 0"><div class="card-title">Macierz Menu Engineering</div><canvas id="meng-matrix-chart" style="max-height:320px"></canvas>';
-  h+='<div style="font-size:.65rem;color:var(--tx3);margin-top:6px">Podział na kwadranty (kolor punktu) pochodzi bezpośrednio z pliku Material Control — X: udział pozycji w sprzedaży, Y: marża na sztukę.</div></div>';
-
   // ── filtry tabeli ──
   var catFilter=S._mengFilterCat||'__all__',qFilter=S._mengFilterQuadrant||'__all__';
   h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">';
@@ -6140,7 +6130,6 @@ function mengRenderView(){
   h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfMengMonth()">📄 Zapisz do PDF</button><button class="btn btn-s btn-sm" onclick="mengDeleteMonth(\''+S._mengViewOutlet+'\',\''+S._mengViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
   h+='</div>';
   body.innerHTML=h;
-  mengRenderMatrixChart(data.items);
 }
 // Wykres punktowy: X = udział w sprzedaży (%), Y = marża na sztukę, kolor = kwadrant (z pliku MC).
 function mengRenderMatrixChart(items){
@@ -6872,8 +6861,27 @@ function renderCompare(){
   h+='<div id="range-results"></div>';
   h+='</div>';
 
-  // ── SPRZEDAŻ MENU: podzakładki (#1 M2M, #2 Top zmiany, #3 Bestsellery) ──
-  h+='<div id="ct-menu" style="display:'+(compareDefault==='menu'?'block':'none')+'">';
+  h+='</div>';
+
+  h+='<div class="cc" style="margin-top:14px"><div class="card-title">Wykres porównawczy</div><canvas id="ch-cmp" style="max-height:220px"></canvas></div>';
+  el.innerHTML=h;
+
+  dChart('ch-cmp');
+  var sm=Object.keys(allD).sort();
+  S.charts['ch-cmp']=new Chart(document.getElementById('ch-cmp'),{type:'line',data:{labels:sm.map(mLabel),datasets:[
+    {label:'Wynik',data:sm.map(function(m){return conv(sumActive(allD[m].a||{}))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.3,fill:false,pointRadius:4,pointBackgroundColor:acHex()},
+    {label:'Budżet',data:sm.map(function(m){return conv(sumActive(allD[m].b||{}))}),borderColor:tx2Hex(),backgroundColor:'transparent',tension:.3,borderDash:[4,4],pointRadius:3}
+  ]},options:chOpts(function(v){return fmtR(v)})});
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: ANALIZA MENU (dawniej pod-zakładka "Sprzedaż menu" w Porównaniach —
+   przeniesiona do własnej sekcji głównej, bo urosła do 8 pełnych raportów)
+═══════════════════════════════════════════ */
+function renderMenuAnalysis(){
+  var el=document.getElementById('v-menuanalysis');if(!el)return;
+  if(!S.pid){el.innerHTML=emptyStateHTML('🍽️','Wybierz obiekt hotelowy','Analiza sprzedaży pozycji menu pojawi się gdy wybierzesz obiekt w sidebarze.','+ Przejdź do obiektów',"go('properties')");return;}
+  var h='';
   var msSaved=getAllMenuSalesMonths(S.pid); // sort malejąco, najnowszy pierwszy
   if(!msSaved.length){
     h+='<div class="empty"><p>Brak jeszcze zapisanych danych sprzedaży pozycji menu — wklej pierwszy raport w zakładce <a href="#" onclick="goMenuSales()">Wprowadź dane → Sprzedaż menu</a>.</p></div>';
@@ -6977,17 +6985,78 @@ function renderCompare(){
   }
   h+='</div>';
 
-  h+='<div class="cc" style="margin-top:14px"><div class="card-title">Wykres porównawczy</div><canvas id="ch-cmp" style="max-height:220px"></canvas></div>';
+  // ── MENU ENGINEERING — ANALIZA (macierz 2×2, zmiana kwadrantu, zestawienie FC/BC za okres) ──
+  // Import plików zostaje w Wprowadź dane → Menu Engineering; tutaj tylko analiza już zaimportowanych danych.
+  var mengKeys=getAllMenuEngKeys(S.pid);
+  h+='<div class="stitle" style="margin-top:22px">📊 Menu Engineering — analiza</div>';
+  if(!mengKeys.length){
+    h+='<div class="empty"><p>Brak jeszcze zaimportowanych danych Menu Engineering — wgraj pierwszy plik w zakładce <a href="#" onclick="goMenuEng()">Wprowadź dane → Menu Engineering</a>.</p></div>';
+  } else {
+    if(!S._mengViewOutlet&&S.outlets.length)S._mengViewOutlet=S.outlets[0].id;
+    h+='<div class="card" style="margin-bottom:14px">';
+    h+='<div class="fg" style="max-width:280px"><label>Outlet</label><select class="fi" id="mea-outlet" onchange="meaOutletChange(this.value)">'+mengOutletSelectHTML('mea-outlet',S._mengViewOutlet)+'</select></div>';
+    h+='</div>';
+
+    // Macierz 2×2
+    h+='<div class="card" style="margin-bottom:14px">';
+    h+='<div class="fsect">🧭 Macierz 2×2</div>';
+    h+='<div class="fg" style="max-width:220px"><label>Miesiąc</label><input type="month" class="fi" id="mea-matrix-m" value="'+(S._mengViewMonth||S._mengMonth||S.month)+'" onchange="meaRunMatrix()"></div>';
+    h+='<div id="mea-matrix-results"></div>';
+    h+='</div>';
+
+    // Zestawienie za okres
+    var rangeMonths=getMenuEngMonthsForOutlet(S.pid,S._mengViewOutlet).slice().sort();
+    var rangeTo=rangeMonths[rangeMonths.length-1]||S.month,rangeFrom=rangeMonths[0]||rangeTo;
+    h+='<div class="card" style="margin-bottom:14px">';
+    h+='<div class="fsect">📅 Zestawienie za okres</div>';
+    h+='<p class="hs-p" style="margin-bottom:10px">Food cost, Beverage cost i FC+BC łącznie policzone ze wszystkich zapisanych miesięcy w wybranym zakresie (dla outletu wybranego wyżej) — np. kwartał albo cały sezon.</p>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="meng-range-from" value="'+rangeFrom+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="meng-range-to" value="'+rangeTo+'"></div>';
+    h+='<button class="btn btn-p" onclick="mengRunRange()">Oblicz</button>';
+    h+='</div><div id="meng-range-results"></div></div>';
+
+    // Zmiana kwadrantu między miesiącami
+    var chgM2=rangeMonths[rangeMonths.length-1]||S.month,chgM1=rangeMonths[rangeMonths.length-2]||chgM2;
+    h+='<div class="card" style="margin-bottom:14px">';
+    h+='<div class="fsect">📈 Zmiana kwadrantu między miesiącami</div>';
+    h+='<p class="hs-p" style="margin-bottom:10px">Porównanie klasyfikacji tych samych pozycji (dopasowanych po kodzie z Material Control) między dwoma miesiącami — dla outletu wybranego wyżej.</p>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc A</label><input type="month" class="fi" id="meng-chg-m1" value="'+chgM1+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc B</label><input type="month" class="fi" id="meng-chg-m2" value="'+chgM2+'"></div>';
+    h+='<label style="display:flex;align-items:center;gap:5px;font-size:.78rem;padding-bottom:8px"><input type="checkbox" id="meng-chg-onlychanged" style="width:auto" checked onchange="mengRenderChange()"> Tylko zmienione</label>';
+    h+='<button class="btn btn-p" onclick="mengRenderChange()">Porównaj</button>';
+    h+='</div><div id="meng-change-results"></div></div>';
+  }
+
   el.innerHTML=h;
 
   if(msSaved.length){ctmRunM2M();ctmRunTop();ctmRunBest();ctmRunTrend();ctmRunCat();ctmRunMix();ctmRunItems();ctmRunPivot();}
-
-  dChart('ch-cmp');
-  var sm=Object.keys(allD).sort();
-  S.charts['ch-cmp']=new Chart(document.getElementById('ch-cmp'),{type:'line',data:{labels:sm.map(mLabel),datasets:[
-    {label:'Wynik',data:sm.map(function(m){return conv(sumActive(allD[m].a||{}))}),borderColor:acHex(),backgroundColor:acHex()+'22',tension:.3,fill:false,pointRadius:4,pointBackgroundColor:acHex()},
-    {label:'Budżet',data:sm.map(function(m){return conv(sumActive(allD[m].b||{}))}),borderColor:tx2Hex(),backgroundColor:'transparent',tension:.3,borderDash:[4,4],pointRadius:3}
-  ]},options:chOpts(function(v){return fmtR(v)})});
+  if(mengKeys.length){meaRunMatrix();mengRunRange();mengRenderChange();}
+}
+function meaOutletChange(outletId){
+  S._mengViewOutlet=outletId;
+  renderMenuAnalysis();
+}
+// Liczy KPI + rysuje macierz 2×2 dla wybranego (w Analiza Menu) outletu i miesiąca.
+function meaRunMatrix(){
+  var outletEl=document.getElementById('mea-outlet'),monthEl=document.getElementById('mea-matrix-m');
+  var res=document.getElementById('mea-matrix-results');if(!res||!outletEl||!monthEl)return;
+  var outletId=outletEl.value,month=monthEl.value;
+  if(!outletId||!month){res.innerHTML='<div class="hs-warn">Wybierz outlet i miesiąc.</div>';return;}
+  var data=getMenuEng(S.pid,outletId,month);
+  if(!data){res.innerHTML='<div class="empty"><p>Brak zapisanych danych Menu Engineering dla tego outletu i miesiąca.</p></div>';return;}
+  var t=(data.totals&&data.totals.fcBcCostPct!==undefined)?data.totals:mengComputeTotals(data.items);
+  var h='<div class="ccards">';
+  h+='<div class="ccard"><div class="ccard-l">Sprzedaż (brutto)</div><div class="ccard-v">'+fmt(t.sale,true)+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Food cost %</div><div class="ccard-v">'+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='<div class="ccard"><div class="ccard-l">Beverage cost %</div><div class="ccard-v">'+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='<div class="ccard" style="border-color:var(--acc)"><div class="ccard-l">FC+BC</div><div class="ccard-v" style="color:var(--acc)">'+(t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'—')+'</div></div>';
+  h+='</div>';
+  h+='<div class="cc" style="margin:12px 0"><div class="card-title">Macierz Menu Engineering</div><canvas id="meng-matrix-chart" style="max-height:320px"></canvas>';
+  h+='<div style="font-size:.65rem;color:var(--tx3);margin-top:6px">Podział na kwadranty (kolor punktu) pochodzi bezpośrednio z pliku Material Control — X: udział pozycji w sprzedaży, Y: marża na sztukę.</div></div>';
+  res.innerHTML=h;
+  mengRenderMatrixChart(data.items);
 }
 
 function computeCustomRange(){
@@ -7923,7 +7992,7 @@ function pdfCtmPivot(){
 }
 
 function cTab(t,btn){
-  ['mom','yoy','ytd','season','range','menu'].forEach(function(x){var e=document.getElementById('ct-'+x);if(e)e.style.display=x===t?'block':'none'});
+  ['mom','yoy','ytd','season','range'].forEach(function(x){var e=document.getElementById('ct-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -8235,10 +8304,26 @@ function renderExport(){
   h+=eCard('💾','Eksport JSON','Pełna kopia bazy danych (wszystkie obiekty, outlety, dane miesięczne)','exportJSON()');
   h+=eCard('📂','Import JSON','Przywróć bazę z pliku .json (kopia zapasowa)','triggerImportJSON()');
   h+='</div>';
+  h+='<div class="hs-tip" style="margin-bottom:24px">Import Excel, HosPOS i Material Control znajdziesz teraz w zakładce <a href="#" onclick="goDataImport()">Wprowadź dane → Import plików</a>.</div>';
+
+  // hidden file inputs
+  h+='<input type="file" id="fi-json" accept=".json" style="display:none" onchange="handleImportJSON(this)">';
+
+  el.innerHTML=h;
+}
+function eCard(ico,t,d,fn){return '<div class="ecard" onclick="'+fn+'"><div class="ecard-ico">'+ico+'</div><h3>'+t+'</h3><p>'+d+'</p><button class="btn btn-p btn-sm" onclick="event.stopPropagation();'+fn+'">Generuj</button></div>'}
+
+/* ═══════════════════════════════════════════
+   RENDER: IMPORT PLIKÓW (Wprowadź dane → Import plików)
+   Przeniesione z Eksport/Import — to wejście danych, nie eksport raportów.
+═══════════════════════════════════════════ */
+function renderDataImport(){
+  var el=document.getElementById('v-data-import');if(!el)return;
+  var h='';
 
   // ── IMPORT EXCEL ──
   h+='<div class="stitle">Import z pliku Excel</div>';
-  h+='<div class="card">';
+  h+='<div class="card" style="margin-bottom:24px">';
   h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj dane z pliku <strong>.xlsx</strong>. Obsługiwane formaty:<br>';
   h+='<strong>Format A</strong> — plik "Aktualne wyniki budżetu" (arkusze nazwane miesiącami, wiersze Wynik netto / BUDŻET NETTO)<br>';
   h+='<strong>Format B</strong> — szablon CSV (pobierz szablon poniżej)</p>';
@@ -8251,7 +8336,7 @@ function renderExport(){
 
   // ── IMPORT HOSPOS PDF ──
   h+='<div class="stitle">Import raportu HosPOS (PDF)</div>';
-  h+='<div class="card">';
+  h+='<div class="card" style="margin-bottom:24px">';
   h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj dane bezpośrednio z eksportu HosPOS <strong>"Sprzedaż pozycji menu po rabacie"</strong> (.pdf). Algorytm automatycznie odczyta zakres dat i wynik netto (wiersz <em>Razem</em>) dla każdego punktu, dopasuje go do outletów w tym obiekcie i pominie punkty, których nie ma w aplikacji.</p>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
   h+='<button class="btn btn-p" onclick="triggerImportHosPOS()">📄 Importuj raport HosPOS (.pdf)</button>';
@@ -8272,14 +8357,12 @@ function renderExport(){
   h+='</div>';
 
   // hidden file inputs
-  h+='<input type="file" id="fi-json" accept=".json" style="display:none" onchange="handleImportJSON(this)">';
   h+='<input type="file" id="fi-excel" accept=".xlsx,.xls" style="display:none" onchange="handleImportExcel(this)">';
   h+='<input type="file" id="fi-hospos" accept=".pdf" style="display:none" onchange="handleImportHosPOS(this)">';
   h+='<input type="file" id="fi-mc" accept=".xlsx,.xlsm,.xls" style="display:none" onchange="handleImportMC(this)">';
 
   el.innerHTML=h;
 }
-function eCard(ico,t,d,fn){return '<div class="ecard" onclick="'+fn+'"><div class="ecard-ico">'+ico+'</div><h3>'+t+'</h3><p>'+d+'</p><button class="btn btn-p btn-sm" onclick="event.stopPropagation();'+fn+'">Generuj</button></div>'}
 
 /* ── JSON EXPORT ── */
 function exportJSON(){
@@ -8942,9 +9025,9 @@ function confirmMCImport(){
   var pidAtImport=S.pid;
   function fetchNext(idx){
     if(idx>=months.length){
-      if(preview&&S.pid===pidAtImport)preview.innerHTML='<div class="hs-tip">✅ Import i dane pogodowe zakończone. Sprawdź pod-zakładkę Dzienne w Danych lub zakładkę Heatmapa.</div>';
+      if(preview&&S.pid===pidAtImport)preview.innerHTML='<div class="hs-tip">✅ Import i dane pogodowe zakończone. Sprawdź pod-zakładkę Dzienne w Danych lub Analityka → Heatmapa.</div>';
       _mcPending=null;
-      if((S.view==='data'||S.view==='analytics'||S.view==='heatmap')&&S.pid===pidAtImport)renderCur();
+      if((S.view==='data'||S.view==='analytics')&&S.pid===pidAtImport)renderCur();
       return;
     }
     ensureMonthWeather(pidAtImport,months[idx]).then(function(){
@@ -9743,7 +9826,7 @@ function onMonthChange(v){S.month=v;syncMonthUI();renderCur()}
 
 function renderCur(){
   try{
-    var fn={dashboard:renderDashboard,data:renderData,analytics:renderAnalytics,heatmap:renderHeatmapView,compare:renderCompare,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
+    var fn={dashboard:renderDashboard,data:renderData,analytics:renderAnalytics,compare:renderCompare,menuanalysis:renderMenuAnalysis,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
     var f=fn[S.view];if(f)f();
   }catch(e){console.error(e)}
   renderSidePanel();
@@ -9809,7 +9892,7 @@ var HELP_SECTIONS=[
   {id:'hs-props',  label:'Obiekty i outlety'},
   {id:'hs-budget', label:'Budżet roczny'},
   {id:'hs-team',   label:'Zespół i role'},
-  {id:'hs-export', label:'Eksport / Import'},
+  {id:'hs-export', label:'Raporty i eksport'},
   {id:'hs-search', label:'Wyszukiwarka'},
   {id:'hs-settings',label:'Ustawienia'},
   {id:'hs-updates',label:'Aktualizacje i wersja'}
@@ -9948,9 +10031,9 @@ var HELP_CONTENT=`
 
 <div class="hs-h2">Wykorzystanie danych</div>
 <ul class="hs-ul">
-  <li><strong>Heatmapa</strong> (osobna zakładka w dolnej belce/sidebarze) — gdy dla danego miesiąca wprowadzono dane dzienne, heatmapa pokazuje rzeczywisty rozkład sprzedaży w poszczególnych dniach zamiast szacunku ze średniej.</li>
+  <li><strong>Heatmapa</strong> (Analityka) — gdy dla danego miesiąca wprowadzono dane dzienne, heatmapa pokazuje rzeczywisty rozkład sprzedaży w poszczególnych dniach zamiast szacunku ze średniej.</li>
   <li><strong>Zakładka Pogoda</strong> (Analityka) — porównanie średniej sprzedaży dziennej w zależności od warunków pogodowych, zbiorczo ze wszystkich miesięcy.</li>
-  <li><strong>Import Material Control</strong> — automatyczny import danych dziennych z systemu magazynowego Material Control (Excel), dostępny w zakładce Eksport/Import (patrz sekcja „Eksport / Import").</li>
+  <li><strong>Import Material Control</strong> — automatyczny import danych dziennych z systemu magazynowego Material Control (Excel), dostępny w zakładce Wprowadź dane → Import plików.</li>
 </ul>
 </div>
 
@@ -10008,7 +10091,7 @@ var HELP_CONTENT=`
 
 <div class="hs" id="hs-heatmap">
 <div class="hs-h1">📅 Heatmapa</div>
-<div class="hs-p">Samodzielny widok dostępny bezpośrednio z dolnej belki i sidebara (obok Dashboard, Dane, Analityka i Porównania) — kalendarz wybranego miesiąca z kolorami intensywności sprzedaży.</div>
+<div class="hs-p">Kalendarz wybranego miesiąca z kolorami intensywności sprzedaży — pod-zakładka "Heatmapa" w Analityce (obok Wykresów, Rankingu, Trafności itd.).</div>
 
 <div class="hs-h2">Odczytywanie kolorów</div>
 <div class="hs-p">Zielony oznacza dni z wynikiem powyżej typowej średniej, czerwony poniżej. Jeśli w pod-zakładce <strong>Dane → Dzienne</strong> wprowadzono wyniki dla poszczególnych dni, heatmapa pokazuje wartości rzeczywiste (pełna intensywność, dokładna kwota bezpośrednio na kafelku). Dla dni bez wprowadzonych danych dziennych widoczny jest przygaszony szacunek na bazie średniej dziennej z pod-zakładki „Miesięczne".</div>
@@ -10073,7 +10156,7 @@ var HELP_CONTENT=`
 <div class="hs-p" style="font-size:.72rem;color:var(--tx3)">Mapa korzysta z darmowych, otwartych usług OpenStreetMap i Leaflet — bez klucza API i bez opłat.</div>
 
 <div class="hs-h2">Usuwanie obiektu</div>
-<div class="hs-p">Kliknij ikonę kosza przy obiekcie. Usunięcie obiektu jest nieodwracalne — wszystkie dane (outlety, dane miesięczne) zostają skasowane. Wykonaj wcześniej kopię JSON przez zakładkę Eksport/Import. <strong>Tylko właściciel obiektu może go usunąć</strong> — zaproszeni członkowie zespołu nie mają tej opcji.</div>
+<div class="hs-p">Kliknij ikonę kosza przy obiekcie. Usunięcie obiektu jest nieodwracalne — wszystkie dane (outlety, dane miesięczne) zostają skasowane. Wykonaj wcześniej kopię JSON przez zakładkę Raporty i eksport. <strong>Tylko właściciel obiektu może go usunąć</strong> — zaproszeni członkowie zespołu nie mają tej opcji.</div>
 </div>
 
 <div class="help-divider"></div>
@@ -10126,7 +10209,7 @@ var HELP_CONTENT=`
 <div class="help-divider"></div>
 
 <div class="hs" id="hs-export">
-<div class="hs-h1">📤 Eksport / Import</div>
+<div class="hs-h1">📤 Raporty i eksport</div>
 
 <div class="hs-h2">Eksport raportów PDF</div>
 <ul class="hs-ul">
@@ -10163,6 +10246,7 @@ var HELP_CONTENT=`
 <div class="hs-tip">Wykonuj kopię JSON regularnie — raz w miesiącu po zamknięciu okresu to dobra praktyka.</div>
 
 <div class="hs-h2">Import z pliku Excel</div>
+<div class="hs-tip">Przyciski importu znajdziesz w zakładce <strong>Wprowadź dane → Import plików</strong>.</div>
 <div class="hs-p">Aplikacja obsługuje dwa formaty plików Excel (.xlsx):</div>
 <ul class="hs-ul">
   <li><strong>Format A — automatyczny</strong>: arkusze nazwane miesiącami (np. <em>Styczeń 2026</em> lub <em>2026-01</em>), wiersze <em>Wynik netto</em> i <em>BUDŻET NETTO</em>, kolumny = nazwy outletów. Kompatybilny z formatem „Aktualne wyniki budżetu".</li>
@@ -10171,6 +10255,7 @@ var HELP_CONTENT=`
 <div class="hs-warn">Przed importem Excel wybierz docelowy obiekt w sidebarze. Import doda brakujące outlety automatycznie.</div>
 
 <div class="hs-h2">Import raportu HosPOS (PDF)</div>
+<div class="hs-tip">Przycisk znajdziesz w zakładce <strong>Wprowadź dane → Import plików</strong>.</div>
 <div class="hs-p">Przycisk <strong>📄 Importuj raport HosPOS (.pdf)</strong> pozwala wczytać bezpośrednio eksport z systemu POS „Sprzedaż pozycji menu po rabacie". Aplikacja automatycznie:</div>
 <ul class="hs-ul">
   <li>odczytuje zakres dat z nagłówka raportu,</li>
@@ -10182,6 +10267,7 @@ var HELP_CONTENT=`
 <div class="hs-warn">Raport musi obejmować jeden miesiąc kalendarzowy, zaczynając od 1. dnia. Raport obejmujący dwa miesiące zostanie odrzucony z komunikatem — wygeneruj osobny raport dla każdego miesiąca w systemie POS.</div>
 
 <div class="hs-h2">Import danych dziennych (Material Control)</div>
+<div class="hs-tip">Przycisk znajdziesz w zakładce <strong>Wprowadź dane → Import plików</strong>.</div>
 <div class="hs-p">Przycisk <strong>📦 Importuj Material Control (.xlsx)</strong> wczytuje plik „Sprzedaż wg Typu Aktywności" — płaską tabelę z kolumnami Data, Miejsce_Sprz. i Przychody Netto. W przeciwieństwie do importu HosPOS PDF (który wypełnia sumę narastającą w pod-zakładce Miesięczne), ten import trafia do pod-zakładki <strong>Dzienne</strong> — osobno dla każdego dnia.</div>
 <ul class="hs-ul">
   <li>Nazwy outletów w pliku mają przedrostek „HOSPOS RVC" (np. „HOSPOS RVC Furu") — aplikacja usuwa go automatycznie i dopasowuje resztę nazwy do outletów w bieżącym obiekcie.</li>
