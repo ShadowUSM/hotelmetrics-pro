@@ -1603,6 +1603,7 @@ body.presentation-mode #presentation-exit{display:flex}
         <button class="btn btn-g btn-sm" style="flex:1;justify-content:center;font-size:.7rem" onclick="showHelp()">📖 Instrukcja</button>
         <button class="btn btn-g btn-sm" style="flex:1;justify-content:center;font-size:.7rem" onclick="showAbout()">ℹ️ O programie</button>
       </div>
+      <button class="btn btn-g btn-sm" style="width:100%;justify-content:center;font-size:.7rem;margin-top:6px;display:none" id="btn-daily-prompt" onclick="openDailyPromptModal()">📥 Wgraj dane</button>
       <button class="btn btn-g btn-sm" style="width:100%;justify-content:center;font-size:.7rem;margin-top:6px" onclick="enterPresentationMode()">🖥️ Tryb prezentacji</button>
       <span class="role-badge admin" id="role-badge-sidebar" style="display:none;margin-top:8px;justify-content:center;width:100%;padding:5px 0"></span>
       <div class="conn-badge is-offline" id="conn-badge" style="margin-top:6px">
@@ -1792,6 +1793,15 @@ body.presentation-mode #presentation-exit{display:flex}
     <button class="btn btn-p" onclick="saveOcMetricsClick()">💾 Zapisz</button>
     <button class="btn btn-s" onclick="closeM('m-oc-metrics')">Anuluj</button>
   </div>
+</div></div>
+
+<!-- WGRAJ DANE (monit dzienny dla administratora) MODAL -->
+<div class="moverlay" id="m-daily-prompt">
+<div class="modal" style="max-width:460px">
+  <div class="mtitle">📥 Wgraj dane</div>
+  <button class="mclose" onclick="closeM('m-daily-prompt')">✕</button>
+  <p class="hs-p" style="margin-bottom:10px">Szybki skrót do najczęściej wprowadzanych danych — każdą sekcję możesz pominąć.</p>
+  <div id="daily-prompt-body"></div>
 </div></div>
 
 <!-- HELP MODAL -->
@@ -3547,6 +3557,104 @@ function goDataImport(){
   if(btn)switchDataTab('import',btn);
 }
 
+/* ═══════════════════════════════════════════
+   MONIT "WGRAJ DANE" (tylko dla Administratora)
+   Szybki skrót do najczęściej wprowadzanych danych: dzienny wynik netto,
+   wklejenie raportu sprzedaży pozycji menu, wgranie pliku Menu Engineering.
+   Pokazuje się zawsze przy pierwszym wejściu do aplikacji danego dnia; przy
+   kolejnych wejściach tego samego dnia — tylko jeśli za bieżący miesiąc
+   wciąż brakuje danych Sprzedaż menu lub Menu Engineering.
+═══════════════════════════════════════════ */
+function currentRealMonth(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function dailyPromptMonthMissing(){
+  if(!S.pid)return false;
+  var m=currentRealMonth();
+  var msalesMissing=!getMenuSales(S.pid,m);
+  var mengMissing=getAllMenuEngKeys(S.pid).filter(function(k){return k.month===m}).length===0;
+  return msalesMissing||mengMissing;
+}
+function checkDailyDataPrompt(){
+  if(!S.pid||S.currentRole!=='admin')return;
+  var today=new Date().toISOString().slice(0,10);
+  var lastSeen=lsGet(uk('daily-prompt-date-'+S.pid),null);
+  var isFirstToday=(lastSeen!==today);
+  if(isFirstToday)lsSet(uk('daily-prompt-date-'+S.pid),today);
+  if(isFirstToday||dailyPromptMonthMissing())openDailyPromptModal();
+}
+function openDailyPromptModal(){
+  renderDailyPromptModal();
+  openM('m-daily-prompt');
+}
+function renderDailyPromptModal(){
+  var body=document.getElementById('daily-prompt-body');if(!body)return;
+  var rMonth=currentRealMonth(),rDay=new Date().getDate();
+  var dd=getDailyData(S.pid,rMonth);
+  var todayVals=(dd.days&&dd.days[rDay])||{};
+  var h='';
+
+  h+='<div class="fsect">📆 Wynik dnia dzisiejszego ('+new Date().toLocaleDateString('pl-PL')+')</div>';
+  if(!S.outlets.length){
+    h+='<p class="hs-p">Brak outletów w tym obiekcie.</p>';
+  } else {
+    S.outlets.forEach(function(o){
+      var k=okey(o.name);
+      h+='<div class="fg" style="margin-bottom:8px"><label>'+o.name+'</label><input type="number" class="fi" id="dp-daily-'+k+'" value="'+(todayVals[k]||'')+'" placeholder="Sprzedaż netto" min="0" step="0.01"></div>';
+    });
+    h+='<button class="btn btn-p btn-sm" onclick="dailyPromptSaveToday()">💾 Zapisz dzisiejszy wynik</button>';
+  }
+
+  h+='<div class="help-divider" style="margin:16px 0"></div>';
+  h+='<div class="fsect">🍽️ Sprzedaż pozycji menu</div>';
+  h+='<textarea class="fi" id="dp-msales-input" rows="4" placeholder="Wklej tutaj raport sprzedaży pozycji menu..."></textarea>';
+  h+='<button class="btn btn-p btn-sm" style="margin-top:8px" onclick="dailyPromptParseMsales()">🔍 Wczytaj i przeanalizuj</button>';
+
+  h+='<div class="help-divider" style="margin:16px 0"></div>';
+  h+='<div class="fsect">📊 Wgraj plik Menu Engineering (Material Control)</div>';
+  h+='<input type="file" id="dp-meng-file" accept=".xlsx,.xlsm" style="display:none" onchange="dailyPromptMengFile(this)">';
+  h+='<button class="btn btn-p btn-sm" onclick="document.getElementById(\'dp-meng-file\').click()">📂 Wybierz plik i wczytaj</button>';
+
+  body.innerHTML=h;
+}
+function dailyPromptSaveToday(){
+  if(!S.outlets.length)return;
+  var rMonth=currentRealMonth(),rDay=new Date().getDate();
+  var vals={};
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),el=document.getElementById('dp-daily-'+k);
+    var v=el?parseFloat(el.value)||0:0;
+    if(v>0)vals[k]=v;
+  });
+  saveDailyDayBulk(S.pid,rMonth,rDay,vals);
+  toast('Zapisano dzisiejszy wynik','ok');
+  closeM('m-daily-prompt');
+  if(S.view==='data'||S.view==='dashboard')renderCur();
+}
+function dailyPromptParseMsales(){
+  var ta=document.getElementById('dp-msales-input');if(!ta)return;
+  var raw=ta.value;
+  if(!raw||!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
+  var parsed=parseMenuSalesReport(raw);
+  if(!parsed.outlets.length){toast('Nie udało się rozpoznać żadnego outletu w tekście — sprawdź format','er');return;}
+  S._msalesRawInput=raw;
+  S._msalesParsed=parsed;
+  S._msalesTargetMonth=(parsed.sourceRange&&guessMonthFromRange(parsed.sourceRange.from))||S.month;
+  closeM('m-daily-prompt');
+  goMenuSales();
+}
+function dailyPromptMengFile(input){
+  var file=input.files&&input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var res=parseMenuEngXlsx(e.target.result);
+    if(res.error){toast(res.error,'er');return;}
+    S._mengParsed=res.outlets;
+    S._mengMonth=currentRealMonth();
+    closeM('m-daily-prompt');
+    goMenuEng();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 function openNotesModal(outletName){
   var k=okey(outletName);
   var notes=getNotes(S.pid,k);
@@ -4139,6 +4247,8 @@ function canEdit(){return S.currentRole==='admin'||S.currentRole==='manager'}
 function canManageTeam(){return S.currentRole==='admin'}
 function updateRoleBadge(){
   var el=document.getElementById('role-badge-sidebar');
+  var dpBtn=document.getElementById('btn-daily-prompt');
+  if(dpBtn)dpBtn.style.display=(S.pid&&S.currentRole==='admin')?'':'none';
   if(!el)return;
   if(!S.pid){el.style.display='none';return;}
   el.style.display='';
@@ -10676,6 +10786,8 @@ function startApp(){
   syncMonthUI();
   renderCur();
   fetchRates();
+  // Monit "Wgraj dane" dla Administratora (krótkie opóźnienie, żeby nie kolidować z pierwszym renderem)
+  setTimeout(function(){checkDailyDataPrompt()},1200);
   // Check backup reminder after 3 seconds
   setTimeout(function(){
     if(checkAutoBackup()&&S.view!=='team')
