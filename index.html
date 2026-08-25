@@ -269,8 +269,7 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 .oc-stat{background:var(--sur2);border-radius:7px;padding:6px 9px}
 .oc-stat-l{font-size:.58rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:2px}
 .oc-stat-v{font-size:.8rem;font-weight:600;color:var(--tx)}
-.oc-stats-head{display:flex;justify-content:flex-end;margin-top:6px}
-.oc-gear{background:none;border:none;color:var(--tx3);font-size:.85rem;cursor:pointer;padding:2px 6px;line-height:1}
+.oc-gear{background:none;border:none;color:var(--tx3);font-size:.8rem;cursor:pointer;padding:2px 4px;line-height:1;display:flex;align-items:center}
 .oc-gear:hover{color:var(--acc)}
 .oc-stat-v.pos{color:var(--grn)}.oc-stat-v.neg{color:var(--red)}
 
@@ -1786,7 +1785,7 @@ body.presentation-mode #presentation-exit{display:flex}
 <!-- KONFIGUROWALNE OKIENKA NA KARCIE OUTLETU MODAL -->
 <div class="moverlay" id="m-oc-metrics">
 <div class="modal" style="max-width:420px">
-  <div class="mtitle">🔩 Co pokazać na karcie?</div>
+  <div class="mtitle">⚙️ Co pokazać na karcie?</div>
   <button class="mclose" onclick="closeM('m-oc-metrics')">✕</button>
   <div id="oc-metrics-body"></div>
   <div class="fa">
@@ -4979,8 +4978,9 @@ function renderRecords(target){
 ═══════════════════════════════════════════ */
 /* ═══════════════════════════════════════════
    KONFIGUROWALNE OKIENKA NA KARCIE OUTLETU (Dashboard)
-   Każdy outlet ma własny wybór 3 metryk (ikona 🔩 na karcie) — zapisywane
-   per obiekt i per outlet, z opcją "zastosuj do wszystkich".
+   Każdy outlet ma własny wybór 6 metryk (ikona ⚙️ w nagłówku karty, obok
+   checkboxa "uwzględnij" i numeru rankingu) — zapisywane per obiekt i per
+   outlet, z opcją "zastosuj do wszystkich".
 ═══════════════════════════════════════════ */
 var OC_METRIC_DEFS=[
   {id:'avg',group:'Wynik miesiąca',label:'Śr./dzień'},
@@ -5185,11 +5185,10 @@ function renderDashboard(){
     var ocol=outletColor(k);
     var active=isOutletActive(k);
     h+='<div class="oc-swipe-wrap"><div class="oc-swipe-hint left">📈 Trend</div><div class="oc-swipe-hint right">📝 Notatki</div>';
-    h+='<div class="oc'+(active?'':' oc-excluded')+'" data-outlet-name="'+o.name.replace(/"/g,'&quot;')+'" style="border-left:3px solid '+ocol+';cursor:pointer" onclick="openMsalesOutletModal(\''+o.id+'\',\''+o.name.replace(/'/g,"\\'")+'\')"><div class="oc-head"><div class="oc-name">'+o.name+'</div><div class="oc-head-right"><input type="checkbox" class="oc-check" '+(active?'checked':'')+' onclick="event.stopPropagation();toggleOutletActive(\''+k+'\')" title="Uwzględnij w wyniku netto i budżecie"><div class="oc-rank">#'+(i+1)+'</div></div></div>';
+    h+='<div class="oc'+(active?'':' oc-excluded')+'" data-outlet-name="'+o.name.replace(/"/g,'&quot;')+'" style="border-left:3px solid '+ocol+';cursor:pointer" onclick="openMsalesOutletModal(\''+o.id+'\',\''+o.name.replace(/'/g,"\\'")+'\')"><div class="oc-head"><div class="oc-name">'+o.name+'</div><div class="oc-head-right"><button class="oc-gear" onclick="event.stopPropagation();openOcMetricsModal(\''+k+'\',\''+o.name.replace(/'/g,"\\'")+'\')" title="Wybierz co pokazać na karcie">⚙️</button><input type="checkbox" class="oc-check" '+(active?'checked':'')+' onclick="event.stopPropagation();toggleOutletActive(\''+k+'\')" title="Uwzględnij w wyniku netto i budżecie"><div class="oc-rank">#'+(i+1)+'</div></div></div>';
     h+='<div class="oc-val">'+fmt(m.a||0,true)+'</div><div class="oc-meta">'+sh+'% udziału'+(goalVal?' · <span class="goal-badge">🎯 '+Math.min(100,(m.a/goalVal*100)).toFixed(0)+'% celu</span>':'')+'</div>';
     if(m.b){h+='<div class="prog"><div class="prog-fill '+bc+'" style="width:'+bw+'%"></div></div><div class="prog-lbl"><span>'+(p*100).toFixed(1)+'%</span><span>'+fmt(m.b,true)+'</span></div>';}
     else{h+='<div style="font-size:.65rem;color:var(--tx3)">Brak budżetu</div>';}
-    h+='<div class="oc-stats-head"><button class="oc-gear" onclick="event.stopPropagation();openOcMetricsModal(\''+k+'\',\''+o.name.replace(/'/g,"\\'")+'\')" title="Wybierz co pokazać na karcie">🔩</button></div>';
     h+='<div class="oc-stats">';
     getOcMetrics(S.pid,k).forEach(function(mid){
       var mv=ocMetricValue(o,k,m,T,mid);
