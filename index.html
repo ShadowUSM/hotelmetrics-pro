@@ -5001,7 +5001,16 @@ var OC_METRIC_DEFS=[
 ];
 function getOcMetrics(pid,outletKey){
   var all=lsGet(uk('ocmetrics-'+pid),{});
-  return all[outletKey]||['avg','proj','rem'];
+  var saved=all[outletKey];
+  var defaults=['avg','proj','rem','budget','pct','share'];
+  if(!saved||!saved.length)return defaults.slice();
+  if(saved.length>=6)return saved.slice(0,6);
+  // Dopełnij starsze zapisy (sprzed rozszerzenia z 3 do 6 okienek) kolejnymi metrykami, bez duplikatów.
+  var out=saved.slice(),used={};out.forEach(function(id){used[id]=true});
+  defaults.forEach(function(id){if(out.length<6&&!used[id]){out.push(id);used[id]=true}});
+  var ai=0,allIds=OC_METRIC_DEFS.map(function(d){return d.id});
+  while(out.length<6&&ai<allIds.length){if(!used[allIds[ai]]){out.push(allIds[ai]);used[allIds[ai]]=true}ai++}
+  return out;
 }
 function saveOcMetrics(pid,outletKey,arr,applyAll){
   var all=lsGet(uk('ocmetrics-'+pid),{});
@@ -5066,7 +5075,7 @@ function openOcMetricsModal(outletKey,outletName){
   S._ocMetricsEditing={outletKey:outletKey,values:getOcMetrics(S.pid,outletKey).slice()};
   var body=document.getElementById('oc-metrics-body');if(!body)return;
   var h='<p class="hs-p" style="margin-bottom:10px">Outlet: <strong>'+outletName+'</strong> — wybierz, co ma się pokazać w trzech okienkach na karcie.</p>';
-  for(var i=0;i<3;i++){
+  for(var i=0;i<6;i++){
     h+='<div class="fg"><label>Okienko '+(i+1)+'</label><select class="fi" onchange="ocMetricSlotChange('+i+',this.value)">'+ocMetricOptionsHTML(S._ocMetricsEditing.values[i])+'</select></div>';
   }
   h+='<label style="display:flex;align-items:center;gap:6px;font-size:.78rem;margin-top:6px;cursor:pointer"><input type="checkbox" id="oc-metrics-applyall" style="width:auto"> Zastosuj ten sam wybór do wszystkich outletów</label>';
