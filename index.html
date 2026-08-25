@@ -269,6 +269,9 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 .oc-stat{background:var(--sur2);border-radius:7px;padding:6px 9px}
 .oc-stat-l{font-size:.58rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:2px}
 .oc-stat-v{font-size:.8rem;font-weight:600;color:var(--tx)}
+.oc-stats-head{display:flex;justify-content:flex-end;margin-top:6px}
+.oc-gear{background:none;border:none;color:var(--tx3);font-size:.85rem;cursor:pointer;padding:2px 6px;line-height:1}
+.oc-gear:hover{color:var(--acc)}
 .oc-stat-v.pos{color:var(--grn)}.oc-stat-v.neg{color:var(--red)}
 
 /* Swipe gestures on outlet cards */
@@ -1777,6 +1780,18 @@ body.presentation-mode #presentation-exit{display:flex}
   <div class="fa">
     <button class="btn btn-p" onclick="saveTabOrderClick()">💾 Zapisz</button>
     <button class="btn btn-s" onclick="resetTabOrderClick()">↺ Domyślna</button>
+  </div>
+</div></div>
+
+<!-- KONFIGUROWALNE OKIENKA NA KARCIE OUTLETU MODAL -->
+<div class="moverlay" id="m-oc-metrics">
+<div class="modal" style="max-width:420px">
+  <div class="mtitle">🔩 Co pokazać na karcie?</div>
+  <button class="mclose" onclick="closeM('m-oc-metrics')">✕</button>
+  <div id="oc-metrics-body"></div>
+  <div class="fa">
+    <button class="btn btn-p" onclick="saveOcMetricsClick()">💾 Zapisz</button>
+    <button class="btn btn-s" onclick="closeM('m-oc-metrics')">Anuluj</button>
   </div>
 </div></div>
 
@@ -4962,6 +4977,112 @@ function renderRecords(target){
 /* ═══════════════════════════════════════════
    RENDER: DASHBOARD
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   KONFIGUROWALNE OKIENKA NA KARCIE OUTLETU (Dashboard)
+   Każdy outlet ma własny wybór 3 metryk (ikona 🔩 na karcie) — zapisywane
+   per obiekt i per outlet, z opcją "zastosuj do wszystkich".
+═══════════════════════════════════════════ */
+var OC_METRIC_DEFS=[
+  {id:'avg',group:'Wynik miesiąca',label:'Śr./dzień'},
+  {id:'proj',group:'Wynik miesiąca',label:'Prognoza'},
+  {id:'rem',group:'Wynik miesiąca',label:'Do budżetu'},
+  {id:'budget',group:'Wynik miesiąca',label:'Budżet'},
+  {id:'pct',group:'Wynik miesiąca',label:'Realizacja %'},
+  {id:'reqd',group:'Wynik miesiąca',label:'Wymagana śr./dzień'},
+  {id:'share',group:'Wynik miesiąca',label:'Udział w sprzedaży'},
+  {id:'mom',group:'Wynik miesiąca',label:'Zmiana MoM'},
+  {id:'fc',group:'Menu Engineering',label:'Food cost %'},
+  {id:'bc',group:'Menu Engineering',label:'Beverage cost %'},
+  {id:'fcbc',group:'Menu Engineering',label:'FC+BC łącznie'},
+  {id:'memargin',group:'Menu Engineering',label:'Marża (ME)'},
+  {id:'mesale',group:'Menu Engineering',label:'Sprzedaż (ME)'},
+  {id:'msqty',group:'Sprzedaż menu',label:'Liczba sprzedanych pozycji'},
+  {id:'msnetto',group:'Sprzedaż menu',label:'Sprzedaż netto (POS)'}
+];
+function getOcMetrics(pid,outletKey){
+  var all=lsGet(uk('ocmetrics-'+pid),{});
+  return all[outletKey]||['avg','proj','rem'];
+}
+function saveOcMetrics(pid,outletKey,arr,applyAll){
+  var all=lsGet(uk('ocmetrics-'+pid),{});
+  if(applyAll){S.outlets.forEach(function(o){all[okey(o.name)]=arr.slice()});}
+  else{all[outletKey]=arr;}
+  lsSet(uk('ocmetrics-'+pid),all);
+}
+// Liczy wartość jednej metryki dla karty outletu; zawsze zwraca obiekt (val="—" gdy brak danych),
+// żeby okienko nigdy nie znikało w sposób nieprzewidywalny.
+function ocMetricValue(o,k,m,T,metricId){
+  m=m||{};
+  switch(metricId){
+    case 'avg': return {label:'Śr./dzień',val:fmt(m.avg||0,true),cls:''};
+    case 'proj': return {label:'Prognoza',val:fmt(m.proj||0,true),cls:m.b?(m.proj>=m.b?'pos':'neg'):''};
+    case 'rem': return {label:'Do budżetu',val:m.b?fmt(m.rem,true):'—',cls:m.b?(m.rem<=0?'pos':'neg'):''};
+    case 'budget': return {label:'Budżet',val:m.b?fmt(m.b,true):'—',cls:''};
+    case 'pct': return {label:'Realizacja',val:(m.pct!==null&&m.pct!==undefined)?(m.pct*100).toFixed(1)+'%':'—',cls:(m.pct>=1?'pos':m.pct<0.75?'neg':'')};
+    case 'reqd': {
+      var dl=T.DL||0,reqd=(m.b&&dl>0)?Math.max(0,((m.b-(m.a||0))/dl)):0;
+      return {label:'Wymagana śr./dz.',val:m.b?(reqd>0?fmt(reqd,true):'✅'):'—',cls:''};
+    }
+    case 'share': return {label:'Udział',val:(T.a>0)?((m.a||0)/T.a*100).toFixed(1)+'%':'—',cls:''};
+    case 'mom': {
+      var pd=getMD(S.pid,prevM(S.month)),pv=pd&&pd.a&&pd.a[k]||0;
+      if(!pv)return {label:'Zmiana MoM',val:'—',cls:''};
+      var chg=((m.a||0)-pv)/pv*100;
+      return {label:'Zmiana MoM',val:(chg>=0?'▲ +':'▼ ')+Math.abs(chg).toFixed(1)+'%',cls:chg>=0?'pos':'neg'};
+    }
+    case 'fc': case 'bc': case 'fcbc': case 'memargin': case 'mesale': {
+      var med=o.id?getMenuEng(S.pid,o.id,S.month):null;
+      if(!med)return {label:{fc:'Food cost %',bc:'Beverage cost %',fcbc:'FC+BC',memargin:'Marża (ME)',mesale:'Sprzedaż (ME)'}[metricId],val:'—',cls:''};
+      var t=(med.totals&&med.totals.fcBcCostPct!==undefined)?med.totals:mengComputeTotals(med.items);
+      if(metricId==='fc')return {label:'Food cost %',val:t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—',cls:''};
+      if(metricId==='bc')return {label:'Beverage cost %',val:t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—',cls:''};
+      if(metricId==='fcbc')return {label:'FC+BC',val:t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'—',cls:''};
+      if(metricId==='memargin')return {label:'Marża (ME)',val:fmt(t.margin,true),cls:''};
+      return {label:'Sprzedaż (ME)',val:fmt(t.sale,true),cls:''};
+    }
+    case 'msqty': case 'msnetto': {
+      var msd=getMenuSales(S.pid,S.month);
+      var match=(msd&&msd.outlets&&o.id)?msd.outlets.find(function(x){return x.outletId===o.id}):null;
+      if(!match)return {label:metricId==='msnetto'?'Sprzedaż (POS)':'Liczba pozycji',val:'—',cls:''};
+      if(metricId==='msnetto')return {label:'Sprzedaż (POS)',val:fmt(match.totalNetto,true),cls:''};
+      var qty=0;match.categories.forEach(function(c){c.items.forEach(function(it){qty+=it.qty})});
+      return {label:'Liczba pozycji',val:fmtN(qty),cls:''};
+    }
+  }
+  return {label:'—',val:'—',cls:''};
+}
+function ocMetricOptionsHTML(selected){
+  var groups={},order=[];
+  OC_METRIC_DEFS.forEach(function(d){if(!groups[d.group]){groups[d.group]=[];order.push(d.group)}groups[d.group].push(d)});
+  var h='';
+  order.forEach(function(g){
+    h+='<optgroup label="'+g+'">';
+    groups[g].forEach(function(d){h+='<option value="'+d.id+'"'+(d.id===selected?' selected':'')+'>'+d.label+'</option>'});
+    h+='</optgroup>';
+  });
+  return h;
+}
+function openOcMetricsModal(outletKey,outletName){
+  S._ocMetricsEditing={outletKey:outletKey,values:getOcMetrics(S.pid,outletKey).slice()};
+  var body=document.getElementById('oc-metrics-body');if(!body)return;
+  var h='<p class="hs-p" style="margin-bottom:10px">Outlet: <strong>'+outletName+'</strong> — wybierz, co ma się pokazać w trzech okienkach na karcie.</p>';
+  for(var i=0;i<3;i++){
+    h+='<div class="fg"><label>Okienko '+(i+1)+'</label><select class="fi" onchange="ocMetricSlotChange('+i+',this.value)">'+ocMetricOptionsHTML(S._ocMetricsEditing.values[i])+'</select></div>';
+  }
+  h+='<label style="display:flex;align-items:center;gap:6px;font-size:.78rem;margin-top:6px;cursor:pointer"><input type="checkbox" id="oc-metrics-applyall" style="width:auto"> Zastosuj ten sam wybór do wszystkich outletów</label>';
+  body.innerHTML=h;
+  openM('m-oc-metrics');
+}
+function ocMetricSlotChange(idx,val){if(S._ocMetricsEditing)S._ocMetricsEditing.values[idx]=val}
+function saveOcMetricsClick(){
+  var st=S._ocMetricsEditing;if(!st)return;
+  var applyAllEl=document.getElementById('oc-metrics-applyall');
+  saveOcMetrics(S.pid,st.outletKey,st.values,applyAllEl&&applyAllEl.checked);
+  closeM('m-oc-metrics');
+  toast('Zapisano','ok');
+  renderCur();
+}
+
 function renderDashboard(){
   var el=document.getElementById('v-dashboard');if(!el)return;
   if(!S.pid||!S.outlets.length){
@@ -5059,10 +5180,12 @@ function renderDashboard(){
     h+='<div class="oc-val">'+fmt(m.a||0,true)+'</div><div class="oc-meta">'+sh+'% udziału'+(goalVal?' · <span class="goal-badge">🎯 '+Math.min(100,(m.a/goalVal*100)).toFixed(0)+'% celu</span>':'')+'</div>';
     if(m.b){h+='<div class="prog"><div class="prog-fill '+bc+'" style="width:'+bw+'%"></div></div><div class="prog-lbl"><span>'+(p*100).toFixed(1)+'%</span><span>'+fmt(m.b,true)+'</span></div>';}
     else{h+='<div style="font-size:.65rem;color:var(--tx3)">Brak budżetu</div>';}
+    h+='<div class="oc-stats-head"><button class="oc-gear" onclick="event.stopPropagation();openOcMetricsModal(\''+k+'\',\''+o.name.replace(/'/g,"\\'")+'\')" title="Wybierz co pokazać na karcie">🔩</button></div>';
     h+='<div class="oc-stats">';
-    h+='<div class="oc-stat"><div class="oc-stat-l">Śr./dzień</div><div class="oc-stat-v">'+fmt(m.avg||0,true)+'</div></div>';
-    h+='<div class="oc-stat"><div class="oc-stat-l">Prognoza</div><div class="oc-stat-v '+(m.b?(m.proj>=m.b?'pos':'neg'):'')+'">'+fmt(m.proj||0,true)+'</div></div>';
-    if(m.b)h+='<div class="oc-stat"><div class="oc-stat-l">Do budżetu</div><div class="oc-stat-v '+(m.rem<=0?'pos':'neg')+'">'+fmt(m.rem,true)+'</div></div>';
+    getOcMetrics(S.pid,k).forEach(function(mid){
+      var mv=ocMetricValue(o,k,m,T,mid);
+      h+='<div class="oc-stat"><div class="oc-stat-l">'+mv.label+'</div><div class="oc-stat-v '+mv.cls+'">'+mv.val+'</div></div>';
+    });
     h+='</div>';
     var noteCount=S.pid?getNotes(S.pid,okey(o.name)).length:0;
     h+='<div style="margin-top:8px"><button class="outlet-note-btn" onclick="event.stopPropagation();openNotesModal(\''+o.name.replace(/'/g,"\\'")+'\')">📝 Notatki'+(noteCount?' ('+noteCount+')':'')+'</button></div>';
