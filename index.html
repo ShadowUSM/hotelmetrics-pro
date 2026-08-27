@@ -3585,23 +3585,16 @@ function openDailyPromptModal(){
   renderDailyPromptModal();
   openM('m-daily-prompt');
 }
+function todayYMD(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function yesterdayYMD(){var d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function renderDailyPromptModal(){
   var body=document.getElementById('daily-prompt-body');if(!body)return;
-  var rMonth=currentRealMonth(),rDay=new Date().getDate();
-  var dd=getDailyData(S.pid,rMonth);
-  var todayVals=(dd.days&&dd.days[rDay])||{};
+  if(!S._dpSelectedDate)S._dpSelectedDate=yesterdayYMD(); // domyślnie wczoraj — tak zwykle wprowadzane są te dane
   var h='';
 
-  h+='<div class="fsect">📆 Wynik dnia dzisiejszego ('+new Date().toLocaleDateString('pl-PL')+')</div>';
-  if(!S.outlets.length){
-    h+='<p class="hs-p">Brak outletów w tym obiekcie.</p>';
-  } else {
-    S.outlets.forEach(function(o){
-      var k=okey(o.name);
-      h+='<div class="fg" style="margin-bottom:8px"><label>'+o.name+'</label><input type="number" class="fi" id="dp-daily-'+k+'" value="'+(todayVals[k]||'')+'" placeholder="Sprzedaż netto" min="0" step="0.01"></div>';
-    });
-    h+='<button class="btn btn-p btn-sm" onclick="dailyPromptSaveToday()">💾 Zapisz dzisiejszy wynik</button>';
-  }
+  h+='<div class="fsect">📆 Wynik dnia</div>';
+  h+='<div class="fg" style="margin-bottom:10px;max-width:200px"><label>Data</label><input type="date" class="fi" id="dp-daily-date" value="'+S._dpSelectedDate+'" max="'+todayYMD()+'" onchange="dailyPromptDateChange(this.value)"></div>';
+  h+='<div id="dp-daily-fields"></div>';
 
   h+='<div class="help-divider" style="margin:16px 0"></div>';
   h+='<div class="fsect">🍽️ Sprzedaż pozycji menu</div>';
@@ -3614,18 +3607,40 @@ function renderDailyPromptModal(){
   h+='<button class="btn btn-p btn-sm" onclick="document.getElementById(\'dp-meng-file\').click()">📂 Wybierz plik i wczytaj</button>';
 
   body.innerHTML=h;
+  renderDailyPromptFields();
+}
+function renderDailyPromptFields(){
+  var box=document.getElementById('dp-daily-fields');if(!box)return;
+  var parts=S._dpSelectedDate.split('-'),pMonth=parts[0]+'-'+parts[1],pDay=+parts[2];
+  var dd=getDailyData(S.pid,pMonth);
+  var vals=(dd.days&&dd.days[pDay])||{};
+  var h='';
+  if(!S.outlets.length){
+    h+='<p class="hs-p">Brak outletów w tym obiekcie.</p>';
+  } else {
+    S.outlets.forEach(function(o){
+      var k=okey(o.name);
+      h+='<div class="fg" style="margin-bottom:8px"><label>'+o.name+'</label><input type="number" class="fi" id="dp-daily-'+k+'" value="'+(vals[k]||'')+'" placeholder="Sprzedaż netto" min="0" step="0.01"></div>';
+    });
+    h+='<button class="btn btn-p btn-sm" onclick="dailyPromptSaveToday()">💾 Zapisz wynik dnia</button>';
+  }
+  box.innerHTML=h;
+}
+function dailyPromptDateChange(val){
+  S._dpSelectedDate=val;
+  renderDailyPromptFields();
 }
 function dailyPromptSaveToday(){
   if(!S.outlets.length)return;
-  var rMonth=currentRealMonth(),rDay=new Date().getDate();
+  var parts=S._dpSelectedDate.split('-'),pMonth=parts[0]+'-'+parts[1],pDay=+parts[2];
   var vals={};
   S.outlets.forEach(function(o){
     var k=okey(o.name),el=document.getElementById('dp-daily-'+k);
     var v=el?parseFloat(el.value)||0:0;
     if(v>0)vals[k]=v;
   });
-  saveDailyDayBulk(S.pid,rMonth,rDay,vals);
-  toast('Zapisano dzisiejszy wynik','ok');
+  saveDailyDayBulk(S.pid,pMonth,pDay,vals);
+  toast('Zapisano wynik dnia '+pDay+' '+mLabel(pMonth),'ok');
   closeM('m-daily-prompt');
   if(S.view==='data'||S.view==='dashboard')renderCur();
 }
@@ -6503,6 +6518,17 @@ function renderDaily(){
   h+='<div class="cal-dg" id="daily-cal"></div>';
   h+='</div>';
 
+  // ── SZYBKIE WYPEŁNIENIE: wklej raport HosPOS (ten sam format co "Sprzedaż menu") ──
+  if(!ro){
+    h+='<div class="card" style="margin-bottom:12px">';
+    h+='<div class="fsect">🔗 Wklej raport HosPOS (szybkie wypełnienie)</div>';
+    h+='<p class="hs-p" style="margin-bottom:10px">Alternatywa dla ręcznego wpisywania — wklej treść raportu sprzedaży z HosPOS (ten sam format co w karcie "Sprzedaż menu"), a aplikacja wyciągnie sumę netto per outlet i wypełni nią pola poniżej dla wybranego dnia ('+_dailyDay+' '+mLabel(S.month)+'). Nic nie zapisuje się automatycznie — po wypełnieniu nadal klikasz "Zapisz dzień".</p>';
+    h+='<textarea class="fi" id="daily-hospos-input" rows="4" placeholder="Wklej tutaj raport..."></textarea>';
+    h+='<div class="fa" style="margin-top:8px"><button class="btn btn-p" onclick="dailyHosposParse()">🔍 Wczytaj i przeanalizuj</button></div>';
+    h+='<div id="daily-hospos-preview"></div>';
+    h+='</div>';
+  }
+
   // ── TABELA WPROWADZANIA DLA WYBRANEGO DNIA ──
   h+='<div class="card"><div class="fsect" style="flex-wrap:wrap;gap:8px">💰 Sprzedaż netto — dzień <span id="daily-day-lbl">'+_dailyDay+'</span> '+mLabel(S.month)+
      '<span id="daily-wx-badge">'+(dayWeather?weatherBadgeHTML(dayWeather):(hasLocation?'<span class="wx-badge">⏳ ładowanie pogody...</span>':''))+'</span>'+
@@ -6619,6 +6645,7 @@ function selectDailyDay(day){
   _dailyDay=day;
   var lbl=document.getElementById('daily-day-lbl');if(lbl)lbl.textContent=day;
   buildDailyCal();
+  dailyHosposClear();
   var dd=getDailyData(S.pid,S.month);
   var dayVals=(dd.days&&dd.days[day])||{};
   S.outlets.forEach(function(o){
@@ -6633,6 +6660,67 @@ function selectDailyDay(day){
   }
   dailyRecalc();
   haptic(6);
+}
+
+// ── SZYBKIE WYPEŁNIENIE DNIA Z RAPORTU HosPOS (ten sam parser co "Sprzedaż menu", tylko sumy Razem) ──
+function dailyHosposParse(){
+  var ta=document.getElementById('daily-hospos-input');if(!ta)return;
+  var raw=ta.value;
+  if(!raw||!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
+  var parsed=parseMenuSalesReport(raw);
+  if(!parsed.outlets.length){toast('Nie udało się rozpoznać żadnego outletu w tekście — sprawdź format','er');return;}
+  S._dailyHosposParsed=parsed;
+  renderDailyHosposPreview();
+  toast('Rozpoznano '+parsed.outlets.length+' outlet(ów)','ok');
+}
+function renderDailyHosposPreview(){
+  var box=document.getElementById('daily-hospos-preview');if(!box)return;
+  var parsed=S._dailyHosposParsed;
+  if(!parsed){box.innerHTML='';return;}
+  var map=getMsalesMap(S.pid);
+  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
+  h+='<div class="hs-p" style="margin-bottom:8px">Dopasuj outlety, jeśli trzeba, i wypełnij pola dla dnia <strong>'+_dailyDay+' '+mLabel(S.month)+'</strong>:</div>';
+  parsed.outlets.forEach(function(o,i){
+    var key=o.rawName.trim().toUpperCase();
+    var mappedId=(o._mapped!==undefined)?o._mapped:(map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName));
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">';
+    h+='<strong style="font-size:.78rem;min-width:110px">'+o.rawName+'</strong>';
+    h+='<span style="font-size:.72rem;color:var(--tx3);min-width:80px">'+fmt(o.compNetto,true)+'</span>';
+    h+='<select class="fi" style="flex:1;min-width:140px;font-size:.75rem" onchange="dailyHosposMapChange('+i+',this.value)">';
+    h+='<option value="">— pomiń —</option>';
+    S.outlets.forEach(function(so){h+='<option value="'+so.id+'"'+(mappedId===so.id?' selected':'')+'>'+so.name+'</option>'});
+    h+='</select>';
+    h+='</div>';
+  });
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p btn-sm" onclick="dailyHosposFillDay()">➡️ Wypełnij pola dla dnia '+_dailyDay+'</button><button class="btn btn-s btn-sm" onclick="dailyHosposClear()">✕ Wyczyść</button></div>';
+  h+='</div>';
+  box.innerHTML=h;
+}
+function dailyHosposMapChange(idx,val){
+  if(S._dailyHosposParsed&&S._dailyHosposParsed.outlets[idx])S._dailyHosposParsed.outlets[idx]._mapped=val;
+}
+function dailyHosposFillDay(){
+  var parsed=S._dailyHosposParsed;if(!parsed)return;
+  var map=getMsalesMap(S.pid);
+  var filled=0;
+  parsed.outlets.forEach(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    var mappedId=(o._mapped!==undefined)?o._mapped:(map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName));
+    if(!mappedId)return;
+    var so=S.outlets.find(function(x){return x.id===mappedId});
+    if(!so)return;
+    var el=document.getElementById('dd-'+okey(so.name));
+    if(el){el.value=o.compNetto;filled++;}
+  });
+  if(!filled){toast('Brak dopasowanych outletów — wybierz je z listy','er');return;}
+  dailyRecalc();
+  toast('Wypełniono '+filled+' outlet(ów) — sprawdź i kliknij "Zapisz dzień"','ok');
+  dailyHosposClear();
+}
+function dailyHosposClear(){
+  S._dailyHosposParsed=null;
+  var ta=document.getElementById('daily-hospos-input');if(ta)ta.value='';
+  var box=document.getElementById('daily-hospos-preview');if(box)box.innerHTML='';
 }
 
 function dailyRecalc(){
