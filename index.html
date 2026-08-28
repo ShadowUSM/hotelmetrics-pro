@@ -3558,29 +3558,13 @@ function goDataImport(){
 }
 
 /* ═══════════════════════════════════════════
-   MONIT "WGRAJ DANE" (tylko dla Administratora)
+   OKNO "WGRAJ DANE" (tylko dla Administratora)
    Szybki skrót do najczęściej wprowadzanych danych: dzienny wynik netto,
    wklejenie raportu sprzedaży pozycji menu, wgranie pliku Menu Engineering.
-   Pokazuje się zawsze przy pierwszym wejściu do aplikacji danego dnia; przy
-   kolejnych wejściach tego samego dnia — tylko jeśli za bieżący miesiąc
-   wciąż brakuje danych Sprzedaż menu lub Menu Engineering.
+   Otwierane wyłącznie ręcznie — przyciskiem "📥 Wgraj dane" w sidebarze
+   (bez automatycznego wyskakiwania przy wejściu do aplikacji).
 ═══════════════════════════════════════════ */
 function currentRealMonth(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
-function dailyPromptMonthMissing(){
-  if(!S.pid)return false;
-  var m=currentRealMonth();
-  var msalesMissing=!getMenuSales(S.pid,m);
-  var mengMissing=getAllMenuEngKeys(S.pid).filter(function(k){return k.month===m}).length===0;
-  return msalesMissing||mengMissing;
-}
-function checkDailyDataPrompt(){
-  if(!S.pid||S.currentRole!=='admin')return;
-  var today=new Date().toISOString().slice(0,10);
-  var lastSeen=lsGet(uk('daily-prompt-date-'+S.pid),null);
-  var isFirstToday=(lastSeen!==today);
-  if(isFirstToday)lsSet(uk('daily-prompt-date-'+S.pid),today);
-  if(isFirstToday||dailyPromptMonthMissing())openDailyPromptModal();
-}
 function openDailyPromptModal(){
   renderDailyPromptModal();
   openM('m-daily-prompt');
@@ -10961,8 +10945,6 @@ function startApp(){
   syncMonthUI();
   renderCur();
   fetchRates();
-  // Monit "Wgraj dane" dla Administratora (krótkie opóźnienie, żeby nie kolidować z pierwszym renderem)
-  setTimeout(function(){checkDailyDataPrompt()},1200);
   // Check backup reminder after 3 seconds
   setTimeout(function(){
     if(checkAutoBackup()&&S.view!=='team')
