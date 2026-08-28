@@ -4570,7 +4570,10 @@ function loadUserDataFromFirestore(){
         saveOutlets(p.id,outs);
       });
       var t2=db.collection('properties/'+p.id+'/monthlyData').get().then(function(s){
-        s.docs.forEach(function(d){lsSet(uk('md-'+p.id+'-'+d.id),d.data())});
+        s.docs.forEach(function(d){
+          if(d.id==='_pasteMap'){var pmd=d.data();lsSet(uk('monthly-paste-map-'+p.id),(pmd&&pmd.map)||{});}
+          else lsSet(uk('md-'+p.id+'-'+d.id),d.data());
+        });
       });
       var t3=db.collection('properties/'+p.id+'/goals').get().then(function(s){
         s.docs.forEach(function(d){lsSet(uk('goals-'+p.id+'-'+d.id),d.data())});
@@ -5410,6 +5413,17 @@ function renderData(){
   h+='<div class="cal-dg" id="dp-cal"></div>';
   h+='</div></div></div>';
   h+='</div></div>';
+
+  // ── SZYBKIE WYPEŁNIENIE: wklej raport HosPOS (ten sam format co "Sprzedaż menu") ──
+  if(!ro){
+    h+='<div class="card" style="margin-bottom:12px">';
+    h+='<div class="fsect">🔗 Wklej raport HosPOS (szybkie wypełnienie)</div>';
+    h+='<p class="hs-p" style="margin-bottom:10px">Alternatywa dla ręcznego wpisywania — wklej treść raportu sprzedaży z HosPOS (ten sam format co w karcie "Sprzedaż menu"), a aplikacja wyciągnie sumę netto per outlet i wypełni nią kolumnę "Wynik" dla miesiąca <strong>'+mLabelFull(S.month)+'</strong> poniżej. Dopasowanie outletów zapamiętuje się na kolejne dni i miesiące. Nic nie zapisuje się automatycznie — po wypełnieniu nadal klikasz "Zapisz".</p>';
+    h+='<textarea class="fi" id="monthly-hospos-input" rows="4" placeholder="Wklej tutaj raport..."></textarea>';
+    h+='<div class="fa" style="margin-top:8px"><button class="btn btn-p" onclick="monthlyHosposParse()">🔍 Wczytaj i przeanalizuj</button></div>';
+    h+='<div id="monthly-hospos-preview"></div>';
+    h+='</div>';
+  }
 
   // ── TABELA DANYCH ──
   h+='<div class="card"><div class="fsect">💰 Budżet i wyniki netto (PLN) '+(ro?'':'<button class="btn btn-g btn-sm" onclick="cpyBudget()">📋 Kopiuj z '+mLabel(pm)+'</button>')+'</div>';
@@ -6805,6 +6819,7 @@ function setDMonth(ym,suf){
   if(suf==='-msales'){msalesViewMonth(ym);closeAllPickers();return;}
   if(suf==='-meng'){mengViewMonth(ym);closeAllPickers();return;}
   S.month=ym;
+  S._monthlyHosposParsed=null;
   syncMonthUI();
   closeAllPickers();
   renderCur();
@@ -6857,6 +6872,78 @@ function closeAllPickers(){
     if(mb)mb.classList.remove('open');
     if(db2)db2.classList.remove('open');
   });
+}
+
+// ── MAPOWANIE OUTLETÓW dla szybkiego wypełnienia Miesięcznych z wklejonego raportu ──
+// Osobne od mapowania używanego w "Sprzedaż menu"/"Menu Engineering", bo tu ktoś może chcieć
+// świadomie skonsolidować outlet z raportu pod inny outlet w wyniku finansowym (np. Kantyna -> Aroma).
+function getMonthlyPasteMap(pid){return lsGet(uk('monthly-paste-map-'+pid),{})}
+function saveMonthlyPasteMap(pid,map){
+  lsSet(uk('monthly-paste-map-'+pid),map);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/monthlyData').doc('_pasteMap'),{map:map});
+}
+function monthlyHosposParse(){
+  var ta=document.getElementById('monthly-hospos-input');if(!ta)return;
+  var raw=ta.value;
+  if(!raw||!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
+  var parsed=parseMenuSalesReport(raw);
+  if(!parsed.outlets.length){toast('Nie udało się rozpoznać żadnego outletu w tekście — sprawdź format','er');return;}
+  S._monthlyHosposParsed=parsed;
+  renderMonthlyHosposPreview();
+  toast('Rozpoznano '+parsed.outlets.length+' outlet(ów)','ok');
+}
+function renderMonthlyHosposPreview(){
+  var box=document.getElementById('monthly-hospos-preview');if(!box)return;
+  var parsed=S._monthlyHosposParsed;
+  if(!parsed){box.innerHTML='';return;}
+  var map=getMonthlyPasteMap(S.pid);
+  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
+  h+='<div class="hs-p" style="margin-bottom:8px">Dopasuj outlety, jeśli trzeba, i wypełnij kolumnę "Wynik" dla <strong>'+mLabelFull(S.month)+'</strong>:</div>';
+  parsed.outlets.forEach(function(o,i){
+    var key=o.rawName.trim().toUpperCase();
+    var mappedId=(o._mapped!==undefined)?o._mapped:(map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName));
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">';
+    h+='<strong style="font-size:.78rem;min-width:110px">'+o.rawName+'</strong>';
+    h+='<span style="font-size:.72rem;color:var(--tx3);min-width:80px">'+fmt(o.compNetto,true)+'</span>';
+    h+='<select class="fi" style="flex:1;min-width:140px;font-size:.75rem" onchange="monthlyHosposMapChange('+i+',this.value,\''+key.replace(/'/g,"\\'")+'\')">';
+    h+='<option value="">— pomiń —</option>';
+    S.outlets.forEach(function(so){h+='<option value="'+so.id+'"'+(mappedId===so.id?' selected':'')+'>'+so.name+'</option>'});
+    h+='</select>';
+    h+='</div>';
+  });
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p btn-sm" onclick="monthlyHosposFill()">➡️ Wypełnij kolumnę "Wynik"</button><button class="btn btn-s btn-sm" onclick="monthlyHosposClear()">✕ Wyczyść</button></div>';
+  h+='</div>';
+  box.innerHTML=h;
+}
+// Zapamiętuje dopasowanie od razu przy zmianie — obowiązuje na kolejne dni i miesiące (per obiekt).
+function monthlyHosposMapChange(idx,val,key){
+  if(S._monthlyHosposParsed&&S._monthlyHosposParsed.outlets[idx])S._monthlyHosposParsed.outlets[idx]._mapped=val;
+  var map=getMonthlyPasteMap(S.pid);
+  if(val)map[key]=val;else delete map[key];
+  saveMonthlyPasteMap(S.pid,map);
+}
+function monthlyHosposFill(){
+  var parsed=S._monthlyHosposParsed;if(!parsed)return;
+  var map=getMonthlyPasteMap(S.pid);
+  var filled=0;
+  parsed.outlets.forEach(function(o){
+    var key=o.rawName.trim().toUpperCase();
+    var mappedId=(o._mapped!==undefined)?o._mapped:(map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName));
+    if(!mappedId)return;
+    var so=S.outlets.find(function(x){return x.id===mappedId});
+    if(!so)return;
+    var el=document.getElementById('a-'+okey(so.name));
+    if(el){el.value=o.compNetto;filled++;}
+  });
+  if(!filled){toast('Brak dopasowanych outletów — wybierz je z listy','er');return;}
+  recalc();
+  toast('Wypełniono '+filled+' outlet(ów) — sprawdź i kliknij "Zapisz"','ok');
+  monthlyHosposClear();
+}
+function monthlyHosposClear(){
+  S._monthlyHosposParsed=null;
+  var ta=document.getElementById('monthly-hospos-input');if(ta)ta.value='';
+  var box=document.getElementById('monthly-hospos-preview');if(box)box.innerHTML='';
 }
 
 function recalc(){
