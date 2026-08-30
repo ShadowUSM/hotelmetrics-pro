@@ -1807,6 +1807,21 @@ body.presentation-mode #presentation-exit{display:flex}
   <div id="daily-prompt-body"></div>
 </div></div>
 
+<!-- E-MAIL — PODSUMOWANIE MODAL -->
+<div class="moverlay" id="m-email-summary">
+<div class="modal" style="max-width:560px">
+  <div class="mtitle">✉️ E-mail — Podsumowanie</div>
+  <button class="mclose" onclick="closeM('m-email-summary')">✕</button>
+  <p class="hs-p" style="margin-bottom:10px">Gotowy tekst podsumowania — możesz go jeszcze poprawić poniżej przed wysłaniem. Nic nie wysyła się automatycznie.</p>
+  <div class="fg"><label>Temat</label><input type="text" class="fi" id="email-summary-subject"></div>
+  <div class="fg"><label>Treść</label><textarea class="fi" id="email-summary-body" rows="14" style="font-family:var(--fm);font-size:.74rem"></textarea></div>
+  <div class="fa">
+    <button class="btn btn-p" onclick="emailSummaryOpenClient()">📧 Otwórz w programie pocztowym</button>
+    <button class="btn btn-s" onclick="emailSummaryCopy()">📋 Kopiuj tekst</button>
+  </div>
+  <div class="hs-tip" style="margin-top:10px">Jeśli program pocztowy się nie otworzy (częste w przeglądarce bez skonfigurowanego klienta), skopiuj tekst i wklej ręcznie w Gmail/Outlook.</div>
+</div></div>
+
 <!-- HELP MODAL -->
 <div id="help-modal">
   <div class="help-topbar">
@@ -1854,6 +1869,8 @@ body.presentation-mode #presentation-exit{display:flex}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Tesseract.js (OCR): niedostępny w aktualnej wersji na cdnjs, ładowany z jsDelivr — oficjalnie rekomendowany CDN przez twórców biblioteki -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@v5.0.0/dist/tesseract.min.js"></script>
 <!-- Firebase Compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -5090,6 +5107,62 @@ function chOpts(yFn){
   };
 }
 
+// Progi ostrzegawcze Food cost / Beverage cost / FC+BC (Menu Engineering) — orientacyjne wartości branżowe,
+// łatwe do zmiany w jednym miejscu.
+var ALERT_THRESHOLDS={food:35,bev:28,fcbc:32};
+
+// Reguła: Food cost / Beverage cost / FC+BC danego outletu powyżej progu przez 3 KOLEJNE miesiące kalendarzowe z rzędu
+// (jeśli w którymś z tych 3 miesięcy brakuje danych Menu Engineering, reguła jest pomijana — nie da się potwierdzić "z rzędu").
+function alertsMenuEngineering(al){
+  if(!S.pid||!S.outlets.length)return;
+  var m2=currentRealMonth(),m1=prevM(m2),m0=prevM(m1);
+  var checkMonths=[m0,m1,m2];
+  S.outlets.forEach(function(o){
+    var vals={food:[],bev:[],fcbc:[]},complete=true;
+    checkMonths.forEach(function(m){
+      var d=getMenuEng(S.pid,o.id,m);
+      if(!d){complete=false;return;}
+      var t=(d.totals&&d.totals.fcBcCostPct!==undefined)?d.totals:mengComputeTotals(d.items);
+      vals.food.push(t.foodCostPct);vals.bev.push(t.bevCostPct);vals.fcbc.push(t.fcBcCostPct);
+    });
+    if(!complete)return;
+    [['food','Food cost'],['bev','Beverage cost'],['fcbc','FC+BC']].forEach(function(pair){
+      var key=pair[0],label=pair[1],threshold=ALERT_THRESHOLDS[key],arr=vals[key];
+      if(arr.every(function(v){return v!==null&&v>threshold})){
+        al.push({t:'wa',msg:o.name+': '+label+' powyżej '+threshold+'% przez 3 miesiące z rzędu ('+mLabel(m0)+'–'+mLabel(m2)+') — sprawdź w Analiza Menu.'});
+      }
+    });
+  });
+}
+
+// Reguła: sprzedaż dnia wczorajszego spadła o więcej niż 15% względem dnia poprzedniego (dane z pod-zakładki Dzienne).
+function alertsDailyDrop(al){
+  if(!S.pid||!S.outlets.length)return;
+  var y=new Date();y.setDate(y.getDate()-1);
+  var db=new Date();db.setDate(db.getDate()-2);
+  function ymd(d){return {month:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),day:d.getDate()}}
+  var yInfo=ymd(y),dbInfo=ymd(db);
+  var ddY=getDailyData(S.pid,yInfo.month),ddDB=getDailyData(S.pid,dbInfo.month);
+  var valsY=(ddY.days&&ddY.days[yInfo.day])||{},valsDB=(ddDB.days&&ddDB.days[dbInfo.day])||{};
+  S.outlets.forEach(function(o){
+    var k=okey(o.name);
+    var vy=parseFloat(valsY[k])||0,vdb=parseFloat(valsDB[k])||0;
+    if(vy<=0||vdb<=0)return;
+    var chg=(vy-vdb)/vdb*100;
+    if(chg<=-15)al.push({t:'da',msg:o.name+': sprzedaż dnia '+String(yInfo.day).padStart(2,'0')+'.'+yInfo.month.split('-')[1]+' spadła o '+Math.abs(chg).toFixed(0)+'% względem dnia poprzedniego.'});
+  });
+}
+
+// Delikatne przypomnienie (nie modal) o brakujących danych bieżącego miesiąca — pokazuje się tylko gdy
+// przeglądany jest realnie bieżący miesiąc, żeby nie zaśmiecać widoku przy przeglądaniu historii.
+function alertsMissingData(al){
+  if(!S.pid)return;
+  var m=currentRealMonth();
+  if(m!==S.month)return;
+  if(!getMenuSales(S.pid,m))al.push({t:'wa',msg:'Brak jeszcze danych "Sprzedaż menu" za '+mLabel(m)+'.'});
+  if(getAllMenuEngKeys(S.pid).filter(function(k){return k.month===m}).length===0)al.push({t:'wa',msg:'Brak jeszcze danych Menu Engineering za '+mLabel(m)+'.'});
+}
+
 function alerts(metrics,outlets){
   var al=[];if(!metrics)return al;
   var T=metrics._t;
@@ -5102,6 +5175,9 @@ function alerts(metrics,outlets){
     else if(m.pct!==null&&m.pct<exp*0.85) al.push({t:'wa',msg:o.name+': '+(m.pct*100).toFixed(0)+'% realizacji — poniżej oczekiwanego'});
   });
   if(T.b>0&&T.pct!==null&&T.pct>=1) al.unshift({t:'ok',msg:'Łączny budżet wykonany: '+(T.pct*100).toFixed(0)+'% 🎉'});
+  alertsMenuEngineering(al);
+  alertsDailyDrop(al);
+  alertsMissingData(al);
   return al;
 }
 
@@ -5470,6 +5546,7 @@ function renderData(){
     h+='<div class="fsect">🔗 Wklej raport HosPOS (szybkie wypełnienie)</div>';
     h+='<p class="hs-p" style="margin-bottom:10px">Alternatywa dla ręcznego wpisywania — wklej treść raportu sprzedaży z HosPOS (ten sam format co w karcie "Sprzedaż menu"), a aplikacja wyciągnie sumę netto per outlet i wypełni nią kolumnę "Wynik" dla miesiąca <strong>'+mLabelFull(S.month)+'</strong> poniżej. Dopasowanie outletów zapamiętuje się na kolejne dni i miesiące. Nic nie zapisuje się automatycznie — po wypełnieniu nadal klikasz "Zapisz".</p>';
     h+='<textarea class="fi" id="monthly-hospos-input" rows="4" placeholder="Wklej tutaj raport..."></textarea>';
+    h+=ocrButtonHTML('monthly-hospos-photo','monthly-hospos-input','monthly-hospos-ocr-status');
     h+='<div class="fa" style="margin-top:8px"><button class="btn btn-p" onclick="monthlyHosposParse()">🔍 Wczytaj i przeanalizuj</button></div>';
     h+='<div id="monthly-hospos-preview"></div>';
     h+='</div>';
@@ -5695,9 +5772,12 @@ function renderMenuSales(){
   var h='';
   h+='<div class="card" style="margin-bottom:14px">';
   h+='<div class="fsect">📋 Wklej raport sprzedaży pozycji menu</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Wklej treść raportu "Sprzedaż pozycji menu" skopiowaną z systemu POS (Ilość / Netto / Brutto). Aplikacja sama rozpozna zakres dat w raporcie i zaproponuje miesiąc — będzie go można zmienić ręcznie przed zapisem.</p>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Wklej treść raportu "Sprzedaż pozycji menu" skopiowaną z systemu POS (Ilość / Netto / Brutto). Aplikacja sama rozpozna zakres dat w raporcie i zaproponuje miesiąc — będzie go można zmienić ręcznie przed zapisem. Możesz też sfotografować raport zamiast wklejać tekst (przycisk poniżej) — przy tak długim, szczegółowym raporcie warto jednak dokładnie sprawdzić rozpoznane liczby przed analizą.</p>';
   h+='<textarea class="fi" id="msales-input" rows="8" placeholder="Wklej tutaj cały raport..."'+(ro?' disabled':'')+' oninput="msalesDraftSave(this.value)">'+draftText+'</textarea>';
-  if(!ro)h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="msalesParse()">🔍 Wczytaj i przeanalizuj</button>'+(parsed?'<button class="btn btn-s" onclick="msalesClearParsed()">✕ Wyczyść podgląd</button>':'')+'</div>';
+  if(!ro){
+    h+=ocrButtonHTML('msales-photo','msales-input','msales-ocr-status');
+    h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="msalesParse()">🔍 Wczytaj i przeanalizuj</button>'+(parsed?'<button class="btn btn-s" onclick="msalesClearParsed()">✕ Wyczyść podgląd</button>':'')+'</div>';
+  }
   h+='</div>';
 
   if(parsed&&!ro){
@@ -6588,6 +6668,7 @@ function renderDaily(){
     h+='<div class="fsect">🔗 Wklej raport HosPOS (szybkie wypełnienie)</div>';
     h+='<p class="hs-p" style="margin-bottom:10px">Alternatywa dla ręcznego wpisywania — wklej treść raportu sprzedaży z HosPOS (ten sam format co w karcie "Sprzedaż menu"), a aplikacja wyciągnie sumę netto per outlet i wypełni nią pola poniżej dla wybranego dnia ('+_dailyDay+' '+mLabel(S.month)+'). Nic nie zapisuje się automatycznie — po wypełnieniu nadal klikasz "Zapisz dzień".</p>';
     h+='<textarea class="fi" id="daily-hospos-input" rows="4" placeholder="Wklej tutaj raport..."></textarea>';
+    h+=ocrButtonHTML('daily-hospos-photo','daily-hospos-input','daily-hospos-ocr-status');
     h+='<div class="fa" style="margin-top:8px"><button class="btn btn-p" onclick="dailyHosposParse()">🔍 Wczytaj i przeanalizuj</button></div>';
     h+='<div id="daily-hospos-preview"></div>';
     h+='</div>';
@@ -6727,6 +6808,48 @@ function selectDailyDay(day){
 }
 
 // ── SZYBKIE WYPEŁNIENIE DNIA Z RAPORTU HosPOS (ten sam parser co "Sprzedaż menu", tylko sumy Razem) ──
+/* ═══════════════════════════════════════════
+   OCR ZE ZDJĘCIA (Tesseract.js — działa lokalnie w przeglądarce, bez usług zewnętrznych/płatnych)
+   Rozpoznany tekst trafia do tego samego pola wklejania, którego używa się przy ręcznym wklejaniu —
+   dalszy przebieg (analiza, dopasowanie outletów, wypełnienie pól) jest identyczny w obu przypadkach.
+   Uwaga: jakość rozpoznawania zależy od jakości zdjęcia (ostrość, kontrast, kąt) i jest z natury
+   mniej dokładna niż wklejenie czystego tekstu — zawsze warto sprawdzić rozpoznany tekst przed analizą.
+═══════════════════════════════════════════ */
+function ocrButtonHTML(fileInputId,textareaId,statusId){
+  return '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+    '<input type="file" id="'+fileInputId+'" accept="image/*" capture="environment" style="display:none" onchange="ocrFileSelected(this,\''+textareaId+'\',\''+statusId+'\')">'+
+    '<button class="btn btn-s btn-sm" onclick="document.getElementById(\''+fileInputId+'\').click()">📷 lub zrób/wybierz zdjęcie raportu</button>'+
+    '<span id="'+statusId+'" style="font-size:.68rem;color:var(--tx3)"></span>'+
+    '</div>';
+}
+function ocrFileSelected(input,textareaId,statusId){
+  var file=input.files&&input.files[0];if(!file)return;
+  ocrRecognize(file,textareaId,statusId);
+  input.value='';
+}
+function ocrRecognize(file,textareaId,statusId){
+  var statusEl=document.getElementById(statusId);
+  if(!window.Tesseract){toast('Biblioteka OCR nie wczytała się — sprawdź połączenie z internetem','er');return;}
+  if(statusEl)statusEl.textContent='⏳ Rozpoznawanie tekstu ze zdjęcia (może potrwać kilkanaście sekund)...';
+  Tesseract.createWorker('pol').then(function(worker){
+    return worker.recognize(file).then(function(result){
+      worker.terminate();
+      var text=(result&&result.data&&result.data.text)||'';
+      var ta=document.getElementById(textareaId);
+      if(ta){
+        ta.value=text;
+        try{ta.dispatchEvent(new Event('input'))}catch(e){}
+      }
+      if(statusEl)statusEl.textContent=text.trim()?'✅ Rozpoznano tekst — sprawdź go poniżej (OCR bywa niedokładny, zwłaszcza przy liczbach) przed kliknięciem "Wczytaj i przeanalizuj".':'⚠️ Nie rozpoznano żadnego tekstu — spróbuj ostrzejszego/lepiej oświetlonego zdjęcia.';
+      toast(text.trim()?'Tekst rozpoznany — sprawdź przed analizą':'Nie rozpoznano tekstu','in');
+    });
+  }).catch(function(e){
+    console.error(e);
+    if(statusEl)statusEl.textContent='';
+    toast('Nie udało się rozpoznać tekstu ze zdjęcia','er');
+  });
+}
+
 function dailyHosposParse(){
   var ta=document.getElementById('daily-hospos-input');if(!ta)return;
   var raw=ta.value;
@@ -8617,6 +8740,7 @@ function renderExport(){
   h+=eCard('📆','PDF — Sezonowość','Miesiąc vs poprzednie lata','pdfSeasonalityReport()');
   h+=eCard('📋','PDF — Dzień po dniu','Pełne zestawienie dzienne','pdfDailyDetailReport()');
   h+=eCard('🧭','PDF — Analiza zaawansowana','Kwadranty + Odchylenia','pdfAdvancedReport()');
+  h+=eCard('✉️','E-mail — Podsumowanie','Gotowy tekst do wysłania (bez wysyłki automatycznej)','openEmailSummary()');
   h+='</div>';
 
   // ── RAPORT PDF: HEATMAPA + REKORDY ──
@@ -9594,6 +9718,76 @@ function pdfHeatmapRecords(){
   pdfDrawFooter(doc,pw,ph);
   doc.save('Raport_Heatmapa_Rekordy_'+from+'_'+to+'.pdf');
   toast('Raport PDF wygenerowany','ok');haptic(10);
+}
+
+/* ═══════════════════════════════════════════
+   E-MAIL — PODSUMOWANIE (gotowy tekst do wysłania, bez automatyzacji/usług zewnętrznych)
+═══════════════════════════════════════════ */
+function buildEmailSummaryContent(){
+  var d=getMD(S.pid,S.month)||{},M=calcM(S.outlets,d)||{_t:{b:0,a:0,avg:0,proj:0,pct:null}};
+  var T=M._t,prop=S.props.find(function(p){return p.id===S.pid});
+  var propName=prop?prop.name:'obiekt';
+
+  var subject='Podsumowanie F&B — '+propName+' — '+mLabelFull(S.month);
+
+  var lines=[];
+  lines.push('Podsumowanie miesiąca — '+propName);
+  lines.push(mLabelFull(S.month));
+  lines.push('');
+  lines.push('WYNIKI OGÓLNE');
+  lines.push('Wynik netto: '+fmt(T.a,true));
+  if(T.b)lines.push('Budżet: '+fmt(T.b,true));
+  if(T.pct!==null)lines.push('Realizacja: '+(T.pct*100).toFixed(1)+'%');
+  lines.push('Śr./dzień: '+fmt(T.avg,true));
+  lines.push('Prognoza: '+fmt(T.proj,true));
+  lines.push('');
+
+  lines.push('WYNIKI PER OUTLET');
+  S.outlets.forEach(function(o){
+    var k=okey(o.name),m=M[k]||{};
+    var line='- '+o.name+': '+fmt(m.a||0,true);
+    if(m.b)line+=' (budżet '+fmt(m.b,true)+', realizacja '+(m.pct!==null?(m.pct*100).toFixed(0)+'%':'-')+')';
+    lines.push(line);
+  });
+
+  var al=alerts(M,S.outlets);
+  if(al.length){
+    lines.push('');
+    lines.push('NA CO ZWRÓCIĆ UWAGĘ');
+    al.slice(0,6).forEach(function(a){lines.push('- '+a.msg)});
+  }
+
+  lines.push('');
+  lines.push('Wygenerowano automatycznie przez HotelMetrics Pro, '+new Date().toLocaleDateString('pl-PL')+'.');
+
+  return {subject:subject,body:lines.join('\n')};
+}
+function openEmailSummary(){
+  if(!S.pid){toast('Wybierz obiekt','er');return;}
+  var content=buildEmailSummaryContent();
+  var subjEl=document.getElementById('email-summary-subject'),bodyEl=document.getElementById('email-summary-body');
+  if(subjEl)subjEl.value=content.subject;
+  if(bodyEl)bodyEl.value=content.body;
+  openM('m-email-summary');
+}
+function emailSummaryOpenClient(){
+  var subjEl=document.getElementById('email-summary-subject'),bodyEl=document.getElementById('email-summary-body');
+  var subject=subjEl?subjEl.value:'',body=bodyEl?bodyEl.value:'';
+  var mailto='mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  window.location.href=mailto;
+}
+function emailSummaryCopy(){
+  var subjEl=document.getElementById('email-summary-subject'),bodyEl=document.getElementById('email-summary-body');
+  var text='Temat: '+(subjEl?subjEl.value:'')+'\n\n'+(bodyEl?bodyEl.value:'');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){toast('Skopiowano do schowka','ok')}).catch(function(){toast('Nie udało się skopiować','er')});
+  } else {
+    try{
+      var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+      toast('Skopiowano do schowka','ok');
+    }catch(e){toast('Nie udało się skopiować','er');}
+  }
 }
 
 function pdfMgmt(){
