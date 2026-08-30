@@ -1948,6 +1948,7 @@ function saveDailyValue(pid,month,day,outletKey,value){
   d.ts=Date.now();
   lsSet(uk('daily-'+pid+'-'+month),d);
   if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),d);
+  logAudit(pid,'daily','Dzień '+day+' '+mLabel(month)+', '+outletKey+': '+fmt(value,true));
 }
 function saveDailyDayBulk(pid,month,day,valuesMap){
   var d=getDailyData(pid,month);
@@ -1958,6 +1959,7 @@ function saveDailyDayBulk(pid,month,day,valuesMap){
   d.ts=Date.now();
   lsSet(uk('daily-'+pid+'-'+month),d);
   if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),d);
+  logAudit(pid,'daily','Dzień '+day+' '+mLabel(month)+' — '+Object.keys(clean).length+' outlet(ów)');
 }
 function getAllDailyData(pid){
   var prefix=uk('daily-'+pid+'-'),r={};
@@ -2428,6 +2430,7 @@ function inviteMemberToProperty(email,role){
   prop.members.push({email:lower,role:role||'manager'});
   prop.memberEmails.push(lower);
   savePropItem(prop);
+  logAudit(prop.id,'team_invite','Zaproszono: '+lower+' ('+(role||'manager')+')');
   return {ok:true};
 }
 
@@ -2438,6 +2441,7 @@ function removeMemberFromProperty(email){
   prop.members=(prop.members||[]).filter(function(m){return m.email!==email});
   prop.memberEmails=(prop.memberEmails||[]).filter(function(e){return e!==email});
   savePropItem(prop);
+  logAudit(prop.id,'team_remove','Usunięto z zespołu: '+email);
 }
 
 function changeMemberRole(email,newRole){
@@ -2446,6 +2450,7 @@ function changeMemberRole(email,newRole){
   var m=(prop.members||[]).find(function(x){return x.email===email});
   if(m)m.role=newRole;
   savePropItem(prop);
+  logAudit(prop.id,'team_role','Zmiana roli: '+email+' → '+newRole);
 }
 
 /* ═══════════════════════════════════════════
@@ -3292,7 +3297,14 @@ function renderTeam(){
     h+='<div class="backup-remind" style="margin-top:16px"><span style="font-size:1.2rem">💾</span><div class="backup-remind-text">Ostatnia kopia zapasowa była ponad tydzień temu. Zalecamy wykonanie kopii JSON.</div><button class="btn btn-s btn-sm" onclick="exportJSON();markBackupDone()">Wykonaj teraz</button></div>';
   }
 
+  // ── DZIENNIK ZMIAN (audit log) — tylko dla administratora ──
+  if(isAdmin){
+    h+='<div class="stitle" style="margin-top:16px">📜 Historia zmian</div>';
+    h+='<div class="card"><p class="hs-p" style="margin-bottom:10px">Kto i kiedy zmienił dane w tym obiekcie — ostatnie 50 zapisów.</p><div id="audit-log-body"><p class="hs-p" style="color:var(--tx3)">Wczytywanie...</p></div></div>';
+  }
+
   el.innerHTML=h;
+  if(isAdmin)renderAuditLog();
 }
 
 function saveProfile(){
@@ -4020,6 +4032,52 @@ function connEndWrite(ok){
   }
 }
 
+/* ═══════════════════════════════════════════
+   DZIENNIK ZMIAN (audit log) — kto i kiedy zmienił dane, per obiekt hotelowy.
+   Zapis best-effort (jak reszta synchronizacji Firestore) — jeśli się nie uda,
+   nie blokuje ani nie przerywa właściwego zapisu danych.
+═══════════════════════════════════════════ */
+function logAudit(pid,action,details){
+  if(!pid||!S.uid)return;
+  connBeginWrite();
+  db.collection('properties/'+pid+'/auditLog').add({
+    ts:Date.now(),uid:S.uid,email:S.userEmail||'',action:action,details:details||''
+  }).then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});
+}
+function loadAuditLog(pid,limit){
+  return db.collection('properties/'+pid+'/auditLog').orderBy('ts','desc').limit(limit||50).get().then(function(snap){
+    return snap.docs.map(function(d){return d.data()});
+  });
+}
+var AUDIT_ACTION_LABELS={
+  daily:'📆 Dane dzienne',monthly:'📝 Dane miesięczne',
+  msales:'🍽️ Sprzedaż menu',msales_del:'🍽️ Sprzedaż menu — usunięcie',
+  meng:'📊 Menu Engineering',meng_del:'📊 Menu Engineering — usunięcie',
+  outlet:'🏪 Outlet',outlet_del:'🏪 Outlet — usunięcie',
+  property:'🏨 Obiekt',property_del:'🏨 Obiekt — usunięcie',
+  team_invite:'👥 Zaproszenie',team_remove:'👥 Usunięcie z zespołu',team_role:'👥 Zmiana roli'
+};
+function renderAuditLog(){
+  var el=document.getElementById('audit-log-body');if(!el)return;
+  if(!S.pid||!S.uid){el.innerHTML='';return;}
+  loadAuditLog(S.pid,50).then(function(entries){
+    var box=document.getElementById('audit-log-body');if(!box)return; // użytkownik mógł zdążyć zmienić widok
+    if(!entries.length){box.innerHTML='<p class="hs-p" style="color:var(--tx3)">Brak jeszcze zapisanych zmian.</p>';return;}
+    var h='<div class="tbl-wrap"><table><thead><tr><th>Kiedy</th><th>Kto</th><th>Co</th><th>Szczegóły</th></tr></thead><tbody>';
+    entries.forEach(function(e){
+      var d=new Date(e.ts);
+      var when=d.toLocaleDateString('pl-PL')+' '+d.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+      h+='<tr><td style="white-space:nowrap;font-size:.72rem">'+when+'</td><td style="font-size:.72rem">'+(e.email||'—')+'</td><td style="font-size:.72rem;white-space:nowrap">'+(AUDIT_ACTION_LABELS[e.action]||e.action)+'</td><td style="font-size:.72rem">'+(e.details||'')+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+    box.innerHTML=h;
+  }).catch(function(err){
+    console.error(err);
+    var box=document.getElementById('audit-log-body');
+    if(box)box.innerHTML='<p class="hs-p" style="color:var(--tx3)">Nie udało się wczytać historii zmian.</p>';
+  });
+}
+
 // Monitor network events
 window.addEventListener('online',function(){
   if(_pendingWrites===0)setConnStatus('online');
@@ -4373,10 +4431,13 @@ function saveOutletItem(pid,o){
   if(i>=0)a[i]=o;else a.push(o);
   saveOutlets(pid,a);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/outlets').doc(o.id),o);
+  logAudit(pid,'outlet','Outlet zapisany: '+o.name);
 }
 function delOutletItem(pid,oid){
+  var existing=getOutlets(pid).find(function(o){return o.id===oid});
   saveOutlets(pid,getOutlets(pid).filter(function(o){return o.id!==oid}));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/outlets').doc(oid).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+  logAudit(pid,'outlet_del','Outlet usunięty: '+(existing?existing.name:oid));
 }
 
 // ── MONTHLY DATA ──
@@ -4385,6 +4446,7 @@ function saveMD(pid,month,d){
   d.ts=Date.now();
   lsSet(uk('md-'+pid+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/monthlyData').doc(month),d);
+  logAudit(pid,'monthly','Dane miesięczne za '+mLabel(month));
 }
 function getAllMD(pid){
   var prefix=uk('md-'+pid+'-'),r={};
@@ -4400,10 +4462,12 @@ function saveMenuSales(pid,month,d){
   d.ts=Date.now();
   lsSet(uk('msales-'+pid+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuSales').doc(month),d);
+  logAudit(pid,'msales','Sprzedaż menu za '+mLabel(month));
 }
 function delMenuSales(pid,month){
   lsDel(uk('msales-'+pid+'-'+month));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/menuSales').doc(month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+  logAudit(pid,'msales_del','Sprzedaż menu usunięta: '+mLabel(month));
 }
 function getAllMenuSalesMonths(pid){
   var prefix=uk('msales-'+pid+'-');
@@ -4430,10 +4494,12 @@ function saveMenuEng(pid,outletId,month,d){
   d.ts=Date.now();
   lsSet(uk('meng-'+pid+'-'+outletId+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuEngineering').doc(outletId+'_'+month),d);
+  logAudit(pid,'meng','Menu Engineering: '+(d.outletName||outletId)+' — '+mLabel(month));
 }
 function delMenuEng(pid,outletId,month){
   lsDel(uk('meng-'+pid+'-'+outletId+'-'+month));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/menuEngineering').doc(outletId+'_'+month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+  logAudit(pid,'meng_del','Menu Engineering usunięte: '+outletId+' — '+mLabel(month));
 }
 // Zwraca listę {outletId,month} dla wszystkich zapisanych importów danego obiektu (posortowane malejąco wg miesiąca).
 function getAllMenuEngKeys(pid){
@@ -8544,6 +8610,7 @@ function saveProp(){
     document.getElementById('np-name').value='';document.getElementById('np-addr').value='';document.getElementById('np-city').value='';
     document.getElementById('np-map-status').innerHTML='';
     _newPropMapLocation=null;
+    logAudit(p.id,'property','Obiekt utworzony/zapisany: '+n);
     renderCur();toast('Obiekt "'+n+'" utworzony'+(p.lat?' · lokalizacja: '+p.cityLabel:''),'ok');
   }
 
@@ -8566,6 +8633,7 @@ function delProp(id){
   var prop=S.props.find(function(p){return p.id===id});
   if(prop&&prop.ownerEmail!==S.userEmailLower){toast('Tylko właściciel może usunąć obiekt','er');return;}
   if(!confirm('Usunąć obiekt i wszystkie jego dane?'))return;
+  logAudit(id,'property_del','Obiekt usunięty: '+(prop?prop.name:id));
   delPropItem(id);if(S.pid===id){S.pid=null;S.outlets=[];}
   S.props=getProps();if(!S.pid&&S.props.length){S.pid=S.props[0].id;S.outlets=getOutlets(S.pid);}
   updatePropSel();refreshCurrentRole();renderCur();toast('Usunięto','in');
