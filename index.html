@@ -290,6 +290,8 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 #search-panel{display:none;background:var(--sur);border:1px solid var(--brd2);border-radius:13px;margin-bottom:16px;padding:10px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 #search-panel.open{display:block;animation:pkIn .15s ease}
 .search-input-row{display:flex;align-items:center;gap:8px;background:var(--sur2);border:1px solid var(--brd);border-radius:9px;padding:8px 10px;color:var(--tx3)}
+.search-kbd{flex-shrink:0;font-family:var(--fm);font-size:.62rem;color:var(--tx3);background:var(--sur);border:1px solid var(--brd);border-radius:5px;padding:2px 6px}
+@media(max-width:640px){.search-kbd{display:none}}
 .search-input-row svg{flex-shrink:0}
 .search-input-row input{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:.85rem;font-family:var(--fb)}
 .search-input-row input::placeholder{color:var(--tx3)}
@@ -1638,7 +1640,7 @@ body.presentation-mode #presentation-exit{display:flex}
             <div class="mgrid" id="mp-grid-global"></div>
           </div>
         </div>
-        <button class="btn-icon" onclick="toggleSearch()" title="Szukaj">
+        <button class="btn-icon" onclick="toggleSearch()" title="Szukaj (Ctrl+K)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
         <button class="btn btn-s btn-sm" onclick="refreshAll()">↻ Odśwież</button>
@@ -1648,7 +1650,8 @@ body.presentation-mode #presentation-exit{display:flex}
     <div id="search-panel">
       <div class="search-input-row">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="search-input" placeholder="Szukaj outletu, miesiąca lub notatki..." oninput="performSearch(this.value)" onkeydown="if(event.key==='Escape')toggleSearch()">
+        <input type="text" id="search-input" placeholder="Szukaj outletu, miesiąca, notatki lub sekcji aplikacji..." oninput="performSearch(this.value)" onkeydown="if(event.key==='Escape')toggleSearch()">
+        <kbd class="search-kbd">Ctrl+K</kbd>
         <button class="mclose" style="position:static;width:24px;height:24px" onclick="toggleSearch()">✕</button>
       </div>
       <div id="search-results"></div>
@@ -3327,7 +3330,7 @@ function toggleSearch(){
     var inp=document.getElementById('search-input');
     if(inp){inp.value='';inp.focus();}
     var res=document.getElementById('search-results');
-    if(res)res.innerHTML='<div class="sr-empty">Wpisz nazwę outletu, miesiąc (np. „marzec") lub fragment notatki.</div>';
+    if(res)res.innerHTML='<div class="sr-empty">Wpisz nazwę sekcji (np. „menu engineering"), outletu, miesiąc (np. „marzec") lub fragment notatki.</div>';
   } else {
     if(history.state&&history.state.hmSearch){
       history.back();
@@ -3339,14 +3342,71 @@ function toggleSearch(){
 
 function srNorm(s){return dePL(String(s||'')).toLowerCase()}
 
+// ── SEKCJE APLIKACJI (skok do dowolnej zakładki/pod-zakładki przez globalne wyszukiwanie) ──
+var SEARCH_SECTIONS=[
+  {id:'dash',icon:'🏠',label:'Dashboard',action:function(){go('dashboard')}},
+  {id:'d-monthly',icon:'📝',label:'Wprowadź dane — Miesięczne',action:function(){var b=document.getElementById('data-tab-monthly');go('data');if(b)switchDataTab('monthly',b)}},
+  {id:'d-daily',icon:'📆',label:'Wprowadź dane — Dzienne',action:function(){goDaily()}},
+  {id:'d-msales',icon:'🍽️',label:'Wprowadź dane — Sprzedaż menu',action:function(){goMenuSales()}},
+  {id:'d-meng',icon:'📊',label:'Wprowadź dane — Menu Engineering',action:function(){goMenuEng()}},
+  {id:'d-import',icon:'📥',label:'Wprowadź dane — Import plików',action:function(){goDataImport()}},
+  {id:'a-charts',icon:'📊',label:'Analityka — Wykresy',action:function(){srGoTab('analytics','charts','atabs')}},
+  {id:'a-heatmap',icon:'🗓️',label:'Analityka — Heatmapa',action:function(){srGoTab('analytics','heatmap','atabs')}},
+  {id:'a-ranking',icon:'🏆',label:'Analityka — Ranking',action:function(){srGoTab('analytics','ranking','atabs')}},
+  {id:'a-whatif',icon:'🔮',label:'Analityka — Co jeśli?',action:function(){srGoTab('analytics','whatif','atabs')}},
+  {id:'a-accuracy',icon:'🎯',label:'Analityka — Trafność',action:function(){srGoTab('analytics','accuracy','atabs')}},
+  {id:'a-quadrant',icon:'🧭',label:'Analityka — Kwadranty',action:function(){srGoTab('analytics','quadrant','atabs')}},
+  {id:'a-waterfall',icon:'📉',label:'Analityka — Odchylenia',action:function(){srGoTab('analytics','waterfall','atabs')}},
+  {id:'a-weather',icon:'🌤️',label:'Analityka — Pogoda',action:function(){srGoTab('analytics','weather','atabs')}},
+  {id:'c-mom',icon:'🔀',label:'Porównania — MoM',action:function(){srGoTab('compare','mom','ctabs')}},
+  {id:'c-yoy',icon:'🔀',label:'Porównania — YoY',action:function(){srGoTab('compare','yoy','ctabs')}},
+  {id:'c-ytd',icon:'🔀',label:'Porównania — YTD',action:function(){srGoTab('compare','ytd','ctabs')}},
+  {id:'c-season',icon:'🌊',label:'Porównania — Sezonowość',action:function(){srGoTab('compare','season','ctabs')}},
+  {id:'c-range',icon:'📆',label:'Porównania — Zakres',action:function(){srGoTab('compare','range','ctabs')}},
+  {id:'menuan',icon:'🍽️',label:'Analiza Menu',action:function(){go('menuanalysis')}},
+  {id:'props',icon:'🏨',label:'Obiekty i outlety',action:function(){go('properties')}},
+  {id:'export',icon:'📤',label:'Raporty i eksport',action:function(){go('export')}},
+  {id:'budget',icon:'📋',label:'Budżet roczny',action:function(){go('budget')}},
+  {id:'team',icon:'👥',label:'Zespół',action:function(){go('team')}}
+];
+function srGoTab(view,tabId,tabsElId){
+  go(view);
+  setTimeout(function(){
+    var btns=document.querySelectorAll('#'+tabsElId+' .tab');
+    for(var i=0;i<btns.length;i++){
+      var oc=btns[i].getAttribute('onclick');
+      if(oc&&oc.indexOf("'"+tabId+"'")>=0){btns[i].click();break;}
+    }
+  },50);
+  toggleSearch();
+}
+function srGoSection(id){
+  var item=SEARCH_SECTIONS.find(function(s){return s.id===id});
+  if(item)item.action();
+}
+
 function performSearch(q){
   var res=document.getElementById('search-results');
   if(!res)return;
   var query=q.trim();
   if(query.length<2){res.innerHTML='<div class="sr-empty">Wpisz co najmniej 2 znaki...</div>';return;}
-  if(!S.pid){res.innerHTML='<div class="sr-empty">Wybierz najpierw obiekt hotelowy.</div>';return;}
   var nq=srNorm(query);
   var h='';
+
+  // 0) Dopasowanie sekcji aplikacji (działa nawet bez wybranego obiektu)
+  var sectionMatches=SEARCH_SECTIONS.filter(function(s){return srNorm(s.label).indexOf(nq)!==-1});
+  if(sectionMatches.length){
+    h+='<div class="sr-sect">Sekcje aplikacji</div>';
+    sectionMatches.slice(0,8).forEach(function(s){
+      h+='<div class="sr-item" onclick="srGoSection(\''+s.id+'\')"><div class="sr-ico">'+s.icon+'</div><div class="sr-body"><div class="sr-title">'+s.label+'</div></div></div>';
+    });
+  }
+
+  if(!S.pid){
+    if(!h)h='<div class="sr-empty">Wybierz obiekt hotelowy, aby wyszukać też outlety, miesiące i notatki.</div>';
+    res.innerHTML=h;
+    return;
+  }
 
   // 1) Dopasowanie miesiąca
   var monthMatch=detectMonth(query);
@@ -4720,6 +4780,12 @@ function togglePresentationMode(){
 }
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&document.body.classList.contains('presentation-mode'))exitPresentationMode();
+  if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){
+    e.preventDefault();
+    var panel=document.getElementById('search-panel');
+    if(panel&&!panel.classList.contains('open'))toggleSearch();
+    else{var inp=document.getElementById('search-input');if(inp)inp.focus();}
+  }
 });
 
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('on')}
