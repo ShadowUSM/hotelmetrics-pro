@@ -310,6 +310,9 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 .alert.da{background:rgba(255,77,109,.07);border-left-color:var(--red)}
 .alert.wa{background:rgba(245,158,11,.07);border-left-color:var(--warn)}
 .alert.ok{background:rgba(34,197,94,.07);border-left-color:var(--grn)}
+.alert-msg{flex:1}
+.alert-close{flex-shrink:0;background:none;border:none;color:var(--tx3);font-size:.72rem;cursor:pointer;padding:2px 4px;line-height:1;border-radius:5px}
+.alert-close:hover{color:var(--tx);background:rgba(255,255,255,.08)}
 
 /* Tables */
 .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--brd);-webkit-overflow-scrolling:touch;max-width:100%}
@@ -575,6 +578,7 @@ body.presentation-mode #presentation-exit{display:flex}
 .cal-d.emp{visibility:hidden;pointer-events:none}
 .cal-d{position:relative}
 .cal-d.has-data::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--grn)}
+.cal-d.has-note::before{content:'📝';position:absolute;top:-2px;right:0;font-size:.5rem;line-height:1}
 .cal-d.sel.has-data::after{background:var(--bg)}
 .dp-title{font-size:.78rem;font-weight:600;color:var(--tx);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
 
@@ -632,6 +636,7 @@ body.presentation-mode #presentation-exit{display:flex}
 
 /* ── HEATMAP ── */
 .hmap-holiday-mark{position:absolute;top:4px;right:5px;font-size:.7rem;line-height:1;filter:saturate(.9);z-index:1}
+.hmap-note-mark{position:absolute;top:4px;left:5px;font-size:.65rem;line-height:1;z-index:1}
 .hmap-cell.holiday{box-shadow:inset 0 0 0 1px rgba(255,215,0,.45)}
 .hmap-holiday-label{font-size:.5rem;color:var(--tx3);line-height:1.05;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hmap-holiday-legend{display:inline-flex;align-items:center;gap:4px;margin-left:12px;font-size:.65rem;color:var(--tx3)}
@@ -2398,6 +2403,26 @@ function delNote(pid,outletKey,noteId){
 }
 
 /* ═══════════════════════════════════════════
+   NOTATKI DO DNIA (Dzienne) — jedna notatka tekstowa na dzień (nie per outlet), żeby opisać
+   z czego wynikał nagły spadek/wzrost sprzedaży. Trzymana w tym samym dokumencie co dane
+   dzienne (properties/{pid}/dailyData/{month}), w polu "notes" równoległym do "days".
+═══════════════════════════════════════════ */
+function getDailyNote(pid,month,day){
+  var d=getDailyData(pid,month);
+  return (d.notes&&d.notes[day])||'';
+}
+function saveDailyNote(pid,month,day,text){
+  var d=getDailyData(pid,month);
+  if(!d.notes)d.notes={};
+  var clean=(text||'').trim();
+  if(clean)d.notes[day]=clean;else delete d.notes[day];
+  d.ts=Date.now();
+  lsSet(uk('daily-'+pid+'-'+month),d);
+  if(S.uid)fsWrite(db.collection('properties/'+pid+'/dailyData').doc(month),d);
+  logAudit(pid,'daily_note',clean?('Notatka dnia '+day+' '+mLabel(month)+': '+clean.slice(0,100)):('Notatka dnia '+day+' '+mLabel(month)+' usunięta'));
+}
+
+/* ═══════════════════════════════════════════
    ANNUAL BUDGET STORAGE
 ═══════════════════════════════════════════ */
 function getAnnualBudget(pid,year){return lsGet(uk('ab-'+pid+'-'+year),{})}
@@ -2623,10 +2648,11 @@ function renderHeatmap(container,pid,month,compact){
     var holidayClass=holiday?' holiday':'';
     var holidayMark=holiday?'<span class="hmap-holiday-mark" title="'+holiday.name+'">★</span>':'';
     var holidayLabel=holiday?'<div class="hmap-holiday-label">🇵🇱 '+holiday.name+'</div>':'';
+    var noteMark=(dd.notes&&dd.notes[d])?'<span class="hmap-note-mark" title="Ma notatkę">📝</span>':'';
     var click=(realVal!==null||isDone)?' onclick="openHeatmapDay(\''+pid+'\',\''+month+'\','+d+')"':'';
     var title=holiday?'Święto: '+holiday.name+' — kliknij, aby zobaczyć szczegóły dnia':'Kliknij, aby zobaczyć szczegóły dnia';
     h+='<div class="hmap-cell'+holidayClass+'" style="background:'+color+';opacity:'+opacity+'"'+click+' title="'+title+'">';
-    h+=holidayMark+'<div class="hm-day-no">'+d+'</div><div class="hm-sale">'+saleText+'</div><div class="hm-weather">'+wx+'</div>';
+    h+=holidayMark+noteMark+'<div class="hm-day-no">'+d+'</div><div class="hm-sale">'+saleText+'</div><div class="hm-weather">'+wx+'</div>';
     h+='<div class="hm-est">'+(w?wxLabel:(isDone?'szacunek':'brak danych'))+'</div>'+holidayLabel+'</div>';
   }
   h+='</div></div>';
@@ -2685,8 +2711,18 @@ function openHeatmapDay(pid,month,day){
   });
   h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(total,true)+'</td><td>100%</td></tr></tbody></table></div>';
   if(prop)h+='<div class="hs-tip" style="margin-top:12px">📍 '+(prop.city||prop.name||'Lokalizacja obiektu')+'</div>';
+  h+='<div class="fg" style="margin-top:14px"><label>📝 Notatka do tego dnia (np. przyczyna nagłego spadku/wzrostu sprzedaży)</label>';
+  h+='<textarea class="fi" id="heatday-note" rows="2" placeholder="np. Aroma: awaria klimatyzacji, ograniczona liczba gości...">'+getDailyNote(pid,month,day)+'</textarea></div>';
+  if(canEdit())h+='<div class="fa" style="margin-top:8px"><button class="btn btn-p btn-sm" onclick="saveHeatdayNote(\''+pid+'\',\''+month+'\','+day+')">💾 Zapisz notatkę</button></div>';
   document.getElementById('m-heatday-body').innerHTML=h;
   openM('m-heatday');
+}
+function saveHeatdayNote(pid,month,day){
+  var el=document.getElementById('heatday-note');if(!el)return;
+  saveDailyNote(pid,month,day,el.value);
+  toast('Notatka zapisana','ok');
+  if(S.pid===pid){buildDailyCal();var noteEl=document.getElementById('daily-note');if(noteEl&&_dailyDay===day)noteEl.value=el.value;}
+  renderSidePanel();
 }
 
 /* ═══════════════════════════════════════════
@@ -5195,7 +5231,7 @@ function alertsMenuEngineering(al){
     [['food','Food cost'],['bev','Beverage cost'],['fcbc','FC+BC']].forEach(function(pair){
       var key=pair[0],label=pair[1],threshold=ALERT_THRESHOLDS[key],arr=vals[key];
       if(arr.every(function(v){return v!==null&&v>threshold})){
-        al.push({t:'wa',msg:o.name+': '+label+' powyżej '+threshold+'% przez 3 miesiące z rzędu ('+mLabel(m0)+'–'+mLabel(m2)+') — sprawdź w Analiza Menu.'});
+        al.push({t:'wa',key:'me_'+key+'_'+o.id+'_'+m2,msg:o.name+': '+label+' powyżej '+threshold+'% przez 3 miesiące z rzędu ('+mLabel(m0)+'–'+mLabel(m2)+') — sprawdź w Analiza Menu.'});
       }
     });
   });
@@ -5215,7 +5251,7 @@ function alertsDailyDrop(al){
     var vy=parseFloat(valsY[k])||0,vdb=parseFloat(valsDB[k])||0;
     if(vy<=0||vdb<=0)return;
     var chg=(vy-vdb)/vdb*100;
-    if(chg<=-15)al.push({t:'da',msg:o.name+': sprzedaż dnia '+String(yInfo.day).padStart(2,'0')+'.'+yInfo.month.split('-')[1]+' spadła o '+Math.abs(chg).toFixed(0)+'% względem dnia poprzedniego.'});
+    if(chg<=-15)al.push({t:'da',key:'drop_'+k+'_'+yInfo.month+'-'+yInfo.day,msg:o.name+': sprzedaż dnia '+String(yInfo.day).padStart(2,'0')+'.'+yInfo.month.split('-')[1]+' spadła o '+Math.abs(chg).toFixed(0)+'% względem dnia poprzedniego.'});
   });
 }
 
@@ -5225,22 +5261,38 @@ function alertsMissingData(al){
   if(!S.pid)return;
   var m=currentRealMonth();
   if(m!==S.month)return;
-  if(!getMenuSales(S.pid,m))al.push({t:'wa',msg:'Brak jeszcze danych "Sprzedaż menu" za '+mLabel(m)+'.'});
-  if(getAllMenuEngKeys(S.pid).filter(function(k){return k.month===m}).length===0)al.push({t:'wa',msg:'Brak jeszcze danych Menu Engineering za '+mLabel(m)+'.'});
+  if(!getMenuSales(S.pid,m))al.push({t:'wa',key:'missing_msales_'+m,msg:'Brak jeszcze danych "Sprzedaż menu" za '+mLabel(m)+'.'});
+  if(getAllMenuEngKeys(S.pid).filter(function(k){return k.month===m}).length===0)al.push({t:'wa',key:'missing_meng_'+m,msg:'Brak jeszcze danych Menu Engineering za '+mLabel(m)+'.'});
+}
+
+// ── ZAMYKANIE (dismiss) POJEDYNCZYCH ALERTÓW — zapamiętywane per obiekt, w przeglądarce ──
+function getDismissedAlerts(pid){return lsGet(uk('alerts-dismissed-'+pid),[])}
+function dismissAlert(pid,key){
+  var arr=getDismissedAlerts(pid);
+  if(arr.indexOf(key)===-1){
+    arr.push(key);
+    if(arr.length>200)arr=arr.slice(arr.length-200); // nie rośnie w nieskończoność
+    lsSet(uk('alerts-dismissed-'+pid),arr);
+  }
+}
+function dismissAlertClick(key){
+  if(!S.pid)return;
+  dismissAlert(S.pid,key);
+  renderCur();
 }
 
 function alerts(metrics,outlets){
   var al=[];if(!metrics)return al;
-  var T=metrics._t;
+  var T=metrics._t,mo=S.month;
   outlets.forEach(function(o){
     var k=okey(o.name),m=metrics[k];
     if(!m||!m.b)return;
     var exp=m.DR/m.M;
-    if(m.pct!==null&&m.pct>=1&&m.DR<m.M) al.push({t:'ok',msg:o.name+': budżet wykonany! ('+( m.pct*100).toFixed(0)+'%)'});
-    else if(m.pct!==null&&m.pct<exp*0.65) al.push({t:'da',msg:o.name+': '+( m.pct*100).toFixed(0)+'% — znacznie poniżej oczekiwanego '+(exp*100).toFixed(0)+'%'});
-    else if(m.pct!==null&&m.pct<exp*0.85) al.push({t:'wa',msg:o.name+': '+(m.pct*100).toFixed(0)+'% realizacji — poniżej oczekiwanego'});
+    if(m.pct!==null&&m.pct>=1&&m.DR<m.M) al.push({t:'ok',key:'budget_'+k+'_'+mo+'_ok',msg:o.name+': budżet wykonany! ('+( m.pct*100).toFixed(0)+'%)'});
+    else if(m.pct!==null&&m.pct<exp*0.65) al.push({t:'da',key:'budget_'+k+'_'+mo+'_da',msg:o.name+': '+( m.pct*100).toFixed(0)+'% — znacznie poniżej oczekiwanego '+(exp*100).toFixed(0)+'%'});
+    else if(m.pct!==null&&m.pct<exp*0.85) al.push({t:'wa',key:'budget_'+k+'_'+mo+'_wa',msg:o.name+': '+(m.pct*100).toFixed(0)+'% realizacji — poniżej oczekiwanego'});
   });
-  if(T.b>0&&T.pct!==null&&T.pct>=1) al.unshift({t:'ok',msg:'Łączny budżet wykonany: '+(T.pct*100).toFixed(0)+'% 🎉'});
+  if(T.b>0&&T.pct!==null&&T.pct>=1) al.unshift({t:'ok',key:'budget_total_'+mo,msg:'Łączny budżet wykonany: '+(T.pct*100).toFixed(0)+'% 🎉'});
   alertsMenuEngineering(al);
   alertsDailyDrop(al);
   alertsMissingData(al);
@@ -5507,7 +5559,13 @@ function renderDashboard(){
   h+='<div class="kpi"><div class="kpi-lbl">Break-even</div><div class="kpi-val">'+(T.b&&T.avg>0?'dzień '+Math.ceil(T.b/T.avg):'—')+'</div></div>';
   h+='</div>';
 
-  if(al.length){al.forEach(function(a){h+='<div class="alert '+a.t+'">'+(a.t==='da'?'⚠️':a.t==='ok'?'✅':'🔔')+' '+a.msg+'</div>'});}
+  if(al.length){
+    var dismissedKeys=getDismissedAlerts(S.pid);
+    var visibleAlerts=al.filter(function(a){return !a.key||dismissedKeys.indexOf(a.key)===-1});
+    visibleAlerts.forEach(function(a){
+      h+='<div class="alert '+a.t+'">'+(a.t==='da'?'⚠️':a.t==='ok'?'✅':'🔔')+' <span class="alert-msg">'+a.msg+'</span>'+(a.key?'<button class="alert-close" onclick="dismissAlertClick(\''+a.key+'\')" title="Zamknij">✕</button>':'')+'</div>';
+    });
+  }
 
   h+='<div class="stitle">Outlety <small>'+mLabelFull(S.month)+'</small></div><div class="oc-grid">';
   var sorted=S.outlets.slice().sort(function(a,b){return (M[okey(b.name)]&&M[okey(b.name)].a||0)-(M[okey(a.name)]&&M[okey(a.name)].a||0)});
@@ -6752,6 +6810,8 @@ function renderDaily(){
   });
   h+='<tr style="background:var(--sur2);font-weight:700"><td class="lbl">SUMA DNIA</td><td><span class="itot" id="daily-tot">0 PLN</span></td></tr>';
   h+='</tbody></table></div>';
+  h+='<div class="fg" style="margin-top:12px"><label>📝 Notatka do tego dnia (np. przyczyna nagłego spadku/wzrostu sprzedaży)</label>';
+  h+='<textarea class="fi" id="daily-note" rows="2" placeholder="np. Aroma: awaria klimatyzacji, ograniczona liczba gości..."'+(ro?' disabled':'')+'>'+getDailyNote(S.pid,S.month,_dailyDay)+'</textarea></div>';
   if(!ro)h+='<div class="fa"><button class="btn btn-p" onclick="saveDailyEntry()">💾 Zapisz dzień</button><button class="btn btn-s" onclick="clearDailyEntry()">🗑 Wyczyść</button></div>';
   h+='</div>';
 
@@ -6846,8 +6906,9 @@ function buildDailyCal(){
   for(var i=0;i<firstDay;i++)h+='<div class="cal-d emp">x</div>';
   for(var d=1;d<=daysInMo;d++){
     var hasData=!!(dd.days&&dd.days[d]&&Object.keys(dd.days[d]).length);
-    var cls='cal-d'+(d===_dailyDay?' sel':'')+(d===todayD?' tod':'')+(hasData?' has-data':'');
-    h+='<button class="'+cls+'" onclick="selectDailyDay('+d+')">'+d+'</button>';
+    var hasNote=!!(dd.notes&&dd.notes[d]);
+    var cls='cal-d'+(d===_dailyDay?' sel':'')+(d===todayD?' tod':'')+(hasData?' has-data':'')+(hasNote?' has-note':'');
+    h+='<button class="'+cls+'" onclick="selectDailyDay('+d+')" title="'+(hasNote?'📝 Ma notatkę':'')+'">'+d+'</button>';
   }
   cal.innerHTML=h;
 }
@@ -6869,6 +6930,8 @@ function selectDailyDay(day){
     var prop=S.props.find(function(p){return p.id===S.pid});
     badge.innerHTML=w?weatherBadgeHTML(w):((prop&&prop.lat)?'<span class="wx-badge">Brak danych pogodowych</span>':'');
   }
+  var noteEl=document.getElementById('daily-note');
+  if(noteEl)noteEl.value=(dd.notes&&dd.notes[day])||'';
   dailyRecalc();
   haptic(6);
 }
@@ -6995,6 +7058,8 @@ function saveDailyEntry(){
     if(v>0)vals[k]=v;
   });
   saveDailyDayBulk(S.pid,S.month,_dailyDay,vals);
+  var noteEl=document.getElementById('daily-note');
+  if(noteEl)saveDailyNote(S.pid,S.month,_dailyDay,noteEl.value);
   toast('Zapisano dzień '+_dailyDay,'ok');haptic(10);
   renderDaily();
 }
