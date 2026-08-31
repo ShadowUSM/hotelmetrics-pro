@@ -274,8 +274,8 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 .oc-stat-v.pos{color:var(--grn)}.oc-stat-v.neg{color:var(--red)}
 
 /* Swipe gestures on outlet cards */
-.oc-swipe-wrap{position:relative;overflow:hidden;border-radius:14px}
-.oc-swipe-wrap .oc{position:relative;z-index:2;background:var(--sur);transition:transform .25s cubic-bezier(.2,.8,.3,1);touch-action:pan-y}
+.oc-swipe-wrap{position:relative;overflow:hidden;border-radius:14px;height:100%}
+.oc-swipe-wrap .oc{position:relative;z-index:2;background:var(--sur);transition:transform .25s cubic-bezier(.2,.8,.3,1);touch-action:pan-y;height:100%}
 .oc-swipe-wrap .oc.dragging{transition:none}
 .oc-swipe-hint{position:absolute;top:0;bottom:0;width:50%;display:flex;align-items:center;font-size:.72rem;font-weight:600;color:var(--tx3);z-index:1;opacity:0;transition:opacity .2s}
 .oc-swipe-hint.left{left:0;justify-content:flex-start;padding-left:16px;background:linear-gradient(90deg,var(--acc-glow),transparent)}
