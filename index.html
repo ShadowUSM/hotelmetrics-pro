@@ -6913,11 +6913,11 @@ function buildDailyCal(){
   cal.innerHTML=h;
 }
 
-function selectDailyDay(day){
+function selectDailyDay(day,skipHosposClear){
   _dailyDay=day;
   var lbl=document.getElementById('daily-day-lbl');if(lbl)lbl.textContent=day;
   buildDailyCal();
-  dailyHosposClear();
+  if(!skipHosposClear)dailyHosposClear();
   var dd=getDailyData(S.pid,S.month);
   var dayVals=(dd.days&&dd.days[day])||{};
   S.outlets.forEach(function(o){
@@ -6985,7 +6985,30 @@ function dailyHosposParse(){
   if(!raw||!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
   var parsed=parseMenuSalesReport(raw);
   if(!parsed.outlets.length){toast('Nie udało się rozpoznać żadnego outletu w tekście — sprawdź format','er');return;}
+
+  // Wykryj datę raportu ("Zakres od: DD.MM.RR - do: DD.MM.RR") i — jeśli obejmuje dokładnie jeden dzień —
+  // ustaw automatycznie kalendarz na ten dzień. Jeśli zakres jest szerszy niż jeden dzień, tylko ostrzeż.
+  var dateNote=null;
+  if(parsed.sourceRange){
+    var r=parsed.sourceRange;
+    if(r.from===r.to){
+      var detectedMonth=guessMonthFromRange(r.from),detectedDay=msalesDayOfDMY(r.from);
+      if(detectedMonth&&detectedDay){
+        if(detectedMonth!==S.month){
+          S.month=detectedMonth;
+          syncMonthUI();
+          var dailyBtn=document.getElementById('mpick-btn-daily');
+          if(dailyBtn){var sp=dailyBtn.querySelector('span');if(sp)sp.textContent='📅 '+mLabelFull(S.month);}
+        }
+        selectDailyDay(detectedDay,true);
+        dateNote={ok:true,msg:'📅 Wykryto dzień raportu: '+String(detectedDay).padStart(2,'0')+'.'+detectedMonth.split('-')[1]+'.'+detectedMonth.split('-')[0]+' — kalendarz ustawiony automatycznie.'};
+      }
+    } else {
+      dateNote={ok:false,msg:'⚠️ Raport obejmuje więcej niż jeden dzień (zakres '+r.from+'–'+r.to+') — wybierz właściwy dzień ręcznie w kalendarzu przed wypełnieniem pól.'};
+    }
+  }
   S._dailyHosposParsed=parsed;
+  S._dailyHosposDateNote=dateNote;
   renderDailyHosposPreview();
   toast('Rozpoznano '+parsed.outlets.length+' outlet(ów)','ok');
 }
@@ -6995,6 +7018,8 @@ function renderDailyHosposPreview(){
   if(!parsed){box.innerHTML='';return;}
   var map=getMsalesMap(S.pid);
   var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
+  var dn=S._dailyHosposDateNote;
+  if(dn)h+='<div class="'+(dn.ok?'hs-tip':'hs-warn')+'" style="margin-bottom:8px">'+dn.msg+'</div>';
   h+='<div class="hs-p" style="margin-bottom:8px">Dopasuj outlety, jeśli trzeba, i wypełnij pola dla dnia <strong>'+_dailyDay+' '+mLabel(S.month)+'</strong>:</div>';
   parsed.outlets.forEach(function(o,i){
     var key=o.rawName.trim().toUpperCase();
@@ -7035,6 +7060,7 @@ function dailyHosposFillDay(){
 }
 function dailyHosposClear(){
   S._dailyHosposParsed=null;
+  S._dailyHosposDateNote=null;
   var ta=document.getElementById('daily-hospos-input');if(ta)ta.value='';
   var box=document.getElementById('daily-hospos-preview');if(box)box.innerHTML='';
 }
