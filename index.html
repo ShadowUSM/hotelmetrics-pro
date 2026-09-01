@@ -321,6 +321,7 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 
 /* Tables */
 .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--brd);-webkit-overflow-scrolling:touch;max-width:100%}
+.collapsible-tbl-wrap{transition:max-height .25s ease}
 table{width:100%;border-collapse:collapse;font-size:.75rem;min-width:420px}
 thead th{background:var(--sur2);padding:9px 10px;text-align:left;font-weight:600;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);border-bottom:1px solid var(--brd);white-space:nowrap}
 tbody td{padding:8px 10px;border-bottom:1px solid var(--brd);color:var(--tx)}
@@ -6309,6 +6310,34 @@ function empViewOutletChange(outletId){
   renderEmpSales();
 }
 function empViewMonth(m){S._empViewMonth=(S._empViewMonth===m?null:m);renderEmpSales();}
+// ── ZWIJANE/ROZWIJANE TABELE (Sprzedaż pracownika: Zapisane dane + Statystyki) ──
+// Domyślnie pokazują tylko kilka wierszy (ograniczona wysokość); po rozwinięciu pokazują
+// kilkanaście wierszy w przewijanym oknie. Stan zapamiętywany per tabela (id) w S, żeby
+// przetrwał ponowne renderowanie (np. po zmianie sortowania).
+function collapsibleWrapOpen(id,collapsedH){
+  if(!S._tableExpanded)S._tableExpanded={};
+  var ex=!!S._tableExpanded[id];
+  return '<div class="collapsible-tbl-wrap" id="'+id+'" style="max-height:'+(ex?'560px':(collapsedH||260)+'px')+';overflow-y:'+(ex?'auto':'hidden')+'">';
+}
+function collapsibleToggleBtn(id){
+  if(!S._tableExpanded)S._tableExpanded={};
+  var ex=!!S._tableExpanded[id];
+  return '<div class="fa" style="margin-top:8px"><button class="btn btn-s btn-sm" id="'+id+'-btn" onclick="toggleTableExpand(\''+id+'\')">'+(ex?'▲ Zwiń':'▼ Rozwiń (pokaż wszystkie)')+'</button></div>';
+}
+function toggleTableExpand(id){
+  if(!S._tableExpanded)S._tableExpanded={};
+  S._tableExpanded[id]=!S._tableExpanded[id];
+  var ex=S._tableExpanded[id];
+  var wrap=document.getElementById(id);
+  if(wrap){
+    wrap.style.maxHeight=ex?'560px':'260px';
+    wrap.style.overflowY=ex?'auto':'hidden';
+    if(!ex)wrap.scrollTop=0;
+  }
+  var btn=document.getElementById(id+'-btn');
+  if(btn)btn.textContent=ex?'▲ Zwiń':'▼ Rozwiń (pokaż wszystkie)';
+}
+
 function renderEmpView(){
   var body=document.getElementById('emp-view-body');if(!body)return;
   var data=getEmployeeSales(S.pid,S._empViewOutlet,S._empViewMonth);
@@ -6316,7 +6345,7 @@ function renderEmpView(){
   var rows=data.employees.map(function(e){return {name:e.name,id:e.id,items:e.items.length,netto:e.totalNetto,brutto:e.totalBrutto}});
   rows=ctmApplySort(rows,'empview');
   var h='<div class="hs-p" style="margin:8px 0">Outlet: <strong>'+(data.outletName||S._empViewOutlet)+'</strong>'+(data.sourceRange?' · zakres w raporcie: '+data.sourceRange.from+'–'+data.sourceRange.to:'')+'</div>';
-  h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr>';
+  h+='<div class="tbl-wrap">'+collapsibleWrapOpen('emp-view-tblwrap')+'<table class="msales-table"><thead><tr>';
   h+=ctmSortHeader('Pracownik','name','empview','renderEmpView');
   h+=ctmSortHeader('Pozycji','items','empview','renderEmpView');
   h+=ctmSortHeader('Netto','netto','empview','renderEmpView');
@@ -6325,7 +6354,8 @@ function renderEmpView(){
   rows.forEach(function(r){
     h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmtN(r.items)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
   });
-  h+='</tbody></table></div>';
+  h+='</tbody></table></div></div>';
+  h+=collapsibleToggleBtn('emp-view-tblwrap');
   h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="empDeleteMonth(\''+S._empViewOutlet+'\',\''+S._empViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
   body.innerHTML=h;
 }
@@ -6434,7 +6464,7 @@ function empStatsRun(){
   if(!rows.length){res.innerHTML='<div class="empty"><p>Brak danych dla wybranych filtrów.</p></div>';return;}
   rows=ctmApplySort(rows,'empstats');
   var h='<div class="hs-p" style="margin-bottom:8px">'+rows.length+' wynik(ów)'+(itemFilter?' dla filtra „'+itemFilter+'"':'')+'.</div>';
-  h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr>';
+  h+='<div class="tbl-wrap">'+collapsibleWrapOpen('emp-stats-tblwrap')+'<table class="msales-table"><thead><tr>';
   h+=ctmSortHeader('Pracownik','employee','empstats','empStatsRun');
   h+=ctmSortHeader('Outlet','outletName','empstats','empStatsRun');
   h+=ctmSortHeader('Ilość','qty','empstats','empStatsRun');
@@ -6444,7 +6474,8 @@ function empStatsRun(){
   rows.forEach(function(r){
     h+='<tr><td class="lbl">'+r.employee+'</td><td>'+r.outletName+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
   });
-  h+='</tbody></table></div>';
+  h+='</tbody></table></div></div>';
+  h+=collapsibleToggleBtn('emp-stats-tblwrap');
   res.innerHTML=h;
   haptic(8);
 }
