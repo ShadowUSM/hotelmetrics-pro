@@ -305,6 +305,11 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 .sr-empty{padding:16px;text-align:center;font-size:.76rem;color:var(--tx3)}
 .sr-sect{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);padding:8px 8px 2px}
 
+/* Autocomplete "Pozycja/kategoria" w Statystykach sprzedaży pracowników */
+.ac-pop{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--sur);border:1px solid var(--brd2);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.22);max-height:240px;overflow-y:auto;z-index:60}
+.ac-item{padding:8px 12px;font-size:.78rem;cursor:pointer;transition:background .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-item:hover,.ac-item.hl{background:var(--sur2)}
+
 /* Alerts */
 .alert{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:9px;border-left:3px solid;margin-bottom:7px;font-size:.75rem;line-height:1.4}
 .alert.da{background:rgba(255,77,109,.07);border-left-color:var(--red)}
@@ -6288,6 +6293,7 @@ function empDoSave(outletId,month){
   var outlet=S.outlets.find(function(o){return o.id===outletId});
   saveEmployeeSales(S.pid,outletId,month,{outletName:outlet?outlet.name:parsed.outletName,sourceRange:parsed.sourceRange,employees:parsed.employees});
   S._empParsed=null;
+  S._empAllItemNamesCache=null; // unieważnij cache podpowiedzi — mogły dojść nowe pozycje
   S._empViewOutlet=outletId;S._empViewMonth=month;
   renderEmpSales();
   toast('Zapisano dane sprzedaży pracowników','ok');
@@ -6326,6 +6332,7 @@ function renderEmpView(){
 function empDeleteMonth(outletId,month){
   if(!confirm('Usunąć dane sprzedaży pracowników za '+mLabel(month)+' dla tego outletu?'))return;
   delEmployeeSales(S.pid,outletId,month);
+  S._empAllItemNamesCache=null;
   if(S._empViewMonth===month)S._empViewMonth=null;
   renderEmpSales();
   toast('Usunięto','in');
@@ -6358,6 +6365,62 @@ function empStatsCompute(fromMonth,toMonth,outletFilter,itemFilter,groupMode){
   });
   return Object.keys(acc).map(function(k){var r=acc[k];r.qty=round2(r.qty);r.netto=round2(r.netto);r.brutto=round2(r.brutto);return r});
 }
+// ── AUTOCOMPLETE dla pola "Pozycja/kategoria" w Statystykach — podpowiada z listy wszystkich
+// nazw pozycji i kategorii, jakie kiedykolwiek pojawiły się w zapisanych raportach tego obiektu.
+function empAllItemNames(pid){
+  var set={};
+  getAllEmployeeSalesKeys(pid).forEach(function(k){
+    var d=getEmployeeSales(pid,k.outletId,k.month);
+    if(!d)return;
+    d.employees.forEach(function(e){
+      e.items.forEach(function(it){
+        if(it.name)set[it.name]=true;
+        if(it.category)set[it.category]=true;
+      });
+    });
+  });
+  return Object.keys(set).sort(function(a,b){return a.localeCompare(b,'pl')});
+}
+function empItemAutocomplete(q){
+  var box=document.getElementById('emp-item-suggest');if(!box)return;
+  q=(q||'').trim();
+  if(q.length<2){box.style.display='none';box.innerHTML='';return;}
+  if(!S._empAllItemNamesCache)S._empAllItemNamesCache=empAllItemNames(S.pid);
+  var nq=srNorm(q);
+  var matches=S._empAllItemNamesCache.filter(function(n){return srNorm(n).indexOf(nq)>=0}).slice(0,10);
+  if(!matches.length){box.style.display='none';box.innerHTML='';return;}
+  var h='';
+  matches.forEach(function(n,i){
+    h+='<div class="ac-item'+(i===0?' hl':'')+'" onmousedown="empItemPick(\''+n.replace(/'/g,"\\'")+'\')">'+n+'</div>';
+  });
+  box.innerHTML=h;
+  box.style.display='block';
+}
+function empItemPick(name){
+  var inp=document.getElementById('emp-stats-item');
+  if(inp)inp.value=name;
+  empItemAutocompleteClose();
+  empStatsRun();
+}
+function empItemAutocompleteClose(){
+  var box=document.getElementById('emp-item-suggest');
+  if(box){box.style.display='none';box.innerHTML='';}
+}
+function empItemAutocompleteKey(e){
+  var box=document.getElementById('emp-item-suggest');
+  if(!box||box.style.display==='none')return;
+  var items=box.querySelectorAll('.ac-item');if(!items.length)return;
+  var idx=-1;
+  items.forEach(function(it,i){if(it.classList.contains('hl'))idx=i});
+  if(e.key==='ArrowDown'){e.preventDefault();idx=(idx+1)%items.length;}
+  else if(e.key==='ArrowUp'){e.preventDefault();idx=(idx-1+items.length)%items.length;}
+  else if(e.key==='Enter'){e.preventDefault();if(idx>=0)empItemPick(items[idx].textContent);return;}
+  else if(e.key==='Escape'){empItemAutocompleteClose();return;}
+  else return;
+  items.forEach(function(it,i){it.classList.toggle('hl',i===idx)});
+  items[idx].scrollIntoView({block:'nearest'});
+}
+
 function empStatsRun(){
   var fromEl=document.getElementById('emp-stats-from'),toEl=document.getElementById('emp-stats-to');
   var res=document.getElementById('emp-stats-results');if(!res||!fromEl||!toEl)return;
@@ -6437,7 +6500,7 @@ function renderEmpSales(){
     h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="emp-stats-from" value="'+defFrom+'"></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="emp-stats-to" value="'+defTo+'"></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="emp-stats-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
-    h+='<div class="fg" style="margin-bottom:0;min-width:160px"><label>Pozycja/kategoria (opcjonalnie)</label><input type="text" class="fi" id="emp-stats-item" placeholder="np. APEROL SPRITZ"></div>';
+    h+='<div class="fg" style="margin-bottom:0;min-width:160px;position:relative"><label>Pozycja/kategoria (opcjonalnie)</label><input type="text" class="fi" id="emp-stats-item" placeholder="np. APEROL SPRITZ" autocomplete="off" oninput="empItemAutocomplete(this.value)" onfocus="empItemAutocomplete(this.value)" onblur="setTimeout(empItemAutocompleteClose,150)" onkeydown="empItemAutocompleteKey(event)"><div id="emp-item-suggest" class="ac-pop" style="display:none"></div></div>';
     h+='<div class="fg" style="margin-bottom:0"><label>Widok</label><select class="fi" id="emp-stats-group"><option value="split">Rozbicie na outlety</option><option value="total">Łącznie (suma outletów)</option></select></div>';
     h+='<button class="btn btn-p" onclick="empStatsRun()">Pokaż</button>';
     h+='</div><div id="emp-stats-results"></div>';
