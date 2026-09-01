@@ -1778,6 +1778,18 @@ body.presentation-mode #presentation-exit{display:flex}
   </div>
 </div></div>
 
+<!-- SPRZEDAŻ PRACOWNIKA: KONFLIKT ZAPISU MODAL -->
+<div class="moverlay" id="m-emp-conflict">
+<div class="modal">
+  <div class="mtitle">👤 Dane już istnieją</div>
+  <button class="mclose" onclick="closeM('m-emp-conflict')">✕</button>
+  <div id="emp-conflict-body"></div>
+  <div class="fa">
+    <button class="btn btn-p" onclick="empSalesConfirmSave()">🔁 Nadpisz</button>
+    <button class="btn btn-s" onclick="closeM('m-emp-conflict')">Anuluj</button>
+  </div>
+</div></div>
+
 <!-- KOLEJNOŚĆ ZAKŁADEK MODAL -->
 <div class="moverlay" id="m-tab-order">
 <div class="modal" style="max-width:420px">
@@ -3676,6 +3688,11 @@ function goMenuEng(){
   var btn=document.getElementById('data-tab-menuengineering');
   if(btn)switchDataTab('menuengineering',btn);
 }
+function goEmpSales(){
+  go('data');
+  var btn=document.getElementById('data-tab-empsales');
+  if(btn)switchDataTab('empsales',btn);
+}
 function goDataImport(){
   go('data');
   var btn=document.getElementById('data-tab-import');
@@ -4550,6 +4567,36 @@ function getAllMenuEngKeys(pid){
 function getMenuEngMonthsForOutlet(pid,outletId){
   return getAllMenuEngKeys(pid).filter(function(k){return k.outletId===outletId}).map(function(k){return k.month});
 }
+
+/* ═══════════════════════════════════════════
+   SPRZEDAŻ PRACOWNIKA (karta "Sprzedaż pracownika" w zakładce Wprowadź dane)
+   Import raportu HosPOS "SPRZEDAŻ UŻYTKOWNIKÓW" — generowany osobno per outlet,
+   dlatego przechowywany dokładnie tak samo jak Menu Engineering (klucz: outlet+miesiąc).
+═══════════════════════════════════════════ */
+function getEmployeeSales(pid,outletId,month){return lsGet(uk('emp-'+pid+'-'+outletId+'-'+month),null)}
+function saveEmployeeSales(pid,outletId,month,d){
+  d.ts=Date.now();
+  lsSet(uk('emp-'+pid+'-'+outletId+'-'+month),d);
+  if(S.uid) fsWrite(db.collection('properties/'+pid+'/employeeSales').doc(outletId+'_'+month),d);
+  logAudit(pid,'empsales','Sprzedaż pracowników: '+(d.outletName||outletId)+' — '+mLabel(month));
+}
+function delEmployeeSales(pid,outletId,month){
+  lsDel(uk('emp-'+pid+'-'+outletId+'-'+month));
+  if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/employeeSales').doc(outletId+'_'+month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+  logAudit(pid,'empsales_del','Sprzedaż pracowników usunięta: '+outletId+' — '+mLabel(month));
+}
+function getAllEmployeeSalesKeys(pid){
+  var prefix=uk('emp-'+pid+'-');
+  return Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).map(function(k){
+    var rest=k.slice(prefix.length);
+    var month=rest.slice(-7),outletId=rest.slice(0,rest.length-8);
+    return {outletId:outletId,month:month};
+  }).sort(function(a,b){return b.month.localeCompare(a.month)});
+}
+function getEmployeeSalesMonthsForOutlet(pid,outletId){
+  return getAllEmployeeSalesKeys(pid).filter(function(k){return k.outletId===outletId}).map(function(k){return k.month});
+}
+
 // Mapowanie "nazwa outletu z pliku MC" -> id outletu w aplikacji, zapamiętywane między importami.
 function getMengMap(pid){return lsGet(uk('meng-map-'+pid),{})}
 function saveMengMap(pid,map){
@@ -4761,7 +4808,10 @@ function loadUserDataFromFirestore(){
           else lsSet(uk('meng-'+p.id+'-'+d.id.replace('_','-')),d.data());
         });
       });
-      return Promise.all([t1,t2,t3,t4,t5,t6,t7]);
+      var t8=db.collection('properties/'+p.id+'/employeeSales').get().then(function(s){
+        s.docs.forEach(function(d){lsSet(uk('emp-'+p.id+'-'+d.id.replace('_','-')),d.data())});
+      });
+      return Promise.all([t1,t2,t3,t4,t5,t6,t7,t8]);
     });
     return Promise.all(tasks);
   });
@@ -5717,6 +5767,8 @@ function renderData(){
   h+='<div id="v-menusales" style="display:'+(dataDefault==='menusales'?'block':'none')+'"></div>';
   // ── POD-ZAKŁADKA: Menu Engineering (renderowana osobno przez renderMenuEng() do #v-menueng) ──
   h+='<div id="v-menueng" style="display:'+(dataDefault==='menuengineering'?'block':'none')+'"></div>';
+  // ── POD-ZAKŁADKA: Sprzedaż pracownika (renderowana osobno przez renderEmpSales() do #v-empsales) ──
+  h+='<div id="v-empsales" style="display:'+(dataDefault==='empsales'?'block':'none')+'"></div>';
   // ── POD-ZAKŁADKA: Import plików (renderowana osobno przez renderDataImport() do #v-data-import) ──
   h+='<div id="v-data-import" style="display:'+(dataDefault==='import'?'block':'none')+'"></div>';
 
@@ -5727,6 +5779,7 @@ function renderData(){
   renderDaily();
   renderMenuSales();
   renderMenuEng();
+  renderEmpSales();
   renderDataImport();
 }
 
@@ -5742,6 +5795,7 @@ var TAB_DEFS={
     {id:'daily',icon:'📆',label:'Dzienne'},
     {id:'menusales',icon:'🍽️',label:'Sprzedaż menu'},
     {id:'menuengineering',icon:'📊',label:'Menu Engineering'},
+    {id:'empsales',icon:'👤',label:'Sprzedaż pracownika'},
     {id:'import',icon:'📥',label:'Import plików'}
   ],
   analytics:[
@@ -5845,11 +5899,12 @@ function tabOrderRerender(section){
 }
 
 function switchDataTab(tab,btn){
-  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales'),meng=document.getElementById('v-menueng'),imp=document.getElementById('v-data-import');
+  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales'),meng=document.getElementById('v-menueng'),emp=document.getElementById('v-empsales'),imp=document.getElementById('v-data-import');
   if(monthly)monthly.style.display=tab==='monthly'?'block':'none';
   if(daily)daily.style.display=tab==='daily'?'block':'none';
   if(msales)msales.style.display=tab==='menusales'?'block':'none';
   if(meng)meng.style.display=tab==='menuengineering'?'block':'none';
+  if(emp)emp.style.display=tab==='empsales'?'block':'none';
   if(imp)imp.style.display=tab==='import'?'block':'none';
   document.querySelectorAll('#data-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
@@ -6043,6 +6098,358 @@ function msalesGuessOutlet(rawName){
   var partial=S.outlets.find(function(o){var n=o.name.trim().toUpperCase();return n.indexOf(rn)>=0||rn.indexOf(n)>=0});
   return partial?partial.id:undefined;
 }
+
+/* ═══════════════════════════════════════════
+   PARSER: SPRZEDAŻ PRACOWNIKA (raport HosPOS "SPRZEDAŻ UŻYTKOWNIKÓW", jeden outlet na raport)
+   Format wierszy pozycji: Nazwa Ilość Śr.cena_net Śr.cena_brut War.netto War.brutto (5 liczb na końcu —
+   inaczej niż w raporcie "Sprzedaż pozycji menu", gdzie są 3 liczby). Nagłówek pracownika to "Imię Nazwisko ID"
+   (ID = czysta liczba całkowita na końcu wiersza), po nim powtórzona nazwa outletu, potem kategorie i pozycje,
+   zamknięte linią "Razem <netto> <brutto>" (linie "Razem 23%/8%" to tylko rozbicie VAT — pomijane).
+═══════════════════════════════════════════ */
+var EMP_JUNK_LINE_RE=[
+  /^\d{1,4}$/,                          // sam numer strony
+  /^HosPOS$/i,
+  /^Utworzono:/i,
+  /^Przez:/i,
+  /^Nazwa\s+Ilo[śs][ćc]/i,               // powtórzony nagłówek kolumn na każdej stronie
+  /^Powr[óo]t$/i,
+  /^SPRZEDA[ŻZ]\s+U[ŻZ]YTKOWNIK/i,
+  /^Od:\s*\d/i,
+  /^Rodzaj danych/i,
+  /^Wybrane dane/i,
+  /^U[żz]ytkownicy/i,
+  /^Punkty sprzeda/i,
+  /^Kategorie$/i
+];
+function empIsJunkLine(t){return EMP_JUNK_LINE_RE.some(function(re){return re.test(t)})}
+function parseEmployeeSalesReport(raw){
+  var text=String(raw||'');
+  var warnings=[];
+  var mRange=text.match(/Od:\s*(\d{1,2}\.\d{1,2}\.\d{2,4})\s*,?\s*do:\s*(\d{1,2}\.\d{1,2}\.\d{2,4})/i);
+  var sourceRange=mRange?{from:mRange[1],to:mRange[2]}:null;
+  var mOutlet=text.match(/Punkty sprzeda[żz]y\s+(.+?)\s*(?:\r?\n|$)/i);
+  var outletName=mOutlet?mOutlet[1].trim():null;
+  if(!outletName)return {outletName:null,sourceRange:sourceRange,employees:[],warnings:[],error:'Nie znaleziono nazwy punktu sprzedaży ("Punkty sprzedaży ...") — czy to na pewno raport "Sprzedaż użytkowników" z HosPOS?'};
+
+  var lines=text.split(/\r?\n/);
+  var employees=[],curEmp=null,curCategory='Bez kategorii';
+
+  function pushCurEmp(){
+    if(!curEmp)return;
+    var sumN=0,sumB=0;
+    curEmp.items.forEach(function(it){sumN+=it.netto;sumB+=it.brutto});
+    sumN=round2(sumN);sumB=round2(sumB);
+    if(curEmp.totalNetto===null)curEmp.totalNetto=sumN;
+    if(curEmp.totalBrutto===null)curEmp.totalBrutto=sumB;
+    if(Math.abs(sumN-curEmp.totalNetto)>0.1){
+      warnings.push('Pracownik "'+curEmp.name+'": suma pozycji '+fmt(sumN,true)+' ≠ podana suma '+fmt(curEmp.totalNetto,true));
+    }
+    curEmp.totalNetto=round2(curEmp.totalNetto);curEmp.totalBrutto=round2(curEmp.totalBrutto);
+    employees.push(curEmp);
+  }
+
+  for(var li=0;li<lines.length;li++){
+    var t=String(lines[li]).replace(/\u00A0/g,' ').trim();
+    if(!t)continue;
+    if(empIsJunkLine(t))continue;
+
+    var tokens=t.split(/\s+/);
+    var n=tokens.length;
+
+    // 1) Linia "Razem ..." — sumaryczna dla pracownika, albo rozbicie VAT (ignorowane).
+    if(/^Razem$/i.test(tokens[0])){
+      if(!/%/.test(t)&&curEmp){
+        var nums=tokens.filter(isNumTok);
+        if(nums.length>=2){curEmp.totalNetto=plNum(nums[0]);curEmp.totalBrutto=plNum(nums[1]);}
+      }
+      continue;
+    }
+
+    // 2) Linia pozycji: dokładnie 5 liczbowych tokenów na końcu.
+    if(n>=6){
+      var last5=tokens.slice(n-5);
+      if(last5.every(isNumTok)){
+        if(curEmp){
+          curEmp.items.push({
+            category:curCategory,
+            name:tokens.slice(0,n-5).join(' '),
+            qty:plNum(last5[0]),
+            netto:round2(plNum(last5[3])),
+            brutto:round2(plNum(last5[4]))
+          });
+        }
+        continue;
+      }
+    }
+
+    // 3) Nagłówek pracownika: ostatni token to czysta liczba całkowita (ID), reszta to imię i nazwisko.
+    if(n>=2&&/^\d+$/.test(tokens[n-1])){
+      pushCurEmp();
+      curEmp={name:tokens.slice(0,n-1).join(' '),id:tokens[n-1],items:[],totalNetto:null,totalBrutto:null};
+      curCategory='Bez kategorii';
+      continue;
+    }
+
+    // 4) W przeciwnym razie: nagłówek kategorii (pomijamy powtórzoną nazwę outletu).
+    if(curEmp&&t.toUpperCase()!==outletName.toUpperCase()){
+      curCategory=t;
+    }
+  }
+  pushCurEmp();
+
+  if(!employees.length)return {outletName:outletName,sourceRange:sourceRange,employees:[],warnings:warnings,error:'Nie rozpoznano żadnego pracownika w tekście — sprawdź, czy to poprawny raport "Sprzedaż użytkowników".'};
+  return {outletName:outletName,sourceRange:sourceRange,employees:employees,warnings:warnings};
+}
+
+/* ═══════════════════════════════════════════
+   UI: SPRZEDAŻ PRACOWNIKA (Wprowadź dane → Sprzedaż pracownika)
+═══════════════════════════════════════════ */
+function empSalesParse(){
+  var ta=document.getElementById('emp-input');if(!ta)return;
+  var raw=ta.value;
+  if(!raw||!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
+  var parsed=parseEmployeeSalesReport(raw);
+  if(parsed.error){toast(parsed.error,'er');return;}
+  S._empParsed=parsed;
+  S._empDetectedOutletId=parsed.outletName?msalesGuessOutlet(parsed.outletName):undefined;
+  var targetMonth=S.month;
+  if(parsed.sourceRange){
+    var gm=guessMonthFromRange(parsed.sourceRange.from);
+    if(gm)targetMonth=gm;
+  }
+  S._empTargetMonth=targetMonth;
+  renderEmpPreview();
+  toast('Rozpoznano '+parsed.employees.length+' pracownik(ów)','ok');
+}
+function renderEmpPreview(){
+  var box=document.getElementById('emp-preview');if(!box)return;
+  var parsed=S._empParsed;
+  if(!parsed){box.innerHTML='';return;}
+  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
+
+  if(parsed.sourceRange){
+    var r=parsed.sourceRange,fromDay=msalesDayOfDMY(r.from);
+    if(fromDay!==1){
+      h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ Raport nie zaczyna się od 1. dnia miesiąca (wykryto: '+r.from+') — dane zapisywane są zawsze jako "od 1. dnia miesiąca do X". Sprawdź, czy to właściwy raport, zanim zapiszesz.</div>';
+    } else {
+      h+='<div class="hs-tip" style="margin-bottom:8px">📅 Wykryty zakres w raporcie: '+r.from+' – '+r.to+'.</div>';
+    }
+  }
+
+  h+='<div class="fg" style="max-width:280px"><label>Outlet (wykryto z raportu: "'+(parsed.outletName||'—')+'")</label><select class="fi" id="emp-outlet-select" onchange="S._empDetectedOutletId=this.value||undefined">';
+  h+='<option value="">— wybierz —</option>';
+  S.outlets.forEach(function(o){h+='<option value="'+o.id+'"'+(S._empDetectedOutletId===o.id?' selected':'')+'>'+o.name+'</option>'});
+  h+='</select></div>';
+
+  h+='<div class="fg" style="max-width:220px;margin-top:8px"><label>Miesiąc (do zapisu)</label><input type="month" class="fi" id="emp-target-month" value="'+S._empTargetMonth+'" onchange="S._empTargetMonth=this.value"></div>';
+
+  var totNetto=0,totBrutto=0;
+  parsed.employees.forEach(function(e){totNetto+=e.totalNetto;totBrutto+=e.totalBrutto});
+  h+='<div class="hs-p" style="margin:10px 0">Rozpoznano <strong>'+parsed.employees.length+'</strong> pracowników, łącznie '+fmt(round2(totNetto),true)+' netto / '+fmt(round2(totBrutto),true)+' brutto.</div>';
+
+  if(parsed.warnings.length){
+    h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ Wykryto '+parsed.warnings.length+' rozbieżności między sumą pozycji a podaną sumą "Razem" — to zwykle znaczy, że w oryginalnym raporcie brakuje jednego wiersza (np. zgubionego przy podziale strony):<br><small>'+parsed.warnings.slice(0,5).join('<br>')+(parsed.warnings.length>5?'<br>…':'')+'</small></div>';
+  }
+
+  var sorted=parsed.employees.slice().sort(function(a,b){return b.totalNetto-a.totalNetto});
+  h+='<div class="hs-p" style="margin-bottom:6px">Top 5 wg sprzedaży netto:</div><ol style="margin:0 0 10px 18px;font-size:.78rem">';
+  sorted.slice(0,5).forEach(function(e){h+='<li>'+e.name+' — '+fmt(e.totalNetto,true)+'</li>'});
+  h+='</ol>';
+
+  h+='<div class="fa"><button class="btn btn-p" onclick="empSalesSave()">💾 Zapisz</button><button class="btn btn-s" onclick="empSalesClear()">✕ Wyczyść</button></div>';
+  h+='</div>';
+  box.innerHTML=h;
+}
+function empSalesSave(){
+  var parsed=S._empParsed;if(!parsed)return;
+  var outletSel=document.getElementById('emp-outlet-select'),monthSel=document.getElementById('emp-target-month');
+  var outletId=outletSel?outletSel.value:S._empDetectedOutletId;
+  var month=monthSel?monthSel.value:S._empTargetMonth;
+  if(!outletId){toast('Wybierz outlet przed zapisem','er');return;}
+  if(!month){toast('Wybierz miesiąc przed zapisem','er');return;}
+  var existing=getEmployeeSales(S.pid,outletId,month);
+  if(existing){
+    var outlet=S.outlets.find(function(o){return o.id===outletId});
+    document.getElementById('emp-conflict-body').innerHTML='<p class="hs-p">Dla outletu <strong>'+(outlet?outlet.name:outletId)+'</strong> i miesiąca <strong>'+mLabelFull(month)+'</strong> dane już istnieją. Nowy import całkowicie je zastąpi.</p>';
+    S._empPendingSave={outletId:outletId,month:month};
+    openM('m-emp-conflict');
+    return;
+  }
+  empDoSave(outletId,month);
+}
+function empSalesConfirmSave(){
+  if(!S._empPendingSave)return;
+  empDoSave(S._empPendingSave.outletId,S._empPendingSave.month);
+  S._empPendingSave=null;
+}
+function empDoSave(outletId,month){
+  closeM('m-emp-conflict');
+  var parsed=S._empParsed;if(!parsed)return;
+  var outlet=S.outlets.find(function(o){return o.id===outletId});
+  saveEmployeeSales(S.pid,outletId,month,{outletName:outlet?outlet.name:parsed.outletName,sourceRange:parsed.sourceRange,employees:parsed.employees});
+  S._empParsed=null;
+  S._empViewOutlet=outletId;S._empViewMonth=month;
+  renderEmpSales();
+  toast('Zapisano dane sprzedaży pracowników','ok');
+}
+function empSalesClear(){
+  S._empParsed=null;
+  var ta=document.getElementById('emp-input');if(ta)ta.value='';
+  var box=document.getElementById('emp-preview');if(box)box.innerHTML='';
+}
+function empViewOutletChange(outletId){
+  S._empViewOutlet=outletId;
+  S._empViewMonth=null;
+  renderEmpSales();
+}
+function empViewMonth(m){S._empViewMonth=(S._empViewMonth===m?null:m);renderEmpSales();}
+function renderEmpView(){
+  var body=document.getElementById('emp-view-body');if(!body)return;
+  var data=getEmployeeSales(S.pid,S._empViewOutlet,S._empViewMonth);
+  if(!data){body.innerHTML='';return;}
+  var rows=data.employees.map(function(e){return {name:e.name,id:e.id,items:e.items.length,netto:e.totalNetto,brutto:e.totalBrutto}});
+  rows=ctmApplySort(rows,'empview');
+  var h='<div class="hs-p" style="margin:8px 0">Outlet: <strong>'+(data.outletName||S._empViewOutlet)+'</strong>'+(data.sourceRange?' · zakres w raporcie: '+data.sourceRange.from+'–'+data.sourceRange.to:'')+'</div>';
+  h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr>';
+  h+=ctmSortHeader('Pracownik','name','empview','renderEmpView');
+  h+=ctmSortHeader('Pozycji','items','empview','renderEmpView');
+  h+=ctmSortHeader('Netto','netto','empview','renderEmpView');
+  h+=ctmSortHeader('Brutto','brutto','empview','renderEmpView');
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmtN(r.items)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="empDeleteMonth(\''+S._empViewOutlet+'\',\''+S._empViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
+  body.innerHTML=h;
+}
+function empDeleteMonth(outletId,month){
+  if(!confirm('Usunąć dane sprzedaży pracowników za '+mLabel(month)+' dla tego outletu?'))return;
+  delEmployeeSales(S.pid,outletId,month);
+  if(S._empViewMonth===month)S._empViewMonth=null;
+  renderEmpSales();
+  toast('Usunięto','in');
+}
+
+// ── STATYSTYKI / RANKING SPRZEDAWCÓW ──
+// Agreguje sprzedaż per pracownik (opcjonalnie per outlet) w wybranym zakresie miesięcy,
+// z opcjonalnym filtrem po nazwie pozycji lub kategorii — do wyłaniania najlepszego sprzedawcy.
+function empStatsCompute(fromMonth,toMonth,outletFilter,itemFilter,groupMode){
+  var months=msalesMonthsInRange(fromMonth,toMonth);
+  var keys=getAllEmployeeSalesKeys(S.pid).filter(function(k){return months.indexOf(k.month)>=0&&(outletFilter==='__all__'||k.outletId===outletFilter)});
+  var acc={};
+  keys.forEach(function(k){
+    var d=getEmployeeSales(S.pid,k.outletId,k.month);
+    if(!d)return;
+    var outletName=d.outletName||k.outletId;
+    d.employees.forEach(function(e){
+      var matchItems=e.items;
+      if(itemFilter){
+        var nf=srNorm(itemFilter);
+        matchItems=matchItems.filter(function(it){return srNorm(it.name).indexOf(nf)>=0||srNorm(it.category).indexOf(nf)>=0});
+      }
+      if(!matchItems.length)return;
+      var qty=0,netto=0,brutto=0;
+      matchItems.forEach(function(it){qty+=it.qty;netto+=it.netto;brutto+=it.brutto});
+      var accKey=(groupMode==='total'?e.name:(e.name+'|'+outletName));
+      if(!acc[accKey])acc[accKey]={employee:e.name,outletName:groupMode==='total'?'Wszystkie':outletName,qty:0,netto:0,brutto:0};
+      acc[accKey].qty+=qty;acc[accKey].netto+=netto;acc[accKey].brutto+=brutto;
+    });
+  });
+  return Object.keys(acc).map(function(k){var r=acc[k];r.qty=round2(r.qty);r.netto=round2(r.netto);r.brutto=round2(r.brutto);return r});
+}
+function empStatsRun(){
+  var fromEl=document.getElementById('emp-stats-from'),toEl=document.getElementById('emp-stats-to');
+  var res=document.getElementById('emp-stats-results');if(!res||!fromEl||!toEl)return;
+  var from=fromEl.value,to=toEl.value;
+  if(!from||!to){res.innerHTML='<div class="hs-warn">Wybierz zakres miesięcy.</div>';return;}
+  if(from>to){var tmp=from;from=to;to=tmp;}
+  var outletFilter=document.getElementById('emp-stats-outlet').value;
+  var itemFilter=(document.getElementById('emp-stats-item').value||'').trim();
+  var groupMode=document.getElementById('emp-stats-group').value;
+  var rows=empStatsCompute(from,to,outletFilter,itemFilter,groupMode);
+  if(!rows.length){res.innerHTML='<div class="empty"><p>Brak danych dla wybranych filtrów.</p></div>';return;}
+  rows=ctmApplySort(rows,'empstats');
+  var h='<div class="hs-p" style="margin-bottom:8px">'+rows.length+' wynik(ów)'+(itemFilter?' dla filtra „'+itemFilter+'"':'')+'.</div>';
+  h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr>';
+  h+=ctmSortHeader('Pracownik','employee','empstats','empStatsRun');
+  h+=ctmSortHeader('Outlet','outletName','empstats','empStatsRun');
+  h+=ctmSortHeader('Ilość','qty','empstats','empStatsRun');
+  h+=ctmSortHeader('Netto','netto','empstats','empStatsRun');
+  h+=ctmSortHeader('Brutto','brutto','empstats','empStatsRun');
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr><td class="lbl">'+r.employee+'</td><td>'+r.outletName+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  res.innerHTML=h;
+  haptic(8);
+}
+
+function renderEmpSales(){
+  var el=document.getElementById('v-empsales');if(!el)return;
+  var ro=!canEdit();
+  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('👤','Brak obiektu lub outletów','Dodaj obiekt hotelowy i przynajmniej jeden outlet, aby wprowadzać dane sprzedaży pracowników.','+ Przejdź do obiektów',"go('properties')");return;}
+  if(!S._empTargetMonth)S._empTargetMonth=S.month;
+  if(!S._empViewOutlet)S._empViewOutlet=S.outlets[0].id;
+
+  var h='';
+  h+='<div class="card" style="margin-bottom:14px">';
+  h+='<div class="fsect">👤 Wklej raport „Sprzedaż użytkowników"</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Raport HosPOS generowany osobno dla każdego punktu sprzedaży, pokazujący co i w jakiej ilości sprzedał każdy pracownik. Outlet i miesiąc rozpoznawane są automatycznie z treści raportu (zawsze od 1. dnia miesiąca) — będzie można je poprawić przed zapisem.</p>';
+  if(!ro){
+    h+='<textarea class="fi" id="emp-input" rows="8" placeholder="Wklej tutaj cały raport..."></textarea>';
+    h+=ocrButtonHTML('emp-photo','emp-input','emp-ocr-status');
+    h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="empSalesParse()">🔍 Wczytaj i przeanalizuj</button></div>';
+  }
+  h+='<div id="emp-preview"></div>';
+  h+='</div>';
+
+  h+='<div class="card" style="margin-bottom:14px">';
+  h+='<div class="fsect">📅 Zapisane dane</div>';
+  h+='<div class="fg" style="max-width:280px"><label>Outlet do podglądu</label><select class="fi" id="emp-view-outlet-select" onchange="empViewOutletChange(this.value)">'+mengOutletSelectHTML('emp-view-outlet-select',S._empViewOutlet)+'</select></div>';
+  var savedMonths=S._empViewOutlet?getEmployeeSalesMonthsForOutlet(S.pid,S._empViewOutlet):[];
+  if(!savedMonths.length){
+    h+='<p class="hs-p">Brak jeszcze zapisanych danych sprzedaży pracowników dla tego outletu.</p>';
+  } else {
+    h+='<div class="pick-wrap" id="mp-wrap-emp" style="margin:12px 0">';
+    h+='<button class="mpick-btn" id="mpick-btn-emp" onclick="toggleMPicker(event,\'-emp\')">';
+    h+='<span>📅 '+(S._empViewMonth?mLabelFull(S._empViewMonth):'Wybierz miesiąc do podglądu')+'</span><span class="arr">▾</span></button>';
+    h+='<div class="picker-pop" id="mp-pop-emp" style="display:none">';
+    h+='<div class="yr-nav"><button class="yr-btn" onclick="mpYearNav(-1,\'-emp\');event.stopPropagation()">◀</button><strong id="mp-yr-emp"></strong><button class="yr-btn" onclick="mpYearNav(1,\'-emp\');event.stopPropagation()">▶</button></div>';
+    h+='<div class="mgrid" id="mp-grid-emp"></div>';
+    h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z zapisanym importem dla tego outletu</div>';
+    h+='</div></div>';
+  }
+  h+='<div id="emp-view-body"></div>';
+  h+='</div>';
+
+  h+='<div class="card">';
+  h+='<div class="fsect">🏆 Statystyki sprzedaży pracowników</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Ranking sprzedawców — łącznie, per outlet, albo dla konkretnej pozycji/grupy towarowej (np. do konkursu sprzedażowego). Pracownik pracujący w kilku outletach pokazuje się z osobnym wierszem na każdy z nich, chyba że wybierzesz widok „Łącznie".</p>';
+  var allKeys=getAllEmployeeSalesKeys(S.pid);
+  if(!allKeys.length){
+    h+='<p class="hs-p" style="color:var(--tx3)">Brak jeszcze żadnych zapisanych danych.</p>';
+  } else {
+    var monthsAvail=allKeys.map(function(k){return k.month}).filter(function(v,i,a){return a.indexOf(v)===i}).sort();
+    var defTo=monthsAvail[monthsAvail.length-1],defFrom=monthsAvail[0];
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="emp-stats-from" value="'+defFrom+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="emp-stats-to" value="'+defTo+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="emp-stats-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0;min-width:160px"><label>Pozycja/kategoria (opcjonalnie)</label><input type="text" class="fi" id="emp-stats-item" placeholder="np. APEROL SPRITZ"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Widok</label><select class="fi" id="emp-stats-group"><option value="split">Rozbicie na outlety</option><option value="total">Łącznie (suma outletów)</option></select></div>';
+    h+='<button class="btn btn-p" onclick="empStatsRun()">Pokaż</button>';
+    h+='</div><div id="emp-stats-results"></div>';
+  }
+  h+='</div>';
+
+  el.innerHTML=h;
+  if(S._empParsed)renderEmpPreview();
+  if(S._empViewMonth)renderEmpView();
+  if(allKeys.length)empStatsRun();
+}
+
 // Porównuje sprzedaż netto każdego (zmapowanego) outletu z wklejanego raportu do średniej z jego poprzednich
 // zapisanych miesięcy — flaguje wartości rażąco odbiegające (literówka, podwójne wklejenie, brakujące dane).
 function msalesDetectAnomalies(parsed,targetMonth){
@@ -6313,6 +6720,13 @@ function mengMonthsMap(){
   var r={};
   if(!out)return r;
   getMenuEngMonthsForOutlet(S.pid,out).forEach(function(m){r[m]=true});
+  return r;
+}
+function empMonthsMap(){
+  var out=S._empViewOutlet;
+  var r={};
+  if(!out)return r;
+  getEmployeeSalesMonthsForOutlet(S.pid,out).forEach(function(m){r[m]=true});
   return r;
 }
 function mengOutletSelectHTML(id,selected){
@@ -7117,12 +7531,12 @@ function buildMGrid(suf){
   suf=suf||'';
   var yrEl=document.getElementById('mp-yr'+suf);if(!yrEl)return;
   var yr=parseInt(yrEl.textContent)||parseInt(S.month.split('-')[0]);
-  var haveData=suf==='-daily'?getAllDailyData(S.pid):suf==='-msales'?getAllMenuSalesMap(S.pid):suf==='-meng'?mengMonthsMap():getAllMD(S.pid);
+  var haveData=suf==='-daily'?getAllDailyData(S.pid):suf==='-msales'?getAllMenuSalesMap(S.pid):suf==='-meng'?mengMonthsMap():suf==='-emp'?empMonthsMap():getAllMD(S.pid);
   var mn=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
   var h='';
   for(var i=0;i<12;i++){
     var ym=yr+'-'+String(i+1).padStart(2,'0');
-    var has=!!haveData[ym],cur=suf==='-msales'?ym===S._msalesViewMonth:suf==='-meng'?ym===S._mengViewMonth:ym===S.month;
+    var has=!!haveData[ym],cur=suf==='-msales'?ym===S._msalesViewMonth:suf==='-meng'?ym===S._mengViewMonth:suf==='-emp'?ym===S._empViewMonth:ym===S.month;
     var cls='mgrid-btn'+(cur?' cur':has?' has':'');
     h+='<button class="'+cls+'" onclick="setDMonth(\''+ym+'\',\''+suf+'\');event.stopPropagation()">'+mn[i]+'</button>';
   }
@@ -7148,6 +7562,7 @@ function syncMonthUI(){
 function setDMonth(ym,suf){
   if(suf==='-msales'){msalesViewMonth(ym);closeAllPickers();return;}
   if(suf==='-meng'){mengViewMonth(ym);closeAllPickers();return;}
+  if(suf==='-emp'){empViewMonth(ym);closeAllPickers();return;}
   S.month=ym;
   S._monthlyHosposParsed=null;
   syncMonthUI();
@@ -7194,7 +7609,7 @@ function setDR(d){
 }
 
 function closeAllPickers(){
-  ['','-daily','-global','-msales','-meng'].forEach(function(suf){
+  ['','-daily','-global','-msales','-meng','-emp'].forEach(function(suf){
     var mp=document.getElementById('mp-pop'+suf),dp=document.getElementById('dp-pop'+suf);
     var mb=document.getElementById('mpick-btn'+suf),db2=document.getElementById('dpick-btn'+suf);
     if(mp)mp.style.display='none';
