@@ -1791,7 +1791,7 @@ body.presentation-mode #presentation-exit{display:flex}
   <button class="mclose" onclick="closeM('m-emp-conflict')">✕</button>
   <div id="emp-conflict-body"></div>
   <div class="fa">
-    <button class="btn btn-p" onclick="empSalesConfirmSave()">🔁 Nadpisz</button>
+    <button class="btn btn-p" onclick="empDoSaveAll()">🔁 Nadpisz</button>
     <button class="btn btn-s" onclick="closeM('m-emp-conflict')">Anuluj</button>
   </div>
 </div></div>
@@ -6206,6 +6206,14 @@ function parseEmployeeSalesReport(raw){
   if(!employees.length)return {outletName:outletName,sourceRange:sourceRange,employees:[],warnings:warnings,error:'Nie rozpoznano żadnego pracownika w tekście — sprawdź, czy to poprawny raport "Sprzedaż użytkowników".'};
   return {outletName:outletName,sourceRange:sourceRange,employees:employees,warnings:warnings};
 }
+// Jedno wklejenie może zawierać KILKA osobnych raportów (po jednym na punkt sprzedaży) wklejonych
+// jeden za drugim — dzielimy tekst przy każdym powtórzeniu tytułu raportu i parsujemy osobno.
+function parseEmployeeSalesReportMulti(raw){
+  var text=String(raw||'');
+  var segments=text.split(/(?=SPRZEDA[ŻZ]\s+U[ŻZ]YTKOWNIK)/i).map(function(s){return s.trim()}).filter(function(s){return s.length>0});
+  if(segments.length<=1)segments=[text];
+  return segments.map(function(seg){return parseEmployeeSalesReport(seg)});
+}
 
 /* ═══════════════════════════════════════════
    UI: SPRZEDAŻ PRACOWNIKA (Wprowadź dane → Sprzedaż pracownika)
@@ -6214,93 +6222,106 @@ function empSalesParse(){
   var ta=document.getElementById('emp-input');if(!ta)return;
   var raw=ta.value;
   if(!raw||!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
-  var parsed=parseEmployeeSalesReport(raw);
-  if(parsed.error){toast(parsed.error,'er');return;}
-  S._empParsed=parsed;
-  S._empDetectedOutletId=parsed.outletName?msalesGuessOutlet(parsed.outletName):undefined;
-  var targetMonth=S.month;
-  if(parsed.sourceRange){
-    var gm=guessMonthFromRange(parsed.sourceRange.from);
-    if(gm)targetMonth=gm;
-  }
-  S._empTargetMonth=targetMonth;
+  var reports=parseEmployeeSalesReportMulti(raw);
+  var valid=reports.filter(function(r){return !r.error});
+  if(!valid.length){toast((reports[0]&&reports[0].error)||'Nie rozpoznano żadnego raportu w tekście','er');return;}
+  S._empParsedReports=valid;
+  S._empReportMeta=valid.map(function(r){
+    var outletId=r.outletName?msalesGuessOutlet(r.outletName):undefined;
+    var month=S.month;
+    if(r.sourceRange){var gm=guessMonthFromRange(r.sourceRange.from);if(gm)month=gm;}
+    return {outletId:outletId,month:month};
+  });
   renderEmpPreview();
-  toast('Rozpoznano '+parsed.employees.length+' pracownik(ów)','ok');
+  var skipped=reports.length-valid.length;
+  var totalEmp=valid.reduce(function(s,r){return s+r.employees.length},0);
+  toast('Rozpoznano '+valid.length+' raport(ów) ('+totalEmp+' pracownik(ów) łącznie)'+(skipped?' — '+skipped+' fragment pominięto (nie rozpoznano)':''),'ok');
+}
+function empReportMetaChange(idx,field,val){
+  if(S._empReportMeta&&S._empReportMeta[idx])S._empReportMeta[idx][field]=val;
 }
 function renderEmpPreview(){
   var box=document.getElementById('emp-preview');if(!box)return;
-  var parsed=S._empParsed;
-  if(!parsed){box.innerHTML='';return;}
-  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
+  var reports=S._empParsedReports;
+  if(!reports||!reports.length){box.innerHTML='';return;}
+  var meta=S._empReportMeta;
+  var h='';
+  if(reports.length>1)h+='<div class="hs-tip" style="margin-bottom:10px">📦 Rozpoznano <strong>'+reports.length+'</strong> oddzielne raporty (różne punkty sprzedaży) w jednym wklejonym tekście — sprawdź dopasowanie każdego z nich poniżej, potem zapisz wszystkie naraz.</div>';
 
-  if(parsed.sourceRange){
-    var r=parsed.sourceRange,fromDay=msalesDayOfDMY(r.from);
-    if(fromDay!==1){
-      h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ Raport nie zaczyna się od 1. dnia miesiąca (wykryto: '+r.from+') — dane zapisywane są zawsze jako "od 1. dnia miesiąca do X". Sprawdź, czy to właściwy raport, zanim zapiszesz.</div>';
-    } else {
-      h+='<div class="hs-tip" style="margin-bottom:8px">📅 Wykryty zakres w raporcie: '+r.from+' – '+r.to+'.</div>';
+  reports.forEach(function(parsed,idx){
+    var m=meta[idx];
+    h+='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
+
+    if(parsed.sourceRange){
+      var r=parsed.sourceRange,fromDay=msalesDayOfDMY(r.from);
+      if(fromDay!==1){
+        h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ Ten raport nie zaczyna się od 1. dnia miesiąca (wykryto: '+r.from+') — dane zapisywane są zawsze jako "od 1. dnia miesiąca do X". Sprawdź, czy to właściwy raport.</div>';
+      } else {
+        h+='<div class="hs-tip" style="margin-bottom:8px">📅 Wykryty zakres: '+r.from+' – '+r.to+'.</div>';
+      }
     }
-  }
 
-  h+='<div class="fg" style="max-width:280px"><label>Outlet (wykryto z raportu: "'+(parsed.outletName||'—')+'")</label><select class="fi" id="emp-outlet-select" onchange="S._empDetectedOutletId=this.value||undefined">';
-  h+='<option value="">— wybierz —</option>';
-  S.outlets.forEach(function(o){h+='<option value="'+o.id+'"'+(S._empDetectedOutletId===o.id?' selected':'')+'>'+o.name+'</option>'});
-  h+='</select></div>';
+    h+='<div class="fg" style="max-width:280px"><label>Outlet (wykryto z raportu: "'+(parsed.outletName||'—')+'")</label><select class="fi" onchange="empReportMetaChange('+idx+',\'outletId\',this.value)">';
+    h+='<option value="">— wybierz —</option>';
+    S.outlets.forEach(function(o){h+='<option value="'+o.id+'"'+(m.outletId===o.id?' selected':'')+'>'+o.name+'</option>'});
+    h+='</select></div>';
 
-  h+='<div class="fg" style="max-width:220px;margin-top:8px"><label>Miesiąc (do zapisu)</label><input type="month" class="fi" id="emp-target-month" value="'+S._empTargetMonth+'" onchange="S._empTargetMonth=this.value"></div>';
+    h+='<div class="fg" style="max-width:220px;margin-top:8px"><label>Miesiąc (do zapisu)</label><input type="month" class="fi" value="'+m.month+'" onchange="empReportMetaChange('+idx+',\'month\',this.value)"></div>';
 
-  var totNetto=0,totBrutto=0;
-  parsed.employees.forEach(function(e){totNetto+=e.totalNetto;totBrutto+=e.totalBrutto});
-  h+='<div class="hs-p" style="margin:10px 0">Rozpoznano <strong>'+parsed.employees.length+'</strong> pracowników, łącznie '+fmt(round2(totNetto),true)+' netto / '+fmt(round2(totBrutto),true)+' brutto.</div>';
+    var totNetto=0,totBrutto=0;
+    parsed.employees.forEach(function(e){totNetto+=e.totalNetto;totBrutto+=e.totalBrutto});
+    h+='<div class="hs-p" style="margin:10px 0">Rozpoznano <strong>'+parsed.employees.length+'</strong> pracowników, łącznie '+fmt(round2(totNetto),true)+' netto / '+fmt(round2(totBrutto),true)+' brutto.</div>';
 
-  if(parsed.warnings.length){
-    h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ Wykryto '+parsed.warnings.length+' rozbieżności między sumą pozycji a podaną sumą "Razem" — to zwykle znaczy, że w oryginalnym raporcie brakuje jednego wiersza (np. zgubionego przy podziale strony):<br><small>'+parsed.warnings.slice(0,5).join('<br>')+(parsed.warnings.length>5?'<br>…':'')+'</small></div>';
-  }
+    if(parsed.warnings.length){
+      h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ '+parsed.warnings.length+' rozbieżności między sumą pozycji a sumą "Razem" (zwykle brakujący wiersz w oryginalnym raporcie):<br><small>'+parsed.warnings.slice(0,3).join('<br>')+(parsed.warnings.length>3?'<br>…':'')+'</small></div>';
+    }
 
-  var sorted=parsed.employees.slice().sort(function(a,b){return b.totalNetto-a.totalNetto});
-  h+='<div class="hs-p" style="margin-bottom:6px">Top 5 wg sprzedaży netto:</div><ol style="margin:0 0 10px 18px;font-size:.78rem">';
-  sorted.slice(0,5).forEach(function(e){h+='<li>'+e.name+' — '+fmt(e.totalNetto,true)+'</li>'});
-  h+='</ol>';
+    var sorted=parsed.employees.slice().sort(function(a,b){return b.totalNetto-a.totalNetto});
+    h+='<div class="hs-p" style="margin-bottom:0">Top 3 wg netto: '+sorted.slice(0,3).map(function(e){return e.name+' ('+fmt(e.totalNetto,true)+')'}).join(', ')+'</div>';
+    h+='</div>';
+  });
 
-  h+='<div class="fa"><button class="btn btn-p" onclick="empSalesSave()">💾 Zapisz</button><button class="btn btn-s" onclick="empSalesClear()">✕ Wyczyść</button></div>';
-  h+='</div>';
+  h+='<div class="fa" style="margin-top:12px"><button class="btn btn-p" onclick="empSalesSaveAll()">💾 Zapisz wszystkie</button><button class="btn btn-s" onclick="empSalesClear()">✕ Wyczyść</button></div>';
   box.innerHTML=h;
 }
-function empSalesSave(){
-  var parsed=S._empParsed;if(!parsed)return;
-  var outletSel=document.getElementById('emp-outlet-select'),monthSel=document.getElementById('emp-target-month');
-  var outletId=outletSel?outletSel.value:S._empDetectedOutletId;
-  var month=monthSel?monthSel.value:S._empTargetMonth;
-  if(!outletId){toast('Wybierz outlet przed zapisem','er');return;}
-  if(!month){toast('Wybierz miesiąc przed zapisem','er');return;}
-  var existing=getEmployeeSales(S.pid,outletId,month);
-  if(existing){
-    var outlet=S.outlets.find(function(o){return o.id===outletId});
-    document.getElementById('emp-conflict-body').innerHTML='<p class="hs-p">Dla outletu <strong>'+(outlet?outlet.name:outletId)+'</strong> i miesiąca <strong>'+mLabelFull(month)+'</strong> dane już istnieją. Nowy import całkowicie je zastąpi.</p>';
-    S._empPendingSave={outletId:outletId,month:month};
+function empSalesSaveAll(){
+  var reports=S._empParsedReports,meta=S._empReportMeta;
+  if(!reports||!reports.length)return;
+  for(var i=0;i<reports.length;i++){
+    if(!meta[i].outletId||!meta[i].month){toast('Uzupełnij outlet i miesiąc dla każdego raportu przed zapisem','er');return;}
+  }
+  var conflicts=[];
+  reports.forEach(function(r,i){
+    var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId});
+    if(outlet&&getEmployeeSales(S.pid,meta[i].outletId,meta[i].month))conflicts.push(outlet.name+' — '+mLabelFull(meta[i].month));
+  });
+  if(conflicts.length){
+    document.getElementById('emp-conflict-body').innerHTML='<p class="hs-p">Dla poniższych outletów i miesięcy dane już istnieją — nowy import je zastąpi:</p><ul style="margin:6px 0 0 18px;font-size:.8rem">'+conflicts.map(function(c){return '<li>'+c+'</li>'}).join('')+'</ul>';
     openM('m-emp-conflict');
     return;
   }
-  empDoSave(outletId,month);
+  empDoSaveAll();
 }
-function empSalesConfirmSave(){
-  if(!S._empPendingSave)return;
-  empDoSave(S._empPendingSave.outletId,S._empPendingSave.month);
-  S._empPendingSave=null;
-}
-function empDoSave(outletId,month){
+function empDoSaveAll(){
   closeM('m-emp-conflict');
-  var parsed=S._empParsed;if(!parsed)return;
-  var outlet=S.outlets.find(function(o){return o.id===outletId});
-  saveEmployeeSales(S.pid,outletId,month,{outletName:outlet?outlet.name:parsed.outletName,sourceRange:parsed.sourceRange,employees:parsed.employees});
-  S._empParsed=null;
+  var reports=S._empParsedReports,meta=S._empReportMeta;
+  if(!reports)return;
+  var savedCount=0,lastOutletId=null,lastMonth=null;
+  reports.forEach(function(r,i){
+    var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId});
+    if(!outlet)return;
+    saveEmployeeSales(S.pid,meta[i].outletId,meta[i].month,{outletName:outlet.name,sourceRange:r.sourceRange,employees:r.employees});
+    savedCount++;lastOutletId=meta[i].outletId;lastMonth=meta[i].month;
+  });
+  S._empParsedReports=null;S._empReportMeta=null;
   S._empAllItemNamesCache=null; // unieważnij cache podpowiedzi — mogły dojść nowe pozycje
-  S._empViewOutlet=outletId;S._empViewMonth=month;
+  var ta=document.getElementById('emp-input');if(ta)ta.value='';
+  if(lastOutletId){S._empViewOutlet=lastOutletId;S._empViewMonth=lastMonth;}
   renderEmpSales();
-  toast('Zapisano dane sprzedaży pracowników','ok');
+  toast('Zapisano '+savedCount+' raport(ów)','ok');
 }
 function empSalesClear(){
-  S._empParsed=null;
+  S._empParsedReports=null;S._empReportMeta=null;
   var ta=document.getElementById('emp-input');if(ta)ta.value='';
   var box=document.getElementById('emp-preview');if(box)box.innerHTML='';
 }
@@ -6490,7 +6511,7 @@ function renderEmpSales(){
   var h='';
   h+='<div class="card" style="margin-bottom:14px">';
   h+='<div class="fsect">👤 Wklej raport „Sprzedaż użytkowników"</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Raport HosPOS generowany osobno dla każdego punktu sprzedaży, pokazujący co i w jakiej ilości sprzedał każdy pracownik. Outlet i miesiąc rozpoznawane są automatycznie z treści raportu (zawsze od 1. dnia miesiąca) — będzie można je poprawić przed zapisem.</p>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Raport HosPOS generowany osobno dla każdego punktu sprzedaży, pokazujący co i w jakiej ilości sprzedał każdy pracownik. Możesz wkleić <strong>kilka takich raportów naraz</strong> (jeden po drugim, dla różnych punktów) — program sam je rozdzieli i zaproponuje dopasowanie outletu oraz miesiąca dla każdego z osobna, będzie można je poprawić przed zapisem.</p>';
   if(!ro){
     h+='<textarea class="fi" id="emp-input" rows="8" placeholder="Wklej tutaj cały raport..."></textarea>';
     h+=ocrButtonHTML('emp-photo','emp-input','emp-ocr-status');
@@ -6539,7 +6560,7 @@ function renderEmpSales(){
   h+='</div>';
 
   el.innerHTML=h;
-  if(S._empParsed)renderEmpPreview();
+  if(S._empParsedReports&&S._empParsedReports.length)renderEmpPreview();
   if(S._empViewMonth)renderEmpView();
   if(allKeys.length)empStatsRun();
 }
