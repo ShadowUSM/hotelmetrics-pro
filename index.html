@@ -6109,8 +6109,14 @@ function msalesGuessOutlet(rawName){
    PARSER: SPRZEDAŻ PRACOWNIKA (raport HosPOS "SPRZEDAŻ UŻYTKOWNIKÓW", jeden outlet na raport)
    Format wierszy pozycji: Nazwa Ilość Śr.cena_net Śr.cena_brut War.netto War.brutto (5 liczb na końcu —
    inaczej niż w raporcie "Sprzedaż pozycji menu", gdzie są 3 liczby). Nagłówek pracownika to "Imię Nazwisko ID"
-   (ID = czysta liczba całkowita na końcu wiersza), po nim powtórzona nazwa outletu, potem kategorie i pozycje,
-   zamknięte linią "Razem <netto> <brutto>" (linie "Razem 23%/8%" to tylko rozbicie VAT — pomijane).
+   (ID = czysta liczba całkowita na końcu wiersza).
+   UWAGA: raport może obejmować JEDEN punkt sprzedaży ("Punkty sprzedaży FURU") ALBO KILKA naraz
+   ("Punkty sprzedaży LOBBY BAR, AROMA, FURU, ..."). W drugim przypadku nazwa outletu pojawia się
+   WIELOKROTNIE w obrębie danych jednego pracownika — za każdym razem, gdy zmienia punkt sprzedaży
+   (nawet tego samego dnia) — więc śledzimy bieżący outlet tak samo jak bieżącą kategorię, i na końcu
+   rozdzielamy każdego pracownika na osobne "podpracowniki" per outlet, do zapisania osobno.
+   Zamknięcie danych pracownika to linia "Razem <netto> <brutto>" (linie "Razem 23%/8%/5%" to tylko
+   rozbicie VAT — pomijane).
 ═══════════════════════════════════════════ */
 var EMP_JUNK_LINE_RE=[
   /^\d{1,4}$/,                          // sam numer strony
@@ -6124,21 +6130,34 @@ var EMP_JUNK_LINE_RE=[
   /^Rodzaj danych/i,
   /^Wybrane dane/i,
   /^U[żz]ytkownicy/i,
-  /^Punkty sprzeda/i,
   /^Kategorie$/i
 ];
 function empIsJunkLine(t){return EMP_JUNK_LINE_RE.some(function(re){return re.test(t)})}
+// Wyciąga listę punktów sprzedaży zadeklarowanych w nagłówku raportu — obsługuje zarówno pojedynczy
+// outlet ("Punkty sprzedaży FURU"), jak i kilka naraz, rozdzielonych przecinkami, nawet jeśli lista
+// zawija się na kolejną linię w środku nazwy (np. "...LOUNGE BAR, SKY\nCAFE, BEACH BAR").
+function empDetectDeclaredOutlets(text){
+  var mBlock=text.match(/Punkty sprzeda[żz]y([\s\S]*?)Kategorie/i);
+  var blockText=mBlock?mBlock[1]:null;
+  if(blockText===null){
+    var mSingle=text.match(/Punkty sprzeda[żz]y\s+(.+?)\s*(?:\r?\n|$)/i);
+    blockText=mSingle?mSingle[1]:'';
+  }
+  return blockText.replace(/\s+/g,' ').trim().split(',').map(function(s){return s.trim()}).filter(function(s){return s.length>0});
+}
 function parseEmployeeSalesReport(raw){
   var text=String(raw||'');
   var warnings=[];
   var mRange=text.match(/Od:\s*(\d{1,2}\.\d{1,2}\.\d{2,4})\s*,?\s*do:\s*(\d{1,2}\.\d{1,2}\.\d{2,4})/i);
   var sourceRange=mRange?{from:mRange[1],to:mRange[2]}:null;
-  var mOutlet=text.match(/Punkty sprzeda[żz]y\s+(.+?)\s*(?:\r?\n|$)/i);
-  var outletName=mOutlet?mOutlet[1].trim():null;
-  if(!outletName)return {outletName:null,sourceRange:sourceRange,employees:[],warnings:[],error:'Nie znaleziono nazwy punktu sprzedaży ("Punkty sprzedaży ...") — czy to na pewno raport "Sprzedaż użytkowników" z HosPOS?'};
+  var declaredOutlets=empDetectDeclaredOutlets(text);
+  if(!declaredOutlets.length)return {outlets:[],sourceRange:sourceRange,warnings:[],error:'Nie znaleziono nazwy punktu/punktów sprzedaży ("Punkty sprzedaży ...") — czy to na pewno raport "Sprzedaż użytkowników" z HosPOS?'};
+  var outletLookup={};
+  declaredOutlets.forEach(function(o){outletLookup[o.toUpperCase()]=o});
+  var singleOutlet=declaredOutlets.length===1?declaredOutlets[0]:null;
 
   var lines=text.split(/\r?\n/);
-  var employees=[],curEmp=null,curCategory='Bez kategorii';
+  var employees=[],curEmp=null,curOutlet=singleOutlet,curCategory='Bez kategorii';
 
   function pushCurEmp(){
     if(!curEmp)return;
@@ -6148,7 +6167,7 @@ function parseEmployeeSalesReport(raw){
     if(curEmp.totalNetto===null)curEmp.totalNetto=sumN;
     if(curEmp.totalBrutto===null)curEmp.totalBrutto=sumB;
     if(Math.abs(sumN-curEmp.totalNetto)>0.1){
-      warnings.push('Pracownik "'+curEmp.name+'": suma pozycji '+fmt(sumN,true)+' ≠ podana suma '+fmt(curEmp.totalNetto,true));
+      warnings.push('Pracownik "'+curEmp.name+'": suma pozycji (wszystkie punkty razem) '+fmt(sumN,true)+' ≠ podana suma '+fmt(curEmp.totalNetto,true));
     }
     curEmp.totalNetto=round2(curEmp.totalNetto);curEmp.totalBrutto=round2(curEmp.totalBrutto);
     employees.push(curEmp);
@@ -6162,7 +6181,7 @@ function parseEmployeeSalesReport(raw){
     var tokens=t.split(/\s+/);
     var n=tokens.length;
 
-    // 1) Linia "Razem ..." — sumaryczna dla pracownika, albo rozbicie VAT (ignorowane).
+    // 1) Linia "Razem ..." — sumaryczna dla pracownika (wszystkie jego outlety razem), albo rozbicie VAT (ignorowane).
     if(/^Razem$/i.test(tokens[0])){
       if(!/%/.test(t)&&curEmp){
         var nums=tokens.filter(isNumTok);
@@ -6177,6 +6196,7 @@ function parseEmployeeSalesReport(raw){
       if(last5.every(isNumTok)){
         if(curEmp){
           curEmp.items.push({
+            outlet:curOutlet||'Nieprzypisany',
             category:curCategory,
             name:tokens.slice(0,n-5).join(' '),
             qty:plNum(last5[0]),
@@ -6192,27 +6212,62 @@ function parseEmployeeSalesReport(raw){
     if(n>=2&&/^\d+$/.test(tokens[n-1])){
       pushCurEmp();
       curEmp={name:tokens.slice(0,n-1).join(' '),id:tokens[n-1],items:[],totalNetto:null,totalBrutto:null};
+      curOutlet=singleOutlet;
       curCategory='Bez kategorii';
       continue;
     }
 
-    // 4) W przeciwnym razie: nagłówek kategorii (pomijamy powtórzoną nazwę outletu).
-    if(curEmp&&t.toUpperCase()!==outletName.toUpperCase()){
-      curCategory=t;
+    // 4) Zmiana punktu sprzedaży — linia dokładnie odpowiada jednemu z zadeklarowanych w nagłówku outletów.
+    var asOutlet=outletLookup[t.toUpperCase()];
+    if(asOutlet){
+      curOutlet=asOutlet;
+      curCategory='Bez kategorii';
+      continue;
     }
+
+    // 5) W przeciwnym razie: nagłówek kategorii.
+    if(curEmp)curCategory=t;
   }
   pushCurEmp();
 
-  if(!employees.length)return {outletName:outletName,sourceRange:sourceRange,employees:[],warnings:warnings,error:'Nie rozpoznano żadnego pracownika w tekście — sprawdź, czy to poprawny raport "Sprzedaż użytkowników".'};
-  return {outletName:outletName,sourceRange:sourceRange,employees:employees,warnings:warnings};
+  if(!employees.length)return {outlets:[],sourceRange:sourceRange,warnings:warnings,error:'Nie rozpoznano żadnego pracownika w tekście — sprawdź, czy to poprawny raport "Sprzedaż użytkowników".'};
+
+  // Rozdziel każdego pracownika na osobne wpisy per outlet (do zapisu — dane trzymane są osobno na outlet).
+  var byOutlet={},order=[];
+  employees.forEach(function(emp){
+    var perOutlet={},outletOrder=[];
+    emp.items.forEach(function(it){
+      if(!perOutlet[it.outlet]){perOutlet[it.outlet]=[];outletOrder.push(it.outlet);}
+      perOutlet[it.outlet].push(it);
+    });
+    outletOrder.forEach(function(outletName){
+      if(!byOutlet[outletName]){byOutlet[outletName]=[];order.push(outletName);}
+      var items=perOutlet[outletName];
+      var sumN=0,sumB=0;
+      items.forEach(function(it){sumN+=it.netto;sumB+=it.brutto});
+      byOutlet[outletName].push({name:emp.name,id:emp.id,items:items,totalNetto:round2(sumN),totalBrutto:round2(sumB)});
+    });
+  });
+
+  var outlets=order.map(function(outletName){return {outletName:outletName,employees:byOutlet[outletName]}});
+  return {outlets:outlets,sourceRange:sourceRange,warnings:warnings};
 }
-// Jedno wklejenie może zawierać KILKA osobnych raportów (po jednym na punkt sprzedaży) wklejonych
-// jeden za drugim — dzielimy tekst przy każdym powtórzeniu tytułu raportu i parsujemy osobno.
+// Jedno wklejenie może zawierać KILKA osobnych raportów (po jednym na punkt lub kilka punktów naraz)
+// wklejonych jeden za drugim — dzielimy tekst przy każdym powtórzeniu tytułu raportu, parsujemy osobno,
+// i spłaszczamy wynik do listy pojedynczych outletów (każdy raport może już sam w sobie zawierać kilka).
 function parseEmployeeSalesReportMulti(raw){
   var text=String(raw||'');
   var segments=text.split(/(?=SPRZEDA[ŻZ]\s+U[ŻZ]YTKOWNIK)/i).map(function(s){return s.trim()}).filter(function(s){return s.length>0});
   if(segments.length<=1)segments=[text];
-  return segments.map(function(seg){return parseEmployeeSalesReport(seg)});
+  var flat=[];
+  segments.forEach(function(seg){
+    var res=parseEmployeeSalesReport(seg);
+    if(res.error){flat.push({error:res.error,outletName:null,sourceRange:res.sourceRange,employees:[],warnings:[]});return;}
+    res.outlets.forEach(function(o){
+      flat.push({outletName:o.outletName,sourceRange:res.sourceRange,employees:o.employees,warnings:res.warnings});
+    });
+  });
+  return flat;
 }
 
 /* ═══════════════════════════════════════════
