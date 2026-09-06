@@ -537,6 +537,16 @@ body.presentation-mode #presentation-exit{display:flex}
 .toast{background:var(--sur);border:1px solid var(--brd2);border-radius:9px;padding:10px 14px;font-size:.76rem;box-shadow:0 4px 20px rgba(0,0,0,.4);display:flex;align-items:center;gap:7px;color:var(--tx);animation:tin .2s ease}
 .toast.ok{border-left:3px solid var(--grn)}.toast.er{border-left:3px solid var(--red)}.toast.in{border-left:3px solid var(--acc)}
 .toast.out{animation:tout .2s ease forwards}
+.view-chip{display:inline-flex;align-items:center;background:var(--sur2);border:1px solid var(--brd);border-radius:14px;overflow:hidden}
+.view-chip button{background:none;border:none;color:var(--tx2);font-size:.7rem;padding:4px 9px;cursor:pointer;font-family:inherit}
+.view-chip button:hover{color:var(--acc)}
+.view-chip-x{border-left:1px solid var(--brd)!important;padding:4px 7px!important;color:var(--tx3)!important}
+.view-chip-x:hover{color:var(--red)!important}
+.dc-ok{color:var(--grn);font-weight:600;text-align:center}
+.dc-no{color:var(--tx3);text-align:center}
+.dc-part{color:var(--warn);font-weight:600;text-align:center}
+.toast-undo{flex-shrink:0;background:var(--acc);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:inherit}
+.toast-undo:hover{filter:brightness(1.1)}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes tout{to{opacity:0;transform:translateY(-8px)}}
 
@@ -590,7 +600,7 @@ body.presentation-mode #presentation-exit{display:flex}
 .dp-title{font-size:.78rem;font-weight:600;color:var(--tx);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
 
 /* Bottom spacer — każda zakładka ma 80px wolnego miejsca na dole */
-#v-dashboard,#v-data,#v-analytics,#v-compare,#v-menuanalysis,#v-properties,#v-export,
+#v-dashboard,#v-data,#v-analytics,#v-compare,#v-menuanalysis,#v-employees,#v-properties,#v-export,
 #v-budget,#v-team{padding-bottom:80px}
 
 /* ── AUTO THEME (system preference) ── */
@@ -1574,6 +1584,9 @@ body.presentation-mode #presentation-exit{display:flex}
     <div class="nav-i" data-v="menuanalysis" onclick="go('menuanalysis')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Analiza Menu
     </div>
+    <div class="nav-i" data-v="employees" onclick="go('employees')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Pracownicy
+    </div>
     </div>
     <div class="s-sect" id="s-sect-mgmt" onclick="toggleNavSection('mgmt')">
       <span>Zarządzanie</span>
@@ -1673,6 +1686,7 @@ body.presentation-mode #presentation-exit{display:flex}
     <div id="v-data" style="display:none"></div>
     <div id="v-analytics" style="display:none"></div>
     <div id="v-menuanalysis" style="display:none"></div>
+    <div id="v-employees" style="display:none"></div>
     <div id="v-compare" style="display:none"></div>
     <div id="v-properties" style="display:none"></div>
     <div id="v-export" style="display:none"></div>
@@ -3090,6 +3104,8 @@ function renderAnalytics(){
   h+='<div id="at-quadrant" style="display:'+(analyticsDefault==='quadrant'?'block':'none')+'"></div>';
   h+='<div id="at-waterfall" style="display:'+(analyticsDefault==='waterfall'?'block':'none')+'"></div>';
   h+='<div id="at-weather" style="display:'+(analyticsDefault==='weather'?'block':'none')+'"></div>';
+  h+='<div id="at-perguest" style="display:'+(analyticsDefault==='perguest'?'block':'none')+'"></div>';
+  h+='<div id="at-patterns" style="display:'+(analyticsDefault==='patterns'?'block':'none')+'"></div>';
 
   el.innerHTML=h;
 
@@ -3120,10 +3136,308 @@ function renderAnalytics(){
   renderQuadrant(document.getElementById('at-quadrant'),M,allD);
   renderWaterfall(document.getElementById('at-waterfall'),M);
   renderWeatherCorrelation(document.getElementById('at-weather'),S.pid);
+  renderPerGuest(document.getElementById('at-perguest'));
+  renderPatterns(document.getElementById('at-patterns'));
 }
 
+/* ═══════════════════════════════════════════
+   NA GOŚCIA — capture rate i sprzedaż na gościa hotelowego
+   Liczbę gości hotelowych bierzemy z pozycji rozliczeniowych wyżywienia (kategoria INFO
+   w raporcie "Sprzedaż użytkowników"): ŚN DOROSŁY / ŚN DZIECKO / Śn dorosły / Śn apart...
+   Śniadanie je praktycznie każdy gość, więc liczba śniadań to najlepsze dostępne przybliżenie
+   obłożenia hotelu. Kolacje (KOL...) to goście z wykupionym wyżywieniem — różnica śniadania
+   minus kolacje wskazuje gości BEZ kolacji w pakiecie, czyli potencjał restauracji a'la carte.
+   UWAGA: to NIE są couverty restauracji, tylko liczby ogólnohotelowe.
+═══════════════════════════════════════════ */
+var GUEST_BREAKFAST_RE=/^(śn|sn)\b|śniadan|sniadan/i;
+var GUEST_DINNER_RE=/^kol\b|kolacj/i;
+// Zlicza gości hotelowych w danym miesiącu — przechodzi po WSZYSTKICH outletach, bo pozycje
+// rozliczeniowe mogą pojawić się w dowolnym punkcie (zwykle AROMA).
+function guestCounts(pid,month){
+  var res={breakfast:0,dinner:0,found:false,sources:[]};
+  getAllEmployeeSalesKeys(pid).filter(function(k){return k.month===month}).forEach(function(k){
+    var d=getEmployeeSales(pid,k.outletId,k.month);
+    if(!d||!d.employees)return;
+    var b=0,dn=0;
+    d.employees.forEach(function(e){
+      e.items.forEach(function(it){
+        if(!/^INFO$/i.test(it.category||''))return;
+        var n=String(it.name||'').trim();
+        if(GUEST_BREAKFAST_RE.test(n))b+=it.qty;
+        else if(GUEST_DINNER_RE.test(n))dn+=it.qty;
+      });
+    });
+    if(b||dn){res.found=true;res.breakfast+=b;res.dinner+=dn;res.sources.push({outletName:d.outletName||k.outletId,breakfast:b,dinner:dn});}
+  });
+  return res;
+}
+// Sprzedaż netto per outlet za miesiąc — z danych miesięcznych (autorytatywne wartości).
+function outletNettoForMonth(pid,month){
+  var d=getMD(pid,month),out={};
+  if(!d||!d.a)return out;
+  S.outlets.forEach(function(o){var k=okey(o.name);if(d.a[k])out[o.id]={name:o.name,netto:d.a[k]}});
+  return out;
+}
+// Liczba dań głównych sprzedanych w outlecie (przybliżenie liczby obsłużonych gości a'la carte).
+function outletMainsForMonth(pid,outletId,month){
+  var d=getEmployeeSales(pid,outletId,month);
+  if(!d||!d.employees)return null;
+  var mains=0;
+  d.employees.forEach(function(e){e.items.forEach(function(it){if(EMP_ATTACH_MAIN.test(it.category||''))mains+=it.qty})});
+  return mains;
+}
+function perGuestMonths(pid){
+  var months={};
+  getAllEmployeeSalesKeys(pid).forEach(function(k){months[k.month]=true});
+  return Object.keys(months).sort();
+}
+function renderPerGuest(el){
+  if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('🏨','Brak obiektu lub outletów','Dodaj obiekt i outlety, aby analizować sprzedaż na gościa.','',''); return;}
+  var avail=perGuestMonths(S.pid);
+  if(!avail.length){
+    el.innerHTML=emptyStateHTML('🏨','Brak danych o gościach','Ta analiza korzysta z pozycji rozliczeniowych wyżywienia (ŚN/KOL) z raportu „Sprzedaż użytkowników". Wgraj taki raport, aby zobaczyć sprzedaż na gościa hotelowego.','📥 Przejdź do importu',"goEmpSales()");
+    return;
+  }
+  if(!S._pgMonth||avail.indexOf(S._pgMonth)===-1)S._pgMonth=avail[avail.length-1];
+  var month=S._pgMonth;
+  var g=guestCounts(S.pid,month);
+
+  var h='<div class="card" style="margin-bottom:14px">';
+  h+='<div class="fsect">🏨 Sprzedaż na gościa hotelowego</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Liczba gości szacowana na podstawie rozliczonych <strong>śniadań</strong> (je je praktycznie każdy gość hotelowy). To wartości ogólnohotelowe, nie couverty restauracji — pokazują, jaka część ruchu w hotelu przekłada się na sprzedaż w poszczególnych punktach.</p>';
+  h+='<div class="fg" style="max-width:220px"><label>Miesiąc</label><select class="fi" onchange="S._pgMonth=this.value;renderPerGuest(document.getElementById(\'at-perguest\'))">';
+  avail.forEach(function(m){h+='<option value="'+m+'"'+(m===month?' selected':'')+'>'+mLabelFull(m)+'</option>'});
+  h+='</select></div>';
+
+  if(!g.found){
+    h+='<div class="hs-warn" style="margin-top:10px">⚠️ W danych za '+mLabelFull(month)+' nie znaleziono pozycji rozliczeniowych wyżywienia (kategoria INFO: ŚN/KOL). Wgraj raport „Sprzedaż użytkowników" obejmujący punkt rozliczający śniadania (zwykle AROMA).</div></div>';
+    el.innerHTML=h;return;
+  }
+
+  var noDinner=Math.max(0,g.breakfast-g.dinner);
+  h+='<div class="kpi-grid" style="margin-top:12px">';
+  h+='<div class="kpi"><div class="kpi-lbl">Goście (śniadania)</div><div class="kpi-val">'+fmtN(g.breakfast)+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Kolacje w pakiecie</div><div class="kpi-val">'+fmtN(g.dinner)+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Bez kolacji w pakiecie</div><div class="kpi-val">'+fmtN(noDinner)+'</div><div class="kpi-sub">potencjał a\'la carte</div></div>';
+  h+='</div>';
+  h+='</div>';
+
+  // Tabela per outlet
+  var nettoMap=outletNettoForMonth(S.pid,month);
+  var rows=[];
+  S.outlets.forEach(function(o){
+    var n=nettoMap[o.id]?nettoMap[o.id].netto:0;
+    if(!n)return;
+    var mains=outletMainsForMonth(S.pid,o.id,month);
+    rows.push({outlet:o.name,netto:round2(n),perGuest:round2(n/g.breakfast),
+      mains:mains,capture:(mains!==null&&g.breakfast>0)?round2(mains/g.breakfast*100):null});
+  });
+  rows=ctmApplySort(rows,'perguest');
+
+  h+='<div class="card">';
+  h+='<div class="fsect">📊 Per outlet — '+mLabelFull(month)+'</div>';
+  if(!rows.length){
+    h+='<p class="hs-p" style="color:var(--tx3)">Brak danych miesięcznych o sprzedaży za ten miesiąc — uzupełnij zakładkę „Miesięczne".</p>';
+  } else {
+    h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr>';
+    h+=ctmSortHeader('Outlet','outlet','perguest','renderPerGuestRefresh');
+    h+=ctmSortHeader('Sprzedaż netto','netto','perguest','renderPerGuestRefresh');
+    h+=ctmSortHeader('Na gościa','perGuest','perguest','renderPerGuestRefresh');
+    h+=ctmSortHeader('Dania gł.','mains','perguest','renderPerGuestRefresh');
+    h+=ctmSortHeader('Capture rate','capture','perguest','renderPerGuestRefresh');
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(r){
+      var capCell=r.capture===null?'<span style="color:var(--tx3)" title="Brak danych Sprzedaży pracownika dla tego outletu">—</span>':r.capture.toFixed(1)+'%';
+      var mainsCell=r.mains===null?'<span style="color:var(--tx3)">—</span>':fmtN(r.mains);
+      h+='<tr><td class="lbl">'+esc(r.outlet)+'</td><td>'+fmt(r.netto,true)+'</td><td class="td-acc">'+fmt(r.perGuest,true)+'</td><td>'+mainsCell+'</td><td>'+capCell+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div class="hs-tip" style="margin-top:10px">„Na gościa" = sprzedaż netto ÷ liczba gości hotelowych. „Capture rate" = ile dań głównych sprzedano w przeliczeniu na gościa hotelowego (wymaga danych Sprzedaży pracownika dla danego outletu).</div>';
+  }
+  h+='</div>';
+
+  // Trend: rozdzielenie wzrostu sprzedaży od wzrostu obłożenia
+  var trendMonths=avail.slice(-12);
+  var trend=trendMonths.map(function(m){
+    var gg=guestCounts(S.pid,m);
+    var nm=outletNettoForMonth(S.pid,m);
+    var tot=0;Object.keys(nm).forEach(function(id){tot+=nm[id].netto});
+    return {month:m,guests:gg.breakfast,netto:round2(tot),perGuest:gg.breakfast>0?round2(tot/gg.breakfast):null};
+  }).filter(function(t){return t.guests>0});
+
+  if(trend.length>=2){
+    h+='<div class="card" style="margin-top:14px">';
+    h+='<div class="fsect">📈 Wzrost sprzedaży czy wzrost obłożenia?</div>';
+    h+='<p class="hs-p" style="margin-bottom:10px">Jeśli sprzedaż rośnie wolniej niż liczba gości, realnie sprzedajecie <strong>gorzej</strong> — mimo lepszych wyników w złotówkach.</p>';
+    h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Miesiąc</th><th>Goście</th><th>Sprzedaż netto</th><th>Na gościa</th><th>Zmiana m/m</th></tr></thead><tbody>';
+    trend.forEach(function(t,i){
+      var chg='—';
+      if(i>0&&trend[i-1].perGuest){
+        var d=(t.perGuest-trend[i-1].perGuest)/trend[i-1].perGuest*100;
+        chg='<span class="'+(d>=0?'td-pos':'td-neg')+'">'+(d>=0?'+':'')+d.toFixed(1)+'%</span>';
+      }
+      h+='<tr><td class="lbl">'+mLabel(t.month)+'</td><td>'+fmtN(t.guests)+'</td><td>'+fmt(t.netto,true)+'</td><td class="td-acc">'+fmt(t.perGuest,true)+'</td><td>'+chg+'</td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+  }
+
+  el.innerHTML=h;
+}
+function renderPerGuestRefresh(){renderPerGuest(document.getElementById('at-perguest'))}
+
+/* ═══════════════════════════════════════════
+   WZORCE — dzień tygodnia + wpływ pogody + prognoza na najbliższe dni
+   Wszystko liczone z danych dziennych (dd.days) i zapisanej pogody (dd.weather).
+   Prognoza to prosty model: bazowa średnia dla danego dnia tygodnia, skorygowana
+   o historyczny wpływ kategorii pogodowej. Nie zastępuje osądu — pokazuje punkt odniesienia.
+═══════════════════════════════════════════ */
+var DOW_NAMES=['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
+var DOW_SHORT=['Nd','Pn','Wt','Śr','Cz','Pt','So'];
+// Zbiera wszystkie dni z zapisaną sprzedażą z ostatnich N miesięcy.
+function patternDailySamples(pid,outletId,monthsBack){
+  var out=[],m=currentRealMonth();
+  for(var i=0;i<monthsBack;i++){
+    var dd=getDailyData(pid,m);
+    if(dd&&dd.days){
+      Object.keys(dd.days).forEach(function(dayStr){
+        var day=+dayStr,vals=dd.days[dayStr];
+        var v=0;
+        if(outletId==='__all__'){S.outlets.forEach(function(o){v+=Number(vals[okey(o.name)])||0})}
+        else{var o=S.outlets.find(function(x){return x.id===outletId});if(o)v=Number(vals[okey(o.name)])||0}
+        if(v<=0)return;
+        var parts=m.split('-');
+        var dt=new Date(+parts[0],+parts[1]-1,day);
+        out.push({month:m,day:day,dow:dt.getDay(),value:v,weather:(dd.weather&&dd.weather[dayStr])||null});
+      });
+    }
+    m=prevM(m);
+  }
+  return out;
+}
+function patternByDow(samples){
+  var by={};
+  for(var i=0;i<7;i++)by[i]={sum:0,n:0};
+  samples.forEach(function(s){by[s.dow].sum+=s.value;by[s.dow].n++});
+  var overallSum=0,overallN=0;
+  samples.forEach(function(s){overallSum+=s.value;overallN++});
+  var overallAvg=overallN?overallSum/overallN:0;
+  var rows=[];
+  for(var d=0;d<7;d++){
+    var avg=by[d].n?by[d].sum/by[d].n:null;
+    rows.push({dow:d,name:DOW_NAMES[d],avg:avg===null?null:round2(avg),n:by[d].n,
+      idx:(avg!==null&&overallAvg>0)?round2(avg/overallAvg*100):null});
+  }
+  return {rows:rows,overallAvg:round2(overallAvg),total:overallN};
+}
+function patternByWeather(samples){
+  var by={};
+  samples.forEach(function(s){
+    var cat=s.weather?weatherCategory(s.weather):null;
+    if(!cat)return;
+    if(!by[cat])by[cat]={sum:0,n:0};
+    by[cat].sum+=s.value;by[cat].n++;
+  });
+  var withW=samples.filter(function(s){return s.weather&&weatherCategory(s.weather)});
+  var base=withW.length?withW.reduce(function(a,s){return a+s.value},0)/withW.length:0;
+  return Object.keys(by).map(function(cat){
+    var avg=by[cat].sum/by[cat].n;
+    return {cat:cat,avg:round2(avg),n:by[cat].n,idx:base>0?round2(avg/base*100):null};
+  }).sort(function(a,b){return b.avg-a.avg});
+}
+function renderPatterns(el){
+  if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('📅','Brak obiektu lub outletów','Dodaj obiekt i outlety, aby analizować wzorce sprzedaży.','','');return;}
+  if(!S._patOutlet)S._patOutlet='__all__';
+  if(!S._patMonths)S._patMonths=6;
+  var samples=patternDailySamples(S.pid,S._patOutlet,S._patMonths);
+
+  var h='<div class="card" style="margin-bottom:14px">';
+  h+='<div class="fsect">📅 Wzorce dnia tygodnia</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Średnia sprzedaż w poszczególne dni tygodnia — podstawa do planowania obsady i zamówień. Indeks 100 = przeciętny dzień w analizowanym okresie.</p>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+  h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" onchange="S._patOutlet=this.value;renderPatternsRefresh()">'+msalesOutletOptionsHTML(S._patOutlet)+'</select></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Okres</label><select class="fi" onchange="S._patMonths=+this.value;renderPatternsRefresh()">';
+  [3,6,12,24].forEach(function(n){h+='<option value="'+n+'"'+(S._patMonths===n?' selected':'')+'>ostatnie '+n+' mies.</option>'});
+  h+='</select></div></div>';
+
+  if(samples.length<7){
+    h+='<div class="hs-warn">Za mało danych dziennych (znaleziono '+samples.length+' dni). Uzupełnij zakładkę „Dzienne", aby zobaczyć wzorce.</div></div>';
+    el.innerHTML=h;return;
+  }
+
+  var dow=patternByDow(samples);
+  var maxAvg=Math.max.apply(null,dow.rows.map(function(r){return r.avg||0}));
+  h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Dzień</th><th>Średnia sprzedaż</th><th>Indeks</th><th>Dni w próbie</th><th style="width:34%">Udział</th></tr></thead><tbody>';
+  dow.rows.forEach(function(r){
+    if(r.avg===null){h+='<tr><td class="lbl">'+r.name+'</td><td colspan="4" style="color:var(--tx3)">brak danych</td></tr>';return}
+    var w=maxAvg>0?(r.avg/maxAvg*100):0;
+    var cls=r.idx>=110?'td-pos':r.idx<=90?'td-neg':'';
+    h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmt(r.avg,true)+'</td><td class="'+cls+'">'+(r.idx===null?'—':r.idx.toFixed(0))+'</td><td>'+r.n+'</td>'+
+       '<td><div class="prog"><div class="prog-fill ov" style="width:'+w.toFixed(0)+'%"></div></div></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="hs-tip" style="margin-top:10px">Próba: '+dow.total+' dni, średnia dzienna '+fmt(dow.overallAvg,true)+'.</div>';
+  h+='</div>';
+
+  // ── Wpływ pogody ──
+  var wx=patternByWeather(samples);
+  h+='<div class="card" style="margin-bottom:14px">';
+  h+='<div class="fsect">🌤️ Wpływ pogody</div>';
+  if(!wx.length){
+    h+='<p class="hs-p" style="color:var(--tx3)">Brak zapisanych danych pogodowych dla tych dni. Pogoda pobiera się automatycznie, jeśli obiekt ma ustawioną lokalizację.</p>';
+  } else {
+    h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Pogoda</th><th>Średnia sprzedaż</th><th>Indeks</th><th>Dni</th></tr></thead><tbody>';
+    wx.forEach(function(r){
+      var cls=r.idx>=110?'td-pos':r.idx<=90?'td-neg':'';
+      h+='<tr><td class="lbl">'+weatherCategoryIcon(r.cat)+' '+esc(r.cat)+'</td><td>'+fmt(r.avg,true)+'</td><td class="'+cls+'">'+(r.idx===null?'—':r.idx.toFixed(0))+'</td><td>'+r.n+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div class="hs-tip" style="margin-top:10px">Indeks 100 = przeciętny dzień z zapisaną pogodą. Przy małej liczbie dni w kategorii traktuj wynik ostrożnie.</div>';
+  }
+  h+='</div>';
+
+  // ── Prognoza na najbliższe dni ──
+  h+='<div class="card">';
+  h+='<div class="fsect">🔮 Punkt odniesienia na najbliższe dni</div>';
+  var fc=patternForecast(dow,wx,7);
+  if(!fc.length){
+    h+='<p class="hs-p" style="color:var(--tx3)">Za mało danych, aby wyznaczyć punkt odniesienia.</p>';
+  } else {
+    h+='<p class="hs-p" style="margin-bottom:10px">Oczekiwana sprzedaż wyliczona ze średniej dla danego dnia tygodnia, skorygowana o historyczny wpływ pogody (jeśli prognoza jest dostępna). To punkt odniesienia do planowania, nie obietnica.</p>';
+    h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Data</th><th>Dzień</th><th>Pogoda</th><th>Oczekiwana sprzedaż</th></tr></thead><tbody>';
+    fc.forEach(function(r){
+      h+='<tr><td class="lbl">'+r.dateLabel+'</td><td>'+DOW_SHORT[r.dow]+'</td><td>'+(r.wxLabel||'<span style="color:var(--tx3)">brak prognozy</span>')+'</td><td class="td-acc">'+fmt(r.expected,true)+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+// Prognoza: baza = średnia dla dnia tygodnia; korekta = indeks pogodowy z zapisanej prognozy
+// (dd.weather dla dni w przyszłości, jeśli zostały pobrane).
+function patternForecast(dow,wx,days){
+  var wxIdx={};wx.forEach(function(r){if(r.n>=3&&r.idx!==null)wxIdx[r.cat]=r.idx/100});
+  var out=[],now=new Date();
+  for(var i=1;i<=days;i++){
+    var dt=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);
+    var row=dow.rows[dt.getDay()];
+    if(!row||row.avg===null)continue;
+    var m=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+    var dd=getDailyData(S.pid,m);
+    var w=(dd&&dd.weather&&dd.weather[String(dt.getDate())])||null;
+    var cat=w?weatherCategory(w):null;
+    var mult=(cat&&wxIdx[cat]!==undefined)?wxIdx[cat]:1;
+    out.push({dateLabel:String(dt.getDate()).padStart(2,'0')+'.'+String(dt.getMonth()+1).padStart(2,'0'),
+      dow:dt.getDay(),wxLabel:cat?(weatherCategoryIcon(cat)+' '+cat):null,
+      expected:round2(row.avg*mult)});
+  }
+  return out;
+}
+function renderPatternsRefresh(){renderPatterns(document.getElementById('at-patterns'))}
+
 function switchATab(tab,btn){
-  ['charts','heatmap','ranking','whatif','accuracy','quadrant','waterfall','weather'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
+  ['charts','heatmap','ranking','whatif','accuracy','quadrant','waterfall','weather','perguest','patterns'].forEach(function(t){var e=document.getElementById('at-'+t);if(e)e.style.display=t===tab?'block':'none'});
   document.querySelectorAll('#atabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -5011,12 +5325,12 @@ function setTheme(t){
 /* ═══════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════ */
-var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',compare:'Porównania',menuanalysis:'Analiza Menu',properties:'Obiekty i outlety',export:'Raporty i eksport',budget:'Budżet roczny',team:'Zespół'};
+var TITLES={dashboard:'Dashboard',data:'Wprowadź dane',analytics:'Analityka',compare:'Porównania',menuanalysis:'Analiza Menu',employees:'Pracownicy',properties:'Obiekty i outlety',export:'Raporty i eksport',budget:'Budżet roczny',team:'Zespół'};
 function go(v,_skipHistory){
   if(v!==S.view&&!_skipHistory)history.pushState({hmView:v},'',location.href);
   S.view=v;
   document.querySelectorAll('[data-v]').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-v')===v)});
-  document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-compare,#v-menuanalysis,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
+  document.querySelectorAll('#v-dashboard,#v-data,#v-analytics,#v-compare,#v-menuanalysis,#v-employees,#v-properties,#v-export,#v-budget,#v-team').forEach(function(el){el.style.display='none'});
   var el=document.getElementById('v-'+v);if(el)el.style.display='block';
   var pt=document.getElementById('pg-title');if(pt)pt.textContent=TITLES[v]||v;
   syncNavSections();
@@ -5090,7 +5404,7 @@ function initBackGesture(){
 // ── ZWIJANE SEKCJE SIDEBARA ──
 // Sekcja zawierająca aktualnie wybraną zakładkę jest zawsze automatycznie rozwinięta
 // (żeby było widać gdzie jesteś), pozostałe domyślnie zwinięte — oszczędza miejsce na telefonie.
-var NAV_SECTIONS={main:['dashboard','data','analytics','compare','menuanalysis'],mgmt:['properties','export','budget','team']};
+var NAV_SECTIONS={main:['dashboard','data','analytics','compare','menuanalysis','employees'],mgmt:['properties','export','budget','team']};
 
 function toggleNavSection(id){
   var group=document.getElementById('nav-group-'+id),header=document.getElementById('s-sect-'+id);
@@ -5903,7 +6217,9 @@ var TAB_DEFS={
     {id:'accuracy',icon:'🎯',label:'Trafność'},
     {id:'quadrant',icon:'🧭',label:'Kwadranty'},
     {id:'waterfall',icon:'📉',label:'Odchylenia'},
-    {id:'weather',icon:'🌤️',label:'Pogoda'}
+    {id:'weather',icon:'🌤️',label:'Pogoda'},
+    {id:'perguest',icon:'🏨',label:'Na gościa'},
+    {id:'patterns',icon:'📅',label:'Wzorce'}
   ],
   compare:[
     {id:'mom',icon:'',label:'MoM'},
@@ -5920,7 +6236,15 @@ var TAB_DEFS={
     {id:'cat',icon:'📦',label:'Grupy towarowe'},
     {id:'mix',icon:'🥧',label:'Mix sprzedażowy'},
     {id:'items',icon:'🧾',label:'Sprzedaż pozycji'},
-    {id:'pivot',icon:'🗓️',label:'Pozycje w czasie'}
+    {id:'pivot',icon:'🗓️',label:'Pozycje w czasie'},
+    {id:'price',icon:'💰',label:'Zmiany cen'},
+    {id:'life',icon:'🔄',label:'Cykl życia'}
+  ],
+  employees:[
+    {id:'ranking',icon:'🏆',label:'Ranking'},
+    {id:'card',icon:'👤',label:'Karta pracownika'},
+    {id:'matrix',icon:'🍸',label:'Kto sprzedaje co'},
+    {id:'trend',icon:'📈',label:'Trend'}
   ]
 };
 function getTabOrder(section){return lsGet(uk('taborder-'+section),null)}
@@ -6530,11 +6854,16 @@ function renderEmpView(){
 }
 function empDeleteMonth(outletId,month){
   if(!confirm('Usunąć dane sprzedaży pracowników za '+mLabel(month)+' dla tego outletu?'))return;
+  var backup=getEmployeeSales(S.pid,outletId,month),pid=S.pid;
   delEmployeeSales(S.pid,outletId,month);
   S._empAllItemNamesCache=null;
   if(S._empViewMonth===month)S._empViewMonth=null;
   renderEmpSales();
-  toast('Usunięto','in');
+  offerUndo('Usunięto sprzedaż pracowników — '+mLabel(month),function(){
+    if(backup)saveEmployeeSales(pid,outletId,month,backup);
+    S._empAllItemNamesCache=null;
+    if(S.pid===pid)renderEmpSales();
+  });
 }
 
 // ── STATYSTYKI / RANKING SPRZEDAWCÓW ──
@@ -6619,6 +6948,63 @@ function empStatsCompute(fromMonth,toMonth,outletFilter,itemFilter,groupMode){
     return r;
   });
 }
+/* ── ZAPAMIĘTANE WIDOKI (nazwane zestawy filtrów Statystyk sprzedaży pracowników) ──
+   Np. "konkurs Aperol Q3" albo "przegląd zarządu" — żeby nie ustawiać za każdym razem
+   tych samych pięciu pól. Zapisywane per obiekt hotelowy. */
+function getEmpViews(pid){return lsGet(uk('empviews-'+pid),[])}
+function saveEmpViews(pid,v){lsSet(uk('empviews-'+pid),v)}
+function empViewSave(){
+  var ctx=empStatsCurrentRows();
+  if(!ctx){toast('Ustaw najpierw filtry','er');return;}
+  var name=prompt('Nazwa widoku (np. „konkurs Aperol Q3"):','');
+  if(name===null)return;
+  name=String(name).trim();
+  if(!name){toast('Podaj nazwę','er');return;}
+  var views=getEmpViews(S.pid);
+  var payload={name:name,from:ctx.from,to:ctx.to,outlet:ctx.outletFilter,item:ctx.itemFilter,
+    group:document.getElementById('emp-stats-group').value};
+  var i=views.findIndex(function(v){return v.name===name});
+  if(i>=0){if(!confirm('Widok „'+name+'" już istnieje — nadpisać?'))return;views[i]=payload}
+  else views.push(payload);
+  if(views.length>20){toast('Limit 20 widoków — usuń któryś','er');return;}
+  saveEmpViews(S.pid,views);
+  renderEmpSales();
+  toast('Zapisano widok „'+name+'"','ok');
+}
+function empViewApply(name){
+  var v=getEmpViews(S.pid).find(function(x){return x.name===name});
+  if(!v)return;
+  var setV=function(id,val){var e=document.getElementById(id);if(e&&val!==undefined&&val!==null)e.value=val};
+  setV('emp-stats-from',v.from);setV('emp-stats-to',v.to);
+  setV('emp-stats-outlet',v.outlet);setV('emp-stats-item',v.item);setV('emp-stats-group',v.group);
+  empStatsRun();
+  toast('Widok „'+name+'"','in');
+}
+function empViewDelete(name){
+  if(!confirm('Usunąć widok „'+name+'"?'))return;
+  var views=getEmpViews(S.pid),removed=views.find(function(v){return v.name===name}),pid=S.pid;
+  saveEmpViews(S.pid,views.filter(function(v){return v.name!==name}));
+  renderEmpSales();
+  offerUndo('Usunięto widok „'+name+'"',function(){
+    var cur=getEmpViews(pid);
+    if(removed&&!cur.some(function(v){return v.name===removed.name})){cur.push(removed);saveEmpViews(pid,cur);}
+    if(S.pid===pid)renderEmpSales();
+  });
+}
+function empViewsHTML(){
+  var views=getEmpViews(S.pid);
+  var h='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px">';
+  h+='<span class="hs-p" style="margin:0">Zapamiętane widoki:</span>';
+  if(!views.length)h+='<span class="hs-p" style="margin:0;color:var(--tx3)">brak</span>';
+  views.forEach(function(v){
+    h+='<span class="view-chip"><button onclick="empViewApply(\''+escAttr(v.name)+'\')" title="Wczytaj ustawienia">'+esc(v.name)+'</button>'+
+       '<button class="view-chip-x" onclick="empViewDelete(\''+escAttr(v.name)+'\')" title="Usuń widok">✕</button></span>';
+  });
+  h+='<button class="btn btn-s btn-sm" onclick="empViewSave()">＋ Zapisz obecny</button>';
+  h+='</div>';
+  return h;
+}
+
 // ── EKSPORT STATYSTYK SPRZEDAŻY PRACOWNIKÓW (PDF / XLSX) ──
 // Buduje te same wiersze co widok na ekranie, z zachowaniem aktualnych filtrów i sortowania.
 function empStatsCurrentRows(){
@@ -6803,30 +7189,11 @@ function renderEmpSales(){
   h+='<div id="emp-view-body"></div>';
   h+='</div>';
 
-  h+='<div class="card">';
-  h+='<div class="fsect">🏆 Statystyki sprzedaży pracowników</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Ranking sprzedawców — łącznie, per outlet, albo dla konkretnej pozycji/grupy towarowej (np. do konkursu sprzedażowego). Pracownik pracujący w kilku outletach pokazuje się z osobnym wierszem na każdy z nich, chyba że wybierzesz widok „Łącznie".</p>';
-  var allKeys=getAllEmployeeSalesKeys(S.pid);
-  if(!allKeys.length){
-    h+='<p class="hs-p" style="color:var(--tx3)">Brak jeszcze żadnych zapisanych danych.</p>';
-  } else {
-    var monthsAvail=allKeys.map(function(k){return k.month}).filter(function(v,i,a){return a.indexOf(v)===i}).sort();
-    var defTo=monthsAvail[monthsAvail.length-1],defFrom=monthsAvail[0];
-    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
-    h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="emp-stats-from" value="'+defFrom+'"></div>';
-    h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="emp-stats-to" value="'+defTo+'"></div>';
-    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="emp-stats-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
-    h+='<div class="fg" style="margin-bottom:0;min-width:160px;position:relative"><label>Pozycja/kategoria (opcjonalnie)</label><input type="text" class="fi" id="emp-stats-item" placeholder="np. APEROL SPRITZ" autocomplete="off" oninput="empItemAutocomplete(this.value)" onfocus="empItemAutocomplete(this.value)" onblur="setTimeout(empItemAutocompleteClose,150)" onkeydown="empItemAutocompleteKey(event)"><div id="emp-item-suggest" class="ac-pop" style="display:none"></div></div>';
-    h+='<div class="fg" style="margin-bottom:0"><label>Widok</label><select class="fi" id="emp-stats-group"><option value="split">Rozbicie na outlety</option><option value="total">Łącznie (suma outletów)</option></select></div>';
-    h+='<button class="btn btn-p" onclick="empStatsRun()">Pokaż</button>';
-    h+='</div><div id="emp-stats-results"></div>';
-  }
-  h+='</div>';
+  h+='<div class="hs-tip">📊 Analizy i rankingi sprzedaży pracowników znajdziesz w osobnej sekcji <strong>Pracownicy</strong> w menu głównym. <button class="btn btn-s btn-sm" style="margin-left:8px" onclick="go(\'employees\')">Przejdź do Pracowników</button></div>';
 
   el.innerHTML=h;
   if(S._empParsedReports&&S._empParsedReports.length)renderEmpPreview();
   if(S._empViewMonth)renderEmpView();
-  if(allKeys.length)empStatsRun();
 }
 
 // Porównuje sprzedaż netto każdego (zmapowanego) outletu z wklejanego raportu do średniej z jego poprzednich
@@ -7085,10 +7452,14 @@ function renderMsalesSavedTable(data,month){
 }
 function msalesDeleteMonth(month){
   if(!confirm('Usunąć dane sprzedaży pozycji menu za '+mLabel(month)+'?'))return;
+  var backup=getMenuSales(S.pid,month),pid=S.pid;
   delMenuSales(S.pid,month);
   if(S._msalesViewMonth===month)S._msalesViewMonth=null;
   renderMenuSales();
-  toast('Usunięto','in');
+  offerUndo('Usunięto sprzedaż menu — '+mLabel(month),function(){
+    if(backup)saveMenuSales(pid,month,backup);
+    if(S.pid===pid)renderMenuSales();
+  });
 }
 
 /* ═══════════════════════════════════════════
@@ -7260,10 +7631,14 @@ function mengDoSave(){
 }
 function mengDeleteMonth(outletId,month){
   if(!confirm('Usunąć dane Menu Engineering za '+mLabel(month)+' dla tego outletu?'))return;
+  var backup=getMenuEng(S.pid,outletId,month),pid=S.pid;
   delMenuEng(S.pid,outletId,month);
   if(S._mengViewMonth===month)S._mengViewMonth=null;
   renderMenuEng();
-  toast('Usunięto','in');
+  offerUndo('Usunięto Menu Engineering — '+mLabel(month),function(){
+    if(backup)saveMenuEng(pid,outletId,month,backup);
+    if(S.pid===pid)renderMenuEng();
+  });
 }
 
 function mengRenderView(){
@@ -8287,6 +8662,298 @@ function renderCompare(){
    RENDER: ANALIZA MENU (dawniej pod-zakładka "Sprzedaż menu" w Porównaniach —
    przeniesiona do własnej sekcji głównej, bo urosła do 8 pełnych raportów)
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   SEKCJA PRACOWNICY — analizy zespołu sprzedażowego.
+   Import raportów pozostaje we "Wprowadź dane → Sprzedaż pracownika"; tutaj są same analizy,
+   analogicznie jak Sprzedaż menu (import) vs Analiza Menu (raporty).
+═══════════════════════════════════════════ */
+function empAllNames(pid,fromMonth,toMonth){
+  var months=msalesMonthsInRange(fromMonth,toMonth),set={};
+  getAllEmployeeSalesKeys(pid).filter(function(k){return months.indexOf(k.month)>=0}).forEach(function(k){
+    var d=getEmployeeSales(pid,k.outletId,k.month);
+    if(d&&d.employees)d.employees.forEach(function(e){set[e.name]=true});
+  });
+  return Object.keys(set).sort(function(a,b){return a.localeCompare(b,'pl')});
+}
+function empMonthsAvailable(pid){
+  var m={};getAllEmployeeSalesKeys(pid).forEach(function(k){m[k.month]=true});
+  return Object.keys(m).sort();
+}
+function renderEmployees(){
+  var el=document.getElementById('v-employees');if(!el)return;
+  if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('👥','Brak obiektu lub outletów','Dodaj obiekt i outlety, aby analizować sprzedaż pracowników.','',''); return;}
+  var avail=empMonthsAvailable(S.pid);
+  if(!avail.length){
+    el.innerHTML=emptyStateHTML('👥','Brak danych o pracownikach','Wgraj raport „Sprzedaż użytkowników" z HosPOS, aby zobaczyć rankingi i analizy zespołu.','📥 Przejdź do importu',"goEmpSales()");
+    return;
+  }
+  var defs=applyTabOrder('employees',TAB_DEFS.employees);
+  if(!S._empTab||!defs.some(function(d){return d.id===S._empTab}))S._empTab=defs[0].id;
+  var t=S._empTab;
+  var defFrom=avail[0],defTo=avail[avail.length-1];
+
+  var h=buildTabsHTML('employees',t,'switchEmpTab','emptabs','emptab');
+  h+='<div style="margin-top:14px">';
+
+  // ── RANKING ──
+  h+='<div id="emp-ranking" style="display:'+(t==='ranking'?'block':'none')+'">';
+  h+='<div class="card"><div class="fsect">🏆 Ranking sprzedawców</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Łącznie, per outlet, albo dla konkretnej pozycji/grupy towarowej (np. do konkursu sprzedażowego). Pracownik pracujący w kilku outletach ma osobny wiersz na każdy z nich, chyba że wybierzesz widok „Łącznie".</p>';
+  h+=empViewsHTML();
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+  h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="emp-stats-from" value="'+defFrom+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="emp-stats-to" value="'+defTo+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="emp-stats-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+  h+='<div class="fg" style="margin-bottom:0;min-width:160px;position:relative"><label>Pozycja/kategoria (opcjonalnie)</label><input type="text" class="fi" id="emp-stats-item" placeholder="np. APEROL SPRITZ" autocomplete="off" oninput="empItemAutocomplete(this.value)" onfocus="empItemAutocomplete(this.value)" onblur="setTimeout(empItemAutocompleteClose,150)" onkeydown="empItemAutocompleteKey(event)"><div id="emp-item-suggest" class="ac-pop" style="display:none"></div></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Widok</label><select class="fi" id="emp-stats-group"><option value="split">Rozbicie na outlety</option><option value="total">Łącznie (suma outletów)</option></select></div>';
+  h+='<button class="btn btn-p" onclick="empStatsRun()">Pokaż</button>';
+  h+='</div><div id="emp-stats-results"></div></div></div>';
+
+  // ── KARTA PRACOWNIKA ──
+  h+='<div id="emp-card" style="display:'+(t==='card'?'block':'none')+'">';
+  h+='<div class="card"><div class="fsect">👤 Karta pracownika</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Pełny obraz jednej osoby: gdzie pracuje, jak wypada na tle zespołu i co sprzedaje najlepiej.</p>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+  h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="empc-from" value="'+defFrom+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="empc-to" value="'+defTo+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0;min-width:180px"><label>Pracownik</label><select class="fi" id="empc-name">'+empAllNames(S.pid,defFrom,defTo).map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('')+'</select></div>';
+  h+='<button class="btn btn-p" onclick="empCardRun()">Pokaż</button>';
+  h+='</div><div id="empc-results"></div></div></div>';
+
+  // ── KTO SPRZEDAJE CO ──
+  h+='<div id="emp-matrix" style="display:'+(t==='matrix'?'block':'none')+'">';
+  h+='<div class="card"><div class="fsect">🍸 Kto sprzedaje co</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Macierz pracownik × grupa towarowa — pokazuje specjalizacje i luki. Kolor oznacza udział danej grupy w sprzedaży tego pracownika.</p>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+  h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><input type="month" class="fi" id="empm-from" value="'+defFrom+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><input type="month" class="fi" id="empm-to" value="'+defTo+'"></div>';
+  h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="empm-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+  h+='<div class="fg" style="margin-bottom:0;max-width:100px"><label>Top grup</label><input type="number" class="fi" id="empm-n" value="8" min="3" max="20"></div>';
+  h+='<button class="btn btn-p" onclick="empMatrixRun()">Pokaż</button>';
+  h+='</div><div id="empm-results"></div></div></div>';
+
+  // ── TREND ──
+  h+='<div id="emp-trend" style="display:'+(t==='trend'?'block':'none')+'">';
+  h+='<div class="card"><div class="fsect">📈 Trend pracowników</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Porównanie sprzedaży wybranych osób w czasie — widać, kto rośnie, a kto zwalnia.</p>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+  h+='<div class="fg" style="margin-bottom:0"><label>Metryka</label><select class="fi" id="empt-metric"><option value="netto">Sprzedaż netto</option><option value="qty">Ilość</option></select></div>';
+  h+='<div class="fg" style="margin-bottom:0;max-width:100px"><label>Top N</label><input type="number" class="fi" id="empt-n" value="6" min="2" max="12"></div>';
+  h+='<button class="btn btn-p" onclick="empTrendRun()">Pokaż</button>';
+  h+='</div><canvas id="emp-trend-chart" height="110"></canvas><div id="empt-results"></div></div></div>';
+
+  h+='</div>';
+  el.innerHTML=h;
+  if(t==='ranking')empStatsRun();
+  else if(t==='card')empCardRun();
+  else if(t==='matrix')empMatrixRun();
+  else if(t==='trend')empTrendRun();
+}
+function switchEmpTab(tab,btn){
+  S._empTab=tab;
+  ['ranking','card','matrix','trend'].forEach(function(x){var e=document.getElementById('emp-'+x);if(e)e.style.display=x===tab?'block':'none'});
+  document.querySelectorAll('#emptabs .tab').forEach(function(b){b.classList.remove('on')});
+  if(btn)btn.classList.add('on');
+  scrollActiveTabIntoView(btn);
+  if(tab==='ranking')empStatsRun();
+  else if(tab==='card')empCardRun();
+  else if(tab==='matrix')empMatrixRun();
+  else if(tab==='trend')empTrendRun();
+  haptic(6);
+}
+
+// Zbiera sprzedaż jednej osoby: per outlet, per grupa towarowa, per miesiąc, top pozycje.
+function empCardCompute(pid,name,fromMonth,toMonth){
+  var months=msalesMonthsInRange(fromMonth,toMonth);
+  var keys=getAllEmployeeSalesKeys(pid).filter(function(k){return months.indexOf(k.month)>=0});
+  var byOutlet={},byCat={},byMonth={},items={},tot={qty:0,netto:0,mains:0,extras:0};
+  var teamCat={},teamTot=0;
+  keys.forEach(function(k){
+    var d=getEmployeeSales(pid,k.outletId,k.month);
+    if(!d||!d.employees)return;
+    var oName=d.outletName||k.outletId;
+    d.employees.forEach(function(e){
+      var mine=e.name===name;
+      e.items.forEach(function(it){
+        var c=it.category||'—';
+        if(!teamCat[c])teamCat[c]=0;
+        teamCat[c]+=it.netto;teamTot+=it.netto;
+        if(!mine)return;
+        if(!byOutlet[oName])byOutlet[oName]={qty:0,netto:0};
+        byOutlet[oName].qty+=it.qty;byOutlet[oName].netto+=it.netto;
+        if(!byCat[c])byCat[c]={qty:0,netto:0};
+        byCat[c].qty+=it.qty;byCat[c].netto+=it.netto;
+        if(!byMonth[k.month])byMonth[k.month]={qty:0,netto:0};
+        byMonth[k.month].qty+=it.qty;byMonth[k.month].netto+=it.netto;
+        if(!items[it.name])items[it.name]={qty:0,netto:0};
+        items[it.name].qty+=it.qty;items[it.name].netto+=it.netto;
+        tot.qty+=it.qty;tot.netto+=it.netto;
+        if(EMP_ATTACH_MAIN.test(c))tot.mains+=it.qty;
+        else if(EMP_ATTACH_EXTRA.test(c))tot.extras+=it.qty;
+      });
+    });
+  });
+  return {byOutlet:byOutlet,byCat:byCat,byMonth:byMonth,items:items,tot:tot,teamCat:teamCat,teamTot:teamTot};
+}
+function empCardRun(){
+  var res=document.getElementById('empc-results');if(!res)return;
+  var nameEl=document.getElementById('empc-name');
+  if(!nameEl||!nameEl.value){res.innerHTML='<div class="empty"><p>Brak pracowników w wybranym okresie.</p></div>';return;}
+  var name=nameEl.value;
+  var from=document.getElementById('empc-from').value,to=document.getElementById('empc-to').value;
+  if(!from||!to){res.innerHTML='<div class="hs-warn">Wybierz zakres miesięcy.</div>';return;}
+  if(from>to){var t=from;from=to;to=t;}
+  var c=empCardCompute(S.pid,name,from,to);
+  if(!c.tot.netto){res.innerHTML='<div class="empty"><p>Brak sprzedaży tej osoby w wybranym okresie.</p></div>';return;}
+
+  var h='<div class="kpi-grid" style="margin-bottom:14px">';
+  h+='<div class="kpi"><div class="kpi-lbl">Sprzedaż netto</div><div class="kpi-val">'+fmt(round2(c.tot.netto),true)+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Sprzedanych sztuk</div><div class="kpi-val">'+fmtN(c.tot.qty)+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Dosprzedaż</div><div class="kpi-val">'+(c.tot.mains>0?round2(c.tot.extras/c.tot.mains).toFixed(2):'—')+'</div><div class="kpi-sub">'+c.tot.extras+' dod. / '+c.tot.mains+' dań</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Punkty sprzedaży</div><div class="kpi-val">'+Object.keys(c.byOutlet).length+'</div></div>';
+  h+='</div>';
+
+  var oNames=Object.keys(c.byOutlet).sort(function(a,b){return c.byOutlet[b].netto-c.byOutlet[a].netto});
+  h+='<div class="fsect">Gdzie pracuje</div><div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Outlet</th><th>Sztuk</th><th>Netto</th><th>Udział</th></tr></thead><tbody>';
+  oNames.forEach(function(o){
+    var pct=c.tot.netto>0?(c.byOutlet[o].netto/c.tot.netto*100):0;
+    h+='<tr><td class="lbl">'+esc(o)+'</td><td>'+fmtN(c.byOutlet[o].qty)+'</td><td>'+fmt(round2(c.byOutlet[o].netto),true)+'</td><td>'+pct.toFixed(1)+'%</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // Mocne i słabe strony vs zespół
+  var cats=Object.keys(c.byCat).sort(function(a,b){return c.byCat[b].netto-c.byCat[a].netto});
+  h+='<div class="fsect" style="margin-top:14px">Na tle zespołu</div>';
+  h+='<p class="hs-p" style="margin-bottom:8px">Udział grupy w sprzedaży tej osoby w porównaniu z udziałem tej grupy u całego zespołu. Powyżej 100 = specjalizacja, poniżej = obszar do rozwoju.</p>';
+  h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Grupa towarowa</th><th>Netto</th><th>Udział u niego</th><th>Udział zespołu</th><th>Indeks</th></tr></thead><tbody>';
+  cats.slice(0,12).forEach(function(cat){
+    var mine=c.tot.netto>0?c.byCat[cat].netto/c.tot.netto*100:0;
+    var team=c.teamTot>0?(c.teamCat[cat]||0)/c.teamTot*100:0;
+    var idx=team>0?mine/team*100:null;
+    var cls=idx===null?'':(idx>=120?'td-pos':idx<=80?'td-neg':'');
+    h+='<tr><td class="lbl">'+esc(cat)+'</td><td>'+fmt(round2(c.byCat[cat].netto),true)+'</td><td>'+mine.toFixed(1)+'%</td><td>'+team.toFixed(1)+'%</td><td class="'+cls+'">'+(idx===null?'—':idx.toFixed(0))+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // Top pozycje
+  var top=Object.keys(c.items).map(function(n){return {name:n,qty:c.items[n].qty,netto:round2(c.items[n].netto)}})
+    .sort(function(a,b){return b.netto-a.netto}).slice(0,15);
+  h+='<div class="fsect" style="margin-top:14px">Najlepiej sprzedawane pozycje</div>';
+  h+=collapsibleWrapOpen('empc-top-tblwrap')+'<table class="msales-table"><thead><tr><th>#</th><th>Pozycja</th><th>Sztuk</th><th>Netto</th></tr></thead><tbody>';
+  top.forEach(function(r,i){h+='<tr><td>'+(i+1)+'</td><td class="lbl">'+esc(r.name)+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td></tr>'});
+  h+='</tbody></table></div>'+collapsibleToggleBtn('empc-top-tblwrap');
+
+  // Trend miesięczny
+  var ms=Object.keys(c.byMonth).sort();
+  if(ms.length>1){
+    h+='<div class="fsect" style="margin-top:14px">Miesiąc po miesiącu</div><div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Miesiąc</th><th>Sztuk</th><th>Netto</th><th>Zmiana</th></tr></thead><tbody>';
+    ms.forEach(function(m,i){
+      var chg='—';
+      if(i>0){
+        var prev=c.byMonth[ms[i-1]].netto;
+        if(prev>0){var d=(c.byMonth[m].netto-prev)/prev*100;chg='<span class="'+(d>=0?'td-pos':'td-neg')+'">'+(d>=0?'+':'')+d.toFixed(1)+'%</span>'}
+      }
+      h+='<tr><td class="lbl">'+mLabel(m)+'</td><td>'+fmtN(c.byMonth[m].qty)+'</td><td>'+fmt(round2(c.byMonth[m].netto),true)+'</td><td>'+chg+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  res.innerHTML=h;
+  haptic(8);
+}
+
+// Macierz pracownik × grupa towarowa (udział grupy w sprzedaży pracownika).
+function empMatrixRun(){
+  var res=document.getElementById('empm-results');if(!res)return;
+  var from=document.getElementById('empm-from').value,to=document.getElementById('empm-to').value;
+  var outletId=document.getElementById('empm-outlet').value;
+  var topN=parseInt(document.getElementById('empm-n').value)||8;
+  if(!from||!to){res.innerHTML='<div class="hs-warn">Wybierz zakres miesięcy.</div>';return;}
+  if(from>to){var t=from;from=to;to=t;}
+  var months=msalesMonthsInRange(from,to);
+  var keys=getAllEmployeeSalesKeys(S.pid).filter(function(k){return months.indexOf(k.month)>=0&&(outletId==='__all__'||k.outletId===outletId)});
+  var emp={},catTot={};
+  keys.forEach(function(k){
+    var d=getEmployeeSales(S.pid,k.outletId,k.month);
+    if(!d||!d.employees)return;
+    d.employees.forEach(function(e){
+      if(!emp[e.name])emp[e.name]={total:0,cats:{}};
+      e.items.forEach(function(it){
+        var c=it.category||'—';
+        emp[e.name].cats[c]=(emp[e.name].cats[c]||0)+it.netto;
+        emp[e.name].total+=it.netto;
+        catTot[c]=(catTot[c]||0)+it.netto;
+      });
+    });
+  });
+  var names=Object.keys(emp).filter(function(n){return emp[n].total>0}).sort(function(a,b){return emp[b].total-emp[a].total});
+  if(!names.length){res.innerHTML='<div class="empty"><p>Brak danych dla wybranych filtrów.</p></div>';return;}
+  var cats=Object.keys(catTot).sort(function(a,b){return catTot[b]-catTot[a]}).slice(0,topN);
+  var h='<div class="hs-p" style="margin-bottom:8px">'+names.length+' pracowników × '+cats.length+' najważniejszych grup towarowych. Wartość = udział grupy w sprzedaży danej osoby.</div>';
+  h+=collapsibleWrapOpen('empm-tblwrap')+'<table class="msales-table"><thead><tr><th>Pracownik</th>';
+  cats.forEach(function(c){h+='<th style="font-size:.62rem">'+esc(c)+'</th>'});
+  h+='<th>Netto</th></tr></thead><tbody>';
+  names.forEach(function(n){
+    h+='<tr><td class="lbl">'+esc(n)+'</td>';
+    cats.forEach(function(c){
+      var v=emp[n].cats[c]||0;
+      var pct=emp[n].total>0?v/emp[n].total*100:0;
+      var alpha=Math.min(0.55,pct/45);
+      h+='<td style="text-align:center;background:rgba(var(--acc-rgb),'+alpha.toFixed(2)+')" title="'+esc(c)+': '+fmt(round2(v),true)+'">'+(pct>=0.5?pct.toFixed(0)+'%':'·')+'</td>';
+    });
+    h+='<td>'+fmt(round2(emp[n].total),true)+'</td></tr>';
+  });
+  h+='</tbody></table></div>'+collapsibleToggleBtn('empm-tblwrap');
+  res.innerHTML=h;
+  haptic(8);
+}
+
+// Trend: wykres liniowy sprzedaży top N pracowników w czasie.
+function empTrendRun(){
+  var res=document.getElementById('empt-results');if(!res)return;
+  var metric=document.getElementById('empt-metric').value;
+  var topN=parseInt(document.getElementById('empt-n').value)||6;
+  var months=empMonthsAvailable(S.pid);
+  if(months.length<2){res.innerHTML='<div class="hs-warn">Potrzebne dane z co najmniej dwóch miesięcy.</div>';dChart('emp-trend-chart');return;}
+  var byEmp={};
+  months.forEach(function(m){
+    getAllEmployeeSalesKeys(S.pid).filter(function(k){return k.month===m}).forEach(function(k){
+      var d=getEmployeeSales(S.pid,k.outletId,m);
+      if(!d||!d.employees)return;
+      d.employees.forEach(function(e){
+        if(!byEmp[e.name])byEmp[e.name]={};
+        if(!byEmp[e.name][m])byEmp[e.name][m]=0;
+        e.items.forEach(function(it){byEmp[e.name][m]+=(metric==='qty'?it.qty:it.netto)});
+      });
+    });
+  });
+  var names=Object.keys(byEmp).map(function(n){
+    var tot=0;months.forEach(function(m){tot+=byEmp[n][m]||0});
+    return {name:n,total:tot};
+  }).sort(function(a,b){return b.total-a.total}).slice(0,topN).map(function(x){return x.name});
+  if(!names.length){res.innerHTML='<div class="empty"><p>Brak danych.</p></div>';return;}
+  var palette=['#4f8cff','#22c55e','#f59e0b','#ef4444','#a855f7','#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6','#8b5cf6','#eab308'];
+  dChart('emp-trend-chart');
+  S.charts['emp-trend-chart']=new Chart(document.getElementById('emp-trend-chart'),{
+    type:'line',
+    data:{labels:months.map(mLabel),datasets:names.map(function(n,i){
+      return {label:n,data:months.map(function(m){return metric==='qty'?(byEmp[n][m]||0):conv(byEmp[n][m]||0)}),
+        borderColor:palette[i%palette.length],backgroundColor:palette[i%palette.length]+'22',tension:.3,pointRadius:3,fill:false};
+    })},
+    options:chOpts(function(v){return metric==='qty'?fmtN(v):fmtR(v)})
+  });
+  var h='<div class="tbl-wrap" style="margin-top:12px"><table class="msales-table"><thead><tr><th>Pracownik</th>';
+  months.forEach(function(m){h+='<th>'+mLabel(m)+'</th>'});
+  h+='</tr></thead><tbody>';
+  names.forEach(function(n){
+    h+='<tr><td class="lbl">'+esc(n)+'</td>';
+    months.forEach(function(m){var v=byEmp[n][m]||0;h+='<td>'+(v?(metric==='qty'?fmtN(v):fmt(round2(v),true)):'—')+'</td>'});
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  res.innerHTML=h;
+  haptic(8);
+}
+
 function renderMenuAnalysis(){
   var el=document.getElementById('v-menuanalysis');if(!el)return;
   if(!S.pid){el.innerHTML=emptyStateHTML('🍽️','Wybierz obiekt hotelowy','Analiza sprzedaży pozycji menu pojawi się gdy wybierzesz obiekt w sidebarze.','+ Przejdź do obiektów',"go('properties')");return;}
@@ -8391,6 +9058,28 @@ function renderMenuAnalysis(){
     h+='<div class="fg" style="margin-bottom:0;max-width:90px"><label>Top N</label><input type="number" class="fi" id="ctm8-n" value="15" min="3" max="40"></div>';
     h+='<button class="btn btn-p" onclick="ctmRunPivot()">Pokaż</button>';
     h+='</div><div id="ctm-pivot-results"></div></div>';
+
+    // #9 — Zmiany cen i reakcja sprzedaży
+    h+='<div id="ctm-price" style="display:'+(ctmDefault==='price'?'block':'none')+'">';
+    h+='<p class="hs-p" style="margin-bottom:10px">Wykrywa pozycje, którym zmieniła się średnia cena jednostkowa (netto ÷ ilość) i pokazuje, co potem stało się ze sprzedażą. Pozwala ocenić, jak goście reagują na podwyżki — przydatne przed kolejną zmianą karty.</p>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm9-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc bazowy</label><input type="month" class="fi" id="ctm9-a" value="'+defM1+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc porównania</label><input type="month" class="fi" id="ctm9-b" value="'+defM2+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0;max-width:110px"><label>Próg zmiany %</label><input type="number" class="fi" id="ctm9-thr" value="3" min="1" max="50" step="0.5"></div>';
+    h+='<div class="fg" style="margin-bottom:0;max-width:110px"><label>Min. ilość</label><input type="number" class="fi" id="ctm9-minq" value="5" min="1"></div>';
+    h+='<button class="btn btn-p" onclick="ctmRunPrice()">Pokaż</button>';
+    h+='</div><div id="ctm-price-results"></div></div>';
+
+    // #10 — Cykl życia pozycji i kanibalizacja
+    h+='<div id="ctm-life" style="display:'+(ctmDefault==='life'?'block':'none')+'">';
+    h+='<p class="hs-p" style="margin-bottom:10px">Pokazuje nowości, pozycje wygasające i te, które przestały się sprzedawać — a przy nowościach sprawdza, co w tej samej grupie towarowej spadło najmocniej w tym samym czasie (możliwa kanibalizacja).</p>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="ctm10-outlet">'+msalesOutletOptionsHTML('__all__')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc bazowy</label><input type="month" class="fi" id="ctm10-a" value="'+defM1+'"></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc porównania</label><input type="month" class="fi" id="ctm10-b" value="'+defM2+'"></div>';
+    h+='<button class="btn btn-p" onclick="ctmRunLife()">Pokaż</button>';
+    h+='</div><div id="ctm-life-results"></div></div>';
   }
   h+='</div>';
 
@@ -9243,6 +9932,156 @@ function pdfCtmItems(){
 
 // #8 — Pozycje w czasie: pivot tabela (wiersze = top pozycje, kolumny = miesiące), z podświetleniem
 // intensywności koloru wg wartości w danym wierszu — jedno miejsce na sprawdzenie sezonowości top pozycji.
+// Mapa: nazwa pozycji -> {kategoria, ilość, netto} dla miesiąca. Potrzebna do wykrywania
+// kanibalizacji (porównujemy spadki WEWNĄTRZ tej samej grupy towarowej).
+function msalesItemCatMap(pid,month,outletId){
+  var d=getMenuSales(pid,month),map={};
+  if(!d||!d.outlets)return map;
+  d.outlets.forEach(function(o){
+    if(outletId&&outletId!=='__all__'&&o.outletId!==outletId)return;
+    o.categories.forEach(function(c){
+      c.items.forEach(function(it){
+        var nm=msalesCanonicalName(pid,it.name);
+        if(!map[nm])map[nm]={category:c.name,qty:0,netto:0};
+        map[nm].qty+=it.qty;map[nm].netto+=it.netto;
+      });
+    });
+  });
+  return map;
+}
+
+/* ── #9: ZMIANY CEN I REAKCJA SPRZEDAŻY ──
+   Cena jednostkowa liczona jako netto ÷ ilość (średnia ważona z danego miesiąca). Uwaga:
+   przy pozycjach sprzedawanych w kilku wariantach (promocje, różne porcje) średnia może się
+   wahać bez faktycznej zmiany cennika — stąd próg zmiany i minimalna ilość, żeby odfiltrować szum. */
+function ctmRunPrice(){
+  var res=document.getElementById('ctm-price-results');if(!res)return;
+  var outletId=document.getElementById('ctm9-outlet').value;
+  var mA=document.getElementById('ctm9-a').value,mB=document.getElementById('ctm9-b').value;
+  var thr=parseFloat(document.getElementById('ctm9-thr').value)||3;
+  var minQ=parseFloat(document.getElementById('ctm9-minq').value)||5;
+  if(!mA||!mB){res.innerHTML='<div class="hs-warn">Wybierz oba miesiące.</div>';return;}
+  if(mA===mB){res.innerHTML='<div class="hs-warn">Wybierz dwa różne miesiące.</div>';return;}
+  if(mA>mB){var t=mA;mA=mB;mB=t;}
+  var a=msalesItemMap(S.pid,mA,outletId),b=msalesItemMap(S.pid,mB,outletId);
+  if(!Object.keys(a).length||!Object.keys(b).length){res.innerHTML='<div class="empty"><p>Brak danych Sprzedaży menu dla jednego z wybranych miesięcy.</p></div>';return;}
+  var rows=[];
+  Object.keys(b).forEach(function(n){
+    if(!a[n])return;
+    if(a[n].qty<minQ||b[n].qty<minQ)return;
+    var pA=a[n].netto/a[n].qty,pB=b[n].netto/b[n].qty;
+    if(!(pA>0)||!(pB>0))return;
+    var dPrice=(pB-pA)/pA*100;
+    if(Math.abs(dPrice)<thr)return;
+    var dQty=a[n].qty>0?(b[n].qty-a[n].qty)/a[n].qty*100:null;
+    // Elastyczność: o ile % zmienia się ilość na każdy 1% zmiany ceny. Ujemna = normalna reakcja.
+    var elast=(dPrice!==0&&dQty!==null)?dQty/dPrice:null;
+    rows.push({name:n,priceA:round2(pA),priceB:round2(pB),dPrice:round2(dPrice),
+      qtyA:a[n].qty,qtyB:b[n].qty,dQty:dQty===null?null:round2(dQty),
+      nettoA:a[n].netto,nettoB:b[n].netto,dNetto:round2(b[n].netto-a[n].netto),elast:elast===null?null:round2(elast)});
+  });
+  if(!rows.length){res.innerHTML='<div class="empty"><p>Nie wykryto zmian ceny powyżej '+thr+'% (przy min. '+minQ+' szt. w obu miesiącach).</p></div>';return;}
+  rows=ctmApplySort(rows,'ctmprice');
+  var ups=rows.filter(function(r){return r.dPrice>0}).length;
+  var h='<div class="hs-p" style="margin-bottom:8px">'+rows.length+' pozycji ze zmianą ceny ≥'+thr+'% między '+mLabel(mA)+' a '+mLabel(mB)+' ('+ups+' podwyżek, '+(rows.length-ups)+' obniżek).</div>';
+  h+=collapsibleWrapOpen('ctm-price-tblwrap')+'<table class="msales-table"><thead><tr>';
+  h+=ctmSortHeader('Pozycja','name','ctmprice','ctmRunPrice');
+  h+=ctmSortHeader('Cena '+mLabel(mA),'priceA','ctmprice','ctmRunPrice');
+  h+=ctmSortHeader('Cena '+mLabel(mB),'priceB','ctmprice','ctmRunPrice');
+  h+=ctmSortHeader('Zmiana ceny','dPrice','ctmprice','ctmRunPrice');
+  h+=ctmSortHeader('Zmiana ilości','dQty','ctmprice','ctmRunPrice');
+  h+=ctmSortHeader('Zmiana wartości','dNetto','ctmprice','ctmRunPrice');
+  h+=ctmSortHeader('Reakcja','elast','ctmprice','ctmRunPrice');
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r){
+    var reac='—',tip='';
+    if(r.elast!==null){
+      if(r.elast<=-1){reac='wrażliwa';tip='Ilość spadła szybciej niż wzrosła cena — goście reagują na cenę';}
+      else if(r.elast<0){reac='umiarkowana';tip='Ilość spadła wolniej niż zmiana ceny';}
+      else {reac='odporna';tip='Ilość nie spadła mimo zmiany ceny';}
+    }
+    h+='<tr><td class="lbl">'+esc(r.name)+'</td>'+
+      '<td>'+fmt(r.priceA,true)+'</td><td>'+fmt(r.priceB,true)+'</td>'+
+      '<td class="'+(r.dPrice>=0?'td-pos':'td-neg')+'">'+(r.dPrice>=0?'+':'')+r.dPrice.toFixed(1)+'%</td>'+
+      '<td class="'+(r.dQty>=0?'td-pos':'td-neg')+'">'+(r.dQty>=0?'+':'')+r.dQty.toFixed(1)+'%</td>'+
+      '<td class="'+(r.dNetto>=0?'td-pos':'td-neg')+'">'+(r.dNetto>=0?'+':'')+fmt(r.dNetto,true)+'</td>'+
+      '<td'+(tip?' title="'+esc(tip)+'"':'')+'>'+reac+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+=collapsibleToggleBtn('ctm-price-tblwrap');
+  h+='<div class="hs-tip" style="margin-top:10px">„Reakcja" opisuje, jak ilość odpowiedziała na zmianę ceny. <strong>Odporna</strong> = można rozważyć dalszą podwyżkę. <strong>Wrażliwa</strong> = podwyżka kosztowała wolumen. Pamiętaj, że na sprzedaż wpływa też sezon i pogoda — to wskazówka, nie dowód.</div>';
+  res.innerHTML=h;
+  haptic(8);
+}
+
+/* ── #10: CYKL ŻYCIA POZYCJI I KANIBALIZACJA ── */
+function ctmRunLife(){
+  var res=document.getElementById('ctm-life-results');if(!res)return;
+  var outletId=document.getElementById('ctm10-outlet').value;
+  var mA=document.getElementById('ctm10-a').value,mB=document.getElementById('ctm10-b').value;
+  if(!mA||!mB){res.innerHTML='<div class="hs-warn">Wybierz oba miesiące.</div>';return;}
+  if(mA===mB){res.innerHTML='<div class="hs-warn">Wybierz dwa różne miesiące.</div>';return;}
+  if(mA>mB){var t=mA;mA=mB;mB=t;}
+  var A=msalesItemCatMap(S.pid,mA,outletId),B=msalesItemCatMap(S.pid,mB,outletId);
+  if(!Object.keys(A).length||!Object.keys(B).length){res.innerHTML='<div class="empty"><p>Brak danych Sprzedaży menu dla jednego z wybranych miesięcy.</p></div>';return;}
+
+  var newItems=[],goneItems=[],decl=[];
+  Object.keys(B).forEach(function(n){if(!A[n])newItems.push({name:n,category:B[n].category,qty:B[n].qty,netto:round2(B[n].netto)})});
+  Object.keys(A).forEach(function(n){
+    if(!B[n]){goneItems.push({name:n,category:A[n].category,qty:A[n].qty,netto:round2(A[n].netto)});return;}
+    var d=A[n].qty>0?(B[n].qty-A[n].qty)/A[n].qty*100:null;
+    if(d!==null&&d<=-30&&A[n].qty>=5)decl.push({name:n,category:A[n].category,qtyA:A[n].qty,qtyB:B[n].qty,dQty:round2(d),dNetto:round2(B[n].netto-A[n].netto)});
+  });
+  newItems.sort(function(x,y){return y.netto-x.netto});
+  goneItems.sort(function(x,y){return y.netto-x.netto});
+  decl.sort(function(x,y){return x.dQty-y.dQty});
+
+  var h='<div class="kpi-grid" style="margin-bottom:14px">';
+  h+='<div class="kpi"><div class="kpi-lbl">Nowości</div><div class="kpi-val">'+newItems.length+'</div><div class="kpi-sub">nie było w '+mLabel(mA)+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Zniknęły</div><div class="kpi-val">'+goneItems.length+'</div><div class="kpi-sub">brak sprzedaży w '+mLabel(mB)+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Mocno spadły</div><div class="kpi-val">'+decl.length+'</div><div class="kpi-sub">−30% i więcej</div></div>';
+  h+='</div>';
+
+  function tbl(title,rows,cols,rowFn,empty){
+    var x='<div class="fsect" style="margin-top:6px">'+title+'</div>';
+    if(!rows.length)return x+'<p class="hs-p" style="color:var(--tx3)">'+empty+'</p>';
+    x+='<div class="tbl-wrap"><table class="msales-table"><thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>';
+    rows.slice(0,20).forEach(function(r){x+='<tr>'+rowFn(r)+'</tr>'});
+    x+='</tbody></table></div>';
+    if(rows.length>20)x+='<div class="hs-p" style="color:var(--tx3);margin-top:4px">Pokazano 20 z '+rows.length+'.</div>';
+    return x;
+  }
+
+  h+=tbl('🆕 Nowości w '+mLabel(mB),newItems,['Pozycja','Grupa','Ilość','Wartość netto'],
+    function(r){return '<td class="lbl">'+esc(r.name)+'</td><td style="font-size:.68rem;color:var(--tx3)">'+esc(r.category)+'</td><td>'+fmtN(r.qty)+'</td><td class="td-acc">'+fmt(r.netto,true)+'</td>'},
+    'Brak nowych pozycji.');
+
+  // Kanibalizacja: dla każdej grupy z nowością pokaż największe spadki w TEJ SAMEJ grupie.
+  var newCats={};newItems.forEach(function(r){newCats[r.category]=true});
+  var cann=decl.filter(function(r){return newCats[r.category]});
+  if(cann.length){
+    h+='<div class="fsect" style="margin-top:14px">⚠️ Możliwa kanibalizacja</div>';
+    h+='<p class="hs-p" style="margin-bottom:8px">Pozycje, które mocno spadły w tych samych grupach towarowych, w których pojawiły się nowości. Nie jest to dowód — spadek może mieć inną przyczynę — ale to pierwsze miejsce, gdzie warto spojrzeć.</p>';
+    h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Pozycja, która spadła</th><th>Grupa</th><th>Nowość w tej grupie</th><th>Ilość '+mLabel(mA)+'</th><th>Ilość '+mLabel(mB)+'</th><th>Zmiana</th></tr></thead><tbody>';
+    cann.slice(0,20).forEach(function(r){
+      var rivals=newItems.filter(function(x){return x.category===r.category}).map(function(x){return x.name});
+      h+='<tr><td class="lbl">'+esc(r.name)+'</td><td style="font-size:.68rem;color:var(--tx3)">'+esc(r.category)+'</td><td style="font-size:.72rem">'+esc(rivals.slice(0,2).join(', ')+(rivals.length>2?' +'+(rivals.length-2):''))+'</td><td>'+fmtN(r.qtyA)+'</td><td>'+fmtN(r.qtyB)+'</td><td class="td-neg">'+r.dQty.toFixed(0)+'%</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+
+  h+=tbl('📉 Mocne spadki (−30% i więcej)',decl,['Pozycja','Grupa','Ilość '+mLabel(mA),'Ilość '+mLabel(mB),'Zmiana','Wartość'],
+    function(r){return '<td class="lbl">'+esc(r.name)+'</td><td style="font-size:.68rem;color:var(--tx3)">'+esc(r.category)+'</td><td>'+fmtN(r.qtyA)+'</td><td>'+fmtN(r.qtyB)+'</td><td class="td-neg">'+r.dQty.toFixed(0)+'%</td><td class="td-neg">'+fmt(r.dNetto,true)+'</td>'},
+    'Brak pozycji ze spadkiem ≥30%.');
+
+  h+=tbl('🚫 Zniknęły z sprzedaży',goneItems,['Pozycja','Grupa','Ilość w '+mLabel(mA),'Wartość netto'],
+    function(r){return '<td class="lbl">'+esc(r.name)+'</td><td style="font-size:.68rem;color:var(--tx3)">'+esc(r.category)+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td>'},
+    'Wszystkie pozycje nadal się sprzedają.');
+
+  res.innerHTML=h;
+  haptic(8);
+}
+
 function ctmRunPivot(){
   var outletEl=document.getElementById('ctm8-outlet');
   var res=document.getElementById('ctm-pivot-results');if(!res||!outletEl)return;
@@ -9408,7 +10247,7 @@ function cTab(t,btn){
   haptic(6);
 }
 function ctmTab(t,btn){
-  ['m2m','top','best','trend','cat','mix','items','pivot'].forEach(function(x){var e=document.getElementById('ctm-'+x);if(e)e.style.display=x===t?'block':'none'});
+  ['m2m','top','best','trend','cat','mix','items','pivot','price','life'].forEach(function(x){var e=document.getElementById('ctm-'+x);if(e)e.style.display=x===t?'block':'none'});
   document.querySelectorAll('#ctm-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -9487,8 +10326,10 @@ function clearPropTransientState(){
   ['_empParsedReports','_empReportMeta','_empAllItemNamesCache','_empViewOutlet','_empViewMonth','_empTargetMonth',
    '_mengParsed','_mengOutlet','_mengMonth','_mengViewOutlet','_mengViewMonth','_mengFilterCat','_mengFilterQuadrant',
    '_msalesParsed','_msalesRawInput','_msalesTargetMonth','_msalesViewMonth','_msalesModalOutlet','_msalesModalOutletId','_msalesModalMonth','_msalesToMiesieczneCtx',
-   '_monthlyHosposParsed','_dailyHosposParsed','_dailyHosposDateNote','_kpiPrev','_tableExpanded'
+   '_monthlyHosposParsed','_dailyHosposParsed','_dailyHosposDateNote','_kpiPrev','_tableExpanded',
+   '_empTab','_pgMonth','_patOutlet','_patMonths'
   ].forEach(function(k){S[k]=null});
+  dChart('emp-trend-chart'); // wykres należy do poprzedniego obiektu
   empCacheClear();
   var ta=document.getElementById('emp-input');if(ta)ta.value='';
 }
@@ -9688,9 +10529,62 @@ function renameOut(oid){
 /* ═══════════════════════════════════════════
    RENDER: EXPORT / IMPORT
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   PANEL KOMPLETNOŚCI DANYCH — siatka miesiąc × typ danych.
+   Przy trzech niezależnych źródłach (POS, Material Control, wpisy dzienne) łatwo przeoczyć lukę,
+   którą zauważa się dopiero przy analizie. Tu widać ją od razu.
+═══════════════════════════════════════════ */
+function dataCompletenessRows(pid,monthsBack){
+  var rows=[],m=currentRealMonth();
+  for(var i=0;i<monthsBack;i++){
+    var md=getMD(pid,m);
+    var dd=getDailyData(pid,m);
+    var daysFilled=dd&&dd.days?Object.keys(dd.days).length:0;
+    var dim=new Date(+m.split('-')[0],+m.split('-')[1],0).getDate();
+    var mengOutlets=getAllMenuEngKeys(pid).filter(function(k){return k.month===m}).length;
+    var empOutlets=getAllEmployeeSalesKeys(pid).filter(function(k){return k.month===m}).length;
+    var budgetSet=!!(md&&md.b&&Object.keys(md.b).length);
+    var actualSet=!!(md&&md.a&&Object.keys(md.a).length);
+    rows.push({month:m,budget:budgetSet,actual:actualSet,daysFilled:daysFilled,daysInMonth:dim,
+      msales:!!getMenuSales(pid,m),meng:mengOutlets,emp:empOutlets,outletCount:S.outlets.length});
+    m=prevM(m);
+  }
+  return rows;
+}
+function dcCell(ok,label,title){
+  var cls=ok===true?'dc-ok':ok===false?'dc-no':'dc-part';
+  return '<td class="'+cls+'"'+(title?' title="'+esc(title)+'"':'')+'>'+label+'</td>';
+}
+function renderDataCompleteness(){
+  var box=document.getElementById('data-completeness');if(!box)return;
+  if(!S.pid||!S.outlets.length){box.innerHTML='<p class="hs-p" style="color:var(--tx3)">Dodaj obiekt i outlety.</p>';return;}
+  var rows=dataCompletenessRows(S.pid,12);
+  var h='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Miesiąc</th><th>Budżet</th><th>Wynik</th><th>Dzienne</th><th>Sprzedaż menu</th><th>Menu Eng.</th><th>Sprzedaż prac.</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var dayPart=r.daysFilled===0?false:(r.daysFilled>=r.daysInMonth?true:null);
+    var mengPart=r.meng===0?false:(r.meng>=r.outletCount?true:null);
+    var empPart=r.emp===0?false:(r.emp>=r.outletCount?true:null);
+    h+='<tr><td class="lbl">'+mLabel(r.month)+'</td>';
+    h+=dcCell(r.budget,r.budget?'✓':'—','Budżet miesięczny');
+    h+=dcCell(r.actual,r.actual?'✓':'—','Wynik miesięczny');
+    h+=dcCell(dayPart,r.daysFilled+'/'+r.daysInMonth,'Dni z wpisaną sprzedażą');
+    h+=dcCell(r.msales,r.msales?'✓':'—','Raport sprzedaży pozycji menu');
+    h+=dcCell(mengPart,r.meng+'/'+r.outletCount,'Outlety z danymi Menu Engineering');
+    h+=dcCell(empPart,r.emp+'/'+r.outletCount,'Outlety z danymi Sprzedaży pracownika');
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="hs-tip" style="margin-top:10px">Zielone = komplet, pomarańczowe = częściowo, szare = brak. Liczby przy Menu Engineering i Sprzedaży pracownika pokazują, ile outletów ma dane spośród '+S.outlets.length+'.</div>';
+  box.innerHTML=h;
+}
+
 function renderExport(){
   var el=document.getElementById('v-export');if(!el)return;
   var h='';
+
+  // ── KOMPLETNOŚĆ DANYCH ──
+  h+='<div class="stitle">Kompletność danych <small>ostatnie 12 miesięcy</small></div>';
+  h+='<div class="card" style="margin-bottom:24px"><div id="data-completeness"></div></div>';
 
   // ── EKSPORT ──
   h+='<div class="stitle">Eksport raportów <small>'+mLabelFull(S.month)+'</small></div>';
@@ -9736,6 +10630,7 @@ function renderExport(){
   h+='<input type="file" id="fi-json" accept=".json" style="display:none" onchange="handleImportJSON(this)">';
 
   el.innerHTML=h;
+  renderDataCompleteness();
 }
 function eCard(ico,t,d,fn){return '<div class="ecard" onclick="'+fn+'"><div class="ecard-ico">'+ico+'</div><h3>'+t+'</h3><p>'+d+'</p><button class="btn btn-p btn-sm" onclick="event.stopPropagation();'+fn+'">Generuj</button></div>'}
 
@@ -11286,6 +12181,41 @@ function toast(msg,type){
 }
 
 /* ═══════════════════════════════════════════
+   COFNIJ USUNIĘCIE — pojedynczy bufor ostatniej skasowanej rzeczy.
+   Usunięcie danych jest nieodwracalne, a okno potwierdzenia łatwo kliknąć odruchowo,
+   więc przez ~12 s można cofnąć operację jednym kliknięciem w powiadomieniu.
+═══════════════════════════════════════════ */
+var _undoBuf=null,_undoTimer=null;
+function offerUndo(label,restoreFn){
+  if(_undoTimer)clearTimeout(_undoTimer);
+  _undoBuf={restore:restoreFn};
+  var c=document.getElementById('toasts');
+  if(!c){_undoBuf=null;return;}
+  var t=document.createElement('div');
+  t.className='toast in';
+  var span=document.createElement('span');
+  span.style.flex='1';
+  span.textContent='🗑 '+label;
+  var btn=document.createElement('button');
+  btn.className='toast-undo';
+  btn.textContent='Cofnij';
+  btn.onclick=function(){
+    if(_undoBuf&&_undoBuf.restore){try{_undoBuf.restore()}catch(e){console.error(e)}}
+    _undoBuf=null;
+    if(_undoTimer){clearTimeout(_undoTimer);_undoTimer=null;}
+    if(t.parentNode)t.parentNode.removeChild(t);
+    toast('Przywrócono','ok');
+  };
+  t.appendChild(span);t.appendChild(btn);
+  c.appendChild(t);
+  _undoTimer=setTimeout(function(){
+    _undoBuf=null;_undoTimer=null;
+    t.classList.add('out');
+    setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t)},220);
+  },12000);
+}
+
+/* ═══════════════════════════════════════════
    MODAL
 ═══════════════════════════════════════════ */
 function openM(id){
@@ -11322,7 +12252,7 @@ function onMonthChange(v){S.month=v;syncMonthUI();renderCur()}
 
 function renderCur(){
   try{
-    var fn={dashboard:renderDashboard,data:renderData,analytics:renderAnalytics,compare:renderCompare,menuanalysis:renderMenuAnalysis,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
+    var fn={dashboard:renderDashboard,data:renderData,analytics:renderAnalytics,compare:renderCompare,menuanalysis:renderMenuAnalysis,employees:renderEmployees,properties:renderProperties,export:renderExport,budget:renderBudget,team:renderTeam};
     var f=fn[S.view];if(f)f();
   }catch(e){console.error(e)}
   renderSidePanel();
