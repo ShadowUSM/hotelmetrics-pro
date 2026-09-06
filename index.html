@@ -321,7 +321,8 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 
 /* Tables */
 .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--brd);-webkit-overflow-scrolling:touch;max-width:100%}
-.collapsible-tbl-wrap{transition:max-height .25s ease}
+.collapsible-tbl-wrap{transition:max-height .25s ease;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--brd);max-width:100%}
+.collapsible-tbl-wrap thead th{position:sticky;top:0;z-index:2;background:var(--sur2)}
 table{width:100%;border-collapse:collapse;font-size:.75rem;min-width:420px}
 thead th{background:var(--sur2);padding:9px 10px;text-align:left;font-weight:600;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);border-bottom:1px solid var(--brd);white-space:nowrap}
 tbody td{padding:8px 10px;border-bottom:1px solid var(--brd);color:var(--tx)}
@@ -2730,7 +2731,7 @@ function openHeatmapDay(pid,month,day){
   h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(total,true)+'</td><td>100%</td></tr></tbody></table></div>';
   if(prop)h+='<div class="hs-tip" style="margin-top:12px">📍 '+(prop.city||prop.name||'Lokalizacja obiektu')+'</div>';
   h+='<div class="fg" style="margin-top:14px"><label>📝 Notatka do tego dnia (np. przyczyna nagłego spadku/wzrostu sprzedaży)</label>';
-  h+='<textarea class="fi" id="heatday-note" rows="2" placeholder="np. Aroma: awaria klimatyzacji, ograniczona liczba gości...">'+getDailyNote(pid,month,day)+'</textarea></div>';
+  h+='<textarea class="fi" id="heatday-note" rows="2" placeholder="np. Aroma: awaria klimatyzacji, ograniczona liczba gości...">'+esc(getDailyNote(pid,month,day))+'</textarea></div>';
   if(canEdit())h+='<div class="fa" style="margin-top:8px"><button class="btn btn-p btn-sm" onclick="saveHeatdayNote(\''+pid+'\',\''+month+'\','+day+')">💾 Zapisz notatkę</button></div>';
   document.getElementById('m-heatday-body').innerHTML=h;
   openM('m-heatday');
@@ -2823,7 +2824,7 @@ function renderAccuracy(el,allD){
     var abs=Math.abs(r.avgDev);
     var rating=abs<=5?'Bardzo trafny':abs<=15?'Trafny':abs<=30?'Do poprawy':'Niska trafność';
     var ratingCls=abs<=5?'ov':abs<=15?'ov':abs<=30?'wa':'da';
-    h+='<tr><td><strong>'+r.name+'</strong></td>';
+    h+='<tr><td><strong>'+esc(r.name)+'</strong></td>';
     h+='<td class="'+(r.avgDev>=0?'td-pos':'td-neg')+'">'+(r.avgDev>=0?'+':'')+r.avgDev.toFixed(1)+'%</td>';
     h+='<td>'+r.n+'</td>';
     h+='<td><span class="pill '+ratingCls+'">'+rating+'</span></td></tr>';
@@ -3519,7 +3520,7 @@ function performSearch(q){
   if(noteHits.length){
     h+='<div class="sr-sect">Notatki</div>';
     noteHits.slice(0,10).forEach(function(nh){
-      var snippet=nh.note.text.length>60?nh.note.text.slice(0,60)+'…':nh.note.text;
+      var snippet=esc(nh.note.text.length>60?nh.note.text.slice(0,60)+'…':nh.note.text);
       h+='<div class="sr-item" onclick="srGoOutlet(\''+nh.outlet.replace(/'/g,"\\'")+'\',true)"><div class="sr-ico">📝</div><div class="sr-body"><div class="sr-title">'+nh.outlet+'</div><div class="sr-sub">'+snippet+' · '+nh.note.date+'</div></div></div>';
     });
   }
@@ -3820,7 +3821,7 @@ function openNotesModal(outletName){
     }
     if(notes.length){
       notes.forEach(function(n){
-        h+='<div class="note-item"><div class="note-date">'+n.date+(n.author?' · '+n.author:'')+'</div><div class="note-text">'+n.text+'</div>';
+        h+='<div class="note-item"><div class="note-date">'+esc(n.date)+(n.author?' · '+esc(n.author):'')+'</div><div class="note-text">'+esc(n.text)+'</div>';
         if(!ro)h+='<button class="note-del" onclick="delNoteUI(\''+outletName+'\',\''+n.id+'\')">✕</button>';
         h+='</div>';
       });
@@ -4146,10 +4147,25 @@ window.addEventListener('offline',function(){
 });
 
 // Wrap Firestore writes with status tracking
+// Zapis do chmury. Błędy sieci są normalne (aplikacja działa offline — dane są lokalnie i wrócą
+// przy synchronizacji), ale błąd UPRAWNIEŃ oznacza, że dane nigdy nie trafią do chmury — o tym
+// trzeba powiedzieć wprost, inaczej użytkownik myśli, że wszystko jest zapisane.
+var _fsPermWarned={};
 function fsWrite(ref,data){
   if(!S.uid||!db)return;
   connBeginWrite();
-  ref.set(data).then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});
+  ref.set(data).then(function(){connEndWrite(true)}).catch(function(err){
+    connEndWrite(false);
+    var code=(err&&(err.code||err.name))||'';
+    if(/permission|denied|unauthenticated/i.test(String(code)+' '+String(err&&err.message))){
+      var path=(ref&&ref.path)||'';
+      var coll=path.split('/').slice(-2,-1)[0]||path;
+      if(!_fsPermWarned[coll]){
+        _fsPermWarned[coll]=true;
+        toast('⚠️ Brak uprawnień do zapisu w chmurze ('+coll+') — dane zapisane tylko lokalnie. Sprawdź reguły Firestore.','er');
+      }
+    }
+  });
 }
 
 /* ═══════════════════════════════════════════
@@ -4421,7 +4437,51 @@ function toggleOutletActive(key){
 ═══════════════════════════════════════════ */
 function uk(suffix){return 'hm-'+(S.uid||'anon')+'-'+suffix}
 function lsGet(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+// Zapis z obsługą przepełnienia pamięci przeglądarki (limit zwykle 5 MB).
+// Zwraca true/false — wywołujący może zareagować. Przy przepełnieniu próbuje zwolnić miejsce,
+// usuwając NAJSTARSZE ciężkie dane (Sprzedaż menu / Menu Engineering / Sprzedaż pracownika),
+// ale TYLKO gdy użytkownik jest zalogowany — wtedy dane są bezpieczne w chmurze i wrócą przy
+// następnej synchronizacji. Bez logowania nic nie kasujemy (to byłaby trwała utrata danych).
+function lsIsQuotaError(e){
+  return e&&(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED'||e.code===22||e.code===1014);
+}
+var _lsQuotaWarned=false;
+function lsEvictOldest(protectKey){
+  if(!S.uid)return false; // brak chmury = brak bezpiecznej kopii, nie kasujemy
+  var heavy=[];
+  Object.keys(localStorage).forEach(function(k){
+    if(k===protectKey)return;
+    if(!/-(msales|meng|emp)-/.test(k))return;
+    var m=k.match(/(\d{4}-\d{2})$/);
+    if(m)heavy.push({key:k,month:m[1]});
+  });
+  if(!heavy.length)return false;
+  heavy.sort(function(a,b){return a.month.localeCompare(b.month)});
+  var freed=0,toFree=Math.max(3,Math.ceil(heavy.length*0.15));
+  for(var i=0;i<heavy.length&&freed<toFree;i++){
+    try{localStorage.removeItem(heavy[i].key);freed++}catch(e){}
+  }
+  return freed>0;
+}
+function lsSet(k,v){
+  var payload;
+  try{payload=JSON.stringify(v)}catch(e){return false}
+  try{localStorage.setItem(k,payload);return true}
+  catch(e){
+    if(!lsIsQuotaError(e))return false;
+    if(lsEvictOldest(k)){
+      try{localStorage.setItem(k,payload);return true}catch(e2){}
+    }
+    if(!_lsQuotaWarned){
+      _lsQuotaWarned=true;
+      setTimeout(function(){
+        _lsQuotaWarned=false;
+        toast(S.uid?'⚠️ Pamięć przeglądarki pełna — starsze dane usunięto lokalnie (są bezpieczne w chmurze)':'⚠️ Pamięć przeglądarki pełna — zaloguj się, aby zapisywać dane w chmurze','er');
+      },50);
+    }
+    return false;
+  }
+}
 function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
 
 // ── ROLE HELPERS ──
@@ -4496,7 +4556,12 @@ function delOutletItem(pid,oid){
   var existing=getOutlets(pid).find(function(o){return o.id===oid});
   saveOutlets(pid,getOutlets(pid).filter(function(o){return o.id!==oid}));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/outlets').doc(oid).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
-  logAudit(pid,'outlet_del','Outlet usunięty: '+(existing?existing.name:oid));
+  // Usuń dane powiązane z tym outletem (Menu Engineering + Sprzedaż pracownika), inaczej zostają
+  // na zawsze w pamięci przeglądarki i w chmurze, niewidoczne i zajmujące miejsce.
+  var removed=0;
+  getMenuEngMonthsForOutlet(pid,oid).forEach(function(m){delMenuEng(pid,oid,m);removed++});
+  getEmployeeSalesMonthsForOutlet(pid,oid).forEach(function(m){delEmployeeSales(pid,oid,m);removed++});
+  logAudit(pid,'outlet_del','Outlet usunięty: '+(existing?existing.name:oid)+(removed?' (wraz z '+removed+' powiązanymi zestawami danych)':''));
 }
 
 // ── MONTHLY DATA ──
@@ -4519,9 +4584,10 @@ function getAllMD(pid){
 function getMenuSales(pid,month){return lsGet(uk('msales-'+pid+'-'+month),null)}
 function saveMenuSales(pid,month,d){
   d.ts=Date.now();
-  lsSet(uk('msales-'+pid+'-'+month),d);
+  var okLocal=lsSet(uk('msales-'+pid+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuSales').doc(month),d);
   logAudit(pid,'msales','Sprzedaż menu za '+mLabel(month));
+  return okLocal;
 }
 function delMenuSales(pid,month){
   lsDel(uk('msales-'+pid+'-'+month));
@@ -4551,9 +4617,10 @@ function saveMsalesMap(pid,map){
 function getMenuEng(pid,outletId,month){return lsGet(uk('meng-'+pid+'-'+outletId+'-'+month),null)}
 function saveMenuEng(pid,outletId,month,d){
   d.ts=Date.now();
-  lsSet(uk('meng-'+pid+'-'+outletId+'-'+month),d);
+  var okLocal=lsSet(uk('meng-'+pid+'-'+outletId+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuEngineering').doc(outletId+'_'+month),d);
   logAudit(pid,'meng','Menu Engineering: '+(d.outletName||outletId)+' — '+mLabel(month));
+  return okLocal;
 }
 function delMenuEng(pid,outletId,month){
   lsDel(uk('meng-'+pid+'-'+outletId+'-'+month));
@@ -4579,14 +4646,28 @@ function getMenuEngMonthsForOutlet(pid,outletId){
    Import raportu HosPOS "SPRZEDAŻ UŻYTKOWNIKÓW" — generowany osobno per outlet,
    dlatego przechowywany dokładnie tak samo jak Menu Engineering (klucz: outlet+miesiąc).
 ═══════════════════════════════════════════ */
-function getEmployeeSales(pid,outletId,month){return lsGet(uk('emp-'+pid+'-'+outletId+'-'+month),null)}
+// Cache odczytanych raportów — statystyki za 12 miesięcy x 6 outletów to 72 odczyty z pamięci
+// i tyleż JSON.parse przy każdym kliknięciu "Pokaż". Cache trzymany tylko w pamięci sesji,
+// unieważniany przy każdym zapisie/usunięciu i przy zmianie obiektu.
+var _empCache={};
+function empCacheClear(){_empCache={}}
+function getEmployeeSales(pid,outletId,month){
+  var ck=pid+'|'+outletId+'|'+month;
+  if(Object.prototype.hasOwnProperty.call(_empCache,ck))return _empCache[ck];
+  var v=lsGet(uk('emp-'+pid+'-'+outletId+'-'+month),null);
+  _empCache[ck]=v;
+  return v;
+}
 function saveEmployeeSales(pid,outletId,month,d){
   d.ts=Date.now();
-  lsSet(uk('emp-'+pid+'-'+outletId+'-'+month),d);
+  empCacheClear();
+  var okLocal=lsSet(uk('emp-'+pid+'-'+outletId+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/employeeSales').doc(outletId+'_'+month),d);
   logAudit(pid,'empsales','Sprzedaż pracowników: '+(d.outletName||outletId)+' — '+mLabel(month));
+  return okLocal;
 }
 function delEmployeeSales(pid,outletId,month){
+  empCacheClear();
   lsDel(uk('emp-'+pid+'-'+outletId+'-'+month));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/employeeSales').doc(outletId+'_'+month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
   logAudit(pid,'empsales_del','Sprzedaż pracowników usunięta: '+outletId+' — '+mLabel(month));
@@ -4816,6 +4897,7 @@ function loadUserDataFromFirestore(){
       });
       var t8=db.collection('properties/'+p.id+'/employeeSales').get().then(function(s){
         s.docs.forEach(function(d){lsSet(uk('emp-'+p.id+'-'+d.id.replace('_','-')),d.data())});
+        empCacheClear();
       });
       return Promise.all([t1,t2,t3,t4,t5,t6,t7,t8]);
     });
@@ -4846,6 +4928,15 @@ function fmtN(v){return (v||0).toLocaleString('pl-PL',{maximumFractionDigits:0})
 // Zaokrągla do 2 miejsc po przecinku — zapobiega błędom zmiennoprzecinkowym (np. 446358,21000000014)
 // przy sumowaniu setek pozycji z wklejanego raportu sprzedaży menu.
 function round2(v){return Math.round((Number(v)||0)*100)/100}
+// Escapowanie tekstu wstawianego do HTML — nazwy pozycji/pracowników z raportów POS mogą zawierać
+// znaki łamiące strukturę strony (np. PIWO 0,5" BUTELKA, WINO <100 ML>, M&M's).
+function esc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+// Escapowanie tekstu wstawianego do atrybutu onclick='...' (najpierw JS, potem HTML).
+function escAttr(s){
+  return esc(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+}
 function setCur(c){S.cur=c;localStorage.setItem('hm-cur',c);['PLN','EUR','USD'].forEach(function(x){var b=document.getElementById('c-'+x);if(b)b.classList.toggle('on',x===c)});renderCur()}
 
 /* ═══════════════════════════════════════════
@@ -6086,7 +6177,7 @@ function renderMsalesPreview(parsed){
     h+='</div>';
     h+='<select class="fi" style="font-size:.78rem" onchange="msalesMapChange(\''+key.replace(/'/g,"\\'")+'\',this.value)">';
     h+='<option value="">— wybierz outlet w aplikacji —</option>';
-    S.outlets.forEach(function(so){h+='<option value="'+so.id+'"'+(mappedId===so.id?' selected':'')+'>'+so.name+'</option>'});
+    S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
     h+='<option value="__skip__"'+(mappedId==='__skip__'?' selected':'')+'>— pomiń ten outlet —</option>';
     h+='</select>';
     h+='</div>';
@@ -6316,9 +6407,9 @@ function renderEmpPreview(){
       }
     }
 
-    h+='<div class="fg" style="max-width:280px"><label>Outlet (wykryto z raportu: "'+(parsed.outletName||'—')+'")</label><select class="fi" onchange="empReportMetaChange('+idx+',\'outletId\',this.value)">';
+    h+='<div class="fg" style="max-width:280px"><label>Outlet (wykryto z raportu: "'+esc(parsed.outletName||'—')+'")</label><select class="fi" onchange="empReportMetaChange('+idx+',\'outletId\',this.value)">';
     h+='<option value="">— wybierz —</option>';
-    S.outlets.forEach(function(o){h+='<option value="'+o.id+'"'+(m.outletId===o.id?' selected':'')+'>'+o.name+'</option>'});
+    S.outlets.forEach(function(o){h+='<option value="'+esc(o.id)+'"'+(m.outletId===o.id?' selected':'')+'>'+esc(o.name)+'</option>'});
     h+='</select></div>';
 
     h+='<div class="fg" style="max-width:220px;margin-top:8px"><label>Miesiąc (do zapisu)</label><input type="month" class="fi" value="'+m.month+'" onchange="empReportMetaChange('+idx+',\'month\',this.value)"></div>';
@@ -6332,7 +6423,7 @@ function renderEmpPreview(){
     }
 
     var sorted=parsed.employees.slice().sort(function(a,b){return b.totalNetto-a.totalNetto});
-    h+='<div class="hs-p" style="margin-bottom:0">Top 3 wg netto: '+sorted.slice(0,3).map(function(e){return e.name+' ('+fmt(e.totalNetto,true)+')'}).join(', ')+'</div>';
+    h+='<div class="hs-p" style="margin-bottom:0">Top 3 wg netto: '+sorted.slice(0,3).map(function(e){return esc(e.name)+' ('+fmt(e.totalNetto,true)+')'}).join(', ')+'</div>';
     h+='</div>';
   });
 
@@ -6361,19 +6452,21 @@ function empDoSaveAll(){
   closeM('m-emp-conflict');
   var reports=S._empParsedReports,meta=S._empReportMeta;
   if(!reports)return;
-  var savedCount=0,lastOutletId=null,lastMonth=null;
+  var savedCount=0,failed=0,skipped=0,lastOutletId=null,lastMonth=null;
   reports.forEach(function(r,i){
     var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId});
-    if(!outlet)return;
-    saveEmployeeSales(S.pid,meta[i].outletId,meta[i].month,{outletName:outlet.name,sourceRange:r.sourceRange,employees:r.employees});
-    savedCount++;lastOutletId=meta[i].outletId;lastMonth=meta[i].month;
+    if(!outlet){skipped++;return;}
+    var ok=saveEmployeeSales(S.pid,meta[i].outletId,meta[i].month,{outletName:outlet.name,sourceRange:r.sourceRange,employees:r.employees});
+    if(ok){savedCount++;lastOutletId=meta[i].outletId;lastMonth=meta[i].month;}else{failed++;}
   });
   S._empParsedReports=null;S._empReportMeta=null;
   S._empAllItemNamesCache=null; // unieważnij cache podpowiedzi — mogły dojść nowe pozycje
   var ta=document.getElementById('emp-input');if(ta)ta.value='';
   if(lastOutletId){S._empViewOutlet=lastOutletId;S._empViewMonth=lastMonth;}
   renderEmpSales();
-  toast('Zapisano '+savedCount+' raport(ów)','ok');
+  if(failed)toast('Zapisano '+savedCount+', NIE zapisano '+failed+' — brak miejsca w pamięci przeglądarki','er');
+  else if(skipped)toast('Zapisano '+savedCount+', pominięto '+skipped+' (outlet nie istnieje w tym obiekcie)','er');
+  else toast('Zapisano '+savedCount+' raport(ów)','ok');
 }
 function empSalesClear(){
   S._empParsedReports=null;S._empReportMeta=null;
@@ -6420,17 +6513,17 @@ function renderEmpView(){
   if(!data){body.innerHTML='';return;}
   var rows=data.employees.map(function(e){return {name:e.name,id:e.id,items:e.items.length,netto:e.totalNetto,brutto:e.totalBrutto}});
   rows=ctmApplySort(rows,'empview');
-  var h='<div class="hs-p" style="margin:8px 0">Outlet: <strong>'+(data.outletName||S._empViewOutlet)+'</strong>'+(data.sourceRange?' · zakres w raporcie: '+data.sourceRange.from+'–'+data.sourceRange.to:'')+'</div>';
-  h+='<div class="tbl-wrap">'+collapsibleWrapOpen('emp-view-tblwrap')+'<table class="msales-table"><thead><tr>';
+  var h='<div class="hs-p" style="margin:8px 0">Outlet: <strong>'+esc(data.outletName||S._empViewOutlet)+'</strong>'+(data.sourceRange?' · zakres w raporcie: '+data.sourceRange.from+'–'+data.sourceRange.to:'')+'</div>';
+  h+=collapsibleWrapOpen('emp-view-tblwrap')+'<table class="msales-table"><thead><tr>';
   h+=ctmSortHeader('Pracownik','name','empview','renderEmpView');
   h+=ctmSortHeader('Pozycji','items','empview','renderEmpView');
   h+=ctmSortHeader('Netto','netto','empview','renderEmpView');
   h+=ctmSortHeader('Brutto','brutto','empview','renderEmpView');
   h+='</tr></thead><tbody>';
   rows.forEach(function(r){
-    h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmtN(r.items)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
+    h+='<tr><td class="lbl">'+esc(r.name)+'</td><td>'+fmtN(r.items)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
   });
-  h+='</tbody></table></div></div>';
+  h+='</tbody></table></div>';
   h+=collapsibleToggleBtn('emp-view-tblwrap');
   h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="empDeleteMonth(\''+S._empViewOutlet+'\',\''+S._empViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
   body.innerHTML=h;
@@ -6497,7 +6590,7 @@ function empItemAutocomplete(q){
   if(!matches.length){box.style.display='none';box.innerHTML='';return;}
   var h='';
   matches.forEach(function(n,i){
-    h+='<div class="ac-item'+(i===0?' hl':'')+'" onmousedown="empItemPick(\''+n.replace(/'/g,"\\'")+'\')">'+n+'</div>';
+    h+='<div class="ac-item'+(i===0?' hl':'')+'" onmousedown="empItemPick(\''+escAttr(n)+'\')">'+esc(n)+'</div>';
   });
   box.innerHTML=h;
   box.style.display='block';
@@ -6540,7 +6633,7 @@ function empStatsRun(){
   if(!rows.length){res.innerHTML='<div class="empty"><p>Brak danych dla wybranych filtrów.</p></div>';return;}
   rows=ctmApplySort(rows,'empstats');
   var h='<div class="hs-p" style="margin-bottom:8px">'+rows.length+' wynik(ów)'+(itemFilter?' dla filtra „'+itemFilter+'"':'')+'.</div>';
-  h+='<div class="tbl-wrap">'+collapsibleWrapOpen('emp-stats-tblwrap')+'<table class="msales-table"><thead><tr>';
+  h+=collapsibleWrapOpen('emp-stats-tblwrap')+'<table class="msales-table"><thead><tr>';
   h+=ctmSortHeader('Pracownik','employee','empstats','empStatsRun');
   h+=ctmSortHeader('Outlet','outletName','empstats','empStatsRun');
   h+=ctmSortHeader('Ilość','qty','empstats','empStatsRun');
@@ -6548,9 +6641,9 @@ function empStatsRun(){
   h+=ctmSortHeader('Brutto','brutto','empstats','empStatsRun');
   h+='</tr></thead><tbody>';
   rows.forEach(function(r){
-    h+='<tr><td class="lbl">'+r.employee+'</td><td>'+r.outletName+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
+    h+='<tr><td class="lbl">'+esc(r.employee)+'</td><td>'+esc(r.outletName)+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
   });
-  h+='</tbody></table></div></div>';
+  h+='</tbody></table></div>';
   h+=collapsibleToggleBtn('emp-stats-tblwrap');
   res.innerHTML=h;
   haptic(8);
@@ -6901,7 +6994,7 @@ function empMonthsMap(){
 }
 function mengOutletSelectHTML(id,selected){
   var h='';
-  S.outlets.forEach(function(o){h+='<option value="'+o.id+'"'+(selected===o.id?' selected':'')+'>'+o.name+'</option>'});
+  S.outlets.forEach(function(o){h+='<option value="'+esc(o.id)+'"'+(selected===o.id?' selected':'')+'>'+esc(o.name)+'</option>'});
   return h;
 }
 function renderMenuEng(){
@@ -6988,7 +7081,7 @@ function mengRenderPreview(){
     h+='</div>';
     h+='<select class="fi" style="font-size:.78rem" onchange="mengMapChange(\''+key.replace(/'/g,"\\'")+'\',this.value)">';
     h+='<option value="">— wybierz outlet w aplikacji —</option>';
-    S.outlets.forEach(function(so){h+='<option value="'+so.id+'"'+(mappedId===so.id?' selected':'')+'>'+so.name+'</option>'});
+    S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
     h+='<option value="__skip__"'+(mappedId==='__skip__'?' selected':'')+'>— pomiń ten outlet —</option>';
     h+='</select>';
     h+='</div>';
@@ -7101,7 +7194,7 @@ function mengRenderView(){
   h+=ctmSortHeader('Kwadrant','quadrant','meng','mengRenderView');
   h+='</tr></thead><tbody>';
   items.forEach(function(it){
-    h+='<tr><td class="lbl">'+it.name+'</td><td style="font-size:.68rem;color:var(--tx3)">'+it.category+'</td><td>'+fmtN(it.qty)+'</td><td>'+fmt(it.saleTotal,true)+'</td><td>'+fmt(it.costTotal,true)+'</td><td>'+(it.costPct*100).toFixed(1)+'%</td><td>'+it.quadrant+'</td></tr>';
+    h+='<tr><td class="lbl">'+esc(it.name)+'</td><td style="font-size:.68rem;color:var(--tx3)">'+esc(it.category)+'</td><td>'+fmtN(it.qty)+'</td><td>'+fmt(it.saleTotal,true)+'</td><td>'+fmt(it.costTotal,true)+'</td><td>'+(it.costPct*100).toFixed(1)+'%</td><td>'+it.quadrant+'</td></tr>';
   });
   h+='</tbody></table></div>';
   h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfMengMonth()">📄 Zapisz do PDF</button><button class="btn btn-s btn-sm" onclick="mengDeleteMonth(\''+S._mengViewOutlet+'\',\''+S._mengViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
@@ -7174,7 +7267,7 @@ function mengRenderChange(){
   var h='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:44%"><col><col><col></colgroup><thead><tr><th>Pozycja</th><th>'+mLabel(m1)+'</th><th>'+mLabel(m2)+'</th><th>Zmiana</th></tr></thead><tbody>';
   rows.forEach(function(r){
     var arrow=r.dir==='up'?'<span class="td-pos">▲</span>':r.dir==='down'?'<span class="td-neg">▼</span>':'—';
-    h+='<tr><td class="lbl">'+r.name+'</td><td>'+r.q1+'</td><td>'+r.q2+'</td><td>'+arrow+'</td></tr>';
+    h+='<tr><td class="lbl">'+esc(r.name)+'</td><td>'+esc(r.q1)+'</td><td>'+esc(r.q2)+'</td><td>'+arrow+'</td></tr>';
   });
   h+='</tbody></table></div>';
   h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="pdfMengChange()">📄 Zapisz do PDF</button></div>';
@@ -7395,7 +7488,7 @@ function renderDaily(){
   h+='<tr style="background:var(--sur2);font-weight:700"><td class="lbl">SUMA DNIA</td><td><span class="itot" id="daily-tot">0 PLN</span></td></tr>';
   h+='</tbody></table></div>';
   h+='<div class="fg" style="margin-top:12px"><label>📝 Notatka do tego dnia (np. przyczyna nagłego spadku/wzrostu sprzedaży)</label>';
-  h+='<textarea class="fi" id="daily-note" rows="2" placeholder="np. Aroma: awaria klimatyzacji, ograniczona liczba gości..."'+(ro?' disabled':'')+'>'+getDailyNote(S.pid,S.month,_dailyDay)+'</textarea></div>';
+  h+='<textarea class="fi" id="daily-note" rows="2" placeholder="np. Aroma: awaria klimatyzacji, ograniczona liczba gości..."'+(ro?' disabled':'')+'>'+esc(getDailyNote(S.pid,S.month,_dailyDay))+'</textarea></div>';
   if(!ro)h+='<div class="fa"><button class="btn btn-p" onclick="saveDailyEntry()">💾 Zapisz dzień</button><button class="btn btn-s" onclick="clearDailyEntry()">🗑 Wyczyść</button></div>';
   h+='</div>';
 
@@ -7613,7 +7706,7 @@ function renderDailyHosposPreview(){
     h+='<span style="font-size:.72rem;color:var(--tx3);min-width:80px">'+fmt(o.compNetto,true)+'</span>';
     h+='<select class="fi" style="flex:1;min-width:140px;font-size:.75rem" onchange="dailyHosposMapChange('+i+',this.value)">';
     h+='<option value="">— pomiń —</option>';
-    S.outlets.forEach(function(so){h+='<option value="'+so.id+'"'+(mappedId===so.id?' selected':'')+'>'+so.name+'</option>'});
+    S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
     h+='</select>';
     h+='</div>';
   });
@@ -7822,7 +7915,7 @@ function renderMonthlyHosposPreview(){
     h+='<span style="font-size:.72rem;color:var(--tx3);min-width:80px">'+fmt(o.compNetto,true)+'</span>';
     h+='<select class="fi" style="flex:1;min-width:140px;font-size:.75rem" onchange="monthlyHosposMapChange('+i+',this.value,\''+key.replace(/'/g,"\\'")+'\')">';
     h+='<option value="">— pomiń —</option>';
-    S.outlets.forEach(function(so){h+='<option value="'+so.id+'"'+(mappedId===so.id?' selected':'')+'>'+so.name+'</option>'});
+    S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
     h+='</select>';
     h+='</div>';
   });
@@ -8363,7 +8456,7 @@ function msalesFavStar(name,rerenderFnName){
 
 function msalesOutletOptionsHTML(selected){
   var h='<option value="__all__"'+(selected==='__all__'?' selected':'')+'>Wszystkie outlety</option>';
-  S.outlets.forEach(function(o){h+='<option value="'+o.id+'"'+(selected===o.id?' selected':'')+'>'+o.name+'</option>'});
+  S.outlets.forEach(function(o){h+='<option value="'+esc(o.id)+'"'+(selected===o.id?' selected':'')+'>'+esc(o.name)+'</option>'});
   return h;
 }
 // Agreguje pozycje po nazwie (sumując po kategoriach i, jeśli outlet='__all__', po wszystkich outletach) dla jednego miesiąca.
@@ -8456,7 +8549,7 @@ function ctmRunM2M(){
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m1)+' vs '+mLabelFull(m2)+' · '+ctmOutletLabel(outlet)+' · '+rows.length+' pozycji</div>';
   h+='<div class="tbl-wrap"><table class="msales-table" style="min-width:640px"><colgroup><col style="width:28%"><col><col><col><col><col><col></colgroup><thead><tr>'+ctmSortHeader('Pozycja','name','m2m','ctmRunM2M')+ctmSortHeader('Ilość '+mLabel(m1),'aQty','m2m','ctmRunM2M')+ctmSortHeader('Ilość '+mLabel(m2),'bQty','m2m','ctmRunM2M')+ctmSortHeader('Δ Ilość','dQty','m2m','ctmRunM2M')+ctmSortHeader('Netto '+mLabel(m1),'aNetto','m2m','ctmRunM2M')+ctmSortHeader('Netto '+mLabel(m2),'bNetto','m2m','ctmRunM2M')+ctmSortHeader('Δ Netto','dNetto','m2m','ctmRunM2M')+'</tr></thead><tbody>';
   rows.forEach(function(r){
-    h+='<tr><td class="lbl">'+r.name+'</td><td>'+fmtN(r.aQty)+'</td><td>'+fmtN(r.bQty)+'</td>';
+    h+='<tr><td class="lbl">'+esc(r.name)+'</td><td>'+fmtN(r.aQty)+'</td><td>'+fmtN(r.bQty)+'</td>';
     h+='<td class="'+(r.dQty>=0?'td-pos':'td-neg')+'">'+(r.dQty>=0?'+':'')+fmtN(r.dQty)+(r.pQty!==null?' ('+(r.pQty>=0?'+':'')+r.pQty.toFixed(0)+'%)':' (nowość)')+'</td>';
     h+='<td>'+fmt(r.aNetto,true)+'</td><td>'+fmt(r.bNetto,true)+'</td>';
     h+='<td class="'+(r.dNetto>=0?'td-pos':'td-neg')+'">'+(r.dNetto>=0?'+':'')+fmt(r.dNetto,true)+(r.pNetto!==null?' ('+(r.pNetto>=0?'+':'')+r.pNetto.toFixed(0)+'%)':'')+'</td></tr>';
@@ -8482,7 +8575,7 @@ function ctmRunTop(){
   var unitLbl=metric==='qty'?'Δ Ilość':'Δ Netto';
   function rowsHTML(list,cls){
     if(!list.length)return '<tr><td colspan="3" style="text-align:center;color:var(--tx3);font-size:.72rem">Brak</td></tr>';
-    return list.map(function(r){return '<tr><td class="lbl">'+r.name+'</td><td class="'+cls+'">'+(r.delta>=0?'+':'')+fmtV(r.delta)+'</td><td>'+fmtV(r.bval)+'</td></tr>'}).join('');
+    return list.map(function(r){return '<tr><td class="lbl">'+esc(r.name)+'</td><td class="'+cls+'">'+(r.delta>=0?'+':'')+fmtV(r.delta)+'</td><td>'+fmtV(r.bval)+'</td></tr>'}).join('');
   }
   var h='<div class="hs-p" style="margin-bottom:10px">'+mLabelFull(m1)+' vs '+mLabelFull(m2)+' · '+ctmOutletLabel(outlet)+'</div>';
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">';
@@ -8511,7 +8604,7 @@ function ctmRunBest(){
   var h='<div class="hs-p" style="margin-bottom:8px">'+mLabelFull(m)+' · '+ctmOutletLabel(outlet)+' · łącznie '+fmt(totalNetto,true)+' netto</div>';
   h+='<div class="tbl-wrap"><table class="msales-table"><colgroup><col style="width:8%"><col style="width:44%"><col><col><col></colgroup><thead><tr><th>#</th>'+ctmSortHeader('Pozycja','name','best','ctmRunBest')+ctmSortHeader('Ilość','qty','best','ctmRunBest')+ctmSortHeader('Netto','netto','best','ctmRunBest')+ctmSortHeader('Udział','share','best','ctmRunBest')+'</tr></thead><tbody>';
   rows.forEach(function(r,i){
-    h+='<tr><td>'+(i+1)+'</td><td class="lbl">'+msalesFavStar(r.name,'ctmRunBest')+r.name+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';
+    h+='<tr><td>'+(i+1)+'</td><td class="lbl">'+msalesFavStar(r.name,'ctmRunBest')+esc(r.name)+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+r.share.toFixed(1)+'%</td></tr>';
   });
   h+='</tbody></table></div>';
   res.innerHTML=h;
@@ -9271,7 +9364,19 @@ function resyncOutletsToCloud(){
   haptic([10,5,10]);
 }
 
-function selProp(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);S.excludedOutlets.clear();updatePropSel();refreshCurrentRole();renderCur()}
+// Czyści stan tymczasowy związany z konkretnym obiektem hotelowym (niezapisane podglądy importów,
+// cache podpowiedzi, wybrane outlety/miesiące do podglądu). Bez tego po zmianie obiektu zostają
+// dane poprzedniego — np. podpowiedzi pozycji z innego hotelu albo pusty widok mimo zapisanych danych.
+function clearPropTransientState(){
+  ['_empParsedReports','_empReportMeta','_empAllItemNamesCache','_empViewOutlet','_empViewMonth','_empTargetMonth',
+   '_mengParsed','_mengOutlet','_mengMonth','_mengViewOutlet','_mengViewMonth','_mengFilterCat','_mengFilterQuadrant',
+   '_msalesParsed','_msalesRawInput','_msalesTargetMonth','_msalesViewMonth','_msalesModalOutlet','_msalesModalOutletId','_msalesModalMonth','_msalesToMiesieczneCtx',
+   '_monthlyHosposParsed','_dailyHosposParsed','_dailyHosposDateNote','_kpiPrev','_tableExpanded'
+  ].forEach(function(k){S[k]=null});
+  empCacheClear();
+  var ta=document.getElementById('emp-input');if(ta)ta.value='';
+}
+function selProp(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);S.excludedOutlets.clear();clearPropTransientState();updatePropSel();refreshCurrentRole();renderCur()}
 function saveProp(){
   var n=document.getElementById('np-name')&&document.getElementById('np-name').value.trim();
   var a=document.getElementById('np-addr')&&document.getElementById('np-addr').value.trim()||'';
@@ -9355,7 +9460,9 @@ function addOut(){
 }
 function delOut(oid){
   if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
-  if(!confirm('Usunąć outlet?'))return;
+  var linked=getMenuEngMonthsForOutlet(S.pid,oid).length+getEmployeeSalesMonthsForOutlet(S.pid,oid).length;
+  var msg=linked?('Usunąć outlet wraz z '+linked+' powiązanymi zestawami danych (Menu Engineering / Sprzedaż pracownika)?\n\nTej operacji nie można cofnąć.'):'Usunąć outlet?';
+  if(!confirm(msg))return;
   delOutletItem(S.pid,oid);S.outlets=getOutlets(S.pid);renderCur();toast('Usunięto','in');
 }
 
@@ -11094,7 +11201,7 @@ function updatePropSel(){
   if(!S.props.length){sel.innerHTML='<option value="">Brak obiektów</option>';return;}
   S.props.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===S.pid)o.selected=true;sel.appendChild(o)});
 }
-function onPropChange(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);S.excludedOutlets.clear();refreshCurrentRole();renderCur()}
+function onPropChange(id){S.pid=id;localStorage.setItem(uk('pid'),id);S.outlets=getOutlets(id);S.excludedOutlets.clear();clearPropTransientState();refreshCurrentRole();renderCur()}
 function onMonthChange(v){S.month=v;syncMonthUI();renderCur()}
 
 function renderCur(){
