@@ -6488,10 +6488,10 @@ function collapsibleWrapOpen(id,collapsedH){
   var ex=!!S._tableExpanded[id];
   return '<div class="collapsible-tbl-wrap" id="'+id+'" style="max-height:'+(ex?'560px':(collapsedH||260)+'px')+';overflow-y:'+(ex?'auto':'hidden')+'">';
 }
-function collapsibleToggleBtn(id){
+function collapsibleToggleBtn(id,extraButtonsHTML){
   if(!S._tableExpanded)S._tableExpanded={};
   var ex=!!S._tableExpanded[id];
-  return '<div class="fa" style="margin-top:8px"><button class="btn btn-s btn-sm" id="'+id+'-btn" onclick="toggleTableExpand(\''+id+'\')">'+(ex?'▲ Zwiń':'▼ Rozwiń (pokaż wszystkie)')+'</button></div>';
+  return '<div class="fa" style="margin-top:8px"><button class="btn btn-s btn-sm" id="'+id+'-btn" onclick="toggleTableExpand(\''+id+'\')">'+(ex?'▲ Zwiń':'▼ Rozwiń (pokaż wszystkie)')+'</button>'+(extraButtonsHTML||'')+'</div>';
 }
 function toggleTableExpand(id){
   if(!S._tableExpanded)S._tableExpanded={};
@@ -6540,6 +6540,34 @@ function empDeleteMonth(outletId,month){
 // ── STATYSTYKI / RANKING SPRZEDAWCÓW ──
 // Agreguje sprzedaż per pracownik (opcjonalnie per outlet) w wybranym zakresie miesięcy,
 // z opcjonalnym filtrem po nazwie pozycji lub kategorii — do wyłaniania najlepszego sprzedawcy.
+// ── MAPA MARŻ z Menu Engineering: nazwa pozycji -> marża jednostkowa, dla danego outletu i miesiąca.
+// Pozwala policzyć, ile MARŻY wygenerował pracownik, a nie tylko jaki zrobił obrót — to zwykle
+// zupełnie inny ranking (dużo taniego piwa vs mniej, ale wysokomarżowych koktajli).
+function empMarginMap(pid,outletId,month){
+  var d=getMenuEng(pid,outletId,month);
+  if(!d||!d.items)return null;
+  var map={};
+  d.items.forEach(function(it){
+    var key=srNorm(it.name);
+    if(!key)return;
+    // gdy ta sama nazwa występuje wielokrotnie, bierzemy średnią ważoną ilością
+    if(!map[key])map[key]={m:0,q:0};
+    map[key].m+=(it.marginUnit||0)*(it.qty||0);
+    map[key].q+=(it.qty||0);
+  });
+  var out={};
+  Object.keys(map).forEach(function(k){
+    out[k]=map[k].q>0?map[k].m/map[k].q:0;
+  });
+  return out;
+}
+// Kategorie do wskaźnika dosprzedaży — dopasowanie po nazwie grupy towarowej z raportu POS.
+// Wzorce oparte na realnych nazwach kategorii z HosPOS (Dania mięsne/rybne, FURU BISTRO, KIDS,
+// Makarony, PIZZA, PANINI, PRZEKĄSKI BB — vs Desery, Kawa, Herbata, Coctaile, Mocktails, GOFRY...).
+// UWAGA na liczbę mnogą: "Dania" nie pasuje do wzorca "danie", stąd rdzeń "dani".
+var EMP_ATTACH_MAIN=/dani[ae]|bistro|makaron|pizza|panini|grill|przek[ąa]ski|kids/i;
+var EMP_ATTACH_EXTRA=/deser|kawa|herbata|lody|coctail|cocktail|mocktail|gofr|nale[śs]nik/i;
+
 function empStatsCompute(fromMonth,toMonth,outletFilter,itemFilter,groupMode){
   var months=msalesMonthsInRange(fromMonth,toMonth);
   var keys=getAllEmployeeSalesKeys(S.pid).filter(function(k){return months.indexOf(k.month)>=0&&(outletFilter==='__all__'||k.outletId===outletFilter)});
@@ -6548,22 +6576,105 @@ function empStatsCompute(fromMonth,toMonth,outletFilter,itemFilter,groupMode){
     var d=getEmployeeSales(S.pid,k.outletId,k.month);
     if(!d)return;
     var outletName=d.outletName||k.outletId;
+    var marginMap=empMarginMap(S.pid,k.outletId,k.month); // null gdy brak danych Menu Engineering
     d.employees.forEach(function(e){
+      // Wskaźnik dosprzedaży liczymy z PEŁNEJ sprzedaży pracownika (nie z przefiltrowanej),
+      // bo filtr po pozycji dotyczy rankingu konkursowego, a dosprzedaż to cecha całej pracy.
+      var mains=0,extras=0;
+      e.items.forEach(function(it){
+        var c=it.category||'';
+        if(EMP_ATTACH_MAIN.test(c))mains+=it.qty;
+        else if(EMP_ATTACH_EXTRA.test(c))extras+=it.qty;
+      });
       var matchItems=e.items;
       if(itemFilter){
         var nf=srNorm(itemFilter);
         matchItems=matchItems.filter(function(it){return srNorm(it.name).indexOf(nf)>=0||srNorm(it.category).indexOf(nf)>=0});
       }
       if(!matchItems.length)return;
-      var qty=0,netto=0,brutto=0;
-      matchItems.forEach(function(it){qty+=it.qty;netto+=it.netto;brutto+=it.brutto});
+      var qty=0,netto=0,brutto=0,margin=0,marginKnownNetto=0;
+      matchItems.forEach(function(it){
+        qty+=it.qty;netto+=it.netto;brutto+=it.brutto;
+        if(marginMap){
+          var mu=marginMap[srNorm(it.name)];
+          if(mu!==undefined){margin+=mu*it.qty;marginKnownNetto+=it.netto;}
+        }
+      });
       var accKey=(groupMode==='total'?e.name:(e.name+'|'+outletName));
-      if(!acc[accKey])acc[accKey]={employee:e.name,outletName:groupMode==='total'?'Wszystkie':outletName,qty:0,netto:0,brutto:0};
-      acc[accKey].qty+=qty;acc[accKey].netto+=netto;acc[accKey].brutto+=brutto;
+      if(!acc[accKey])acc[accKey]={employee:e.name,outletName:groupMode==='total'?'Wszystkie':outletName,qty:0,netto:0,brutto:0,margin:0,marginKnownNetto:0,hasMargin:false,mains:0,extras:0};
+      var a=acc[accKey];
+      a.qty+=qty;a.netto+=netto;a.brutto+=brutto;
+      a.margin+=margin;a.marginKnownNetto+=marginKnownNetto;
+      if(marginMap)a.hasMargin=true;
+      a.mains+=mains;a.extras+=extras;
     });
   });
-  return Object.keys(acc).map(function(k){var r=acc[k];r.qty=round2(r.qty);r.netto=round2(r.netto);r.brutto=round2(r.brutto);return r});
+  return Object.keys(acc).map(function(k){
+    var r=acc[k];
+    r.qty=round2(r.qty);r.netto=round2(r.netto);r.brutto=round2(r.brutto);
+    r.margin=r.hasMargin?round2(r.margin):null;
+    // Pokrycie: jaka część obrotu ma znaną marżę — poniżej 100% marża jest niepełna, trzeba to pokazać.
+    r.marginCover=(r.hasMargin&&r.netto>0)?Math.min(100,round2(r.marginKnownNetto/r.netto*100)):null;
+    r.attach=r.mains>0?round2(r.extras/r.mains):null;
+    return r;
+  });
 }
+// ── EKSPORT STATYSTYK SPRZEDAŻY PRACOWNIKÓW (PDF / XLSX) ──
+// Buduje te same wiersze co widok na ekranie, z zachowaniem aktualnych filtrów i sortowania.
+function empStatsCurrentRows(){
+  var fromEl=document.getElementById('emp-stats-from'),toEl=document.getElementById('emp-stats-to');
+  if(!fromEl||!toEl)return null;
+  var from=fromEl.value,to=toEl.value;
+  if(!from||!to)return null;
+  if(from>to){var t=from;from=to;to=t;}
+  var outletFilter=document.getElementById('emp-stats-outlet').value;
+  var itemFilter=(document.getElementById('emp-stats-item').value||'').trim();
+  var groupMode=document.getElementById('emp-stats-group').value;
+  var rows=ctmApplySort(empStatsCompute(from,to,outletFilter,itemFilter,groupMode),'empstats');
+  return {rows:rows,from:from,to:to,itemFilter:itemFilter,outletFilter:outletFilter};
+}
+function empStatsPdf(){
+  var ctx=empStatsCurrentRows();
+  if(!ctx||!ctx.rows.length){toast('Brak danych do eksportu','er');return;}
+  var prop=S.props.find(function(p){return p.id===S.pid});
+  var outLabel='Wszystkie outlety';
+  if(ctx.outletFilter!=='__all__'){var o=S.outlets.find(function(x){return x.id===ctx.outletFilter});if(o)outLabel=o.name;}
+  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  var pw=297,ph=210;
+  var title='Sprzedaz pracownikow: '+mLabelX(ctx.from)+(ctx.from!==ctx.to?' - '+mLabelX(ctx.to):'');
+  pdfDrawHeader(doc,pw,title,dePL(prop?prop.name:''));
+  var totQty=0,totNetto=0,totMargin=0,anyMargin=false;
+  ctx.rows.forEach(function(r){totQty+=r.qty;totNetto+=r.netto;if(r.margin!==null){totMargin+=r.margin;anyMargin=true}});
+  var kpi=[['Outlet',dePL(outLabel)],['Pracownikow',String(ctx.rows.length)],['Ilosc',fmtN(totQty)],['Sprzedaz netto',fmt(round2(totNetto),true)]];
+  if(anyMargin)kpi.push(['Marza',fmt(round2(totMargin),true)]);
+  if(ctx.itemFilter)kpi.push(['Filtr pozycji',dePL(ctx.itemFilter)]);
+  var y=pdfDrawKpiBoxes(doc,kpi,26,pw,kpi.length);
+  doc.autoTable({
+    startY:y+4,head:[['#','Pracownik','Outlet','Ilosc','Netto','Marza','Dosprzedaz']],
+    body:ctx.rows.map(function(r,i){return [String(i+1),dePL(r.employee),dePL(r.outletName),fmtN(r.qty),fmt(r.netto,true),r.margin===null?'-':fmt(r.margin,true),r.attach===null?'-':r.attach.toFixed(2)]}),
+    theme:'grid',headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:7.5},
+    bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7},alternateRowStyles:{fillColor:PDF_STYLE.altRow},
+    columnStyles:{0:{halign:'right',cellWidth:10},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'}}
+  });
+  pdfDrawFooter(doc,pw,ph);
+  doc.save('SprzedazPracownikow_'+ctx.from+(ctx.from!==ctx.to?'_'+ctx.to:'')+'.pdf');
+  toast('PDF zapisany','ok');
+}
+function empStatsXlsx(){
+  var ctx=empStatsCurrentRows();
+  if(!ctx||!ctx.rows.length){toast('Brak danych do eksportu','er');return;}
+  var aoa=[['#','Pracownik','Outlet','Ilość','Netto','Brutto','Marża','Pokrycie marży %','Dosprzedaż','Dania główne','Dodatki']];
+  ctx.rows.forEach(function(r,i){
+    aoa.push([i+1,r.employee,r.outletName,r.qty,r.netto,r.brutto,r.margin===null?'':r.margin,r.marginCover===null?'':r.marginCover,r.attach===null?'':r.attach,r.mains,r.extras]);
+  });
+  var wb=XLSX.utils.book_new();
+  var ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=[{wch:4},{wch:24},{wch:16},{wch:9},{wch:12},{wch:12},{wch:12},{wch:15},{wch:11},{wch:13},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws,'Sprzedaż pracowników');
+  XLSX.writeFile(wb,'SprzedazPracownikow_'+ctx.from+(ctx.from!==ctx.to?'_'+ctx.to:'')+'.xlsx');
+  toast('Plik XLSX zapisany','ok');
+}
+
 // ── AUTOCOMPLETE dla pola "Pozycja/kategoria" w Statystykach — podpowiada z listy wszystkich
 // nazw pozycji i kategorii, jakie kiedykolwiek pojawiły się w zapisanych raportach tego obiektu.
 function empAllItemNames(pid){
@@ -6638,13 +6749,18 @@ function empStatsRun(){
   h+=ctmSortHeader('Outlet','outletName','empstats','empStatsRun');
   h+=ctmSortHeader('Ilość','qty','empstats','empStatsRun');
   h+=ctmSortHeader('Netto','netto','empstats','empStatsRun');
-  h+=ctmSortHeader('Brutto','brutto','empstats','empStatsRun');
+  h+=ctmSortHeader('Marża','margin','empstats','empStatsRun');
+  h+=ctmSortHeader('Dosprzedaż','attach','empstats','empStatsRun');
   h+='</tr></thead><tbody>';
   rows.forEach(function(r){
-    h+='<tr><td class="lbl">'+esc(r.employee)+'</td><td>'+esc(r.outletName)+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+fmt(r.brutto,true)+'</td></tr>';
+    var marginCell=(r.margin===null)?'<span style="color:var(--tx3)" title="Brak danych Menu Engineering dla tego outletu i miesiąca">—</span>'
+      :fmt(r.margin,true)+(r.marginCover!==null&&r.marginCover<95?'<span style="color:var(--warn);font-size:.62rem" title="Marża policzona tylko dla '+r.marginCover.toFixed(0)+'% obrotu — reszta pozycji nie występuje w Menu Engineering"> ('+r.marginCover.toFixed(0)+'%)</span>':'');
+    var attachCell=(r.attach===null)?'<span style="color:var(--tx3)" title="Brak dań głównych w sprzedaży tego pracownika">—</span>'
+      :'<span title="'+r.extras+' dodatków (desery/kawy/drinki) na '+r.mains+' dań głównych">'+r.attach.toFixed(2)+'</span>';
+    h+='<tr><td class="lbl">'+esc(r.employee)+'</td><td>'+esc(r.outletName)+'</td><td>'+fmtN(r.qty)+'</td><td>'+fmt(r.netto,true)+'</td><td>'+marginCell+'</td><td>'+attachCell+'</td></tr>';
   });
   h+='</tbody></table></div>';
-  h+=collapsibleToggleBtn('emp-stats-tblwrap');
+  h+=collapsibleToggleBtn('emp-stats-tblwrap','<button class="btn btn-s btn-sm" onclick="empStatsPdf()">📄 PDF</button><button class="btn btn-s btn-sm" onclick="empStatsXlsx()">📊 XLSX</button>');
   res.innerHTML=h;
   haptic(8);
 }
