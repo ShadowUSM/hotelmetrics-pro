@@ -358,6 +358,12 @@ textarea.fi{resize:vertical}
 .msales-table{table-layout:fixed;min-width:560px}
 .msales-table th,.msales-table td{overflow:hidden;text-overflow:ellipsis}
 .msales-table th:first-child,.msales-table td:first-child{width:52%}
+/* Macierz pracownik × grupa — wiele wąskich kolumn, więc układ automatyczny i przewijanie w poziomie
+   zamiast ściskania wszystkiego do stałej szerokości. */
+.matrix-table{table-layout:auto!important;min-width:0!important;width:auto!important}
+.matrix-table th,.matrix-table td{white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;padding-left:8px;padding-right:8px}
+.matrix-table th:first-child,.matrix-table td:first-child{width:auto!important;position:sticky;left:0;background:var(--sur);z-index:3}
+.matrix-table thead th:first-child{z-index:4}
 .msales-table th:nth-child(2),.msales-table td:nth-child(2),.msales-table th:nth-child(3),.msales-table td:nth-child(3),.msales-table th:nth-child(4),.msales-table td:nth-child(4){width:16%}
 .msales-sort{cursor:pointer;user-select:none;position:relative;padding-right:18px!important}
 .msales-sort:hover{color:var(--tx)}
@@ -5080,6 +5086,10 @@ function parsePerfReport(raw){
 
     if(rawLine.indexOf('\t')===-1){
       // Linia bez tabulatora: nazwa punktu (WERSALIKI) albo pracownika (zawiera małe litery).
+      // Pomijamy śmieci z kopiowania (np. "<<<", znaki sterujące, symbole z pól prywatnych
+      // czcionek) — prawdziwa nazwa zawiera co najmniej dwie litery.
+      var letters=t.replace(/[^A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]/g,'');
+      if(letters.length<2)continue;
       var isOutlet=!/[a-ząćęłńóśźż]/.test(t);
       if(isOutlet){
         curOutlet=getOutlet(t);
@@ -6370,7 +6380,9 @@ var TAB_DEFS={
     {id:'card',icon:'👤',label:'Karta pracownika'},
     {id:'matrix',icon:'🍸',label:'Kto sprzedaje co'},
     {id:'trend',icon:'📈',label:'Trend'},
-    {id:'bills',icon:'🧾',label:'Rachunki'}
+    {id:'bills',icon:'🧾',label:'Rachunki'},
+    {id:'disc',icon:'💸',label:'Rabaty'},
+    {id:'pay',icon:'💳',label:'Płatności'}
   ]
 };
 function getTabOrder(section){return lsGet(uk('taborder-'+section),null)}
@@ -8885,6 +8897,36 @@ function renderEmployees(){
   }
   h+='</div></div>';
 
+  // ── RABATY ──
+  h+='<div id="emp-disc" style="display:'+(t==='disc'?'block':'none')+'">';
+  h+='<div class="card"><div class="fsect">💸 Rabaty</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Kto i ile rabatów udzielił w poszczególnych miesiącach — wartościowo i jako % obrotu. Dane z Raportu okresowego.</p>';
+  if(!perfMonths.length){
+    h+='<div class="hs-warn">Brak wgranych raportów okresowych. <button class="btn btn-s btn-sm" style="margin-left:6px" onclick="goPerfImport()">Przejdź do importu</button></div>';
+  } else {
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Od miesiąca</label><select class="fi" id="empd-from">'+perfMonths.map(function(m){return '<option value="'+m+'">'+mLabelFull(m)+'</option>'}).join('')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Do miesiąca</label><select class="fi" id="empd-to">'+perfMonths.map(function(m){return '<option value="'+m+'"'+(m===perfMonths[perfMonths.length-1]?' selected':'')+'>'+mLabelFull(m)+'</option>'}).join('')+'</select></div>';
+    h+='<div class="fg" style="margin-bottom:0"><label>Outlet</label><select class="fi" id="empd-outlet"><option value="__all__">Wszystkie punkty</option></select></div>';
+    h+='<button class="btn btn-p" onclick="empDiscRun()">Pokaż</button>';
+    h+='</div><div id="empd-results"></div>';
+  }
+  h+='</div></div>';
+
+  // ── PŁATNOŚCI ──
+  h+='<div id="emp-pay" style="display:'+(t==='pay'?'block':'none')+'">';
+  h+='<div class="card"><div class="fsect">💳 Formy płatności</div>';
+  h+='<p class="hs-p" style="margin-bottom:10px">Najpierw zbiorczo za miesiąc, potem w podziale na punkty i na pracowników. Dane z Raportu okresowego.</p>';
+  if(!perfMonths.length){
+    h+='<div class="hs-warn">Brak wgranych raportów okresowych. <button class="btn btn-s btn-sm" style="margin-left:6px" onclick="goPerfImport()">Przejdź do importu</button></div>';
+  } else {
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
+    h+='<div class="fg" style="margin-bottom:0"><label>Miesiąc</label><select class="fi" id="empp-month">'+perfMonths.slice().reverse().map(function(m){return '<option value="'+m+'">'+mLabelFull(m)+'</option>'}).join('')+'</select></div>';
+    h+='<button class="btn btn-p" onclick="empPayRun()">Pokaż</button>';
+    h+='</div><div id="empp-results"></div>';
+  }
+  h+='</div></div>';
+
   h+='</div>';
   el.innerHTML=h;
   if(t==='ranking')empStatsRun();
@@ -8892,10 +8934,12 @@ function renderEmployees(){
   else if(t==='matrix')empMatrixRun();
   else if(t==='trend')empTrendRun();
   else if(t==='bills')empBillsRun();
+  else if(t==='disc')empDiscRun();
+  else if(t==='pay')empPayRun();
 }
 function switchEmpTab(tab,btn){
   S._empTab=tab;
-  ['ranking','card','matrix','trend','bills'].forEach(function(x){var e=document.getElementById('emp-'+x);if(e)e.style.display=x===tab?'block':'none'});
+  ['ranking','card','matrix','trend','bills','disc','pay'].forEach(function(x){var e=document.getElementById('emp-'+x);if(e)e.style.display=x===tab?'block':'none'});
   document.querySelectorAll('#emptabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -8904,6 +8948,8 @@ function switchEmpTab(tab,btn){
   else if(tab==='matrix')empMatrixRun();
   else if(tab==='trend')empTrendRun();
   else if(tab==='bills')empBillsRun();
+  else if(tab==='disc')empDiscRun();
+  else if(tab==='pay')empPayRun();
   haptic(6);
 }
 
@@ -9034,7 +9080,7 @@ function empMatrixRun(){
   if(!names.length){res.innerHTML='<div class="empty"><p>Brak danych dla wybranych filtrów.</p></div>';return;}
   var cats=Object.keys(catTot).sort(function(a,b){return catTot[b]-catTot[a]}).slice(0,topN);
   var h='<div class="hs-p" style="margin-bottom:8px">'+names.length+' pracowników × '+cats.length+' najważniejszych grup towarowych. Wartość = udział grupy w sprzedaży danej osoby.</div>';
-  h+=collapsibleWrapOpen('empm-tblwrap')+'<table class="msales-table"><thead><tr><th>Pracownik</th>';
+  h+=collapsibleWrapOpen('empm-tblwrap')+'<table class="msales-table matrix-table"><thead><tr><th>Pracownik</th>';
   cats.forEach(function(c){h+='<th style="font-size:.62rem">'+esc(c)+'</th>'});
   h+='<th>Netto</th></tr></thead><tbody>';
   names.forEach(function(n){
@@ -9201,7 +9247,7 @@ function empBillsRun(){
   function dash(v,fn){return v===null||v===undefined?'<span style="color:var(--tx3)">—</span>':fn(v)}
   rows.forEach(function(r){
     var voidCls=(r.voidPct!==null&&r.voidPct>=2)?'td-neg':'';
-    var discCls=(r.discPct!==null&&r.discPct>=5)?'td-neg':'';
+    var discCls=(r.discPct!==null&&r.discPct>=5&&!isDiscExempt(S.pid,r.outletName))?'td-neg':'';
     h+='<tr><td class="lbl">'+esc(r.employee)+'</td><td style="font-size:.7rem;color:var(--tx3)">'+esc(r.outletName)+'</td>'+
       '<td>'+fmtN(r.bills)+'</td><td>'+fmt(r.billsValue,true)+'</td>'+
       '<td class="td-acc">'+dash(r.avgBill,function(v){return fmt(v,true)})+'</td>'+
@@ -9213,7 +9259,197 @@ function empBillsRun(){
       '<td>'+dash(r.cashPct,function(v){return v.toFixed(0)+'%'})+'</td></tr>';
   });
   h+='</tbody></table></div>'+collapsibleToggleBtn('empb-tblwrap');
-  h+='<div class="hs-tip" style="margin-top:10px">„Poz./rach." = ile pozycji przypada na rachunek (im więcej, tym lepsza dosprzedaż w obrębie zamówienia). Storna i rabaty podświetlają się na czerwono powyżej 2% i 5% obrotu — to progi do rozmowy, nie oskarżenie. „—" oznacza brak danych ze Sprzedaży użytkowników dla tej osoby w tym miesiącu.</div>';
+  h+='<div class="hs-tip" style="margin-top:10px">„Poz./rach." = ile pozycji przypada na rachunek (im więcej, tym lepsza dosprzedaż w obrębie zamówienia). Storna i rabaty podświetlają się na czerwono powyżej 2% i 5% obrotu — to progi do rozmowy, nie oskarżenie. Punkty wyłączone z ostrzeżeń o rabatach (ustawiane w zakładce Rabaty) nie są tu podświetlane. „—" oznacza brak danych ze Sprzedaży użytkowników dla tej osoby w tym miesiącu.</div>';
+  res.innerHTML=h;
+  haptic(8);
+}
+
+/* ── Punkty wyłączone z ostrzeżeń o rabatach ──
+   W punktach rozliczających wyżywienie w pakiecie (np. AROMA) "rabat" to różnica między ceną
+   cennikową a ceną w pakiecie, więc regularnie przekracza obrót danej osoby. Czerwone ostrzeżenie
+   byłoby tam ciągłym fałszywym alarmem. Lista jest edytowalna — domyślnie zawiera AROMĘ. */
+function getDiscExempt(pid){
+  var v=lsGet(uk('disc-exempt-'+pid),null);
+  if(v===null){v=['AROMA'];lsSet(uk('disc-exempt-'+pid),v)}
+  return v;
+}
+function saveDiscExempt(pid,arr){lsSet(uk('disc-exempt-'+pid),arr)}
+function isDiscExempt(pid,outletName){
+  return getDiscExempt(pid).some(function(n){return srNorm(n)===srNorm(outletName)});
+}
+function discExemptToggle(outletName,on){
+  var arr=getDiscExempt(S.pid).filter(function(n){return srNorm(n)!==srNorm(outletName)});
+  if(on)arr.push(outletName);
+  saveDiscExempt(S.pid,arr);
+  empDiscRun();
+}
+function discExemptHTML(outletNames){
+  var ex=getDiscExempt(S.pid);
+  var h='<details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:.74rem;color:var(--tx3)">⚙️ Punkty wyłączone z ostrzeżeń o rabatach ('+ex.length+')</summary>';
+  h+='<div style="padding:8px 0 2px;display:flex;gap:12px;flex-wrap:wrap">';
+  outletNames.forEach(function(n){
+    var on=isDiscExempt(S.pid,n);
+    h+='<label style="display:flex;align-items:center;gap:5px;font-size:.74rem;cursor:pointer"><input type="checkbox" class="oc-check"'+(on?' checked':'')+' onchange="discExemptToggle(\''+escAttr(n)+'\',this.checked)">'+esc(n)+'</label>';
+  });
+  h+='</div><div class="hs-p" style="color:var(--tx3);margin-top:4px">W tych punktach rabat oznacza zwykle rozliczenie posiłku wliczonego w pakiet, a nie uznaniowe obniżenie ceny.</div></details>';
+  return h;
+}
+
+/* ── RABATY: kto, ile, w którym miesiącu ── */
+function empDiscRun(){
+  var res=document.getElementById('empd-results');if(!res)return;
+  var fEl=document.getElementById('empd-from'),tEl=document.getElementById('empd-to');
+  if(!fEl||!tEl)return;
+  var from=fEl.value,to=tEl.value;
+  if(from>to){var x=from;from=to;to=x;}
+  var oEl=document.getElementById('empd-outlet');
+  var outletFilter=oEl?oEl.value:'__all__';
+  var all=getAllPerfMonths(S.pid).filter(function(m){return m>=from&&m<=to});
+  if(!all.length){res.innerHTML='<div class="empty"><p>Brak raportów w tym zakresie.</p></div>';return;}
+
+  var byEmp={},months=[],outletSet={},grandDisc=0,grandTurn=0;
+  all.forEach(function(m){
+    var d=getPerfReport(S.pid,m);if(!d)return;
+    months.push(m);
+    d.outlets.forEach(function(o){
+      outletSet[o.outletName]=true;
+      if(outletFilter!=='__all__'&&o.outletName!==outletFilter)return;
+      o.employees.forEach(function(e){
+        if(!e.discounts)return;
+        var k=e.name+'|'+o.outletName;
+        if(!byEmp[k])byEmp[k]={employee:e.name,outletName:o.outletName,total:0,turnover:0,months:{}};
+        byEmp[k].total+=e.discounts;byEmp[k].turnover+=e.billsValue;
+        byEmp[k].months[m]=(byEmp[k].months[m]||0)+e.discounts;
+        grandDisc+=e.discounts;grandTurn+=e.billsValue;
+      });
+    });
+  });
+  if(oEl&&oEl.options.length<=1){
+    var cur=oEl.value;
+    oEl.innerHTML='<option value="__all__">Wszystkie punkty</option>'+Object.keys(outletSet).map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');
+    oEl.value=cur||'__all__';
+  }
+  var rows=Object.keys(byEmp).map(function(k){
+    var r=byEmp[k];
+    return {employee:r.employee,outletName:r.outletName,total:round2(r.total),
+      pct:r.turnover>0?round2(r.total/r.turnover*100):null,months:r.months};
+  });
+  if(!rows.length){res.innerHTML='<div class="empty"><p>W tym zakresie nikt nie udzielił rabatów.</p></div>';return;}
+  rows=ctmApplySort(rows,'empdisc');
+  if(!ctmSortState('empdisc').key)rows.sort(function(a,b){return b.total-a.total});
+
+  var h='<div class="kpi-grid" style="margin-bottom:14px">';
+  h+='<div class="kpi"><div class="kpi-lbl">Rabaty łącznie</div><div class="kpi-val">'+fmt(round2(grandDisc),true)+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">% obrotu</div><div class="kpi-val">'+(grandTurn>0?(grandDisc/grandTurn*100).toFixed(2)+'%':'—')+'</div></div>';
+  h+='<div class="kpi"><div class="kpi-lbl">Osób udzielających</div><div class="kpi-val">'+rows.length+'</div></div>';
+  h+='</div>';
+
+  h+=discExemptHTML(Object.keys(outletSet));
+  h+=collapsibleWrapOpen('empd-tblwrap')+'<table class="msales-table matrix-table"><thead><tr>';
+  h+=ctmSortHeader('Pracownik','employee','empdisc','empDiscRun');
+  h+=ctmSortHeader('Outlet','outletName','empdisc','empDiscRun');
+  months.forEach(function(m){h+='<th>'+mLabel(m)+'</th>'});
+  h+=ctmSortHeader('Razem','total','empdisc','empDiscRun');
+  h+=ctmSortHeader('% obrotu','pct','empdisc','empDiscRun');
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr><td class="lbl">'+esc(r.employee)+'</td><td style="font-size:.7rem;color:var(--tx3)">'+esc(r.outletName)+'</td>';
+    months.forEach(function(m){var v=r.months[m]||0;h+='<td>'+(v?fmt(round2(v),true):'—')+'</td>'});
+    h+='<td class="td-acc">'+fmt(r.total,true)+'</td>';
+    var exempt=isDiscExempt(S.pid,r.outletName);
+    var pctCls=(!exempt&&r.pct!==null&&r.pct>=5)?'td-neg':'';
+    var pctTxt=(r.pct===null?'—':r.pct.toFixed(2)+'%');
+    if(exempt)pctTxt+='<span style="color:var(--tx3);font-size:.62rem" title="Punkt wyłączony z ostrzeżeń — rabat wynika z rozliczenia pakietu"> ⓘ</span>';
+    h+='<td class="'+pctCls+'">'+pctTxt+'</td></tr>';
+  });
+  h+='</tbody></table></div>'+collapsibleToggleBtn('empd-tblwrap');
+  h+='<div class="hs-tip" style="margin-top:10px">Czerwony % oznacza rabaty powyżej 5% obrotu danej osoby — warto sprawdzić, czy wynikają z polityki, czy z uznaniowości. Punkty oznaczone ⓘ są wyłączone z ostrzeżeń (rabat = rozliczenie pakietu).</div>';
+  res.innerHTML=h;
+  haptic(8);
+}
+
+/* ── FORMY PŁATNOŚCI: zbiorczo → per outlet → per pracownik ── */
+function empPayRun(){
+  var res=document.getElementById('empp-results');if(!res)return;
+  var mEl=document.getElementById('empp-month');if(!mEl)return;
+  var month=mEl.value;
+  var d=getPerfReport(S.pid,month);
+  if(!d){res.innerHTML='<div class="empty"><p>Brak raportu okresowego za ten miesiąc.</p></div>';return;}
+
+  // 1) zbiorczo — sumujemy podsumy punktów (najbardziej wiarygodne źródło)
+  var total={},totalCnt={},grand=0;
+  d.outlets.forEach(function(o){
+    Object.keys(o.totals.payments).forEach(function(m){
+      total[m]=round2((total[m]||0)+o.totals.payments[m]);
+      totalCnt[m]=(totalCnt[m]||0)+(o.totals.paymentCounts[m]||0);
+      grand+=o.totals.payments[m];
+    });
+  });
+  var methods=Object.keys(total).sort(function(a,b){return total[b]-total[a]});
+  if(!methods.length){res.innerHTML='<div class="empty"><p>Brak danych o formach płatności w tym raporcie.</p></div>';return;}
+
+  var h='<div class="fsect">Zbiorczo — '+mLabelFull(month)+'</div>';
+  h+='<div class="tbl-wrap" style="margin-bottom:16px"><table class="msales-table"><thead><tr><th>Forma płatności</th><th>Liczba</th><th>Wartość</th><th>Udział</th><th style="width:26%">&nbsp;</th></tr></thead><tbody>';
+  methods.forEach(function(m){
+    var pct=grand>0?total[m]/grand*100:0;
+    h+='<tr><td class="lbl">'+esc(m)+'</td><td>'+fmtN(totalCnt[m]||0)+'</td><td>'+fmt(total[m],true)+'</td><td>'+pct.toFixed(1)+'%</td>'+
+       '<td><div class="prog"><div class="prog-fill ov" style="width:'+pct.toFixed(0)+'%"></div></div></td></tr>';
+  });
+  h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td></td><td>'+fmt(round2(grand),true)+'</td><td>100%</td><td></td></tr>';
+  h+='</tbody></table></div>';
+
+  // 2) per outlet
+  h+='<div class="fsect">W podziale na punkty</div>';
+  h+='<div class="tbl-wrap" style="margin-bottom:16px"><table class="msales-table matrix-table"><thead><tr><th>Punkt</th>';
+  methods.forEach(function(m){h+='<th>'+esc(m)+'</th>'});
+  h+='<th>Razem</th></tr></thead><tbody>';
+  d.outlets.forEach(function(o){
+    var sum=0;methods.forEach(function(m){sum+=o.totals.payments[m]||0});
+    if(!sum)return;
+    h+='<tr><td class="lbl">'+esc(o.outletName)+'</td>';
+    methods.forEach(function(m){
+      var v=o.totals.payments[m]||0;
+      var pct=sum>0?v/sum*100:0;
+      h+='<td'+(v?' title="'+pct.toFixed(1)+'% tego punktu"':'')+'>'+(v?fmt(round2(v),true):'—')+'</td>';
+    });
+    h+='<td class="td-acc">'+fmt(round2(sum),true)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // 3) per pracownik
+  var empRows=[];
+  d.outlets.forEach(function(o){
+    o.employees.forEach(function(e){
+      var sum=0;methods.forEach(function(m){sum+=e.payments[m]||0});
+      if(!sum)return;
+      var row={employee:e.name,outletName:o.outletName,total:round2(sum)};
+      methods.forEach(function(m){row['p_'+m]=round2(e.payments[m]||0)});
+      empRows.push(row);
+    });
+  });
+  h+='<div class="fsect">W podziale na pracowników</div>';
+  if(!empRows.length){
+    h+='<p class="hs-p" style="color:var(--tx3)">Brak danych per pracownik.</p>';
+  } else {
+    empRows=ctmApplySort(empRows,'emppay');
+    if(!ctmSortState('emppay').key)empRows.sort(function(a,b){return b.total-a.total});
+    h+=collapsibleWrapOpen('empp-tblwrap')+'<table class="msales-table matrix-table"><thead><tr>';
+    h+=ctmSortHeader('Pracownik','employee','emppay','empPayRun');
+    h+=ctmSortHeader('Outlet','outletName','emppay','empPayRun');
+    methods.forEach(function(m){h+=ctmSortHeader(m,'p_'+m,'emppay','empPayRun')});
+    h+=ctmSortHeader('Razem','total','emppay','empPayRun');
+    h+='</tr></thead><tbody>';
+    empRows.forEach(function(r){
+      h+='<tr><td class="lbl">'+esc(r.employee)+'</td><td style="font-size:.7rem;color:var(--tx3)">'+esc(r.outletName)+'</td>';
+      methods.forEach(function(m){
+        var v=r['p_'+m]||0;
+        var pct=r.total>0?v/r.total*100:0;
+        h+='<td'+(v?' title="'+pct.toFixed(1)+'% tej osoby"':'')+'>'+(v?fmt(v,true):'—')+'</td>';
+      });
+      h+='<td class="td-acc">'+fmt(r.total,true)+'</td></tr>';
+    });
+    h+='</tbody></table></div>'+collapsibleToggleBtn('empp-tblwrap');
+  }
   res.innerHTML=h;
   haptic(8);
 }
