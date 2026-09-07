@@ -5014,7 +5014,21 @@ function getAllEmployeeSalesKeys(pid){
    Jeden raport obejmuje WSZYSTKIE punkty naraz, więc trzymany jest per miesiąc (nie per outlet).
    Zakres zawsze od 1. dnia miesiąca do dnia bieżącego — narastająco, jak dane miesięczne.
 ═══════════════════════════════════════════ */
-function getPerfReport(pid,month){return lsGet(uk('perf-'+pid+'-'+month),null)}
+// Nazwa punktu musi zawierać co najmniej dwie litery — odsiewa śmieci z kopiowania
+// ("<<<", znaki sterujące, symbole z czcionek prywatnych).
+function perfIsValidOutletName(n){
+  return String(n||'').replace(/[^A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]/g,'').length>=2;
+}
+// Czyszczenie stosowane przy ODCZYCIE, żeby raporty zapisane starszą wersją parsera
+// też były wolne od fałszywych punktów — bez konieczności wgrywania ich od nowa.
+function perfSanitize(d){
+  if(!d||!d.outlets)return d;
+  var before=d.outlets.length;
+  d.outlets=d.outlets.filter(function(o){return perfIsValidOutletName(o.outletName)});
+  d._cleaned=(before!==d.outlets.length);
+  return d;
+}
+function getPerfReport(pid,month){return perfSanitize(lsGet(uk('perf-'+pid+'-'+month),null))}
 function savePerfReport(pid,month,d){
   d.ts=Date.now();
   var okLocal=lsSet(uk('perf-'+pid+'-'+month),d);
@@ -5026,6 +5040,22 @@ function delPerfReport(pid,month){
   lsDel(uk('perf-'+pid+'-'+month));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/perfReports').doc(month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
   logAudit(pid,'perf_del','Raport okresowy usunięty: '+mLabel(month));
+}
+// Jednorazowe trwałe wyczyszczenie zapisanych raportów z fałszywych punktów.
+// Zapis bez wpisu do dziennika zmian — to porządkowanie techniczne, nie zmiana danych użytkownika.
+function perfCleanupStored(pid){
+  var cleaned=0;
+  getAllPerfMonths(pid).forEach(function(m){
+    var raw=lsGet(uk('perf-'+pid+'-'+m),null);
+    if(!raw||!raw.outlets)return;
+    var before=raw.outlets.length;
+    raw.outlets=raw.outlets.filter(function(o){return perfIsValidOutletName(o.outletName)});
+    if(raw.outlets.length===before)return;
+    lsSet(uk('perf-'+pid+'-'+m),raw);
+    if(S.uid)fsWrite(db.collection('properties/'+pid+'/perfReports').doc(m),raw);
+    cleaned++;
+  });
+  return cleaned;
 }
 function getAllPerfMonths(pid){
   var prefix=uk('perf-'+pid+'-');
@@ -5088,8 +5118,7 @@ function parsePerfReport(raw){
       // Linia bez tabulatora: nazwa punktu (WERSALIKI) albo pracownika (zawiera małe litery).
       // Pomijamy śmieci z kopiowania (np. "<<<", znaki sterujące, symbole z pól prywatnych
       // czcionek) — prawdziwa nazwa zawiera co najmniej dwie litery.
-      var letters=t.replace(/[^A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]/g,'');
-      if(letters.length<2)continue;
+      if(!perfIsValidOutletName(t))continue;
       var isOutlet=!/[a-ząćęłńóśźż]/.test(t);
       if(isOutlet){
         curOutlet=getOutlet(t);
@@ -11212,6 +11241,7 @@ function renderPerfImport(){
   var el=document.getElementById('v-perf');if(!el)return;
   var ro=!canEdit();
   if(!S.pid){el.innerHTML=emptyStateHTML('🧾','Brak obiektu','Dodaj obiekt hotelowy, aby wgrywać raporty okresowe.','','');return;}
+  if(!ro)perfCleanupStored(S.pid);
   var h='<div class="card" style="margin-bottom:14px">';
   h+='<div class="fsect">🧾 Wklej „Raport okresowy" z HosPOS</div>';
   h+='<p class="hs-p" style="margin-bottom:10px">Raport z podziałem na punkty i pracowników: liczba i wartość rachunków, formy płatności, serwisy, storna i rabaty. Generuj go zawsze <strong>od 1. dnia miesiąca do dnia bieżącego</strong> — dane zapisują się narastająco, a po zamknięciu miesiąca raport obejmie cały miesiąc.</p>';
