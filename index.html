@@ -1814,6 +1814,23 @@ body.presentation-mode #presentation-exit{display:flex}
   </div>
 </div></div>
 
+<!-- RAPORT GENERALNY MODAL -->
+<div class="moverlay" id="m-general-report">
+<div class="modal" style="max-width:520px">
+  <div class="mtitle">📘 Raport generalny</div>
+  <button class="mclose" onclick="closeM('m-general-report')">✕</button>
+  <p class="hs-p" style="margin-bottom:12px">Pełny przegląd wyników za wybrany okres: finanse, wzorce sprzedaży, menu, rentowność, zespół i kontrola — z wykresami, gotowy do wysłania zarządowi.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div class="fg" style="flex:1;min-width:130px"><label>Od miesiąca</label><input type="month" class="fi" id="gr-from"></div>
+    <div class="fg" style="flex:1;min-width:130px"><label>Do miesiąca</label><input type="month" class="fi" id="gr-to"></div>
+  </div>
+  <div id="gr-preview" class="hs-tip" style="margin-bottom:10px"></div>
+  <div class="fa">
+    <button class="btn btn-p" onclick="grRunFromModal()">📄 Generuj PDF</button>
+    <button class="btn btn-s" onclick="closeM('m-general-report')">Anuluj</button>
+  </div>
+</div></div>
+
 <!-- SPRZEDAŻ PRACOWNIKA: KONFLIKT ZAPISU MODAL -->
 <div class="moverlay" id="m-emp-conflict">
 <div class="modal">
@@ -11131,6 +11148,7 @@ function renderExport(){
   h+=eCard('📋','PDF — Dzień po dniu','Pełne zestawienie dzienne','pdfDailyDetailReport()');
   h+=eCard('🧭','PDF — Analiza zaawansowana','Kwadranty + Odchylenia','pdfAdvancedReport()');
   h+=eCard('✉️','E-mail — Podsumowanie','Gotowy tekst do wysłania (bez wysyłki automatycznej)','openEmailSummary()');
+  h+=eCard('📘','Raport generalny','Pełny przegląd za okres — dla zarządu','openGeneralReport()');
   h+='</div>';
 
   // ── RAPORT PDF: HEATMAPA + REKORDY ──
@@ -12120,6 +12138,581 @@ var PDF_STYLE={
   statusLine:[205,215,232], footerText:[120,130,150], footerLine:[205,215,232],
   good:[0,140,60], warn:[185,110,0], bad:[190,20,45], accentBox:[240,245,255]
 };
+
+// Renderuje wykres Chart.js na odłączonym płótnie i zwraca obrazek do wstawienia w PDF.
+// Animacje wyłączone, więc rysowanie jest synchroniczne i można od razu odczytać dataURL.
+/* ═══════════════════════════════════════════
+   RAPORT GENERALNY — kompletny przegląd dla zarządu, PDF za wybrany okres.
+   Zbiera dane ze WSZYSTKICH źródeł w aplikacji; sekcje bez danych są pomijane,
+   a na końcu raport informuje, na czym się opierał (kompletność danych).
+═══════════════════════════════════════════ */
+function openGeneralReport(){
+  if(!S.pid){toast('Wybierz obiekt','er');return}
+  var f=document.getElementById('gr-from'),t=document.getElementById('gr-to');
+  if(f&&t){
+    var m=currentRealMonth();
+    if(!f.value)f.value=prevM(prevM(m));
+    if(!t.value)t.value=m;
+    f.onchange=t.onchange=grUpdatePreview;
+  }
+  grUpdatePreview();
+  openM('m-general-report');
+}
+function grUpdatePreview(){
+  var box=document.getElementById('gr-preview');if(!box)return;
+  var f=document.getElementById('gr-from').value,t=document.getElementById('gr-to').value;
+  if(!f||!t){box.textContent='Wybierz zakres miesięcy.';return}
+  if(f>t){var x=f;f=t;t=x}
+  var months=msalesMonthsInRange(f,t);
+  var src=[];
+  if(months.some(function(m){return getMD(S.pid,m)}))src.push('miesięczne');
+  if(months.some(function(m){var d=getDailyData(S.pid,m);return d&&d.days&&Object.keys(d.days).length}))src.push('dzienne');
+  if(months.some(function(m){return getMenuSales(S.pid,m)}))src.push('sprzedaż menu');
+  if(months.some(function(m){return getAllMenuEngKeys(S.pid).some(function(k){return k.month===m})}))src.push('Menu Engineering');
+  if(months.some(function(m){return getAllEmployeeSalesKeys(S.pid).some(function(k){return k.month===m})}))src.push('sprzedaż pracowników');
+  if(months.some(function(m){return getPerfReport(S.pid,m)}))src.push('raport okresowy');
+  box.innerHTML=months.length+' mies. · dostępne dane: '+(src.length?'<strong>'+src.join(', ')+'</strong>':'<span style="color:var(--warn)">brak danych w tym okresie</span>');
+}
+function grRunFromModal(){
+  var f=document.getElementById('gr-from').value,t=document.getElementById('gr-to').value;
+  if(!f||!t){toast('Wybierz zakres miesięcy','er');return}
+  closeM('m-general-report');
+  setTimeout(function(){grGenerate(f,t)},60);
+}
+function grGenerate(fromMonth,toMonth){
+  if(!S.pid||!S.outlets.length){toast('Brak obiektu lub outletów','er');return}
+  if(fromMonth>toMonth){var t=fromMonth;fromMonth=toMonth;toMonth=t}
+  toast('Generuję raport...','in');
+  var D=grCollect(S.pid,fromMonth,toMonth);
+  if(!D.totals.a&&!D.sources.daily&&!D.sources.msales){toast('Brak danych w wybranym okresie','er');return}
+  var prop=S.props.find(function(x){return x.id===S.pid});
+  var propName=dePL(prop?prop.name:'Obiekt');
+  var period=mLabelX(fromMonth)+(fromMonth!==toMonth?' - '+mLabelX(toMonth):'');
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=210,ph=297,M=12,y=0,sec=0;
+
+  function newPage(){doc.addPage();pdfDrawHeader(doc,pw,'Raport generalny: '+period,propName);y=30}
+  function need(h){if(y+h>ph-16)newPage()}
+  function section(title){
+    sec++;
+    need(20);
+    doc.setFillColor.apply(doc,PDF_STYLE.headerBg);doc.rect(M,y,pw-2*M,8,'F');
+    doc.setTextColor.apply(doc,PDF_STYLE.headerText);doc.setFontSize(10);doc.setFont('helvetica','bold');
+    doc.text(sec+'. '+dePL(title),M+3,y+5.6);
+    y+=12;
+    doc.setTextColor.apply(doc,PDF_STYLE.bodyText);doc.setFont('helvetica','normal');doc.setFontSize(9);
+  }
+  function para(txt,size){
+    doc.setFontSize(size||8.5);doc.setTextColor.apply(doc,PDF_STYLE.bodyText);doc.setFont('helvetica','normal');
+    var lines=doc.splitTextToSize(dePL(txt),pw-2*M);
+    need(lines.length*4+3);
+    doc.text(lines,M,y);y+=lines.length*4+3;
+  }
+  function table(head,body,opts){
+    if(!body.length)return;
+    need(24);
+    doc.autoTable(Object.assign({
+      startY:y,head:[head],body:body,theme:'grid',margin:{left:M,right:M},
+      headStyles:{fillColor:PDF_STYLE.headerBg,textColor:PDF_STYLE.headerText,fontStyle:'bold',fontSize:7.5},
+      bodyStyles:{textColor:PDF_STYLE.bodyText,fontSize:7.2},
+      alternateRowStyles:{fillColor:PDF_STYLE.altRow}
+    },opts||{}));
+    y=doc.lastAutoTable.finalY+6;
+  }
+  function chart(img,h){
+    if(!img)return;
+    h=h||58;
+    need(h+4);
+    doc.addImage(img,'PNG',M,y,pw-2*M,h);
+    y+=h+5;
+  }
+  var noAxis={plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:13}}},y:{ticks:{font:{size:13}}}}};
+
+  /* ── STRONA TYTUŁOWA ── */
+  doc.setFillColor.apply(doc,PDF_STYLE.headerBg);doc.rect(0,0,pw,68,'F');
+  doc.setTextColor.apply(doc,PDF_STYLE.headerText);
+  doc.setFontSize(26);doc.setFont('helvetica','bold');doc.text('RAPORT GENERALNY',M,30);
+  doc.setFontSize(13);doc.setFont('helvetica','normal');doc.text(propName,M,42);
+  doc.setFontSize(11);doc.setTextColor.apply(doc,PDF_STYLE.headerSub);
+  doc.text('Okres: '+period,M,52);
+  doc.text('Wygenerowano: '+new Date().toLocaleDateString('pl-PL')+' '+new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),M,60);
+  y=80;
+
+  /* ── 1. PODSUMOWANIE WYKONAWCZE ── */
+  section('Podsumowanie wykonawcze');
+  var T=D.totals,realPct=T.b>0?T.a/T.b*100:null;
+  var kpis=[['Sprzedaz netto',fmt(round2(T.a),true)]];
+  if(T.b>0){kpis.push(['Budzet',fmt(round2(T.b),true)]);kpis.push(['Realizacja',realPct.toFixed(1)+'%'])}
+  if(D.perf.bills>0){
+    kpis.push(['Rachunki',fmtN(D.perf.bills)]);
+    kpis.push(['Sr. rachunek',fmt(round2(D.perf.billsValue/D.perf.bills),true)]);
+  }
+  if(D.guests.found)kpis.push(['Goscie hotelowi',fmtN(D.guests.breakfast)]);
+  var mengAll={netSale:0,cost:0,foodNetSale:0,foodCost:0,bevNetSale:0,bevCost:0};
+  Object.keys(D.meng).forEach(function(id){
+    var t=D.meng[id].t;
+    mengAll.netSale+=t.netSale;mengAll.cost+=t.cost;
+    mengAll.foodNetSale+=t.foodNetSale;mengAll.foodCost+=t.foodCost;
+    mengAll.bevNetSale+=t.bevNetSale;mengAll.bevCost+=t.bevCost;
+  });
+  if(mengAll.foodNetSale>0)kpis.push(['Food cost',(mengAll.foodCost/mengAll.foodNetSale*100).toFixed(1)+'%']);
+  if(mengAll.bevNetSale>0)kpis.push(['Beverage cost',(mengAll.bevCost/mengAll.bevNetSale*100).toFixed(1)+'%']);
+  y=pdfDrawKpiBoxes(doc,kpis,y,pw,3)+4;
+
+  // Automatyczne wnioski
+  var findings=[];
+  if(realPct!==null)findings.push(realPct>=100?('Budzet okresu wykonany w '+realPct.toFixed(1)+'%.'):('Realizacja budzetu: '+realPct.toFixed(1)+'% - brakuje '+fmt(round2(T.b-T.a),true)+'.'));
+  if(D.outlets.length){
+    var best=D.outlets[0];
+    findings.push('Najwiekszy punkt: '+dePL(best.name)+' - '+fmt(round2(best.a),true)+' ('+best.share.toFixed(1)+'% obrotu).');
+    var under=D.outlets.filter(function(o){return o.pct!==null&&o.pct<85});
+    if(under.length)findings.push('Ponizej 85% budzetu: '+under.map(function(o){return dePL(o.name)+' ('+o.pct.toFixed(0)+'%)'}).join(', ')+'.');
+  }
+  if(mengAll.foodNetSale>0&&(mengAll.foodCost/mengAll.foodNetSale*100)>35)findings.push('Food cost powyzej 35% - warto przejrzec receptury i ceny.');
+  if(D.perf.billsValue>0){
+    var vp=D.perf.voidsValue/D.perf.billsValue*100;
+    if(vp>=2)findings.push('Storna stanowia '+vp.toFixed(2)+'% obrotu - powyzej progu 2%.');
+  }
+  if(D.guests.found&&D.guests.breakfast>0)findings.push('Sprzedaz na goscia hotelowego: '+fmt(round2(T.a/D.guests.breakfast),true)+'.');
+  if(findings.length){
+    para('Kluczowe obserwacje:',9);
+    findings.forEach(function(f){para('- '+f)});
+  }
+
+  /* ── 2. SPRZEDAZ VS BUDZET ── */
+  if(D.outlets.length){
+    section('Sprzedaz vs budzet');
+    var withB=D.outlets.filter(function(o){return o.b>0});
+    if(withB.length){
+      chart(pdfChartImage('bar',{
+        labels:withB.map(function(o){return dePL(o.name)}),
+        datasets:[
+          {label:'Sprzedaz',data:withB.map(function(o){return round2(o.a)}),backgroundColor:'#2f6fd0'},
+          {label:'Budzet',data:withB.map(function(o){return round2(o.b)}),backgroundColor:'#c9ccd4'}
+        ]},{plugins:{legend:{display:true,labels:{font:{size:13}}}},scales:{x:{ticks:{font:{size:12}}},y:{ticks:{font:{size:12}}}}},1000,380),62);
+    }
+    table(['Punkt','Sprzedaz','Budzet','Realizacja','Udzial'],
+      D.outlets.map(function(o){return [dePL(o.name),fmt(round2(o.a),true),o.b>0?fmt(round2(o.b),true):'-',
+        o.pct!==null?o.pct.toFixed(1)+'%':'-',o.share.toFixed(1)+'%']}).concat([[
+        'RAZEM',fmt(round2(T.a),true),T.b>0?fmt(round2(T.b),true):'-',realPct!==null?realPct.toFixed(1)+'%':'-','100%']]),
+      {columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}}});
+  }
+
+  /* ── 3. RANKING I UDZIAL PUNKTOW ── */
+  if(D.outlets.length>1){
+    section('Ranking i udzial punktow');
+    chart(pdfChartImage('doughnut',{
+      labels:D.outlets.map(function(o){return dePL(o.name)}),
+      datasets:[{data:D.outlets.map(function(o){return round2(o.a)}),backgroundColor:D.outlets.map(function(o,i){return GR_PALETTE[i%GR_PALETTE.length]})}]
+    },{plugins:{legend:{position:'right',labels:{font:{size:13}}}}},900,380),60);
+  }
+
+  /* ── 4. TREND MIESIECZNY ── */
+  if(D.months.length>1&&D.sources.monthly){
+    section('Trend miesieczny');
+    var mTot=D.months.map(function(m){
+      var sum=0;D.outlets.forEach(function(o){sum+=(o.months[m]&&o.months[m].a)||0});return round2(sum);
+    });
+    chart(pdfChartImage('line',{
+      labels:D.months.map(mLabel),
+      datasets:[{label:'Sprzedaz',data:mTot,borderColor:'#2f6fd0',backgroundColor:'rgba(47,111,208,.15)',fill:true,tension:.3,pointRadius:4}]
+    },noAxis,1000,340),56);
+    var rows=D.months.map(function(m,i){
+      var chg=i>0&&mTot[i-1]>0?((mTot[i]-mTot[i-1])/mTot[i-1]*100):null;
+      return [mLabelX(m),fmt(mTot[i],true),chg===null?'-':((chg>=0?'+':'')+chg.toFixed(1)+'%')];
+    });
+    table(['Miesiac','Sprzedaz','Zmiana m/m'],rows,{columnStyles:{1:{halign:'right'},2:{halign:'right'}}});
+  }
+  /* ── 5. WZORCE DNIA TYGODNIA I WPLYW POGODY ── */
+  if(D.daily.length>=7){
+    section('Wzorce sprzedazy: dzien tygodnia i pogoda');
+    var dow=patternByDow(D.daily);
+    var dowRows=dow.rows.filter(function(r){return r.avg!==null});
+    if(dowRows.length){
+      chart(pdfChartImage('bar',{
+        labels:dowRows.map(function(r){return dePL(r.name)}),
+        datasets:[{label:'Srednia',data:dowRows.map(function(r){return r.avg}),
+          backgroundColor:dowRows.map(function(r){return r.idx>=110?'#22a55c':r.idx<=90?'#c9344a':'#2f6fd0'})}]
+      },noAxis,1000,340),54);
+      table(['Dzien','Srednia sprzedaz','Indeks','Dni w probie'],
+        dowRows.map(function(r){return [dePL(r.name),fmt(r.avg,true),r.idx===null?'-':r.idx.toFixed(0),String(r.n)]}),
+        {columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'}}});
+      para('Indeks 100 = przecietny dzien w okresie. Probe stanowi '+dow.total+' dni, srednia dzienna '+fmt(dow.overallAvg,true)+'.');
+    }
+    var wx=patternByWeather(D.daily);
+    if(wx.length){
+      table(['Pogoda','Srednia sprzedaz','Indeks','Dni'],
+        wx.map(function(r){return [dePL(r.cat),fmt(r.avg,true),r.idx===null?'-':r.idx.toFixed(0),String(r.n)]}),
+        {columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'}}});
+      para('Wplyw pogody liczony tylko dla dni z zapisanymi danymi pogodowymi. Przy malej liczbie dni w kategorii wynik traktuj ostroznie.');
+    }
+  }
+
+  /* ── 6. REKORDY SPRZEDAZY ── */
+  if(D.daily.length){
+    section('Rekordy sprzedazy');
+    var top=D.daily.slice().sort(function(a,b){return b.value-a.value}).slice(0,5);
+    table(['Data','Dzien','Sprzedaz'],top.map(function(d){
+      return [String(d.day).padStart(2,'0')+'.'+d.month.split('-')[1]+'.'+d.month.split('-')[0],DOW_SHORT[d.dow],fmt(round2(d.value),true)];
+    }),{columnStyles:{2:{halign:'right'}}});
+    // Top 3 dni per punkt
+    var perRows=[];
+    S.outlets.forEach(function(o){
+      var arr=D.daily.filter(function(d){return d.per[o.id]>0})
+        .map(function(d){return {day:d.day,month:d.month,v:d.per[o.id]}})
+        .sort(function(a,b){return b.v-a.v}).slice(0,3);
+      arr.forEach(function(r,i){
+        perRows.push([i===0?dePL(o.name):'',String(i+1),
+          String(r.day).padStart(2,'0')+'.'+r.month.split('-')[1],fmt(round2(r.v),true)]);
+      });
+    });
+    if(perRows.length){
+      para('Najlepsze 3 dni w kazdym punkcie:',9);
+      table(['Punkt','#','Data','Sprzedaz'],perRows,{columnStyles:{3:{halign:'right'}}});
+    }
+  }
+
+  /* ── 7. GRUPY TOWAROWE ── */
+  var catList=Object.keys(D.cats).map(function(c){return {name:c,qty:D.cats[c].qty,netto:round2(D.cats[c].netto)}})
+    .sort(function(a,b){return b.netto-a.netto});
+  if(catList.length){
+    section('Sprzedaz w grupach towarowych');
+    var topCats=catList.slice(0,12);
+    chart(pdfChartImage('bar',{
+      labels:topCats.map(function(c){return dePL(c.name)}),
+      datasets:[{label:'Netto',data:topCats.map(function(c){return c.netto}),backgroundColor:'#2f6fd0'}]
+    },{plugins:{legend:{display:false}},indexAxis:'y',scales:{x:{ticks:{font:{size:12}}},y:{ticks:{font:{size:12}}}}},1000,420),68);
+    var catTot=catList.reduce(function(a,c){return a+c.netto},0);
+    table(['Grupa towarowa','Ilosc','Netto','Udzial'],catList.slice(0,20).map(function(c){
+      return [dePL(c.name),fmtN(c.qty),fmt(c.netto,true),catTot>0?(c.netto/catTot*100).toFixed(1)+'%':'-'];
+    }),{columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'}}});
+  }
+
+  /* ── 8. BESTSELLERY ── */
+  var bsIds=Object.keys(D.bestsellers);
+  if(bsIds.length){
+    section('Top 20 bestsellerow w punktach');
+    bsIds.forEach(function(id){
+      var b=D.bestsellers[id];
+      need(30);
+      doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.setTextColor.apply(doc,PDF_STYLE.bodyText);
+      doc.text(dePL(b.name),M,y);y+=4;
+      doc.setFont('helvetica','normal');
+      table(['#','Pozycja','Ilosc','Netto'],b.items.slice(0,20).map(function(it,i){
+        return [String(i+1),dePL(it.name),fmtN(it.qty),fmt(it.netto,true)];
+      }),{columnStyles:{0:{halign:'right',cellWidth:8},2:{halign:'right'},3:{halign:'right'}}});
+    });
+  }
+
+  /* ── 9. RENTOWNOSC ── */
+  var mengIds=Object.keys(D.meng);
+  if(mengIds.length){
+    section('Rentownosc: food cost i beverage cost');
+    table(['Punkt','Sprzedaz netto','Koszt','Marza','Food cost','Bev cost','FC+BC'],
+      mengIds.map(function(id){
+        var t=D.meng[id].t;
+        var fc=t.foodNetSale>0?(t.foodCost/t.foodNetSale*100).toFixed(1)+'%':'-';
+        var bc=t.bevNetSale>0?(t.bevCost/t.bevNetSale*100).toFixed(1)+'%':'-';
+        var fb=(t.foodNetSale+t.bevNetSale)>0?(((t.foodCost+t.bevCost)/(t.foodNetSale+t.bevNetSale))*100).toFixed(1)+'%':'-';
+        return [dePL(D.meng[id].name),fmt(round2(t.netSale),true),fmt(round2(t.cost),true),
+          fmt(round2(t.netSale-t.cost),true),fc,bc,fb];
+      }),{columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'}}});
+    var qKeys=Object.keys(D.quadrants).filter(function(q){return q&&q!=='—'});
+    if(qKeys.length){
+      para('Klasyfikacja pozycji menu (macierz Menu Engineering):',9);
+      var qTot=qKeys.reduce(function(a,q){return a+D.quadrants[q].netto},0);
+      table(['Kwadrant','Liczba pozycji','Sprzedaz netto','Udzial'],qKeys.map(function(q){
+        return [dePL(q),String(D.quadrants[q].n),fmt(round2(D.quadrants[q].netto),true),
+          qTot>0?(D.quadrants[q].netto/qTot*100).toFixed(1)+'%':'-'];
+      }),{columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'}}});
+    }
+  }
+
+  /* ── 10. GOSCIE HOTELOWI ── */
+  if(D.guests.found&&D.guests.breakfast>0){
+    section('Goscie hotelowi i wykorzystanie punktow');
+    var noDin=Math.max(0,D.guests.breakfast-D.guests.dinner);
+    para('Liczba gosci szacowana na podstawie rozliczonych sniadan - to wartosci ogolnohotelowe, nie couverty restauracji.');
+    table(['Wskaznik','Wartosc'],[
+      ['Goscie (sniadania)',fmtN(D.guests.breakfast)],
+      ['Kolacje w pakiecie',fmtN(D.guests.dinner)],
+      ['Goscie bez kolacji w pakiecie',fmtN(noDin)],
+      ['Sprzedaz na goscia (lacznie)',fmt(round2(T.a/D.guests.breakfast),true)]
+    ],{columnStyles:{1:{halign:'right'}}});
+    table(['Punkt','Sprzedaz netto','Na goscia'],D.outlets.map(function(o){
+      return [dePL(o.name),fmt(round2(o.a),true),fmt(round2(o.a/D.guests.breakfast),true)];
+    }),{columnStyles:{1:{halign:'right'},2:{halign:'right'}}});
+  }
+
+  /* ── 11. ZESPOL SPRZEDAZOWY ── */
+  var empRows=Object.keys(D.emp).map(function(k){
+    var e=D.emp[k];
+    return {name:e.name,outletName:e.outletName,netto:round2(e.netto),qty:e.qty,
+      margin:e.hasMargin?round2(e.margin):null,attach:e.mains>0?round2(e.extras/e.mains):null};
+  }).sort(function(a,b){return b.netto-a.netto});
+  if(empRows.length){
+    section('Zespol sprzedazowy');
+    var topE=empRows.slice(0,15);
+    chart(pdfChartImage('bar',{
+      labels:topE.slice(0,10).map(function(e){return dePL(e.name)}),
+      datasets:[{label:'Netto',data:topE.slice(0,10).map(function(e){return e.netto}),backgroundColor:'#22a55c'}]
+    },{plugins:{legend:{display:false}},indexAxis:'y',scales:{x:{ticks:{font:{size:12}}},y:{ticks:{font:{size:12}}}}},1000,380),62);
+    table(['#','Pracownik','Punkt','Sprzedaz netto','Marza','Dosprzedaz'],topE.map(function(e,i){
+      return [String(i+1),dePL(e.name),dePL(e.outletName),fmt(e.netto,true),
+        e.margin===null?'-':fmt(e.margin,true),e.attach===null?'-':e.attach.toFixed(2)];
+    }),{columnStyles:{0:{halign:'right',cellWidth:8},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'}}});
+    para('Marza liczona przez polaczenie sprzedanych ilosci z danymi Menu Engineering. Dosprzedaz = liczba dodatkow (desery, kawy, koktajle) na jedno danie glowne.');
+  }
+
+  /* ── 12. RACHUNKI, RABATY, PLATNOSCI ── */
+  if(D.perf.bills>0){
+    section('Rachunki, rabaty i formy platnosci');
+    var avgAll=D.perf.billsValue/D.perf.bills;
+    table(['Wskaznik','Wartosc'],[
+      ['Liczba rachunkow',fmtN(D.perf.bills)],
+      ['Wartosc rachunkow',fmt(round2(D.perf.billsValue),true)],
+      ['Sredni rachunek',fmt(round2(avgAll),true)],
+      ['Serwisy',fmt(round2(D.perf.serviceValue),true)+' ('+fmtN(D.perf.service)+' szt.)'],
+      ['Storna',fmt(round2(D.perf.voidsValue),true)+' ('+fmtN(D.perf.voids)+' szt., '+(D.perf.billsValue>0?(D.perf.voidsValue/D.perf.billsValue*100).toFixed(2):'0')+'% obrotu)'],
+      ['Rabaty',fmt(round2(D.perf.discounts),true)+(D.perf.billsValue>0?' ('+(D.perf.discounts/D.perf.billsValue*100).toFixed(2)+'% obrotu)':'')]
+    ],{columnStyles:{1:{halign:'right'}}});
+
+    var obNames=Object.keys(D.perf.byOutlet);
+    if(obNames.length){
+      para('Rachunki w podziale na punkty:',9);
+      table(['Punkt','Rachunki','Wartosc','Sr. rachunek','Storna','Rabaty'],obNames.map(function(n){
+        var o=D.perf.byOutlet[n];
+        return [dePL(n),fmtN(o.bills),fmt(round2(o.billsValue),true),
+          o.bills>0?fmt(round2(o.billsValue/o.bills),true):'-',
+          fmt(round2(o.voidsValue),true),fmt(round2(o.discounts),true)];
+      }),{columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'}}});
+    }
+    var pmKeys=Object.keys(D.perf.payments).sort(function(a,b){return D.perf.payments[b]-D.perf.payments[a]});
+    if(pmKeys.length){
+      var pmTot=pmKeys.reduce(function(a,k){return a+D.perf.payments[k]},0);
+      chart(pdfChartImage('doughnut',{
+        labels:pmKeys.map(dePL),
+        datasets:[{data:pmKeys.map(function(k){return round2(D.perf.payments[k])}),
+          backgroundColor:pmKeys.map(function(k,i){return GR_PALETTE[i%GR_PALETTE.length]})}]
+      },{plugins:{legend:{position:'right',labels:{font:{size:13}}}}},900,340),54);
+      table(['Forma platnosci','Liczba','Wartosc','Udzial'],pmKeys.map(function(k){
+        return [dePL(k),fmtN(D.perf.paymentCounts[k]||0),fmt(round2(D.perf.payments[k]),true),
+          pmTot>0?(D.perf.payments[k]/pmTot*100).toFixed(1)+'%':'-'];
+      }),{columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'}}});
+    }
+    var discRows=Object.keys(D.perf.byEmp).map(function(k){return D.perf.byEmp[k]})
+      .filter(function(e){return e.discounts>0}).sort(function(a,b){return b.discounts-a.discounts}).slice(0,15);
+    if(discRows.length){
+      para('Rabaty udzielone przez pracownikow (top 15):',9);
+      table(['Pracownik','Punkt','Rabaty','Obrot','% obrotu'],discRows.map(function(e){
+        var pct=e.billsValue>0?(e.discounts/e.billsValue*100).toFixed(2)+'%':'-';
+        var exempt=isDiscExempt(S.pid,e.outletName);
+        return [dePL(e.name),dePL(e.outletName),fmt(round2(e.discounts),true),fmt(round2(e.billsValue),true),pct+(exempt?' *':'')];
+      }),{columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}}});
+      para('* Punkt wylaczony z ostrzezen - rabat wynika z rozliczenia posilkow w pakiecie, nie z uznaniowej obnizki.');
+    }
+  }
+
+  /* ── 13. KONTEKST: NOTATKI ── */
+  if(D.notes.length){
+    section('Notatki do dni');
+    para('Wyjasnienia zapisane przy konkretnych dniach - pomagaja zinterpretowac odchylenia w sprzedazy.');
+    table(['Data','Notatka'],D.notes.sort(function(a,b){
+      return a.month===b.month?a.day-b.day:a.month.localeCompare(b.month);
+    }).slice(0,40).map(function(n){
+      return [String(n.day).padStart(2,'0')+'.'+n.month.split('-')[1]+'.'+n.month.split('-')[0],dePL(n.text)];
+    }),{columnStyles:{0:{cellWidth:22}}});
+  }
+
+  /* ── 14. ZRODLA I KOMPLETNOSC DANYCH ── */
+  section('Zrodla i kompletnosc danych');
+  para('Raport opiera sie na danych wprowadzonych do aplikacji. Ponizej wykaz zrodel wykorzystanych w tym okresie:');
+  var srcRows=[
+    ['Dane miesieczne (sprzedaz, budzet)',D.sources.monthly?'TAK':'BRAK'],
+    ['Dane dzienne (wzorce, pogoda, rekordy)',D.sources.daily?'TAK ('+D.daily.length+' dni)':'BRAK'],
+    ['Sprzedaz pozycji menu',D.sources.msales?'TAK':'BRAK'],
+    ['Menu Engineering (koszty, marze)',D.sources.meng?'TAK':'BRAK'],
+    ['Sprzedaz uzytkownikow (pracownicy)',D.sources.emp?'TAK':'BRAK'],
+    ['Raport okresowy (rachunki, platnosci)',D.sources.perf?'TAK':'BRAK'],
+    ['Liczba gosci hotelowych',D.guests.found?'TAK':'BRAK']
+  ];
+  table(['Zrodlo danych','Dostepne w okresie'],srcRows,{columnStyles:{1:{halign:'center'}}});
+  var missing=srcRows.filter(function(r){return r[1]==='BRAK'});
+  if(missing.length)para('Sekcje oparte na brakujacych zrodlach zostaly pominiete. Uzupelnij dane, aby raport byl kompletny.');
+
+  // stopka na wszystkich stronach
+  var total=doc.internal.getNumberOfPages();
+  for(var pi=1;pi<=total;pi++){
+    doc.setPage(pi);
+    if(pi>1)pdfDrawFooter(doc,pw,ph,'Strona '+pi+' z '+total);
+    else pdfDrawFooter(doc,pw,ph,'');
+  }
+  doc.save('RaportGeneralny_'+fromMonth+(fromMonth!==toMonth?'_'+toMonth:'')+'.pdf');
+  toast('Raport generalny zapisany','ok');
+}
+
+function grCollect(pid,fromMonth,toMonth){
+  var months=msalesMonthsInRange(fromMonth,toMonth);
+  var D={months:months,outlets:[],totals:{a:0,b:0},daily:[],notes:[],sources:{}};
+
+  // 1) Wyniki miesięczne per outlet (autorytatywne wartości sprzedaży)
+  var byOutlet={};
+  S.outlets.forEach(function(o){byOutlet[o.id]={id:o.id,name:o.name,a:0,b:0,months:{}}});
+  months.forEach(function(m){
+    var md=getMD(pid,m);
+    if(!md)return;
+    D.sources.monthly=true;
+    S.outlets.forEach(function(o){
+      var k=okey(o.name);
+      var a=Number(md.a&&md.a[k])||0,b=Number(md.b&&md.b[k])||0;
+      byOutlet[o.id].a+=a;byOutlet[o.id].b+=b;
+      byOutlet[o.id].months[m]={a:a,b:b};
+      D.totals.a+=a;D.totals.b+=b;
+    });
+  });
+  D.outlets=S.outlets.map(function(o){
+    var r=byOutlet[o.id];
+    r.pct=r.b>0?r.a/r.b*100:null;
+    r.share=D.totals.a>0?r.a/D.totals.a*100:0;
+    return r;
+  }).filter(function(r){return r.a>0||r.b>0});
+  D.outlets.sort(function(x,y){return y.a-x.a});
+
+  // 2) Dane dzienne (wzorce, pogoda, rekordy, notatki)
+  months.forEach(function(m){
+    var dd=getDailyData(pid,m);
+    if(!dd||!dd.days)return;
+    D.sources.daily=true;
+    Object.keys(dd.days).forEach(function(dayStr){
+      var day=+dayStr,vals=dd.days[dayStr],tot=0,per={};
+      S.outlets.forEach(function(o){var v=Number(vals[okey(o.name)])||0;if(v>0){per[o.id]=v;tot+=v}});
+      if(tot<=0)return;
+      var parts=m.split('-'),dt=new Date(+parts[0],+parts[1]-1,day);
+      D.daily.push({month:m,day:day,dow:dt.getDay(),value:tot,per:per,weather:(dd.weather&&dd.weather[dayStr])||null});
+    });
+    if(dd.notes)Object.keys(dd.notes).forEach(function(dayStr){
+      D.notes.push({month:m,day:+dayStr,text:dd.notes[dayStr]});
+    });
+  });
+
+  // 3) Sprzedaż pozycji menu — grupy towarowe i bestsellery
+  D.cats={};D.bestsellers={};
+  months.forEach(function(m){
+    if(!getMenuSales(pid,m))return;
+    D.sources.msales=true;
+    var cm=msalesCategoryMap(pid,m,'__all__');
+    Object.keys(cm).forEach(function(c){
+      if(!D.cats[c])D.cats[c]={qty:0,netto:0};
+      D.cats[c].qty+=cm[c].qty;D.cats[c].netto+=cm[c].netto;
+    });
+  });
+  S.outlets.forEach(function(o){
+    var agg={};
+    months.forEach(function(m){
+      if(!getMenuSales(pid,m))return;
+      var im=msalesItemMap(pid,m,o.id);
+      Object.keys(im).forEach(function(n){
+        if(!agg[n])agg[n]={qty:0,netto:0};
+        agg[n].qty+=im[n].qty;agg[n].netto+=im[n].netto;
+      });
+    });
+    var list=Object.keys(agg).map(function(n){return {name:n,qty:agg[n].qty,netto:round2(agg[n].netto)}})
+      .sort(function(a,b){return b.netto-a.netto});
+    if(list.length)D.bestsellers[o.id]={name:o.name,items:list};
+  });
+
+  // 4) Menu Engineering — food cost, beverage cost, marża, kwadranty
+  D.meng={};D.quadrants={};
+  S.outlets.forEach(function(o){
+    var t=mengComputeRangeTotals(pid,o.id,months);
+    if(t&&t.monthsFound>0){
+      D.sources.meng=true;
+      D.meng[o.id]={name:o.name,t:t};
+    }
+    months.forEach(function(m){
+      var d=getMenuEng(pid,o.id,m);
+      if(!d||!d.items)return;
+      d.items.forEach(function(it){
+        var q=(it.quadrant||'—');
+        if(!D.quadrants[q])D.quadrants[q]={n:0,netto:0};
+        D.quadrants[q].n++;D.quadrants[q].netto+=(it.netSale||0);
+      });
+    });
+  });
+
+  // 5) Sprzedaż pracowników
+  D.emp={};
+  months.forEach(function(m){
+    getAllEmployeeSalesKeys(pid).filter(function(k){return k.month===m}).forEach(function(k){
+      var d=getEmployeeSales(pid,k.outletId,m);
+      if(!d||!d.employees)return;
+      D.sources.emp=true;
+      var oName=d.outletName||k.outletId;
+      var mm=empMarginMap(pid,k.outletId,m);
+      d.employees.forEach(function(e){
+        var key=e.name+'|'+oName;
+        if(!D.emp[key])D.emp[key]={name:e.name,outletName:oName,netto:0,qty:0,margin:0,hasMargin:false,mains:0,extras:0};
+        var a=D.emp[key];
+        e.items.forEach(function(it){
+          a.netto+=it.netto;a.qty+=it.qty;
+          if(mm){var mu=mm[srNorm(it.name)];if(mu!==undefined){a.margin+=mu*it.qty;a.hasMargin=true}}
+          var c=it.category||'';
+          if(EMP_ATTACH_MAIN.test(c))a.mains+=it.qty;
+          else if(EMP_ATTACH_EXTRA.test(c))a.extras+=it.qty;
+        });
+      });
+    });
+  });
+
+  // 6) Raport okresowy — rachunki, rabaty, płatności, storna
+  D.perf={bills:0,billsValue:0,voids:0,voidsValue:0,discounts:0,service:0,serviceValue:0,
+    payments:{},paymentCounts:{},byOutlet:{},byEmp:{}};
+  months.forEach(function(m){
+    var d=getPerfReport(pid,m);
+    if(!d)return;
+    D.sources.perf=true;
+    d.outlets.forEach(function(o){
+      var ob=D.perf.byOutlet[o.outletName]||(D.perf.byOutlet[o.outletName]={bills:0,billsValue:0,voids:0,voidsValue:0,discounts:0,payments:{}});
+      ob.bills+=o.totals.bills;ob.billsValue+=o.totals.billsValue;
+      ob.voids+=o.totals.voids;ob.voidsValue+=o.totals.voidsValue;ob.discounts+=o.totals.discounts;
+      Object.keys(o.totals.payments).forEach(function(pm){
+        ob.payments[pm]=(ob.payments[pm]||0)+o.totals.payments[pm];
+        D.perf.payments[pm]=(D.perf.payments[pm]||0)+o.totals.payments[pm];
+        D.perf.paymentCounts[pm]=(D.perf.paymentCounts[pm]||0)+(o.totals.paymentCounts[pm]||0);
+      });
+      D.perf.bills+=o.totals.bills;D.perf.billsValue+=o.totals.billsValue;
+      D.perf.voids+=o.totals.voids;D.perf.voidsValue+=o.totals.voidsValue;
+      D.perf.discounts+=o.totals.discounts;
+      D.perf.service+=o.totals.service;D.perf.serviceValue+=o.totals.serviceValue;
+      o.employees.forEach(function(e){
+        var k=e.name+'|'+o.outletName;
+        var eb=D.perf.byEmp[k]||(D.perf.byEmp[k]={name:e.name,outletName:o.outletName,bills:0,billsValue:0,discounts:0,voidsValue:0});
+        eb.bills+=e.bills;eb.billsValue+=e.billsValue;eb.discounts+=e.discounts;eb.voidsValue+=e.voidsValue;
+      });
+    });
+  });
+
+  // 7) Goście hotelowi
+  D.guests={breakfast:0,dinner:0,found:false};
+  months.forEach(function(m){
+    var g=guestCounts(pid,m);
+    if(g.found){D.guests.found=true;D.guests.breakfast+=g.breakfast;D.guests.dinner+=g.dinner}
+  });
+  return D;
+}
+
+function pdfChartImage(type,data,options,w,h){
+  try{
+    var cv=document.createElement('canvas');
+    cv.width=w||900;cv.height=h||360;
+    var opts=Object.assign({responsive:false,animation:{duration:0},devicePixelRatio:2},options||{});
+    var ch=new Chart(cv,{type:type,data:data,options:opts});
+    var img=cv.toDataURL('image/png');
+    ch.destroy();
+    return img;
+  }catch(e){console.error('pdfChartImage',e);return null}
+}
+var GR_PALETTE=['#2f6fd0','#22a55c','#e08a12','#c9344a','#8b5cf6','#0d9aa8','#d1478f','#6a9c1f','#e2601c','#0f8a7e','#7048c4','#b8940f'];
 
 function pdfDrawHeader(doc,pw,subtitle,rightText){
   doc.setFillColor.apply(doc,PDF_STYLE.headerBg);doc.rect(0,0,pw,22,'F');
