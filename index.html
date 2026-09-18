@@ -121,7 +121,7 @@ input,select,textarea{font-family:var(--fb)}
 }
 #main{margin-left:220px;flex:1;padding:16px;min-height:100vh;min-width:0}
 
-/* Desktop rail: fixed icon column, animated details and compact vertical layout. */
+/* Desktop rail: arrow-controlled state, clickable icons and animated layout. */
 @media(min-width:769px){
   #sidebar{height:100vh;height:100dvh;min-height:0;overflow-x:hidden;
     transition:width .52s cubic-bezier(.22,.61,.36,1),box-shadow .52s ease}
@@ -129,7 +129,6 @@ input,select,textarea{font-family:var(--fb)}
   #main{transition:margin-left .52s cubic-bezier(.22,.61,.36,1)}
   body.sidebar-rail #sidebar{width:64px}
   body.sidebar-rail #main{margin-left:64px}
-  body.sidebar-rail #sidebar:is(:hover,.keyboard-open){width:220px;box-shadow:6px 0 30px rgba(0,0,0,.22);z-index:201}
   #sidebar .s-logo{position:relative;padding-top:54px;max-height:180px;overflow:hidden}
   #sidebar .sb-toggle{position:absolute;left:18px;top:14px;display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--sur);border:1px solid var(--brd2);border-radius:8px;color:var(--tx3);cursor:pointer}
   #sidebar .sb-toggle svg{width:14px;height:14px;transition:transform .52s ease}
@@ -146,10 +145,10 @@ input,select,textarea{font-family:var(--fb)}
   #sidebar .nav-i svg{width:20px;height:20px;flex:0 0 20px}
   #sidebar .nav-label{flex:0 0 auto;transition:opacity .28s ease}
   body.sidebar-rail #sidebar .nav-group.collapsed{display:block}
-  body.sidebar-rail #sidebar:not(:hover):not(.keyboard-open) .s-logo{max-height:62px;padding:54px 16px 8px;border-bottom-width:0}
-  body.sidebar-rail #sidebar:not(:hover):not(.keyboard-open) :is(.s-user,.s-sel,.s-bottom,.s-sect){max-height:0;padding-top:0;padding-bottom:0;margin-top:0;margin-bottom:0;border-width:0;opacity:0;visibility:hidden;pointer-events:none}
-  body.sidebar-rail #sidebar:not(:hover):not(.keyboard-open) :is(.nav-label,.s-logo h1,.s-logo>span,.s-ver){opacity:0;visibility:hidden;pointer-events:none}
-  body.sidebar-rail #sidebar:not(:hover):not(.keyboard-open) #nav-group-mgmt{border-top:1px solid var(--brd);margin-top:8px;padding-top:8px}
+  body.sidebar-rail #sidebar .s-logo{max-height:62px;padding:54px 16px 8px;border-bottom-width:0}
+  body.sidebar-rail #sidebar :is(.s-user,.s-sel,.s-bottom,.s-sect){max-height:0;padding-top:0;padding-bottom:0;margin-top:0;margin-bottom:0;border-width:0;opacity:0;visibility:hidden;pointer-events:none}
+  body.sidebar-rail #sidebar :is(.nav-label,.s-logo h1,.s-logo>span,.s-ver){opacity:0;visibility:hidden;pointer-events:none}
+  body.sidebar-rail #sidebar #nav-group-mgmt{border-top:1px solid var(--brd);margin-top:8px;padding-top:8px}
 }
 @media(max-width:768px){.sb-toggle{display:none}}
 @media(prefers-reduced-motion:reduce){#sidebar,#sidebar *,#main{transition:none!important}}
@@ -5587,8 +5586,18 @@ function openSidebar(){document.getElementById('sidebar').classList.add('open');
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('on')}
 
 // Panel boczny zwijany do szyny ikon (tylko desktop) — stan zapamiętywany między sesjami.
+function syncSidebarToggle(){
+  var expanded=!document.body.classList.contains('sidebar-rail');
+  var button=document.getElementById('sb-toggle');
+  if(!button)return;
+  button.setAttribute('aria-expanded',String(expanded));
+  button.setAttribute('aria-controls','sidebar');
+  button.title=expanded?'Zwiń panel boczny':'Rozwiń panel boczny';
+  button.setAttribute('aria-label',button.title);
+}
 function toggleSidebarRail(){
   var on=document.body.classList.toggle('sidebar-rail');
+  syncSidebarToggle();
   try{localStorage.setItem('hm-sidebar-rail',on?'1':'0')}catch(e){}
 }
 (function initSidebarRail(){
@@ -5599,9 +5608,7 @@ function toggleSidebarRail(){
     item.setAttribute('tabindex','0');item.setAttribute('role','button');
     item.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();item.click()}});
   });
-  sidebar.addEventListener('keyup',function(e){if(e.key==='Tab')sidebar.classList.add('keyboard-open')});
-  sidebar.addEventListener('focusout',function(e){if(!sidebar.contains(e.relatedTarget))sidebar.classList.remove('keyboard-open')});
-  sidebar.addEventListener('pointerdown',function(){sidebar.classList.remove('keyboard-open')});
+  syncSidebarToggle();
 })();
 
 /* ═══════════════════════════════════════════
