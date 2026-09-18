@@ -121,54 +121,38 @@ input,select,textarea{font-family:var(--fb)}
 }
 #main{margin-left:220px;flex:1;padding:16px;min-height:100vh;min-width:0}
 
-/* ── PANEL BOCZNY ZWIJANY DO SZYNY IKON (tylko desktop) ──
-   Zwinięty: #sidebar trzyma stałą wąską szerokość w layoucie (#main ma stały margines,
-   więc reszta strony się nie przesuwa). Najechanie myszką POWIĘKSZA sam panel (position:fixed,
-   więc nakłada się na treść, nie wypycha jej) z powrotem do pełnej, obecnej formy.
-   Animacja szerokości jest spokojna (~380ms), z osobnym, szybszym przenikaniem tekstu,
-   żeby etykiety nie "rozjeżdżały się" widocznie podczas zmiany szerokości. */
+/* Desktop rail: fixed icon column, animated details and compact vertical layout. */
 @media(min-width:769px){
-  #sidebar{transition:width .38s cubic-bezier(.22,.61,.36,1),box-shadow .38s ease;overflow-x:hidden}
+  #sidebar{height:100vh;height:100dvh;min-height:0;overflow-x:hidden;
+    transition:width .52s cubic-bezier(.22,.61,.36,1),box-shadow .52s ease}
+  #sidebar>*{flex-shrink:0}
+  #main{transition:margin-left .52s cubic-bezier(.22,.61,.36,1)}
   body.sidebar-rail #sidebar{width:64px}
   body.sidebar-rail #main{margin-left:64px}
-  body.sidebar-rail #sidebar:hover{width:220px;box-shadow:6px 0 30px rgba(0,0,0,.35);z-index:201}
-
-  body.sidebar-rail #sidebar .s-user,
-  body.sidebar-rail #sidebar .s-sel,
-  body.sidebar-rail #sidebar .s-sect span,
-  body.sidebar-rail #sidebar .s-sect-arr,
-  body.sidebar-rail #sidebar .nav-label,
-  body.sidebar-rail #sidebar .s-bottom,
-  body.sidebar-rail #sidebar .s-logo h1,
-  body.sidebar-rail #sidebar .s-logo span,
-  body.sidebar-rail #sidebar .s-ver{
-    opacity:0;transition:opacity .15s ease;pointer-events:none;
-  }
-  body.sidebar-rail #sidebar:hover .s-user,
-  body.sidebar-rail #sidebar:hover .s-sel,
-  body.sidebar-rail #sidebar:hover .s-sect span,
-  body.sidebar-rail #sidebar:hover .s-sect-arr,
-  body.sidebar-rail #sidebar:hover .nav-label,
-  body.sidebar-rail #sidebar:hover .s-bottom,
-  body.sidebar-rail #sidebar:hover .s-logo h1,
-  body.sidebar-rail #sidebar:hover .s-logo span,
-  body.sidebar-rail #sidebar:hover .s-ver{
-    opacity:1;transition:opacity .3s ease .12s;pointer-events:auto;
-  }
-
-  /* W szynie zawsze widać wszystkie ikony głównych opcji — niezależnie od tego, czy dana
-     sekcja była wcześniej ręcznie zwinięta w pełnym widoku panelu. */
-  body.sidebar-rail #sidebar:not(:hover) .nav-group.collapsed{display:flex!important;flex-direction:column}
-  body.sidebar-rail #sidebar:not(:hover) .nav-i{justify-content:center;padding-left:0;padding-right:0}
-  body.sidebar-rail #sidebar:not(:hover) .s-sect{padding-left:0;padding-right:0;justify-content:center;cursor:default;pointer-events:none}
-
-  .sb-toggle{display:flex;align-items:center;justify-content:center;width:26px;height:26px;margin-bottom:8px;
-    background:none;border:1px solid var(--brd2);border-radius:7px;color:var(--tx3);transition:all .15s;flex-shrink:0}
-  .sb-toggle:hover{color:var(--acc);border-color:var(--acc)}
-  .sb-toggle svg{width:14px;height:14px;transition:transform .3s ease}
+  body.sidebar-rail #sidebar:is(:hover,.keyboard-open){width:220px;box-shadow:6px 0 30px rgba(0,0,0,.22);z-index:201}
+  #sidebar .s-logo{position:relative;padding-top:54px;max-height:180px;overflow:hidden}
+  #sidebar .sb-toggle{position:absolute;left:18px;top:14px;display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--sur);border:1px solid var(--brd2);border-radius:8px;color:var(--tx3);cursor:pointer}
+  #sidebar .sb-toggle svg{width:14px;height:14px;transition:transform .52s ease}
   body.sidebar-rail .sb-toggle svg{transform:rotate(180deg)}
+  #sidebar .s-user,#sidebar .s-sel,#sidebar .s-bottom,#sidebar .s-sect,#sidebar .s-logo{
+    transition:max-height .52s cubic-bezier(.22,.61,.36,1),padding .52s ease,margin .52s ease,opacity .3s ease,border-width .52s ease}
+  #sidebar .s-user{max-height:100px;overflow:hidden}
+  #sidebar .s-sel{max-height:85px;overflow:hidden}
+  #sidebar .s-bottom{max-height:650px;overflow:hidden}
+  #sidebar .s-bottom>div:last-child{height:12px!important}
+  #sidebar .s-sect{max-height:40px;overflow:hidden}
+  #sidebar .nav-group{flex-shrink:0;padding:3px 0}
+  #sidebar .nav-i{position:relative;justify-content:flex-start;box-sizing:border-box;width:calc(100% - 16px);height:40px;margin:4px 8px;padding:0 14px;border:0;border-radius:10px;gap:14px;overflow:hidden;white-space:nowrap}
+  #sidebar .nav-i svg{width:20px;height:20px;flex:0 0 20px}
+  #sidebar .nav-label{flex:0 0 auto;transition:opacity .28s ease}
+  body.sidebar-rail #sidebar .nav-group.collapsed{display:block}
+  body.sidebar-rail #sidebar:not(:hover):not(.keyboard-open) .s-logo{max-height:62px;padding:54px 16px 8px;border-bottom-width:0}
+  body.sidebar-rail #sidebar:not(:hover):not(.keyboard-open) :is(.s-user,.s-sel,.s-bottom,.s-sect){max-height:0;padding-top:0;padding-bottom:0;margin-top:0;margin-bottom:0;border-width:0;opacity:0;visibility:hidden;pointer-events:none}
+  body.sidebar-rail #sidebar:not(:hover):not(.keyboard-open) :is(.nav-label,.s-logo h1,.s-logo>span,.s-ver){opacity:0;visibility:hidden;pointer-events:none}
+  body.sidebar-rail #sidebar:not(:hover):not(.keyboard-open) #nav-group-mgmt{border-top:1px solid var(--brd);margin-top:8px;padding-top:8px}
 }
 @media(max-width:768px){.sb-toggle{display:none}}
+@media(prefers-reduced-motion:reduce){#sidebar,#sidebar *,#main{transition:none!important}}
 
 /* Mobile: sidebar hidden, bottom nav shown */
 @media(max-width:768px){
@@ -5608,7 +5592,16 @@ function toggleSidebarRail(){
   try{localStorage.setItem('hm-sidebar-rail',on?'1':'0')}catch(e){}
 }
 (function initSidebarRail(){
-  try{if(localStorage.getItem('hm-sidebar-rail')==='1')document.body.classList.add('sidebar-rail')}catch(e){}
+  try{if(localStorage.getItem('hm-sidebar-rail')!=='0')document.body.classList.add('sidebar-rail')}catch(e){document.body.classList.add('sidebar-rail')}
+  var sidebar=document.getElementById('sidebar');
+  sidebar.querySelectorAll('.nav-i').forEach(function(item){
+    var label=item.textContent.trim();item.setAttribute('aria-label',label);item.setAttribute('title',label);
+    item.setAttribute('tabindex','0');item.setAttribute('role','button');
+    item.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();item.click()}});
+  });
+  sidebar.addEventListener('keyup',function(e){if(e.key==='Tab')sidebar.classList.add('keyboard-open')});
+  sidebar.addEventListener('focusout',function(e){if(!sidebar.contains(e.relatedTarget))sidebar.classList.remove('keyboard-open')});
+  sidebar.addEventListener('pointerdown',function(){sidebar.classList.remove('keyboard-open')});
 })();
 
 /* ═══════════════════════════════════════════
