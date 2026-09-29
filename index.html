@@ -121,37 +121,60 @@ input,select,textarea{font-family:var(--fb)}
 }
 #main{margin-left:220px;flex:1;padding:16px;min-height:100vh;min-width:0}
 
-/* Desktop rail: arrow-controlled state, clickable icons and animated layout. */
+/* ── PANEL BOCZNY ZWIJANY DO SZYNY IKON (tylko desktop) ──
+   Zwinięty: #sidebar trzyma stałą wąską szerokość w layoucie (#main ma stały margines,
+   więc reszta strony się nie przesuwa). Najechanie myszką POWIĘKSZA sam panel (position:fixed,
+   więc nakłada się na treść, nie wypycha jej) z powrotem do pełnej, obecnej formy.
+   WAŻNE: elementy tekstowe (selektory, nagłówki sekcji, blok dolny) chowane są przez
+   display:none — nie samą opacity — inaczej niewidoczne bloki wciąż rezerwują swoją
+   wysokość i zostawiają wielką pustą przestrzeń nad ikonami zamiast czystej szyny.
+   Jedyny element z płynnym przenikaniem tekstu to etykieta przy ikonie (nav-label),
+   bo to ona ma się "wysuwać" obok ikony przy najechaniu — reszta pojawia się/znika
+   razem ze zmianą szerokości panelu, zsynchronizowana z tą samą animacją. */
 @media(min-width:769px){
-  #sidebar{height:100vh;height:100dvh;min-height:0;overflow-x:hidden;
-    transition:width .52s cubic-bezier(.22,.61,.36,1),box-shadow .52s ease}
-  #sidebar>*{flex-shrink:0}
-  #main{transition:margin-left .52s cubic-bezier(.22,.61,.36,1)}
-  body.sidebar-rail #sidebar{width:64px}
-  body.sidebar-rail #main{margin-left:64px}
-  #sidebar .s-logo{position:relative;padding-top:54px;max-height:180px;overflow:hidden}
-  #sidebar .sb-toggle{position:absolute;left:18px;top:14px;display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--sur);border:1px solid var(--brd2);border-radius:8px;color:var(--tx3);cursor:pointer}
-  #sidebar .sb-toggle svg{width:14px;height:14px;transition:transform .52s ease}
+  #sidebar{transition:width .38s cubic-bezier(.22,.61,.36,1),box-shadow .38s ease;overflow-x:hidden}
+  body.sidebar-rail #sidebar{width:72px}
+  body.sidebar-rail #main{margin-left:72px}
+  body.sidebar-rail #sidebar:hover{width:220px;box-shadow:8px 0 32px rgba(0,0,0,.35);z-index:201}
+
+  body.sidebar-rail #sidebar .s-user,
+  body.sidebar-rail #sidebar .s-sel,
+  body.sidebar-rail #sidebar .s-sect,
+  body.sidebar-rail #sidebar .s-bottom,
+  body.sidebar-rail #sidebar .s-logo h1,
+  body.sidebar-rail #sidebar .s-logo span,
+  body.sidebar-rail #sidebar .s-ver{
+    display:none;
+  }
+  body.sidebar-rail #sidebar:hover .s-user{display:flex}
+  body.sidebar-rail #sidebar:hover .s-sel{display:block}
+  body.sidebar-rail #sidebar:hover .s-sect{display:flex}
+  body.sidebar-rail #sidebar:hover .s-bottom{display:block}
+  body.sidebar-rail #sidebar:hover .s-logo h1{display:block}
+  body.sidebar-rail #sidebar:hover .s-logo span{display:block}
+  body.sidebar-rail #sidebar:hover .s-ver{display:inline-flex}
+
+  /* Etykieta przy ikonie: jedyny element z osobnym, płynnym przenikaniem (szerokość+przezroczystość),
+     żeby wysuwała się obok ikony, zamiast wyskakiwać naraz. */
+  body.sidebar-rail #sidebar .nav-label{display:inline-block;opacity:0;width:0;overflow:hidden;white-space:nowrap;transition:opacity .15s ease,width .15s ease}
+  body.sidebar-rail #sidebar:hover .nav-label{opacity:1;width:auto;transition:opacity .28s ease .12s,width .28s ease .12s}
+
+  /* Wyśrodkuj ikony w wąskiej szynie; w rozwiniętej formie wracają do zwykłego układu. */
+  body.sidebar-rail #sidebar:not(:hover) .nav-i{justify-content:center;padding-left:0;padding-right:0;gap:0}
+  body.sidebar-rail #sidebar:not(:hover) .s-logo{display:flex;justify-content:center;padding:16px 0 12px}
+
+  /* W szynie zawsze widać wszystkie ikony głównych opcji — niezależnie od tego, czy dana
+     sekcja była wcześniej ręcznie zwinięta w pełnym widoku panelu. Po najechaniu panel
+     wraca do dokładnie tej formy, jaką miał wcześniej (w tym zwinięte sekcje). */
+  body.sidebar-rail #sidebar:not(:hover) .nav-group.collapsed{display:flex!important;flex-direction:column}
+
+  .sb-toggle{display:flex;align-items:center;justify-content:center;width:26px;height:26px;margin-bottom:8px;
+    background:none;border:1px solid var(--brd2);border-radius:7px;color:var(--tx3);transition:all .15s;flex-shrink:0}
+  .sb-toggle:hover{color:var(--acc);border-color:var(--acc)}
+  .sb-toggle svg{width:14px;height:14px;transition:transform .3s ease}
   body.sidebar-rail .sb-toggle svg{transform:rotate(180deg)}
-  #sidebar .s-user,#sidebar .s-sel,#sidebar .s-bottom,#sidebar .s-sect,#sidebar .s-logo{
-    transition:max-height .52s cubic-bezier(.22,.61,.36,1),padding .52s ease,margin .52s ease,opacity .3s ease,border-width .52s ease}
-  #sidebar .s-user{max-height:100px;overflow:hidden}
-  #sidebar .s-sel{max-height:85px;overflow:hidden}
-  #sidebar .s-bottom{max-height:650px;overflow:hidden}
-  #sidebar .s-bottom>div:last-child{height:12px!important}
-  #sidebar .s-sect{max-height:40px;overflow:hidden}
-  #sidebar .nav-group{flex-shrink:0;padding:3px 0}
-  #sidebar .nav-i{position:relative;justify-content:flex-start;box-sizing:border-box;width:calc(100% - 16px);height:40px;margin:4px 8px;padding:0 14px;border:0;border-radius:10px;gap:14px;overflow:hidden;white-space:nowrap}
-  #sidebar .nav-i svg{width:20px;height:20px;flex:0 0 20px}
-  #sidebar .nav-label{flex:0 0 auto;transition:opacity .28s ease}
-  body.sidebar-rail #sidebar .nav-group.collapsed{display:block}
-  body.sidebar-rail #sidebar .s-logo{max-height:62px;padding:54px 16px 8px;border-bottom-width:0}
-  body.sidebar-rail #sidebar :is(.s-user,.s-sel,.s-bottom,.s-sect){max-height:0;padding-top:0;padding-bottom:0;margin-top:0;margin-bottom:0;border-width:0;opacity:0;visibility:hidden;pointer-events:none}
-  body.sidebar-rail #sidebar :is(.nav-label,.s-logo h1,.s-logo>span,.s-ver){opacity:0;visibility:hidden;pointer-events:none}
-  body.sidebar-rail #sidebar #nav-group-mgmt{border-top:1px solid var(--brd);margin-top:8px;padding-top:8px}
 }
 @media(max-width:768px){.sb-toggle{display:none}}
-@media(prefers-reduced-motion:reduce){#sidebar,#sidebar *,#main{transition:none!important}}
 
 /* Mobile: sidebar hidden, bottom nav shown */
 @media(max-width:768px){
@@ -4819,46 +4842,27 @@ function toggleOutletActive(key){
 ═══════════════════════════════════════════ */
 function uk(suffix){return 'hm-'+(S.uid||'anon')+'-'+suffix}
 function lsGet(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
-// Zapis z obsługą przepełnienia pamięci przeglądarki (limit zwykle 5 MB).
-// Zwraca true/false — wywołujący może zareagować. Przy przepełnieniu próbuje zwolnić miejsce,
-// usuwając NAJSTARSZE ciężkie dane (Sprzedaż menu / Menu Engineering / Sprzedaż pracownika),
-// ale TYLKO gdy użytkownik jest zalogowany — wtedy dane są bezpieczne w chmurze i wrócą przy
-// następnej synchronizacji. Bez logowania nic nie kasujemy (to byłaby trwała utrata danych).
+// Sprzedaż menu / Menu Engineering / Sprzedaż pracownika / Raport okresowy — czyli dane,
+// które realnie rosną z każdym wgranym miesiącem — mieszkają w IndexedDB (patrz hvGet/hvSet
+// niżej), nie w localStorage, właśnie po to, żeby quota przeglądarki (~5-10 MB) nigdy nie
+// zmuszała do kasowania najstarszych miesięcy. To, co zostaje w localStorage (ustawienia,
+// małe mapy, budżety, notatki, dziennik zmian), jest na tyle małe, że przepełnienie jest
+// tu już praktycznie niespotykane — stąd prosta obsługa błędu, bez prób zwalniania miejsca.
 function lsIsQuotaError(e){
   return e&&(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED'||e.code===22||e.code===1014);
 }
 var _lsQuotaWarned=false;
-function lsEvictOldest(protectKey){
-  if(!S.uid)return false; // brak chmury = brak bezpiecznej kopii, nie kasujemy
-  var heavy=[];
-  Object.keys(localStorage).forEach(function(k){
-    if(k===protectKey)return;
-    if(!/-(msales|meng|emp)-/.test(k))return;
-    var m=k.match(/(\d{4}-\d{2})$/);
-    if(m)heavy.push({key:k,month:m[1]});
-  });
-  if(!heavy.length)return false;
-  heavy.sort(function(a,b){return a.month.localeCompare(b.month)});
-  var freed=0,toFree=Math.max(3,Math.ceil(heavy.length*0.15));
-  for(var i=0;i<heavy.length&&freed<toFree;i++){
-    try{localStorage.removeItem(heavy[i].key);freed++}catch(e){}
-  }
-  return freed>0;
-}
 function lsSet(k,v){
   var payload;
   try{payload=JSON.stringify(v)}catch(e){return false}
   try{localStorage.setItem(k,payload);return true}
   catch(e){
     if(!lsIsQuotaError(e))return false;
-    if(lsEvictOldest(k)){
-      try{localStorage.setItem(k,payload);return true}catch(e2){}
-    }
     if(!_lsQuotaWarned){
       _lsQuotaWarned=true;
       setTimeout(function(){
         _lsQuotaWarned=false;
-        toast(S.uid?'⚠️ Pamięć przeglądarki pełna — starsze dane usunięto lokalnie (są bezpieczne w chmurze)':'⚠️ Pamięć przeglądarki pełna — zaloguj się, aby zapisywać dane w chmurze','er');
+        toast('⚠️ Pamięć przeglądarki pełna — nie udało się zapisać. Odśwież stronę; jeśli problem wróci, napisz o tym.','er');
       },50);
     }
     return false;
@@ -4963,26 +4967,26 @@ function getAllMD(pid){
 }
 
 // ── SPRZEDAŻ POZYCJI MENU (karta "Sprzedaż menu" w zakładce Wprowadź dane) ──
-function getMenuSales(pid,month){return lsGet(uk('msales-'+pid+'-'+month),null)}
+function getMenuSales(pid,month){return hvGet(uk('msales-'+pid+'-'+month))}
 function saveMenuSales(pid,month,d){
   d.ts=Date.now();
-  var okLocal=lsSet(uk('msales-'+pid+'-'+month),d);
+  var okLocal=hvSet(uk('msales-'+pid+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuSales').doc(month),d);
   logAudit(pid,'msales','Sprzedaż menu za '+mLabel(month));
   return okLocal;
 }
 function delMenuSales(pid,month){
-  lsDel(uk('msales-'+pid+'-'+month));
+  hvDel(uk('msales-'+pid+'-'+month));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/menuSales').doc(month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
   logAudit(pid,'msales_del','Sprzedaż menu usunięta: '+mLabel(month));
 }
 function getAllMenuSalesMonths(pid){
   var prefix=uk('msales-'+pid+'-');
-  return Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).map(function(k){return k.slice(prefix.length)}).sort().reverse();
+  return hvKeysWithPrefix(prefix).map(function(k){return k.slice(prefix.length)}).sort().reverse();
 }
 function getAllMenuSalesMap(pid){
   var prefix=uk('msales-'+pid+'-'),r={};
-  Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).forEach(function(k){r[k.slice(prefix.length)]=true});
+  hvKeysWithPrefix(prefix).forEach(function(k){r[k.slice(prefix.length)]=true});
   return r;
 }
 // Mapowanie "nazwa outletu z raportu" -> id outletu w aplikacji (per obiekt), zapamiętywane między wklejeniami.
@@ -4996,23 +5000,23 @@ function saveMsalesMap(pid,map){
 // Dane per outlet i miesiąc — w odróżnieniu od "Sprzedaż menu" (całościowy raport POS),
 // tu wgrywany jest plik XLSX z Material Control osobno dla KAŻDEGO outletu, więc można
 // liczyć Food cost/Beverage cost i rentowność per punkt sprzedaży.
-function getMenuEng(pid,outletId,month){return lsGet(uk('meng-'+pid+'-'+outletId+'-'+month),null)}
+function getMenuEng(pid,outletId,month){return hvGet(uk('meng-'+pid+'-'+outletId+'-'+month))}
 function saveMenuEng(pid,outletId,month,d){
   d.ts=Date.now();
-  var okLocal=lsSet(uk('meng-'+pid+'-'+outletId+'-'+month),d);
+  var okLocal=hvSet(uk('meng-'+pid+'-'+outletId+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/menuEngineering').doc(outletId+'_'+month),d);
   logAudit(pid,'meng','Menu Engineering: '+(d.outletName||outletId)+' — '+mLabel(month));
   return okLocal;
 }
 function delMenuEng(pid,outletId,month){
-  lsDel(uk('meng-'+pid+'-'+outletId+'-'+month));
+  hvDel(uk('meng-'+pid+'-'+outletId+'-'+month));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/menuEngineering').doc(outletId+'_'+month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
   logAudit(pid,'meng_del','Menu Engineering usunięte: '+outletId+' — '+mLabel(month));
 }
 // Zwraca listę {outletId,month} dla wszystkich zapisanych importów danego obiektu (posortowane malejąco wg miesiąca).
 function getAllMenuEngKeys(pid){
   var prefix=uk('meng-'+pid+'-');
-  return Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).map(function(k){
+  return hvKeysWithPrefix(prefix).map(function(k){
     var rest=k.slice(prefix.length),us=rest.lastIndexOf('-');
     // miesiąc to zawsze ostatnie 7 znaków w formacie YYYY-MM; outletId to reszta przed nim
     var month=rest.slice(-7),outletId=rest.slice(0,rest.length-8);
@@ -5036,27 +5040,27 @@ function empCacheClear(){_empCache={}}
 function getEmployeeSales(pid,outletId,month){
   var ck=pid+'|'+outletId+'|'+month;
   if(Object.prototype.hasOwnProperty.call(_empCache,ck))return _empCache[ck];
-  var v=lsGet(uk('emp-'+pid+'-'+outletId+'-'+month),null);
+  var v=hvGet(uk('emp-'+pid+'-'+outletId+'-'+month));
   _empCache[ck]=v;
   return v;
 }
 function saveEmployeeSales(pid,outletId,month,d){
   d.ts=Date.now();
   empCacheClear();
-  var okLocal=lsSet(uk('emp-'+pid+'-'+outletId+'-'+month),d);
+  var okLocal=hvSet(uk('emp-'+pid+'-'+outletId+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/employeeSales').doc(outletId+'_'+month),d);
   logAudit(pid,'empsales','Sprzedaż pracowników: '+(d.outletName||outletId)+' — '+mLabel(month));
   return okLocal;
 }
 function delEmployeeSales(pid,outletId,month){
   empCacheClear();
-  lsDel(uk('emp-'+pid+'-'+outletId+'-'+month));
+  hvDel(uk('emp-'+pid+'-'+outletId+'-'+month));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/employeeSales').doc(outletId+'_'+month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
   logAudit(pid,'empsales_del','Sprzedaż pracowników usunięta: '+outletId+' — '+mLabel(month));
 }
 function getAllEmployeeSalesKeys(pid){
   var prefix=uk('emp-'+pid+'-');
-  return Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)}).map(function(k){
+  return hvKeysWithPrefix(prefix).map(function(k){
     var rest=k.slice(prefix.length);
     var month=rest.slice(-7),outletId=rest.slice(0,rest.length-8);
     return {outletId:outletId,month:month};
@@ -5081,16 +5085,16 @@ function perfSanitize(d){
   d._cleaned=(before!==d.outlets.length);
   return d;
 }
-function getPerfReport(pid,month){return perfSanitize(lsGet(uk('perf-'+pid+'-'+month),null))}
+function getPerfReport(pid,month){return perfSanitize(hvGet(uk('perf-'+pid+'-'+month)))}
 function savePerfReport(pid,month,d){
   d.ts=Date.now();
-  var okLocal=lsSet(uk('perf-'+pid+'-'+month),d);
+  var okLocal=hvSet(uk('perf-'+pid+'-'+month),d);
   if(S.uid) fsWrite(db.collection('properties/'+pid+'/perfReports').doc(month),d);
   logAudit(pid,'perf','Raport okresowy za '+mLabel(month));
   return okLocal;
 }
 function delPerfReport(pid,month){
-  lsDel(uk('perf-'+pid+'-'+month));
+  hvDel(uk('perf-'+pid+'-'+month));
   if(S.uid){connBeginWrite();db.collection('properties/'+pid+'/perfReports').doc(month).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
   logAudit(pid,'perf_del','Raport okresowy usunięty: '+mLabel(month));
 }
@@ -5099,12 +5103,12 @@ function delPerfReport(pid,month){
 function perfCleanupStored(pid){
   var cleaned=0;
   getAllPerfMonths(pid).forEach(function(m){
-    var raw=lsGet(uk('perf-'+pid+'-'+m),null);
+    var raw=hvGet(uk('perf-'+pid+'-'+m));
     if(!raw||!raw.outlets)return;
     var before=raw.outlets.length;
     raw.outlets=raw.outlets.filter(function(o){return perfIsValidOutletName(o.outletName)});
     if(raw.outlets.length===before)return;
-    lsSet(uk('perf-'+pid+'-'+m),raw);
+    hvSet(uk('perf-'+pid+'-'+m),raw);
     if(S.uid)fsWrite(db.collection('properties/'+pid+'/perfReports').doc(m),raw);
     cleaned++;
   });
@@ -5112,8 +5116,7 @@ function perfCleanupStored(pid){
 }
 function getAllPerfMonths(pid){
   var prefix=uk('perf-'+pid+'-');
-  return Object.keys(localStorage).filter(function(k){return k.startsWith(prefix)})
-    .map(function(k){return k.slice(prefix.length)}).sort();
+  return hvKeysWithPrefix(prefix).map(function(k){return k.slice(prefix.length)}).sort();
 }
 // Kwoty występują w dwóch formatach naraz: "4272.00 zł" i "6550,50 zł".
 function perfNum(sRaw){
@@ -5208,6 +5211,108 @@ function parsePerfReport(raw){
 function getEmployeeSalesMonthsForOutlet(pid,outletId){
   return getAllEmployeeSalesKeys(pid).filter(function(k){return k.outletId===outletId}).map(function(k){return k.month});
 }
+
+/* ═══════════════════════════════════════════
+   MAGAZYN CIĘŻKICH DANYCH (IndexedDB) — Sprzedaż menu, Menu Engineering, Sprzedaż
+   pracownika, Raport okresowy. localStorage ma twardy limit ~5-10 MB; przy wieloletnich
+   danych sprzedażowych prowadziło to do cichego kasowania najstarszych miesięcy, gdy
+   zabrakło miejsca na nowy zapis (patrz dawny mechanizm lsEvictOldest). IndexedDB ma
+   limit liczony zwykle w setkach MB, więc przy realistycznych ilościach danych ten
+   problem przestaje istnieć.
+
+   WZORZEC: cała zawartość wczytywana jest RAZ do pamięci (_hv) przy starcie aplikacji
+   (hvBootstrap, wywoływane z showApp() przed startApp()). Dzięki temu hvGet() jest
+   nadal SYNCHRONICZNY — żadna z pozostałych funkcji w aplikacji (renderowanie, tabele,
+   eksporty) nie musi wiedzieć, że dane fizycznie leżą w IndexedDB, i nie wymaga zmian.
+   hvSet() też aktualizuje pamięć synchronicznie (UI reaguje natychmiast), a zapis na
+   dysk do IndexedDB dzieje się w tle — analogicznie do tego, jak już działają zapisy
+   do Firestore w tej aplikacji (fire-and-forget, z komunikatem błędu jeśli coś pójdzie
+   nie tak, a nie blokowaniem interfejsu na czas zapisu).
+═══════════════════════════════════════════ */
+var _hv={},_hvReady=false,_hvDb=null;
+var HV_DB_NAME='hotelmetrics-hv',HV_STORE='kv';
+function hvOpen(){
+  return new Promise(function(resolve,reject){
+    if(_hvDb){resolve(_hvDb);return}
+    if(!window.indexedDB){reject(new Error('IndexedDB niedostępne w tej przeglądarce'));return}
+    var req=indexedDB.open(HV_DB_NAME,1);
+    req.onupgradeneeded=function(e){
+      var db=e.target.result;
+      if(!db.objectStoreNames.contains(HV_STORE))db.createObjectStore(HV_STORE,{keyPath:'k'});
+    };
+    req.onsuccess=function(e){_hvDb=e.target.result;resolve(_hvDb)};
+    req.onerror=function(e){reject(e.target.error||new Error('Błąd otwarcia IndexedDB'))};
+  });
+}
+// Wczytuje WSZYSTKO z IndexedDB do pamięci RAM. Nigdy nie odrzuca obietnicy — brak
+// IndexedDB (bardzo stara przeglądarka, tryb prywatny w niektórych ustawieniach) nie
+// może zablokować uruchomienia aplikacji; dane po prostu żyją tylko w bieżącej sesji.
+function hvInit(){
+  return hvOpen().then(function(db){
+    return new Promise(function(resolve){
+      var tx=db.transaction(HV_STORE,'readonly'),store=tx.objectStore(HV_STORE);
+      var req=store.getAll();
+      req.onsuccess=function(){
+        (req.result||[]).forEach(function(row){_hv[row.k]=row.v});
+        resolve();
+      };
+      req.onerror=function(){resolve()};
+    });
+  }).catch(function(e){console.warn('IndexedDB niedostępne, dane ciężkie tylko w pamięci sesji:',e.message)})
+    .then(function(){_hvReady=true});
+}
+// Klucz danych "ciężkich" zawsze kończy się rokiem-miesiącem (np. ...-2026-08) — tak
+// odróżniamy właściwe dane od malutkich map/ustawień (msales-map-, meng-map-, aliasy,
+// ulubione, szkice), które zostają w localStorage jak dotychczas.
+function hvIsHeavyKey(k){return /-(msales|meng|emp|perf)-.*\d{4}-\d{2}$/.test(k)}
+// Migracja jednorazowa: przenosi istniejące dane z localStorage do IndexedDB, a dopiero
+// PO potwierdzeniu udanego zapisu w nowym miejscu czyści stare klucze — żeby awaria w
+// trakcie migracji nigdy nie skutkowała utratą danych (ani starych, ani nowych).
+function hvMigrateFromLocalStorage(){
+  if(localStorage.getItem('hm-hv-migrated-v1')==='1')return Promise.resolve();
+  var candidates=Object.keys(localStorage).filter(hvIsHeavyKey);
+  if(!candidates.length){try{localStorage.setItem('hm-hv-migrated-v1','1')}catch(e){}return Promise.resolve()}
+  return hvOpen().then(function(db){
+    return new Promise(function(resolve,reject){
+      var tx=db.transaction(HV_STORE,'readwrite'),store=tx.objectStore(HV_STORE);
+      candidates.forEach(function(k){
+        var raw=localStorage.getItem(k);
+        if(raw===null)return;
+        var val;try{val=JSON.parse(raw)}catch(e){return}
+        store.put({k:k,v:val});
+        _hv[k]=val;
+      });
+      tx.oncomplete=function(){
+        candidates.forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
+        try{localStorage.setItem('hm-hv-migrated-v1','1')}catch(e){}
+        resolve();
+      };
+      tx.onerror=function(){reject(tx.error||new Error('Błąd zapisu podczas migracji'))};
+    });
+  }).catch(function(e){
+    // Flagi migracji NIE ustawiamy — spróbujemy ponownie przy następnym uruchomieniu.
+    // Stare dane zostają nietknięte w localStorage, więc nic nie ginie.
+    console.warn('Migracja do IndexedDB nie powiodła się (spróbuję ponownie później):',e.message);
+  });
+}
+function hvBootstrap(){
+  return hvInit().then(hvMigrateFromLocalStorage).catch(function(e){console.warn('hvBootstrap',e)});
+}
+function hvGet(key){return Object.prototype.hasOwnProperty.call(_hv,key)?_hv[key]:null}
+function hvSet(key,value){
+  _hv[key]=value;
+  hvOpen().then(function(db){
+    var tx=db.transaction(HV_STORE,'readwrite');
+    tx.objectStore(HV_STORE).put({k:key,v:value});
+    tx.onerror=function(){toast('⚠️ Nie udało się zapisać na dysku — dane są tylko w bieżącej sesji przeglądarki','er')};
+  }).catch(function(){toast('⚠️ IndexedDB niedostępne — dane są tylko w bieżącej sesji przeglądarki','er')});
+  return true;
+}
+function hvDel(key){
+  delete _hv[key];
+  hvOpen().then(function(db){db.transaction(HV_STORE,'readwrite').objectStore(HV_STORE).delete(key)}).catch(function(){});
+}
+function hvKeysWithPrefix(prefix){return Object.keys(_hv).filter(function(k){return k.indexOf(prefix)===0})}
 
 // Mapowanie "nazwa outletu z pliku MC" -> id outletu w aplikacji, zapamiętywane między importami.
 function getMengMap(pid){return lsGet(uk('meng-map-'+pid),{})}
@@ -5411,21 +5516,21 @@ function loadUserDataFromFirestore(){
           if(d.id==='_outletMap'){var md=d.data();lsSet(uk('msales-map-'+p.id),(md&&md.map)||{});}
           else if(d.id==='_aliases'){var ad=d.data();lsSet(uk('msales-aliases-'+p.id),(ad&&ad.map)||{});}
           else if(d.id==='_favorites'){var fd=d.data();lsSet(uk('msales-favs-'+p.id),(fd&&fd.list)||[]);}
-          else lsSet(uk('msales-'+p.id+'-'+d.id),d.data());
+          else hvSet(uk('msales-'+p.id+'-'+d.id),d.data());
         });
       });
       var t7=db.collection('properties/'+p.id+'/menuEngineering').get().then(function(s){
         s.docs.forEach(function(d){
           if(d.id==='_outletMap'){var md=d.data();lsSet(uk('meng-map-'+p.id),(md&&md.map)||{});}
-          else lsSet(uk('meng-'+p.id+'-'+d.id.replace('_','-')),d.data());
+          else hvSet(uk('meng-'+p.id+'-'+d.id.replace('_','-')),d.data());
         });
       });
       var t8=db.collection('properties/'+p.id+'/employeeSales').get().then(function(s){
-        s.docs.forEach(function(d){lsSet(uk('emp-'+p.id+'-'+d.id.replace('_','-')),d.data())});
+        s.docs.forEach(function(d){hvSet(uk('emp-'+p.id+'-'+d.id.replace('_','-')),d.data())});
         empCacheClear();
       });
       var t9=db.collection('properties/'+p.id+'/perfReports').get().then(function(s){
-        s.docs.forEach(function(d){lsSet(uk('perf-'+p.id+'-'+d.id),d.data())});
+        s.docs.forEach(function(d){hvSet(uk('perf-'+p.id+'-'+d.id),d.data())});
       });
       return Promise.all([t1,t2,t3,t4,t5,t6,t7,t8,t9]);
     });
@@ -5586,29 +5691,12 @@ function openSidebar(){document.getElementById('sidebar').classList.add('open');
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('on')}
 
 // Panel boczny zwijany do szyny ikon (tylko desktop) — stan zapamiętywany między sesjami.
-function syncSidebarToggle(){
-  var expanded=!document.body.classList.contains('sidebar-rail');
-  var button=document.getElementById('sb-toggle');
-  if(!button)return;
-  button.setAttribute('aria-expanded',String(expanded));
-  button.setAttribute('aria-controls','sidebar');
-  button.title=expanded?'Zwiń panel boczny':'Rozwiń panel boczny';
-  button.setAttribute('aria-label',button.title);
-}
 function toggleSidebarRail(){
   var on=document.body.classList.toggle('sidebar-rail');
-  syncSidebarToggle();
   try{localStorage.setItem('hm-sidebar-rail',on?'1':'0')}catch(e){}
 }
 (function initSidebarRail(){
-  try{if(localStorage.getItem('hm-sidebar-rail')!=='0')document.body.classList.add('sidebar-rail')}catch(e){document.body.classList.add('sidebar-rail')}
-  var sidebar=document.getElementById('sidebar');
-  sidebar.querySelectorAll('.nav-i').forEach(function(item){
-    var label=item.textContent.trim();item.setAttribute('aria-label',label);item.setAttribute('title',label);
-    item.setAttribute('tabindex','0');item.setAttribute('role','button');
-    item.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();item.click()}});
-  });
-  syncSidebarToggle();
+  try{if(localStorage.getItem('hm-sidebar-rail')==='1')document.body.classList.add('sidebar-rail')}catch(e){}
 })();
 
 /* ═══════════════════════════════════════════
@@ -14370,9 +14458,13 @@ function showApp(user){
   // Hide login, show app
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').style.display='flex';
-  // Migruj stare dane (jednorazowo), potem załaduj wszystkie współdzielone obiekty
+  // Wczytaj dane ciężkie z IndexedDB (i jednorazowo zmigruj z localStorage, jeśli trzeba),
+  // ZANIM zacznie się pobieranie z Firestore i renderowanie — inaczej pierwsze odczyty
+  // (np. lista zapisanych miesięcy) trafiłyby na pustą pamięć.
   showAuthLoading('Ładowanie danych...');
-  migrateLegacyData().then(function(){
+  hvBootstrap().then(function(){
+    return migrateLegacyData();
+  }).then(function(){
     return loadUserDataFromFirestore();
   }).then(function(){
     setConnStatus('online');
