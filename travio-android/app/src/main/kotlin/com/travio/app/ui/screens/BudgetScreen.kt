@@ -19,15 +19,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -164,7 +162,6 @@ private fun AddExpenseDialog(onDismiss: () -> Unit, onConfirm: (String, String, 
     var label by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("food") }
-    var expanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -180,24 +177,15 @@ private fun AddExpenseDialog(onDismiss: () -> Unit, onConfirm: (String, String, 
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(10.dp))
-                ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-                    OutlinedTextField(
-                        value = ItemCategory.fromKey(category).label,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Kategoria") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    androidx.compose.material3.ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                        listOf("food", "landmark", "transport", "other").forEach { key ->
-                            DropdownMenuItem(
-                                text = { Text(ItemCategory.fromKey(key).label) },
-                                onClick = { category = key; expanded = false }
-                            )
-                        }
+                Text("Kategoria", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("food", "landmark", "transport", "other").forEach { key ->
+                        FilterChip(
+                            selected = category == key,
+                            onClick = { category = key },
+                            label = { Text(ItemCategory.fromKey(key).label) }
+                        )
                     }
                 }
             }

@@ -5,23 +5,13 @@ podstawie wybranego kierunku wizualnego "B. Map-First Explorer": mapa jako ekran
 jasny i ciemny motyw z przełącznikiem w aplikacji (Więcej → Wygląd aplikacji), plan dnia,
 budżet z licznikiem wydatków i ciekawostki o mieście.
 
-## Ważne: dlaczego dostajesz projekt źródłowy, a nie gotowy plik .apk
+## Build
 
-Zbudowałem tę aplikację od zera i naprawdę spróbowałem skompilować ją tutaj, w moim
-środowisku. Nie udało się — i to nie jest kwestia braku czasu, tylko twardego ograniczenia
-sieciowego, które sam sprawdziłem bezpośrednio:
-
-- Mam dostęp do Gradle, Javy 21 i Maven Central (skąd pobierane są np. Retrofit, OkHttp, Gson,
-  OSMDroid — te wszystkie działają).
-- **Nie mam dostępu do `dl.google.com`** — a to jedyne źródło całego ekosystemu AndroidX/Jetpack
-  (Compose, Material 3, Navigation, DataStore, a nawet sam wtyczki Android Gradle Plugin).
-  Sprawdziłem to wprost: `maven.google.com` (z którego korzysta Gradle) przy każdej faktycznej
-  próbie pobrania pliku **przekierowuje na `dl.google.com`**, które moje środowisko blokuje.
-  Próbowałem też znaleźć alternatywne lustra (GitHub, Maven Central) — żadne z nich nie hostuje
-  AndroidX/Compose, więc nie dało się tego obejść.
-
-To ograniczenie samego środowiska, w którym pracuję, a nie błąd w kodzie aplikacji. U Ciebie,
-z normalnym dostępem do internetu, projekt zbuduje się i uruchomi bez żadnych zmian.
+Projekt jest zweryfikowany: po otwarciu dostępu sieciowego do `dl.google.com` (domyślnie
+zablokowanego w tym środowisku) zbudował się tu od zera poleceniem `./gradlew assembleDebug`
+i dał działający plik `app-debug.apk`. Po drodze wyszły dwa realne błędy w kodzie (zły typ
+odbiorcy lambdy w `HomeMapScreen.kt` i eksperymentalne API w `BudgetScreen.kt`) — oba naprawione,
+więc kod w tym repozytorium jest już poprawiony.
 
 ## Jak zbudować plik .apk (2 minuty)
 
