@@ -230,7 +230,7 @@ private fun PlanItemCard(
                     category = ItemCategory.fromKey(item.category),
                     modifier = Modifier.fillMaxWidth().height(160.dp)
                 )
-                if (item.practicalInfo.isNotBlank()) {
+                if (!item.practicalInfo.isNullOrBlank()) {
                     Spacer(Modifier.height(10.dp))
                     Text(
                         item.practicalInfo,

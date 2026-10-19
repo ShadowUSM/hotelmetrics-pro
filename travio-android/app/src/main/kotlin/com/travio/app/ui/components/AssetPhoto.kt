@@ -38,7 +38,8 @@ private fun calculateInSampleSize(width: Int, height: Int): Int {
     return sample
 }
 
-private fun decodeSampledFromAssets(context: android.content.Context, photoKey: String): Bitmap? {
+private fun decodeSampledFromAssets(context: android.content.Context, photoKey: String?): Bitmap? {
+    if (photoKey.isNullOrBlank()) return null
     return try {
         val bytes = context.assets.open("photos/$photoKey.jpg").use { it.readBytes() }
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -58,12 +59,10 @@ private fun decodeSampledFromAssets(context: android.content.Context, photoKey: 
  * limity pobierania przy budowie), pokazujemy ikonę kategorii na kolorowym tle.
  */
 @Composable
-fun AttractionPhoto(photoKey: String, category: ItemCategory, modifier: Modifier = Modifier) {
+fun AttractionPhoto(photoKey: String?, category: ItemCategory, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val bitmap by produceState<Bitmap?>(initialValue = null, photoKey) {
-        value = if (photoKey.isBlank()) null else withContext(Dispatchers.IO) {
-            decodeSampledFromAssets(context, photoKey)
-        }
+        value = withContext(Dispatchers.IO) { decodeSampledFromAssets(context, photoKey) }
     }
 
     Box(

@@ -12,8 +12,12 @@ data class TripItem(
     val desc: String,
     val cost: Double,
     val costLabel: String,
-    val practicalInfo: String = "",
-    val photoKey: String = ""
+    // Nullable mimo że w Kotlinie te pola mają domyślną wartość "" — Gson konstruuje
+    // obiekty przez Unsafe (z pominięciem konstruktora), więc gdy klucza brakuje w JSON,
+    // zostaje tu surowy null, nie "". Odczyt przez nie-nullowalny String rzucał NPE przy
+    // każdym rozwinięciu punktu bez tych pól (czyli prawie każdego punktu w planie).
+    val practicalInfo: String? = null,
+    val photoKey: String? = null
 )
 
 data class TripDay(
