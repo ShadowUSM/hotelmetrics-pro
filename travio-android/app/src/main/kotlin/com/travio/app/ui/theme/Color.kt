@@ -5,6 +5,14 @@ import androidx.compose.ui.graphics.Color
 // Map-First Explorer — akcent marki (limonka) wspólny dla obu motywów.
 val Lime = Color(0xFFC8FF4D)
 
+// Trasa na mapie: limonka na ciemnym tle była niewidoczna, więc trasa używa
+// stałego, mocno nasyconego koralu niezależnie od motywu (z białą "obwódką"
+// pod spodem dla kontrastu na obu tłach).
+val RouteColor = Color(0xFFFF5252)
+val RouteCasing = Color(0xFFFFFFFF)
+val CurrentStopColor = Color(0xFFFF5252)
+val VisitedStopColor = Color(0xFF9AA39C)
+
 // Jasny motyw — trasa/akcent funkcjonalny to głęboki teal (limonka na jasnym tle
 // miałaby za słaby kontrast), limonka zostaje jako akcent drugorzędny (CTA, kropka).
 object LightPalette {

@@ -2,9 +2,14 @@ package com.travio.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -67,10 +72,21 @@ fun TravioApp(viewModel: TripViewModel) {
     val navController = rememberNavController()
     val items = listOf(Dest.Home, Dest.Plan, Dest.Budget, Dest.More)
 
+    // Gest/przycisk "wstecz" z dowolnej zakładki wraca na start, zamiast od razu zamykać
+    // aplikację — standardowe zachowanie dolnej nawigacji.
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val onHome = backStackEntry?.destination?.hierarchy?.any { it.route == Dest.Home.route } == true
+    BackHandler(enabled = !onHome) {
+        navController.navigate(Dest.Home.route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar {
-                val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination
                 items.forEach { dest ->
                     NavigationBarItem(
@@ -92,7 +108,11 @@ fun TravioApp(viewModel: TripViewModel) {
         NavHost(
             navController = navController,
             startDestination = Dest.Home.route,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            enterTransition = { fadeIn(animationSpec = androidx.compose.animation.core.tween(220)) + slideInHorizontally(animationSpec = androidx.compose.animation.core.tween(220)) { it / 8 } },
+            exitTransition = { fadeOut(animationSpec = androidx.compose.animation.core.tween(180)) },
+            popEnterTransition = { fadeIn(animationSpec = androidx.compose.animation.core.tween(220)) },
+            popExitTransition = { fadeOut(animationSpec = androidx.compose.animation.core.tween(180)) + slideOutHorizontally(animationSpec = androidx.compose.animation.core.tween(180)) { it / 8 } }
         ) {
             composable(Dest.Home.route) { HomeMapScreen(viewModel) }
             composable(Dest.Plan.route) { PlanScreen(viewModel) }

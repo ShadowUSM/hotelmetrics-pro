@@ -11,7 +11,9 @@ data class TripItem(
     val address: String,
     val desc: String,
     val cost: Double,
-    val costLabel: String
+    val costLabel: String,
+    val practicalInfo: String = "",
+    val photoKey: String = ""
 )
 
 data class TripDay(

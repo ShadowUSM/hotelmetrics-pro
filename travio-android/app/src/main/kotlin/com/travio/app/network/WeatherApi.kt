@@ -4,12 +4,20 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 data class WeatherResponse(
-    val current: CurrentWeather?
+    val current: CurrentWeather?,
+    val daily: DailyWeather?
 )
 
 data class CurrentWeather(
     val temperature_2m: Double?,
     val weather_code: Int?
+)
+
+data class DailyWeather(
+    val time: List<String>?,
+    val weather_code: List<Int>?,
+    val temperature_2m_max: List<Double>?,
+    val temperature_2m_min: List<Double>?
 )
 
 interface WeatherApi {
@@ -18,6 +26,8 @@ interface WeatherApi {
         @Query("latitude") lat: Double,
         @Query("longitude") lng: Double,
         @Query("current") current: String = "temperature_2m,weather_code",
+        @Query("daily") daily: String = "weather_code,temperature_2m_max,temperature_2m_min",
+        @Query("forecast_days") forecastDays: Int = 7,
         @Query("timezone") timezone: String = "auto"
     ): WeatherResponse
 }
