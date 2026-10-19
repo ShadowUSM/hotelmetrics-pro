@@ -20,6 +20,37 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.travio.app.data.ItemCategory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+// Zdjęcia wgrane do assets bywają pełnej rozdzielczości aparatu (np. 3840x2991px).
+// Zdekodowane wprost jako ARGB_8888 to ~44 MB na jeden bitmap — kilka takich naraz
+// (lista w Planie, przewijanie) realnie rzuca OutOfMemoryError. W podglądzie karty
+// potrzeba góra ~1000px w dłuższym boku, więc dekodujemy od razu w mniejszej próbce.
+private const val MAX_DECODED_DIMENSION = 1000
+
+private fun calculateInSampleSize(width: Int, height: Int): Int {
+    var sample = 1
+    val largest = maxOf(width, height)
+    while (largest / sample > MAX_DECODED_DIMENSION) {
+        sample *= 2
+    }
+    return sample
+}
+
+private fun decodeSampledFromAssets(context: android.content.Context, photoKey: String): Bitmap? {
+    return try {
+        val bytes = context.assets.open("photos/$photoKey.jpg").use { it.readBytes() }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = calculateInSampleSize(bounds.outWidth, bounds.outHeight)
+        }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+    } catch (_: Exception) {
+        null
+    }
+}
 
 /**
  * Zdjęcia atrakcji są pobrane raz i wgrane na stałe do assets/photos/<photoKey>.jpg
@@ -30,10 +61,8 @@ import com.travio.app.data.ItemCategory
 fun AttractionPhoto(photoKey: String, category: ItemCategory, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val bitmap by produceState<Bitmap?>(initialValue = null, photoKey) {
-        value = if (photoKey.isBlank()) null else try {
-            context.assets.open("photos/$photoKey.jpg").use { BitmapFactory.decodeStream(it) }
-        } catch (_: Exception) {
-            null
+        value = if (photoKey.isBlank()) null else withContext(Dispatchers.IO) {
+            decodeSampledFromAssets(context, photoKey)
         }
     }
 

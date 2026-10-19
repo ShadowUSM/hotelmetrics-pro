@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -76,6 +77,7 @@ fun HomeMapScreen(viewModel: TripViewModel) {
             routePoints = routePoints,
             currentStopIndex = currentStopIndex,
             tileSource = tileSource,
+            isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f,
             modifier = Modifier.fillMaxSize()
         )
 

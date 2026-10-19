@@ -5,6 +5,9 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.GradientDrawable
+import android.view.Gravity
+import android.widget.TextView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -17,9 +20,12 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
+import org.osmdroid.views.overlay.infowindow.InfoWindow
+
+private const val MARKER_SIZE_PX = 84
 
 private fun numberedMarkerBitmap(number: Int, current: Boolean, visited: Boolean): Bitmap {
-    val sizePx = 84
+    val sizePx = MARKER_SIZE_PX
     val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val center = sizePx / 2f
@@ -47,12 +53,42 @@ private fun numberedMarkerBitmap(number: Int, current: Boolean, visited: Boolean
     return bitmap
 }
 
+/** Dymek z nazwą atrakcji po tapnięciu pinezki — stylizowana karta (zaokrąglone rogi,
+ * kolory motywu) zamiast domyślnego, systemowego białego dymka osmdroid, który wizualnie
+ * nie pasował do reszty aplikacji. */
+private fun buildBubbleView(mapView: MapView, isDark: Boolean): TextView {
+    val density = mapView.resources.displayMetrics.density
+    val textView = TextView(mapView.context)
+    textView.background = GradientDrawable().apply {
+        cornerRadius = 14f * density
+        setColor(if (isDark) Color.parseColor("#151F1A") else Color.WHITE)
+    }
+    val paddingH = (14 * density).toInt()
+    val paddingV = (9 * density).toInt()
+    textView.setPadding(paddingH, paddingV, paddingH, paddingV)
+    textView.setTextColor(if (isDark) Color.parseColor("#EDEFEE") else Color.parseColor("#1E2420"))
+    textView.textSize = 13f
+    textView.gravity = Gravity.CENTER
+    textView.elevation = 6f * density
+    textView.maxWidth = (240 * density).toInt()
+    return textView
+}
+
+private class StyledInfoWindow(mapView: MapView, isDark: Boolean) : InfoWindow(buildBubbleView(mapView, isDark), mapView) {
+    override fun onOpen(item: Any?) {
+        val marker = item as? Marker ?: return
+        (mView as TextView).text = marker.title
+    }
+    override fun onClose() {}
+}
+
 @Composable
 fun TripMapView(
     items: List<TripItem>,
     routePoints: List<GeoPoint>,
     currentStopIndex: Int,
     tileSource: MapTileSource,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -72,6 +108,7 @@ fun TripMapView(
         },
         update = { mapView ->
             mapView.setTileSource(tileSourceFor(tileSource))
+            InfoWindow.closeAllInfoWindowsOn(mapView)
             mapView.overlays.clear()
 
             if (routePoints.size >= 2) {
@@ -104,6 +141,16 @@ fun TripMapView(
                             visited = index < currentStopIndex
                         )
                     )
+                }
+                val bubble = StyledInfoWindow(mapView, isDarkTheme)
+                marker.setOnMarkerClickListener { clickedMarker, map ->
+                    if (bubble.isOpen) {
+                        bubble.close()
+                    } else {
+                        InfoWindow.closeAllInfoWindowsOn(map)
+                        bubble.open(clickedMarker, clickedMarker.position, 0, -(MARKER_SIZE_PX / 2 + 16))
+                    }
+                    true
                 }
                 mapView.overlays.add(marker)
             }
