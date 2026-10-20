@@ -8,10 +8,12 @@ import android.graphics.Color
 import android.graphics.Paint
 import com.google.gson.Gson
 
-// Jeden piksel bitmapy budynku to maks. 512x512 (assets/buildings3d/<light|dark>/<key>.png),
-// dekodowany od razu w jeszcze mniejszej próbce — tyle samo ryzyko OOM co w przypadku
-// zdjęć w Planie (AssetPhoto.kt), więc ta sama ostrożność: inSampleSize + wątek IO.
-private const val MAX_DECODED_DIMENSION = 360
+// Źródłowe pliki to maks. 512x512 (assets/buildings3d/<light|dark>/<key>.png) — dużo mniejsze
+// niż pełnowymiarowe zdjęcia z aparatu, które wcześniej powodowały OOM (AssetPhoto.kt), więc
+// nie trzeba ich dodatkowo pomniejszać: 512x512 ARGB_8888 to ok. 1 MB na bitmapę, bezpieczne
+// nawet trzymane w pamięci dla kilku atrakcji naraz. inSampleSize i tak zostaje jako
+// zabezpieczenie na wypadek większych źródeł w przyszłości.
+private const val MAX_DECODED_DIMENSION = 512
 
 private data class BuildingManifestTheme(val top: Double)
 private typealias BuildingManifest = Map<String, Map<String, BuildingManifestTheme>>
@@ -61,6 +63,16 @@ private fun decodeSampledCached(context: Context, path: String): Bitmap? {
     }
     decodedBuildingCache[path] = bitmap
     return bitmap
+}
+
+/** Czysta, niezmieniona ilustracja budynku (bez domalowanej pinezki) — do użycia jako
+ * "zdjęcie" atrakcji w rozwijanej karcie na ekranie Planu, zamiast zdjęć pobieranych
+ * z internetu. Korzysta z tej samej pamięci podręcznej co znaczniki na mapie. */
+fun decodeBuildingBitmap(context: Context, photoKey: String?, isDarkTheme: Boolean): Bitmap? {
+    if (photoKey.isNullOrBlank()) return null
+    if (!loadManifest(context).containsKey(photoKey)) return null
+    val theme = if (isDarkTheme) "dark" else "light"
+    return decodeSampledCached(context, "buildings3d/$theme/$photoKey.png")
 }
 
 /** [bitmap] gotowy do ustawienia jako ikona markera; [anchorV] to pionowy punkt zakotwiczenia

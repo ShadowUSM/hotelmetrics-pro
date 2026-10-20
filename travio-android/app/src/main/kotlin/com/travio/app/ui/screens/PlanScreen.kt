@@ -46,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -65,6 +66,7 @@ fun PlanScreen(viewModel: TripViewModel) {
     val dayIndex by viewModel.selectedDayIndex.collectAsState()
     val expandedItemId by viewModel.expandedItemId.collectAsState()
     val pagerState = rememberPagerState(initialPage = dayIndex, pageCount = { trip.days.size })
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     // Przeciągnięcie palcem w prawo/lewo zmienia dzień; a wybór dnia z chipów przewija pager.
     androidx.compose.runtime.LaunchedEffect(pagerState.currentPage) {
@@ -106,6 +108,7 @@ fun PlanScreen(viewModel: TripViewModel) {
                 trip = trip,
                 dayIndex = page,
                 expandedItemId = expandedItemId,
+                isDarkTheme = isDarkTheme,
                 onToggleExpand = { viewModel.toggleExpanded(it) },
                 onMoveToDay = { itemId, targetDay -> viewModel.moveItemToDay(itemId, page, targetDay) }
             )
@@ -118,6 +121,7 @@ private fun DayPlanList(
     trip: Trip,
     dayIndex: Int,
     expandedItemId: String?,
+    isDarkTheme: Boolean,
     onToggleExpand: (String) -> Unit,
     onMoveToDay: (String, Int) -> Unit
 ) {
@@ -135,6 +139,7 @@ private fun DayPlanList(
                 expanded = expandedItemId == item.id,
                 dayCount = trip.days.size,
                 currentDayIndex = dayIndex,
+                isDarkTheme = isDarkTheme,
                 onToggleExpand = { onToggleExpand(item.id) },
                 onMoveToDay = { target -> onMoveToDay(item.id, target) }
             )
@@ -161,6 +166,7 @@ private fun PlanItemCard(
     expanded: Boolean,
     dayCount: Int,
     currentDayIndex: Int,
+    isDarkTheme: Boolean,
     onToggleExpand: () -> Unit,
     onMoveToDay: (Int) -> Unit
 ) {
@@ -228,6 +234,7 @@ private fun PlanItemCard(
                 AttractionPhoto(
                     photoKey = item.photoKey,
                     category = ItemCategory.fromKey(item.category),
+                    isDarkTheme = isDarkTheme,
                     modifier = Modifier.fillMaxWidth().height(160.dp)
                 )
                 if (!item.practicalInfo.isNullOrBlank()) {
