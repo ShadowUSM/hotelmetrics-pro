@@ -9,7 +9,7 @@ enum class MapTileSource(val label: String) {
     OSM_STANDARD("OpenStreetMap"),
     ESRI_STREET("Esri (ulice)"),
     ESRI_SATELLITE("Esri (satelita)"),
-    CARTO_VOYAGER("CartoDB Voyager");
+    ESRI_DARK_GRAY("Esri (ciemna)");
 
     companion object {
         fun fromKey(key: String?): MapTileSource = entries.find { it.name == key } ?: OSM_STANDARD
@@ -45,8 +45,12 @@ fun tileSourceFor(option: MapTileSource): ITileSource = when (option) {
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/",
         ".jpg"
     )
-    MapTileSource.CARTO_VOYAGER -> XYTileSource(
-        "CartoVoyager", 0, 19, 256, ".png",
-        arrayOf("https://basemaps.cartocdn.com/rastertiles/voyager/")
+    // CartoDB (Voyager/Dark Matter) zaczął wymagać klucza API — darmowe kafelki zwracają
+    // teraz placeholder "API KEY REQUIRED" zamiast mapy. Esri Dark Gray Canvas to prawdziwy,
+    // ciemny motyw mapy, nadal bez klucza i konta.
+    MapTileSource.ESRI_DARK_GRAY -> EsriTileSource(
+        "EsriDarkGray",
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/",
+        ".png"
     )
 }
