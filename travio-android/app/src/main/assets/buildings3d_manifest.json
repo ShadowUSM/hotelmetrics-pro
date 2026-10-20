@@ -1,0 +1,154 @@
+{
+  "sagrada_familia": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "casa_mila": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "casa_batllo": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "park_guell": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "sant_pau": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "barcelona_cathedral": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "la_boqueria": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "santa_maria_del_mar": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "ciutadella": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "barceloneta": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "montserrat": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "montjuic": {
+    "light": {
+      "top": 0.1934
+    },
+    "dark": {
+      "top": 0.1992
+    }
+  },
+  "mnac": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "placa_reial": {
+    "light": {
+      "top": 0.2295
+    },
+    "dark": {
+      "top": 0.2334
+    }
+  },
+  "arc_de_triomf": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "gracia": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "bunkers_carmel": {
+    "light": {
+      "top": 0.3008
+    },
+    "dark": {
+      "top": 0.251
+    }
+  },
+  "hotel_acta_antibes": {
+    "light": {
+      "top": 0.1797
+    },
+    "dark": {
+      "top": 0.1797
+    }
+  },
+  "el_prat_airport": {
+    "light": {
+      "top": 0.2803
+    },
+    "dark": {
+      "top": 0.251
+    }
+  }
+}

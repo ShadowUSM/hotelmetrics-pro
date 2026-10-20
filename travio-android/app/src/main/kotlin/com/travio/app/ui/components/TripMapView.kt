@@ -24,7 +24,7 @@ import org.osmdroid.views.overlay.infowindow.InfoWindow
 
 private const val MARKER_SIZE_PX = 84
 
-private fun numberedMarkerBitmap(number: Int, current: Boolean, visited: Boolean): Bitmap {
+internal fun numberedMarkerBitmap(number: Int, current: Boolean, visited: Boolean): Bitmap {
     val sizePx = MARKER_SIZE_PX
     val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
@@ -89,6 +89,7 @@ fun TripMapView(
     currentStopIndex: Int,
     tileSource: MapTileSource,
     isDarkTheme: Boolean,
+    show3DBuildings: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -129,18 +130,19 @@ fun TripMapView(
             }
 
             items.forEachIndexed { index, item ->
+                val markerIcon = buildMapMarkerIcon(
+                    context = context,
+                    photoKey = if (show3DBuildings) item.photoKey else null,
+                    isDarkTheme = isDarkTheme,
+                    number = index + 1,
+                    current = index == currentStopIndex,
+                    visited = index < currentStopIndex
+                )
                 val marker = Marker(mapView).apply {
                     position = GeoPoint(item.lat, item.lng)
                     title = "${index + 1}. ${item.name}"
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                    icon = BitmapDrawable(
-                        mapView.resources,
-                        numberedMarkerBitmap(
-                            number = index + 1,
-                            current = index == currentStopIndex,
-                            visited = index < currentStopIndex
-                        )
-                    )
+                    setAnchor(Marker.ANCHOR_CENTER, markerIcon.anchorV)
+                    icon = BitmapDrawable(mapView.resources, markerIcon.bitmap)
                 }
                 val bubble = StyledInfoWindow(mapView, isDarkTheme)
                 marker.setOnMarkerClickListener { clickedMarker, map ->

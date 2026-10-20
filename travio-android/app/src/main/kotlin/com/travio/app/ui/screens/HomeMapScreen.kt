@@ -64,6 +64,7 @@ fun HomeMapScreen(viewModel: TripViewModel) {
     val forecast by viewModel.weatherForecast.collectAsState()
     val currentStopIndex by viewModel.currentStopIndex.collectAsState()
     val tileSource by viewModel.tileSource.collectAsState()
+    val show3DBuildings by viewModel.show3DBuildings.collectAsState()
     val day = trip.days.getOrNull(dayIndex) ?: return
     val context = LocalContext.current
 
@@ -78,6 +79,7 @@ fun HomeMapScreen(viewModel: TripViewModel) {
             currentStopIndex = currentStopIndex,
             tileSource = tileSource,
             isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f,
+            show3DBuildings = show3DBuildings,
             modifier = Modifier.fillMaxSize()
         )
 

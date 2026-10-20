@@ -65,6 +65,10 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope, SharingStarted.WhileSubscribed(5000), MapTileSource.OSM_STANDARD
     )
 
+    val show3DBuildings: StateFlow<Boolean> = themeStore.show3DBuildings.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5000), false
+    )
+
     init {
         loadRoute(_selectedDayIndex.value)
         loadWeather()
@@ -174,5 +178,9 @@ class TripViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setTileSource(source: MapTileSource) {
         viewModelScope.launch { themeStore.setTileSource(source) }
+    }
+
+    fun setShow3DBuildings(enabled: Boolean) {
+        viewModelScope.launch { themeStore.setShow3DBuildings(enabled) }
     }
 }

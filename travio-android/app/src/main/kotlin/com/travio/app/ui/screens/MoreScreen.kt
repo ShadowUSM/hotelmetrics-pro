@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -38,6 +39,7 @@ fun MoreScreen(viewModel: TripViewModel) {
     val trip by viewModel.trip.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val tileSource by viewModel.tileSource.collectAsState()
+    val show3DBuildings by viewModel.show3DBuildings.collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -88,6 +90,30 @@ fun MoreScreen(viewModel: TripViewModel) {
                             androidx.compose.material3.Divider(color = MaterialTheme.colorScheme.outline)
                         }
                     }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+            Text("Mapa 3D", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.setShow3DBuildings(!show3DBuildings) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Ilustrowane budynki 3D", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "Tylko dzisiejsze atrakcje, w miejscu numerowanych pinezek",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(checked = show3DBuildings, onCheckedChange = { viewModel.setShow3DBuildings(it) })
                 }
             }
 
