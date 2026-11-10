@@ -411,6 +411,81 @@ textarea.fi{resize:vertical}
 /* Data entry table */
 .det{width:100%;border-collapse:collapse}
 .det th{background:var(--sur2);padding:7px 8px;text-align:left;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);border-bottom:1px solid var(--brd);white-space:nowrap}
+/* ── WPROWADŹ DANE: wspólny układ wszystkich zakładek (nagłówek → kroki → podgląd → zapisane dane) ── */
+.de-head{margin-bottom:14px}
+.de-head h2{font-family:var(--fd);font-size:1rem;font-weight:700;margin:0 0 4px;color:var(--tx)}
+.de-head p{font-size:.8rem;color:var(--tx2);line-height:1.6;margin:0;max-width:86ch}
+.de-card{margin-bottom:14px}
+.de-card>.fa:last-child,.de-card>.de-tip:last-child{margin-bottom:0}
+.de-title{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.de-title-right{display:inline-flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0}
+.de-step{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--acc);color:#fff;font-size:.66rem;font-weight:700;letter-spacing:0;flex-shrink:0}
+.de-preview{border-left:3px solid var(--acc)}
+.de-empty{font-size:.8rem;color:var(--tx3);line-height:1.6;margin:0 0 4px}
+.de-meta{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;background:var(--sur2);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.de-meta .fg{margin-bottom:0;min-width:180px}
+.de-meta-note{font-size:.78rem;color:var(--tx2);line-height:1.55;flex:1;min-width:220px;align-self:center}
+.de-static{font-size:.82rem;font-weight:700;color:var(--tx);padding:8px 0;font-family:var(--fm)}
+.de-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.de-chip{background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:7px 12px;min-width:104px}
+.de-chip-l{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:2px}
+.de-chip-v{font-size:.9rem;font-weight:700;font-family:var(--fm);color:var(--tx)}
+.de-rows{display:flex;flex-direction:column;gap:6px}
+.de-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(90px,.7fr) minmax(0,1.3fr);gap:10px;align-items:center;border:1px solid var(--brd);border-radius:10px;padding:8px 12px}
+.de-row.de-row-4{grid-template-columns:minmax(0,1.3fr) minmax(90px,.7fr) minmax(0,1.2fr) minmax(140px,.9fr)}
+.de-row-hd{border:none;padding:0 12px;font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3)}
+.de-row-hd>div:nth-child(2){text-align:right}
+.de-row-todo{border-color:var(--warn);background:rgba(245,158,11,.06)}
+.de-row-name{font-size:.82rem;font-weight:700;overflow-wrap:anywhere;color:var(--tx)}
+.de-row-sub{font-size:.68rem;font-weight:400;color:var(--tx3);margin-top:2px;line-height:1.45}
+.de-row-val{font-size:.8rem;font-family:var(--fm);text-align:right;white-space:nowrap;color:var(--tx)}
+.de-val-warn{color:var(--warn)}
+.de-row .fi{font-size:.78rem;padding:7px 9px}
+.de-row .de-static{font-size:.76rem;font-weight:400;color:var(--tx2);padding:0;font-family:inherit}
+.de-saved-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.de-saved-bar .fg{margin-bottom:0;min-width:220px;flex:0 1 280px}
+.de-saved-bar .mpick-btn{padding:8px 11px;font-size:.82rem;font-weight:600;border-width:1px;border-radius:9px;font-family:inherit;background:var(--sur2)}
+.de-saved-bar .picker-pop{min-width:250px}
+.de-pick-hint{margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)}
+.de-tip{margin:14px 0 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.de-tip>span{flex:1;min-width:200px}
+.de-file-preview{margin-top:14px}
+.de-files{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--brd)}
+.de-files-l{font-size:.68rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.de-draft-note{font-size:.7rem;color:var(--acc);margin-top:6px}
+.de-draft-note:empty{display:none}
+.de-warn-act{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.de-warn-act>span{flex:1;min-width:200px}
+.de-confirm-list{margin:6px 0 0 18px;font-size:.8rem}
+.de-complete{margin:0 0 16px;padding:12px 14px;border:1px solid var(--brd);border-radius:14px;background:var(--sur)}
+.de-complete-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.de-complete-t{font-size:.78rem;color:var(--tx2)}
+.de-complete-t strong{color:var(--tx)}
+.de-complete-c{margin-left:8px;font-size:.66rem;padding:2px 8px;border-radius:20px;background:var(--sur2);color:var(--tx3)}
+.de-cpl-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.de-cpl{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;border:1px solid var(--brd);background:var(--sur2);color:var(--tx2);font-size:.7rem;cursor:pointer;font-family:inherit;transition:border-color .15s,transform .15s}
+.de-cpl:hover{border-color:var(--acc);transform:translateY(-1px)}
+.de-cpl-dot{width:8px;height:8px;border-radius:50%;background:var(--tx3);flex-shrink:0}
+.de-cpl-ok .de-cpl-dot{background:var(--grn)}
+.de-cpl-part .de-cpl-dot{background:var(--warn)}
+.de-cpl-no .de-cpl-dot{background:var(--red,#ef4444)}
+.de-cpl-l{font-weight:600;color:var(--tx)}
+.de-cpl-v{color:var(--tx3);font-family:var(--mono,monospace);font-size:.66rem}
+.de-quick-hit{padding:10px 12px;border-radius:10px;background:var(--sur2);border-left:3px solid var(--grn);margin-bottom:10px}
+.de-quick-name{font-size:.8rem}
+.de-quick-range{font-size:.72rem;color:var(--tx3);margin-top:3px}
+.de-quick-routes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+[data-theme="neu-light"] .de-complete,[data-theme="neu-dark"] .de-complete{border:none;box-shadow:var(--neu-flat)}
+@media(max-width:640px){.de-complete{padding:10px 12px}.de-cpl{padding:4px 8px}}
+.de-file-preview:empty{margin-top:0}
+@media(max-width:640px){
+  .de-row,.de-row.de-row-4{grid-template-columns:minmax(0,1fr) auto}
+  .de-row>.fi,.de-row>select,.de-row>input,.de-row>.de-static{grid-column:1/-1}
+  .de-row-hd{display:none}
+  .de-meta .fg,.de-saved-bar .fg{min-width:0;flex:1 1 100%}
+}
+[data-theme="neu-light"] .de-chip,[data-theme="neu-dark"] .de-chip,[data-theme="neu-light"] .de-row:not(.de-row-hd),[data-theme="neu-dark"] .de-row:not(.de-row-hd){border-color:transparent;box-shadow:var(--neu-flat)}
+[data-theme="neu-light"] .de-row-todo,[data-theme="neu-dark"] .de-row-todo{border-color:var(--warn)}
 .msales-table{table-layout:fixed;min-width:560px}
 .msales-table th,.msales-table td{overflow:hidden;text-overflow:ellipsis}
 .msales-table th:first-child,.msales-table td:first-child{width:52%}
@@ -1862,15 +1937,27 @@ body.presentation-mode #presentation-exit{display:flex}
 </div></div>
 
 <!-- MENU ENGINEERING: KONFLIKT ZAPISU MODAL -->
-<div class="moverlay" id="m-meng-conflict">
+<!-- WPROWADŹ DANE: WSPÓLNE OKNO POTWIERDZENIA NADPISANIA -->
+<div class="moverlay" id="m-de-confirm">
 <div class="modal">
-  <div class="mtitle">📊 Dane już istnieją</div>
-  <button class="mclose" onclick="closeM('m-meng-conflict')">✕</button>
-  <div id="meng-conflict-body"></div>
+  <div class="mtitle" id="de-confirm-title">Dane już istnieją</div>
+  <button class="mclose" onclick="closeM('m-de-confirm')">✕</button>
+  <div id="de-confirm-body"></div>
   <div class="fa">
-    <button class="btn btn-p" onclick="mengDoSave()">🔁 Nadpisz</button>
-    <button class="btn btn-s" onclick="closeM('m-meng-conflict')">Anuluj</button>
+    <button class="btn btn-p" id="de-confirm-ok" onclick="deConfirmOk()">🔁 Nadpisz</button>
+    <button class="btn btn-s" onclick="closeM('m-de-confirm')">Anuluj</button>
   </div>
+</div></div>
+
+<!-- WKLEJ DOWOLNY RAPORT -->
+<div class="moverlay" id="m-de-quick">
+<div class="modal" style="max-width:640px">
+  <div class="mtitle">⚡ Wklej dowolny raport</div>
+  <button class="mclose" onclick="closeM('m-de-quick')">✕</button>
+  <p class="hs-p" style="margin-bottom:10px">Wklej tekst dowolnego raportu z HosPOS albo wybierz plik — aplikacja rozpozna jego typ i przeniesie go do właściwej zakładki z gotowym podglądem. Nic nie zapisuje się bez Twojego potwierdzenia.</p>
+  <textarea class="fi" id="de-quick-input" rows="7" placeholder="Wklej tutaj treść raportu…" oninput="deQuickDetect()"></textarea>
+  <div class="de-files"><span class="de-files-l">albo wybierz plik:</span><button class="btn btn-s btn-sm" onclick="document.getElementById('de-quick-file').click()">📂 PDF / Excel</button><input type="file" id="de-quick-file" accept=".pdf,.xlsx,.xlsm,.xls" style="display:none" onchange="deQuickFile(this)"></div>
+  <div id="de-quick-result" style="margin-top:12px"></div>
 </div></div>
 
 <!-- RAPORT GENERALNY MODAL -->
@@ -1891,17 +1978,6 @@ body.presentation-mode #presentation-exit{display:flex}
 </div></div>
 
 <!-- SPRZEDAŻ PRACOWNIKA: KONFLIKT ZAPISU MODAL -->
-<div class="moverlay" id="m-emp-conflict">
-<div class="modal">
-  <div class="mtitle">👤 Dane już istnieją</div>
-  <button class="mclose" onclick="closeM('m-emp-conflict')">✕</button>
-  <div id="emp-conflict-body"></div>
-  <div class="fa">
-    <button class="btn btn-p" onclick="empDoSaveAll()">🔁 Nadpisz</button>
-    <button class="btn btn-s" onclick="closeM('m-emp-conflict')">Anuluj</button>
-  </div>
-</div></div>
-
 <!-- KOLEJNOŚĆ ZAKŁADEK MODAL -->
 <div class="moverlay" id="m-tab-order">
 <div class="modal" style="max-width:420px">
@@ -3838,7 +3914,9 @@ var SEARCH_SECTIONS=[
   {id:'d-daily',icon:'📆',label:'Wprowadź dane — Dzienne',action:function(){goDaily()}},
   {id:'d-msales',icon:'🍽️',label:'Wprowadź dane — Sprzedaż menu',action:function(){goMenuSales()}},
   {id:'d-meng',icon:'📊',label:'Wprowadź dane — Menu Engineering',action:function(){goMenuEng()}},
-  {id:'d-import',icon:'📥',label:'Wprowadź dane — Import plików',action:function(){goDataImport()}},
+  {id:'d-empsales',icon:'👤',label:'Wprowadź dane — Sprzedaż pracownika',action:function(){goEmpSales()}},
+  {id:'d-perf',icon:'🧾',label:'Wprowadź dane — Raport okresowy',action:function(){deGoTab('perf')}},
+  {id:'d-quick',icon:'⚡',label:'Wklej dowolny raport (rozpoznanie typu)',action:function(){deGoTab('monthly');deQuickOpen()}},
   {id:'a-charts',icon:'📊',label:'Analityka — Wykresy',action:function(){srGoTab('analytics','charts','atabs')}},
   {id:'a-heatmap',icon:'🗓️',label:'Analityka — Heatmapa',action:function(){srGoTab('analytics','heatmap','atabs')}},
   {id:'a-ranking',icon:'🏆',label:'Analityka — Ranking',action:function(){srGoTab('analytics','ranking','atabs')}},
@@ -4105,11 +4183,8 @@ function goEmpSales(){
   var btn=document.getElementById('data-tab-empsales');
   if(btn)switchDataTab('empsales',btn);
 }
-function goDataImport(){
-  go('data');
-  var btn=document.getElementById('data-tab-import');
-  if(btn)switchDataTab('import',btn);
-}
+// Dawna zakładka „Import plików" — źródła plikowe są teraz w krokach „Źródło" Miesięcznych i Dziennych.
+function goDataImport(){deGoTab('monthly')}
 
 /* ═══════════════════════════════════════════
    OKNO "WGRAJ DANE" (tylko dla Administratora)
@@ -4576,8 +4651,8 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.8.1';
-var APP_BUILD_DATE='2026-08-13';
+var APP_VERSION='3.10.0';
+var APP_BUILD_DATE='2026-11-10';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
 // — MINOR (środkowa cyfra) rośnie przy nowych funkcjach / większych zmianach: 2.6.0 → 2.7.0
@@ -4585,6 +4660,21 @@ var APP_BUILD_DATE='2026-08-13';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.10.0',date:'2026-11-10',changes:[
+    'Zakładka „Import plików" zlikwidowana — każde źródło jest tam, gdzie trafiają jego dane: raport HosPOS w PDF i Excel z budżetem w Miesięcznych, plik Material Control (wiele dni) w Dziennych, jako „albo wczytaj z pliku" w kroku Źródło. Pliki przechodzą przez ten sam podgląd co wklejony tekst; PDF ma teraz ręczne dopasowanie outletów, a Excel nie zapisuje się już bez podglądu',
+    'Autozapis wklejanego tekstu we wszystkich zakładkach (wcześniej tylko w Sprzedaży menu) — po odświeżeniu strony tekst wraca z informacją, kiedy został wklejony; znika po zapisie albo „Wyczyść"',
+    'Pasek kompletności nad zakładkami: budżet, wynik, dni dzienne, sprzedaż menu, Menu Engineering, sprzedaż pracowników i raport okresowy dla wybranego miesiąca — kliknięcie przenosi do zakładki',
+    '„⚡ Wklej dowolny raport" — aplikacja sama rozpoznaje typ raportu (tekst lub plik PDF/Excel) i przenosi go do właściwej zakładki z gotowym podglądem',
+    'Miesięczne: wypełnienie z raportu ustawia też zakres dni; przy raporcie z innego miesiąca jest przycisk „Przełącz na…". Dzienne: wybór dnia w kalendarzu nie kasuje już wczytanego raportu'
+  ]},
+  {v:'3.9.0',date:'2026-11-10',changes:[
+    'Sekcja „Wprowadź dane" ujednolicona — wszystkie zakładki mają ten sam układ: nagłówek z opisem, a pod nim ponumerowane kroki w tej samej kolejności (Okres → Źródło → Podgląd i dopasowanie → Dane / Zapisane dane)',
+    'Podgląd po wczytaniu raportu wygląda teraz identycznie w każdej zakładce: pasek z wykrytym zakresem dat i miejscem zapisu, kafelki podsumowania, ostrzeżenia, wiersze dopasowania outletów i te same dwa przyciski („Zapisz" lub „Wypełnij formularz" oraz „Wyczyść")',
+    'Jedna lista dopasowania outletów we wszystkich zakładkach (wybierz / outlet / pomiń); wiersze bez dopasowania są podświetlone. W Sprzedaży pracownika można teraz pominąć wybrany punkt z raportu',
+    'Miesiąc zapisu ustawia się wszędzie tak samo — w podglądzie, rozpoznany z raportu z możliwością zmiany (wcześniej: strzałki, pole przed wczytaniem pliku albo osobne pola, zależnie od zakładki)',
+    'Jedno wspólne okno potwierdzenia nadpisania istniejących danych; Raport okresowy dostał podgląd zapisanych miesięcy taki sam jak pozostałe zakładki',
+    'Miesięczne: ostrzeżenie, gdy wklejony raport dotyczy innego miesiąca niż otwarty formularz. Podgląd wczytanego raportu nie znika już po przełączeniu zakładki'
+  ]},
   {v:'3.8.1',date:'2026-08-13',changes:[
     'Motyw „Neu Light" (neumorfizm) ukończony w całości — Dashboard, tabele i formularze, modale i pickery, wykresy i widżety specjalne, nawigacja dolna. Jasny, pastelowy styl z miękkimi podwójnymi cieniami zamiast twardych krawędzi, z zachowaną czytelnością danych finansowych w tabelach',
     'Nowy motyw „Neu Dark" — ciemna wersja neumorfizmu (głęboka antracytowa czerń, jaskrawozielony akcent), lustrzane odbicie pełnego zakresu motywu Neu Light. Wybór dostępny jako 6. kropka w sidebarze',
@@ -6415,16 +6505,20 @@ function renderData(){
   var roAttr=ro?' disabled':'';
 
   var h='';
-  var dataDefault=tabOrderDefault('data');
+  // Aktywna zakładka przetrwa przerysowanie sekcji (zmiana miesiąca, zapis, pobranie pogody) —
+  // wcześniej każde renderCur() wracało do pierwszej zakładki.
+  var dataDefault=(S._dataTab&&TAB_DEFS.data.some(function(d){return d.id===S._dataTab}))?S._dataTab:tabOrderDefault('data');
 
   // ── PRZEŁĄCZNIK: Miesięczne / Dzienne / Sprzedaż menu / Menu Engineering ──
   h+=buildTabsHTML('data',dataDefault,'switchDataTab','data-tabs','data-tab-');
+  h+=deCompleteHTML();
 
   h+='<div id="data-sub-monthly" style="display:'+(dataDefault==='monthly'?'block':'none')+'">';
 
-  if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Masz uprawnienia tylko do odczytu (rola: Podgląd) — nie możesz edytować danych tego obiektu.</div>';
+  h+=deHead('📝','Miesięczne','Budżet i wynik netto każdego outletu za wybrany miesiąc — podstawa Dashboardu, prognoz i porównań. Wynik wpisujesz ręcznie albo wypełniasz z raportu HosPOS.');
 
-  // ── MONTH PICKER BUTTON ──
+  // ── KROK 1: OKRES (miesiąc + zakres dni) ──
+  h+=deCardOpen(1,'Okres — miesiąc i zakres dni');
   h+='<div class="pick-wrap" style="margin-bottom:12px" id="mp-wrap">';
   h+='<button class="mpick-btn" id="mpick-btn" onclick="toggleMPicker(event)">';
   h+='<span>📅 '+mLabelFull(S.month)+'</span><span class="arr">▾</span></button>';
@@ -6436,10 +6530,6 @@ function renderData(){
   h+='</div><div class="mgrid" id="mp-grid"></div>';
   h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z danymi</div>';
   h+='</div></div>';
-
-  // ── PARAMETRY ──
-  h+='<div class="card" style="margin-bottom:12px">';
-  h+='<div class="fsect">⚙️ Parametry</div>';
   h+='<div class="fgrid">';
   h+='<div class="fg"><label>Dni w miesiącu</label><input type="number" class="fi" id="i-dim" value="'+DIM+'" min="28" max="31"'+roAttr+'></div>';
   h+='<div class="fg"><label>Zakres dni — dane do dnia</label>';
@@ -6453,20 +6543,19 @@ function renderData(){
   h+='</div></div></div>';
   h+='</div></div>';
 
-  // ── SZYBKIE WYPEŁNIENIE: wklej raport HosPOS (ten sam format co "Sprzedaż menu") ──
+  // ── KROK 2 i 3: ŹRÓDŁO (opcjonalne wypełnienie z raportu HosPOS) + PODGLĄD ──
   if(!ro){
-    h+='<div class="card" style="margin-bottom:12px">';
-    h+='<div class="fsect">🔗 Wklej raport HosPOS (szybkie wypełnienie)</div>';
-    h+='<p class="hs-p" style="margin-bottom:10px">Alternatywa dla ręcznego wpisywania — wklej treść raportu sprzedaży z HosPOS (ten sam format co w karcie "Sprzedaż menu"), a aplikacja wyciągnie sumę netto per outlet i wypełni nią kolumnę "Wynik" dla miesiąca <strong>'+mLabelFull(S.month)+'</strong> poniżej. Dopasowanie outletów zapamiętuje się na kolejne dni i miesiące. Nic nie zapisuje się automatycznie — po wypełnieniu nadal klikasz "Zapisz".</p>';
-    h+='<textarea class="fi" id="monthly-hospos-input" rows="4" placeholder="Wklej tutaj raport..."></textarea>';
-    h+=ocrButtonHTML('monthly-hospos-photo','monthly-hospos-input','monthly-hospos-ocr-status');
-    h+='<div class="fa" style="margin-top:8px"><button class="btn btn-p" onclick="monthlyHosposParse()">🔍 Wczytaj i przeanalizuj</button></div>';
-    h+='<div id="monthly-hospos-preview"></div>';
+    h+=deCardOpen(2,'Źródło — raport HosPOS lub plik (opcjonalnie)');
+    h+=deSource({id:'monthly-hospos',onParse:'monthlyHosposParse()',
+      hint:'Zamiast wpisywać wyniki ręcznie, wklej raport sprzedaży z HosPOS (ten sam co w zakładce Sprzedaż menu), zrób zdjęcie wydruku albo wczytaj ten raport w PDF — sumy netto trafią do kolumny „Wynik" w kroku 4, a zakres dni ustawi się z raportu. Plik Excel z budżetem i wynikami zapisuje od razu wiele miesięcy (po sprawdzeniu w podglądzie).',
+      files:deFileRow([{label:'📄 Raport HosPOS (PDF)',onclick:'triggerImportHosPOS()',title:'„Sprzedaż pozycji menu po rabacie" — jeden miesiąc kalendarzowy'},{label:'📊 Excel — budżet i wyniki',onclick:'triggerImportExcel()',title:'Układ „Aktualne wyniki budżetu" albo szablon aplikacji'},{label:'📋 Szablon Excel',onclick:'downloadExcelTemplate()'}])+
+        '<input type="file" id="fi-hospos" accept=".pdf" style="display:none" onchange="handleImportHosPOS(this)"><input type="file" id="fi-excel" accept=".xlsx,.xls" style="display:none" onchange="handleImportExcel(this)">'});
     h+='</div>';
+    h+=dePreviewCard(3,'monthly-hospos-preview','');
   }
 
-  // ── TABELA DANYCH ──
-  h+='<div class="card"><div class="fsect">💰 Budżet i wyniki netto (PLN) '+(ro?'':'<button class="btn btn-g btn-sm" onclick="cpyBudget()">📋 Kopiuj z '+mLabel(pm)+'</button>')+'</div>';
+  // ── KROK 4: DANE ──
+  h+=deCardOpen(ro?2:4,'Dane — budżet i wyniki netto (PLN)',ro?'':'<button class="btn btn-g btn-sm" onclick="cpyBudget()">📋 Kopiuj budżet z '+mLabel(pm)+'</button>');
   h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="det"><thead><tr><th>Outlet</th><th>Budżet (PLN)</th><th>Wynik (PLN)</th><th>%</th></tr></thead><tbody id="det-rows">';
   S.outlets.forEach(function(o){
     var k=okey(o.name),bv=b[k]||0,av=a[k]||0;
@@ -6482,7 +6571,7 @@ function renderData(){
   h+='</div>';
 
   // ── CELE / TARGETY (feature #8) ──
-  h+='<div class="card" style="margin-top:14px"><div class="fsect">🎯 Cele (stretch goals) '+(ro?'':'<button class="btn btn-g btn-sm" onclick="goalsApplyPct()">➕ Ustaw jako budżet +% </button>')+'</div>';
+  h+=deCardOpen(null,'🎯 Cele (stretch goals)',ro?'':'<button class="btn btn-g btn-sm" onclick="goalsApplyPct()">➕ Ustaw jako budżet +%</button>');
   h+='<p class="hs-p" style="margin-bottom:10px">Opcjonalny dodatkowy cel ponad budżet — np. cel rozciągnięty (stretch target) dla zmotywowania zespołu.</p>';
   if(!ro){
     h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input type="number" class="fi" id="goals-pct-inp" placeholder="np. 10" style="max-width:100px"><span style="font-size:.75rem;color:var(--tx3)">% ponad budżet dla wszystkich outletów</span></div>';
@@ -6509,19 +6598,18 @@ function renderData(){
   // ── POD-ZAKŁADKA: Sprzedaż pracownika (renderowana osobno przez renderEmpSales() do #v-empsales) ──
   h+='<div id="v-empsales" style="display:'+(dataDefault==='empsales'?'block':'none')+'"></div>';
   h+='<div id="v-perf" style="display:'+(dataDefault==='perf'?'block':'none')+'"></div>';
-  // ── POD-ZAKŁADKA: Import plików (renderowana osobno przez renderDataImport() do #v-data-import) ──
-  h+='<div id="v-data-import" style="display:'+(dataDefault==='import'?'block':'none')+'"></div>';
 
   el.innerHTML=h;
   recalc();
   buildMGrid();
   buildCal();
+  if((S._monthlyHosposParsed||S._monthlyExcelPending)&&!ro)renderMonthlyHosposPreview();
   renderDaily();
   renderMenuSales();
   renderMenuEng();
   renderEmpSales();
   renderPerfImport();
-  renderDataImport();
+  deCompleteRefresh();
 }
 
 /* ═══════════════════════════════════════════
@@ -6537,8 +6625,7 @@ var TAB_DEFS={
     {id:'menusales',icon:'🍽️',label:'Sprzedaż menu'},
     {id:'menuengineering',icon:'📊',label:'Menu Engineering'},
     {id:'empsales',icon:'👤',label:'Sprzedaż pracownika'},
-    {id:'perf',icon:'🧾',label:'Raport okresowy'},
-    {id:'import',icon:'📥',label:'Import plików'}
+    {id:'perf',icon:'🧾',label:'Raport okresowy'}
   ],
   analytics:[
     {id:'charts',icon:'📊',label:'Wykresy'},
@@ -6647,24 +6734,370 @@ function resetTabOrderClick(){
   tabOrderRerender(st.section);
 }
 function tabOrderRerender(section){
-  if(section==='data')renderData();
+  if(section==='data'){S._dataTab=null;renderData();}
   else if(section==='analytics')renderAnalytics();
   else if(section==='compare')renderCompare();
   else if(section==='ctm')renderMenuAnalysis();
 }
 
+/* ═══════════════════════════════════════════
+   WPROWADŹ DANE — WSPÓLNE ELEMENTY WSZYSTKICH ZAKŁADEK
+   Każda zakładka składa się z tych samych klocków, w tej samej kolejności:
+     nagłówek zakładki → [Okres] → Źródło → Podgląd i dopasowanie → Dane / Zapisane dane
+   a podgląd po wczytaniu raportu ma wszędzie identyczną budowę:
+     pasek „zakres → miejsce zapisu" → kafelki podsumowania → ostrzeżenia →
+     wiersze dopasowania (nazwa z raportu | wartość | outlet w aplikacji) → przyciski.
+   Dzięki temu po wczytaniu dowolnego raportu użytkownik widzi ten sam układ
+   i te same nazwy przycisków, niezależnie od zakładki.
+═══════════════════════════════════════════ */
+function deHead(icon,title,desc){
+  var h='<div class="de-head"><h2>'+icon+' '+title+'</h2><p>'+desc+'</p></div>';
+  if(!canEdit())h+='<div class="hs-warn" style="margin:0 0 14px">Masz uprawnienia tylko do odczytu (rola: Podgląd) — nie możesz edytować danych tego obiektu.</div>';
+  return h;
+}
+function deCardOpen(step,title,rightHTML,id,extraCls){
+  return '<div class="card de-card'+(extraCls?' '+extraCls:'')+'"'+(id?' id="'+id+'"':'')+'><div class="fsect"><span class="de-title">'+(step?'<span class="de-step">'+step+'</span>':'')+'<span>'+title+'</span></span>'+(rightHTML||'')+'</div>';
+}
+// Pole wklejania raportu: zawsze ten sam opis, pole, przycisk zdjęcia (OCR) i przycisk analizy.
+function deSource(cfg){
+  var h='<p class="hs-p" style="margin-bottom:10px">'+cfg.hint+'</p>';
+  if(cfg.ro)return h+'<p class="de-empty">Wczytywanie danych jest niedostępne w trybie tylko do odczytu.</p>';
+  // Autozapis szkicu: pole bez własnego mechanizmu dostaje wspólny (deDraftSave), a po
+  // odświeżeniu strony tekst wraca razem z informacją, że to przywrócony szkic.
+  var value=cfg.value,oninput=cfg.oninput,draft=cfg.draft||null;
+  if(!oninput){
+    oninput='deDraftSave(\''+cfg.id+'\',this.value)';
+    if(value===undefined){draft=deDraftLoad(cfg.id);value=draft?draft.t:'';}
+  }
+  h+='<textarea class="fi" id="'+cfg.id+'-input" rows="6" placeholder="Wklej tutaj treść raportu…" oninput="'+oninput+'">'+(value?esc(value):'')+'</textarea>';
+  h+='<div class="de-draft-note" id="'+cfg.id+'-draft-note">'+deDraftNoteHTML(draft)+'</div>';
+  h+=ocrButtonHTML(cfg.id+'-photo',cfg.id+'-input',cfg.id+'-ocr-status');
+  h+='<div class="fa"><button class="btn btn-p" onclick="'+cfg.onParse+'">🔍 Wczytaj i przeanalizuj</button></div>';
+  if(cfg.files)h+=cfg.files;
+  return h;
+}
+function dePreviewPlaceholder(){
+  return '<p class="de-empty">Podgląd pojawi się tutaj po wczytaniu danych — sprawdzisz w nim, co zostało rozpoznane i do którego outletu trafi, zanim cokolwiek się zapisze.</p>';
+}
+function dePreviewCard(step,boxId,innerHTML){
+  return deCardOpen(step,'Podgląd i dopasowanie','',boxId+'-card',innerHTML?'de-preview':'')+'<div id="'+boxId+'">'+(innerHTML||dePreviewPlaceholder())+'</div></div>';
+}
+function dePreviewSet(boxId,innerHTML,reveal){
+  var box=document.getElementById(boxId);if(!box)return;
+  box.innerHTML=innerHTML||dePreviewPlaceholder();
+  var card=document.getElementById(boxId+'-card');
+  if(card){
+    card.classList.toggle('de-preview',!!innerHTML);
+    if(innerHTML&&reveal)deReveal(boxId+'-card');
+  }
+}
+function deReveal(cardId){
+  var card=document.getElementById(cardId);
+  if(card&&card.scrollIntoView){try{card.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}}
+}
+function deMeta(noteHTML,fieldsHTML){
+  return '<div class="de-meta"><div class="de-meta-note">'+noteHTML+'</div>'+(fieldsHTML||'')+'</div>';
+}
+function deRangeText(range){
+  return range?('📅 Zakres w raporcie: <strong>'+esc(range.from)+' – '+esc(range.to)+'</strong>'):'📅 Nie wykryto zakresu dat w raporcie';
+}
+function deMonthField(label,id,value,onchangeJS){
+  return '<div class="fg"><label>'+label+'</label><input type="month" class="fi" '+(id?'id="'+id+'" ':'')+'value="'+esc(value||'')+'" onchange="'+onchangeJS+'"></div>';
+}
+function deStaticField(label,valueHTML){
+  return '<div class="fg"><label>'+label+'</label><div class="de-static">'+valueHTML+'</div></div>';
+}
+function deChips(list){
+  return '<div class="de-chips">'+list.map(function(c){return '<div class="de-chip"><div class="de-chip-l">'+c[0]+'</div><div class="de-chip-v">'+c[1]+'</div></div>'}).join('')+'</div>';
+}
+function deWarn(title,list,max){
+  if(!list||!list.length)return '';
+  max=max||5;
+  return '<div class="hs-warn" style="margin:0 0 12px">'+title+'<br><small>'+list.slice(0,max).map(function(x){return esc(x)}).join('<br>')+(list.length>max?'<br>… i '+(list.length-max)+' więcej':'')+'</small></div>';
+}
+// Lista outletów aplikacji — wszędzie te same trzy rodzaje opcji: „wybierz", outlety, „pomiń".
+function deOutletSelect(mappedId,onchangeJS){
+  var h='<select class="fi" onchange="deRowMark(this);'+onchangeJS+'">';
+  h+='<option value="">— wybierz outlet —</option>';
+  S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
+  h+='<option value="__skip__"'+(mappedId==='__skip__'?' selected':'')+'>— pomiń —</option>';
+  return h+'</select>';
+}
+function deRowMark(sel){
+  var r=sel.closest?sel.closest('.de-row'):null;
+  if(r)r.classList.toggle('de-row-todo',!sel.value);
+}
+function deRowsOpen(labels){
+  return '<div class="de-rows"><div class="de-row de-row-hd'+(labels.length>3?' de-row-4':'')+'">'+labels.map(function(l){return '<div>'+l+'</div>'}).join('')+'</div>';
+}
+function deRow(name,sub,valHTML,ctrlHTML,opts){
+  opts=opts||{};
+  return '<div class="de-row'+(opts.four?' de-row-4':'')+(opts.todo?' de-row-todo':'')+'"><div class="de-row-name">'+esc(name)+(sub?'<div class="de-row-sub">'+sub+'</div>':'')+'</div><div class="de-row-val'+(opts.valWarn?' de-val-warn':'')+'">'+valHTML+'</div>'+ctrlHTML+'</div>';
+}
+function deActions(primaryLabel,primaryOnclick,clearOnclick){
+  return '<div class="fa"><button class="btn btn-p" onclick="'+primaryOnclick+'">'+primaryLabel+'</button><button class="btn btn-s" onclick="'+clearOnclick+'">✕ Wyczyść</button></div>';
+}
+// Selektor miesiąca do podglądu zapisanych danych (ten sam w każdej zakładce).
+function deMonthPicker(suf,viewMonth,hint){
+  var h='<div class="fg"><label>Miesiąc do podglądu</label><div class="pick-wrap" id="mp-wrap'+suf+'">';
+  h+='<button class="mpick-btn" id="mpick-btn'+suf+'" onclick="toggleMPicker(event,\''+suf+'\')"><span>📅 '+(viewMonth?mLabelFull(viewMonth):'Wybierz miesiąc')+'</span><span class="arr">▾</span></button>';
+  h+='<div class="picker-pop" id="mp-pop'+suf+'" style="display:none">';
+  h+='<div class="yr-nav"><button class="yr-btn" onclick="mpYearNav(-1,\''+suf+'\');event.stopPropagation()">◀</button><strong id="mp-yr'+suf+'"></strong><button class="yr-btn" onclick="mpYearNav(1,\''+suf+'\');event.stopPropagation()">▶</button></div>';
+  h+='<div class="mgrid" id="mp-grid'+suf+'"></div>';
+  h+='<div class="de-pick-hint">Podświetlone = '+hint+'</div>';
+  h+='</div></div></div>';
+  return h;
+}
+function deAnalysisTip(text,btnLabel,onclickJS){
+  return '<div class="hs-tip de-tip"><span>'+text+'</span><button class="btn btn-s btn-sm" onclick="'+onclickJS+'">'+btnLabel+'</button></div>';
+}
+// Wspólne okno potwierdzenia nadpisania istniejących danych (zamiast osobnego okna w każdej zakładce).
+var _deConfirmFn=null;
+function deConfirm(title,bodyHTML,okLabel,fn){
+  _deConfirmFn=fn;
+  document.getElementById('de-confirm-title').textContent=title;
+  document.getElementById('de-confirm-body').innerHTML=bodyHTML;
+  document.getElementById('de-confirm-ok').textContent=okLabel||'🔁 Nadpisz';
+  openM('m-de-confirm');
+}
+function deConfirmOk(){
+  var f=_deConfirmFn;_deConfirmFn=null;
+  closeM('m-de-confirm');
+  if(f)f();
+}
+
+// ── AUTOZAPIS SZKICU wklejonego tekstu — wspólny dla wszystkich pól „Źródło" ──
+// Tekst trzymany w pamięci od razu (przetrwa przerysowanie zakładki) i w localStorage z opóźnieniem
+// (przetrwa odświeżenie strony). Kasowany dopiero po zapisie danych albo kliknięciu „Wyczyść".
+var _deDraftTimers={},_deDraftMem={};
+function deDraftKey(id){return uk('draft-'+id+'-'+S.pid)}
+function deDraftSave(id,v){
+  _deDraftMem[S.pid+'|'+id]=v||'';
+  clearTimeout(_deDraftTimers[id]);
+  var key=deDraftKey(id);
+  _deDraftTimers[id]=setTimeout(function(){
+    if(v&&v.trim())lsSet(key,{t:v,ts:Date.now()});else lsDel(key);
+  },400);
+  var note=document.getElementById(id+'-draft-note');if(note)note.innerHTML='';
+}
+function deDraftLoad(id){
+  var mk=S.pid+'|'+id;
+  if(Object.prototype.hasOwnProperty.call(_deDraftMem,mk))return _deDraftMem[mk]?{t:_deDraftMem[mk],mem:true}:null;
+  var d=lsGet(deDraftKey(id),null);
+  if(d&&d.t){_deDraftMem[mk]=d.t;return d;}
+  return null;
+}
+function deDraftClear(id){
+  clearTimeout(_deDraftTimers[id]);
+  _deDraftMem[S.pid+'|'+id]='';
+  lsDel(deDraftKey(id));
+}
+function deDraftNoteHTML(d){
+  if(!d||d.mem||!d.ts)return '';
+  var dt=new Date(d.ts);
+  var when=String(dt.getDate()).padStart(2,'0')+'.'+String(dt.getMonth()+1).padStart(2,'0')+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+  return '📝 Przywrócono niezapisany tekst wklejony '+when+' — możesz go od razu przeanalizować albo wyczyścić.';
+}
+
+// Wiersz „albo wczytaj z pliku" pod polem wklejania.
+function deFileRow(buttons){
+  return '<div class="de-files"><span class="de-files-l">albo wczytaj z pliku:</span>'+buttons.map(function(b){
+    return '<button class="btn btn-s btn-sm" onclick="'+b.onclick+'"'+(b.title?' title="'+escAttr(b.title)+'"':'')+'>'+b.label+'</button>';
+  }).join('')+'</div>';
+}
+function deBusy(boxId,msg){dePreviewSet(boxId,'<p class="de-empty">⏳ '+msg+'</p>',true)}
+function deErrorPreview(boxId,msg){dePreviewSet(boxId,'<div class="hs-warn" style="margin:0">'+msg+'</div>',true)}
+
+/* ── PASEK KOMPLETNOŚCI WYBRANEGO MIESIĄCA (u góry „Wprowadź dane") ── */
+function deExpectedDays(m){
+  var real=currentRealMonth();
+  if(m>real)return 0;
+  if(m<real)return dim(m);
+  return Math.max(0,new Date().getDate()-1); // dane wprowadza się zwykle za dzień poprzedni
+}
+function deRangeEndDay(range,m){
+  if(!range||!range.to)return null;
+  return guessMonthFromRange(range.to)===m?msalesDayOfDMY(range.to):null;
+}
+function deCompleteItems(){
+  var pid=S.pid,m=S.month,n=S.outlets.length;
+  var exp=deExpectedDays(m);
+  var md=getMD(pid,m)||{};
+  var dd=getDailyData(pid,m)||{};
+  var items=[];
+  function st(have,need){return have<=0?'no':(have>=need?'ok':'part')}
+  var hasB=!!(md.b&&Object.keys(md.b).some(function(k){return md.b[k]>0}));
+  items.push({tab:'monthly',l:'Budżet',v:hasB?'✓':'brak',s:hasB?'ok':'no',t:'Budżet miesięczny outletów'});
+  var hasA=!!(md.a&&Object.keys(md.a).some(function(k){return md.a[k]>0}));
+  var dr=hasA?(md.dr||0):0;
+  items.push({tab:'monthly',l:'Wynik',v:hasA?('do dnia '+dr):'brak',s:hasA?(dr>=exp?'ok':'part'):'no',t:'Wynik netto w zakładce Miesięczne (zakres dni)'});
+  var filled=0;
+  for(var d=1;d<=exp;d++){var dv=dd.days&&dd.days[d];if(dv&&Object.keys(dv).length)filled++;}
+  items.push({tab:'daily',l:'Dzienne',v:filled+'/'+exp+' dni',s:st(filled,exp),t:'Dni z wpisaną sprzedażą (do wczoraj)'});
+  var ms=getMenuSales(pid,m);
+  var msEnd=ms?deRangeEndDay(ms.sourceRange,m):null;
+  items.push({tab:'menusales',l:'Sprzedaż menu',v:ms?(msEnd?'do dnia '+msEnd:'✓'):'brak',s:ms?((msEnd===null||msEnd>=exp)?'ok':'part'):'no',t:'Raport sprzedaży pozycji menu'});
+  var mengN=getAllMenuEngKeys(pid).filter(function(k){return k.month===m}).length;
+  items.push({tab:'menuengineering',l:'Menu Eng.',v:mengN+'/'+n,s:st(mengN,n),t:'Outlety z plikiem Menu Engineering (zwykle po zamknięciu miesiąca)'});
+  var empN=getAllEmployeeSalesKeys(pid).filter(function(k){return k.month===m}).length;
+  items.push({tab:'empsales',l:'Sprzedaż prac.',v:empN+'/'+n,s:st(empN,n),t:'Outlety z raportem Sprzedaż użytkowników'});
+  var pr=getPerfReport(pid,m);
+  var prEnd=pr?deRangeEndDay(pr.sourceRange,m):null;
+  items.push({tab:'perf',l:'Raport okresowy',v:pr?(prEnd?'do dnia '+prEnd:'✓'):'brak',s:pr?((prEnd===null||prEnd>=exp)?'ok':'part'):'no',t:'Raport okresowy (narastająco od 1. dnia miesiąca)'});
+  return {items:items,exp:exp};
+}
+function deCompleteHTML(){
+  return '<div class="de-complete" id="de-complete"></div>';
+}
+function deCompleteRefresh(){
+  var box=document.getElementById('de-complete');if(!box)return;
+  if(!S.pid||!S.outlets.length){box.style.display='none';return;}
+  box.style.display='';
+  var r=deCompleteItems();
+  var okN=r.items.filter(function(i){return i.s==='ok'}).length;
+  var h='<div class="de-complete-hd"><div class="de-complete-t">Kompletność danych — <strong>'+mLabelFull(S.month)+'</strong>';
+  h+=r.exp>0?'<span class="de-complete-c">'+okN+' z '+r.items.length+'</span>':'<span class="de-complete-c">miesiąc jeszcze się nie zaczął</span>';
+  h+='</div>';
+  if(canEdit())h+='<button class="btn btn-p btn-sm" onclick="deQuickOpen()">⚡ Wklej dowolny raport</button>';
+  h+='</div>';
+  if(r.exp>0){
+    h+='<div class="de-cpl-list">';
+    r.items.forEach(function(i){
+      h+='<button class="de-cpl de-cpl-'+i.s+'" onclick="deGoTab(\''+i.tab+'\')" title="'+escAttr(i.t)+'"><span class="de-cpl-dot"></span><span class="de-cpl-l">'+i.l+'</span><span class="de-cpl-v">'+i.v+'</span></button>';
+    });
+    h+='</div>';
+  }
+  box.innerHTML=h;
+}
+function deGoTab(tab){
+  if(S.view!=='data')go('data');
+  var btn=document.getElementById('data-tab-'+tab);
+  switchDataTab(tab,btn);
+  var sub={monthly:'data-sub-monthly',daily:'v-daily',menusales:'v-menusales',menuengineering:'v-menueng',empsales:'v-empsales',perf:'v-perf'}[tab];
+  var el=sub&&document.getElementById(sub);
+  if(el&&el.scrollIntoView){try{el.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}}
+}
+
+/* ── „WKLEJ DOWOLNY RAPORT" — rozpoznanie typu i przekierowanie do właściwej zakładki ── */
+var DE_QUICK_TARGETS={
+  monthly:{label:'📝 Miesięczne',input:'monthly-hospos-input',parse:function(){monthlyHosposParse()}},
+  daily:{label:'📆 Dzienne',input:'daily-hospos-input',parse:function(){dailyHosposParse()}},
+  menusales:{label:'🍽️ Sprzedaż menu',input:'msales-input',parse:function(){msalesParse()}},
+  empsales:{label:'👤 Sprzedaż pracownika',input:'emp-input',parse:function(){empSalesParse()}},
+  perf:{label:'🧾 Raport okresowy',input:'perf-input',parse:function(){perfParseClick()}}
+};
+var DE_DRAFT_IDS={monthly:'monthly-hospos',daily:'daily-hospos',menusales:'msales',empsales:'emp',perf:'perf'};
+function deDetectReport(raw){
+  var t=String(raw||'');
+  if(!t.trim())return null;
+  var m;
+  if(/Raport okresowy\s*od:/i.test(t)){
+    m=t.match(/Raport okresowy\s*od:\s*([\d.]+)\s*do:\s*([\d.]+)/i);
+    return {type:'perf',name:'Raport okresowy',range:m?{from:m[1],to:m[2]}:null,routes:['perf']};
+  }
+  if(/SPRZEDA[ŻZ]\s+U[ŻZ]YTKOWNIK/i.test(t)){
+    m=t.match(/Od:\s*([\d.]+)\s*,?\s*do:\s*([\d.]+)/i);
+    var cnt=(t.match(/SPRZEDA[ŻZ]\s+U[ŻZ]YTKOWNIK/gi)||[]).length;
+    return {type:'emp',name:'Sprzedaż użytkowników'+(cnt>1?' ('+cnt+' raporty)':''),range:m?{from:m[1],to:m[2]}:null,routes:['empsales']};
+  }
+  var p=parseMenuSalesReport(t);
+  if(p.outlets.length){
+    var single=!!(p.sourceRange&&p.sourceRange.from===p.sourceRange.to);
+    return {type:'menu',name:'Sprzedaż pozycji menu — '+p.outlets.length+' outlet(ów)',range:p.sourceRange,single:single,
+      routes:single?['daily','menusales','monthly']:['menusales','monthly']};
+  }
+  return {type:'unknown'};
+}
+function deQuickOpen(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var ta=document.getElementById('de-quick-input');if(ta)ta.value='';
+  deQuickDetect();
+  openM('m-de-quick');
+  setTimeout(function(){var t=document.getElementById('de-quick-input');if(t)try{t.focus()}catch(e){}},80);
+}
+function deQuickDetect(){
+  var ta=document.getElementById('de-quick-input'),box=document.getElementById('de-quick-result');
+  if(!ta||!box)return;
+  var r=deDetectReport(ta.value);
+  if(!r){box.innerHTML='<p class="de-empty">Rozpoznawane raporty: Sprzedaż pozycji menu, Sprzedaż użytkowników, Raport okresowy (tekst), a z plików: raport HosPOS w PDF, Excel z budżetem i wynikami, plik Material Control (sprzedaż dzienna) i plik Menu Engineering.</p>';return;}
+  if(r.type==='unknown'){box.innerHTML='<div class="hs-warn" style="margin:0">Nie rozpoznano typu raportu. Sprawdź, czy wklejony tekst zawiera nagłówek raportu z HosPOS (np. „Zakres od: … do: …", „SPRZEDAŻ UŻYTKOWNIKÓW", „Raport okresowy od: …").</div>';return;}
+  var h='<div class="de-quick-hit"><div class="de-quick-name">✅ Rozpoznano: <strong>'+esc(r.name)+'</strong></div>';
+  if(r.range)h+='<div class="de-quick-range">📅 '+esc(r.range.from)+' – '+esc(r.range.to)+(r.single?' (jeden dzień)':'')+'</div>';
+  h+='</div><div class="de-quick-routes"><span class="de-files-l">Wczytaj do:</span>';
+  r.routes.forEach(function(id,i){
+    h+='<button class="btn '+(i===0?'btn-p':'btn-s')+' btn-sm" onclick="deQuickRoute(\''+id+'\')">'+DE_QUICK_TARGETS[id].label+(i===0?' — zalecane':'')+'</button>';
+  });
+  h+='</div>';
+  if(r.type==='menu')h+='<p class="hs-p" style="margin-top:8px">Ten sam raport możesz wczytać kolejno do kilku zakładek — np. najpierw do Sprzedaży menu, potem do Miesięcznych (wynik netto).</p>';
+  box.innerHTML=h;
+}
+function deQuickClose(then){
+  closeM('m-de-quick');
+  // closeM cofa wpis w historii asynchronicznie — przekierowanie dopiero po zamknięciu okna
+  setTimeout(then,60);
+}
+function deQuickRoute(target){
+  var ta=document.getElementById('de-quick-input');if(!ta)return;
+  var text=ta.value;
+  var tg=DE_QUICK_TARGETS[target];if(!tg)return;
+  deQuickClose(function(){
+    deGoTab(target);
+    var inp=document.getElementById(tg.input);
+    if(!inp){toast('Nie znaleziono pola w zakładce','er');return;}
+    inp.value=text;
+    if(target==='menusales')msalesDraftSave(text);else deDraftSave(DE_DRAFT_IDS[target],text);
+    tg.parse();
+  });
+}
+function deQuickFile(input){
+  var file=input.files&&input.files[0];if(!file)return;
+  input.value='';
+  var fake={files:[file],value:''};
+  var name=file.name.toLowerCase();
+  if(/\.pdf$/.test(name)){
+    deQuickClose(function(){deGoTab('monthly');handleImportHosPOS(fake)});
+    return;
+  }
+  if(!/\.(xlsx|xlsm|xls)$/.test(name)){toast('Nieobsługiwany typ pliku — wybierz PDF albo Excel','er');return;}
+  if(!window.XLSX){toast('Biblioteka XLSX nie załadowana','er');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var kind=null;
+    try{
+      var wb=XLSX.read(e.target.result,{type:'array'});
+      var sh=wb.SheetNames.indexOf('Data')!==-1?'Data':wb.SheetNames[0];
+      var head=(XLSX.utils.sheet_to_json(wb.Sheets[sh],{header:1,defval:''})[0]||[]).map(function(h){return String(h||'').trim().toLowerCase()});
+      var isBudget=wb.SheetNames.some(function(n){
+        return detectMonth(n)&&parseExcelSheet(XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:''}),n);
+      });
+      if(head.indexOf('data')!==-1&&head.some(function(h){return h.indexOf('miejsce')!==-1}))kind='mc';
+      else if(isBudget)kind='excel';
+      else if(!parseMenuEngXlsx(e.target.result).error)kind='meng';
+    }catch(err){console.error(err)}
+    if(!kind){toast('Nie rozpoznano zawartości pliku Excel','er');return;}
+    deQuickClose(function(){
+      if(kind==='mc'){deGoTab('daily');handleImportMC(fake)}
+      else if(kind==='meng'){deGoTab('menuengineering');mengFileSelected(fake)}
+      else {deGoTab('monthly');handleImportExcel(fake)}
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 function switchDataTab(tab,btn){
-  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales'),meng=document.getElementById('v-menueng'),emp=document.getElementById('v-empsales'),perf=document.getElementById('v-perf'),imp=document.getElementById('v-data-import');
+  S._dataTab=tab;
+  if(!btn)btn=document.getElementById('data-tab-'+tab);
+  var monthly=document.getElementById('data-sub-monthly'),daily=document.getElementById('v-daily'),msales=document.getElementById('v-menusales'),meng=document.getElementById('v-menueng'),emp=document.getElementById('v-empsales'),perf=document.getElementById('v-perf');
   if(monthly)monthly.style.display=tab==='monthly'?'block':'none';
   if(daily)daily.style.display=tab==='daily'?'block':'none';
   if(msales)msales.style.display=tab==='menusales'?'block':'none';
   if(meng)meng.style.display=tab==='menuengineering'?'block':'none';
   if(emp)emp.style.display=tab==='empsales'?'block':'none';
   if(perf)perf.style.display=tab==='perf'?'block':'none';
-  if(imp)imp.style.display=tab==='import'?'block':'none';
   document.querySelectorAll('#data-tabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
+  deCompleteRefresh();
   haptic(6);
 }
 
@@ -6680,22 +7113,17 @@ function goDaily(){
    UI: SPRZEDAŻ POZYCJI MENU
 ═══════════════════════════════════════════ */
 // ── AUTOZAPIS wklejanego, jeszcze niezanalizowanego tekstu (zabezpieczenie przed odświeżeniem strony) ──
-var _msalesDraftTimer=null;
-function msalesDraftSave(v){
-  S._msalesRawInput=v;
-  clearTimeout(_msalesDraftTimer);
-  _msalesDraftTimer=setTimeout(function(){
-    if(v&&v.trim())lsSet(uk('msales-draft-'+S.pid),v);
-    else lsDel(uk('msales-draft-'+S.pid));
-  },400);
-}
+function msalesDraftSave(v){S._msalesRawInput=v;S._msalesDraftInfo=null;deDraftSave('msales',v)}
 function msalesLoadDraft(){
   if(S._msalesRawInput)return S._msalesRawInput;
-  var d=lsGet(uk('msales-draft-'+S.pid),'');
-  S._msalesRawInput=d||'';
+  var old=lsGet(uk('msales-draft-'+S.pid),'');
+  if(old){lsSet(deDraftKey('msales'),{t:old,ts:Date.now()});lsDel(uk('msales-draft-'+S.pid));}
+  var d=deDraftLoad('msales');
+  S._msalesDraftInfo=d;
+  S._msalesRawInput=d?d.t:'';
   return S._msalesRawInput;
 }
-function msalesClearDraft(){lsDel(uk('msales-draft-'+S.pid))}
+function msalesClearDraft(){deDraftClear('msales')}
 
 function renderMenuSales(){
   var el=document.getElementById('v-menusales');if(!el)return;
@@ -6704,57 +7132,40 @@ function renderMenuSales(){
   var savedMonths=getAllMenuSalesMonths(S.pid);
   var draftText=msalesLoadDraft();
 
-  var h='';
-  h+='<div class="card" style="margin-bottom:14px">';
-  h+='<div class="fsect">📋 Wklej raport sprzedaży pozycji menu</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Wklej treść raportu "Sprzedaż pozycji menu" skopiowaną z systemu POS (Ilość / Netto / Brutto). Aplikacja sama rozpozna zakres dat w raporcie i zaproponuje miesiąc — będzie go można zmienić ręcznie przed zapisem. Możesz też sfotografować raport zamiast wklejać tekst (przycisk poniżej) — przy tak długim, szczegółowym raporcie warto jednak dokładnie sprawdzić rozpoznane liczby przed analizą.</p>';
-  h+='<textarea class="fi" id="msales-input" rows="8" placeholder="Wklej tutaj cały raport..."'+(ro?' disabled':'')+' oninput="msalesDraftSave(this.value)">'+draftText+'</textarea>';
-  if(!ro){
-    h+=ocrButtonHTML('msales-photo','msales-input','msales-ocr-status');
-    h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="msalesParse()">🔍 Wczytaj i przeanalizuj</button>'+(parsed?'<button class="btn btn-s" onclick="msalesClearParsed()">✕ Wyczyść podgląd</button>':'')+'</div>';
-  }
+  var h=deHead('🍽️','Sprzedaż menu','Raport „Sprzedaż pozycji menu" z systemu POS — ilość, netto i brutto każdej pozycji, w podziale na outlety i grupy towarowe. Jeden raport obejmuje wszystkie punkty; dane zapisują się per miesiąc.');
+
+  h+=deCardOpen(1,'Źródło — raport z POS');
+  h+=deSource({id:'msales',ro:ro,value:draftText,draft:S._msalesDraftInfo,oninput:'msalesDraftSave(this.value)',onParse:'msalesParse()',
+    hint:'Wklej treść raportu skopiowaną z POS albo zrób zdjęcie wydruku. Miesiąc zostanie rozpoznany z zakresu dat w raporcie — zmienisz go w podglądzie.'});
   h+='</div>';
 
-  if(parsed&&!ro){
-    h+=renderMsalesPreview(parsed);
-  }
+  h+=dePreviewCard(2,'msales-preview',(parsed&&!ro)?renderMsalesPreview(parsed):'');
 
-  // ── PODGLĄD ZAPISANYCH MIESIĘCY ──
-  h+='<div class="card">';
-  h+='<div class="fsect">📅 Zapisane miesiące</div>';
+  h+=deCardOpen(3,'Zapisane dane');
   if(!savedMonths.length){
-    h+='<p class="hs-p">Brak jeszcze zapisanych danych sprzedaży pozycji menu dla tego obiektu.</p>';
+    h+='<p class="de-empty">Brak zapisanych danych sprzedaży menu dla tego obiektu.</p>';
   } else {
-    h+='<div class="pick-wrap" id="mp-wrap-msales" style="margin-bottom:12px">';
-    h+='<button class="mpick-btn" id="mpick-btn-msales" onclick="toggleMPicker(event,\'-msales\')">';
-    h+='<span>📅 '+(S._msalesViewMonth?mLabelFull(S._msalesViewMonth):'Wybierz miesiąc do podglądu')+'</span><span class="arr">▾</span></button>';
-    h+='<div class="picker-pop" id="mp-pop-msales" style="display:none">';
-    h+='<div class="yr-nav">';
-    h+='<button class="yr-btn" onclick="mpYearNav(-1,\'-msales\');event.stopPropagation()">◀</button>';
-    h+='<strong id="mp-yr-msales"></strong>';
-    h+='<button class="yr-btn" onclick="mpYearNav(1,\'-msales\');event.stopPropagation()">▶</button>';
-    h+='</div><div class="mgrid" id="mp-grid-msales"></div>';
-    h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z zapisaną sprzedażą menu</div>';
-    h+='</div></div>';
+    h+='<div class="de-saved-bar">'+deMonthPicker('-msales',S._msalesViewMonth,'miesiące z zapisaną sprzedażą menu')+'</div>';
     if(S._msalesViewMonth){
       var vd=getMenuSales(S.pid,S._msalesViewMonth);
       if(vd)h+=renderMsalesSavedTable(vd,S._msalesViewMonth);
     }
   }
+  h+=deAnalysisTip('Raporty z tych danych (bestsellery, trend, mix, zmiany cen) są w sekcji <strong>Analiza Menu</strong>.','Przejdź',"go('menuanalysis')");
   h+='</div>';
 
   // ── ALIASY POZYCJI (scalanie duplikatów, np. różna pisownia tej samej pozycji) ──
-  h+='<div class="card" style="margin-top:14px">';
-  h+='<div class="fsect">🔗 Aliasy pozycji</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Jeśli ta sama pozycja bywa zapisywana w POS pod różnymi nazwami (np. "KOZEL0.5L" i "KOZEL 0.5L"), połącz je tutaj — wszystkie raporty (Trend, Bestsellery, Mix...) będą je odtąd liczyć jako jedną pozycję.</p>';
+  h+=deCardOpen(null,'🔗 Aliasy pozycji');
+  h+='<p class="hs-p" style="margin-bottom:10px">Jeśli ta sama pozycja bywa zapisywana w POS pod różnymi nazwami (np. „KOZEL0.5L" i „KOZEL 0.5L"), połącz je tutaj — wszystkie raporty będą je odtąd liczyć jako jedną pozycję.</p>';
   var allNames=msalesAllItemNames(S.pid,'__all__');
   if(allNames.length<2){
-    h+='<p class="hs-p" style="color:var(--tx3)">Potrzeba przynajmniej dwóch różnych nazw pozycji w zapisanych danych, żeby móc je połączyć.</p>';
+    h+='<p class="de-empty">Potrzeba przynajmniej dwóch różnych nazw pozycji w zapisanych danych, żeby móc je połączyć.</p>';
   } else {
-    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">';
-    h+='<div class="fg" style="margin-bottom:0;min-width:200px"><label>Nazwa A (zostanie ukryta)</label><select class="fi" id="msales-alias-from"><option value="">— wybierz —</option>'+allNames.map(function(n){return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'}).join('')+'</select></div>';
-    h+='<div class="fg" style="margin-bottom:0;min-width:200px"><label>Nazwa B (kanoniczna)</label><select class="fi" id="msales-alias-to"><option value="">— wybierz —</option>'+allNames.map(function(n){return '<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>'}).join('')+'</select></div>';
-    h+='<button class="btn btn-p" onclick="msalesAliasAddClick()">🔗 Połącz</button>';
+    var nameOpts=allNames.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');
+    h+='<div class="de-saved-bar">';
+    h+='<div class="fg"><label>Nazwa A (zostanie ukryta)</label><select class="fi" id="msales-alias-from"><option value="">— wybierz —</option>'+nameOpts+'</select></div>';
+    h+='<div class="fg"><label>Nazwa B (kanoniczna)</label><select class="fi" id="msales-alias-to"><option value="">— wybierz —</option>'+nameOpts+'</select></div>';
+    if(!ro)h+='<button class="btn btn-p" onclick="msalesAliasAddClick()">🔗 Połącz</button>';
     h+='</div>';
   }
   var aliases=getMsalesAliases(S.pid);
@@ -6762,13 +7173,14 @@ function renderMenuSales(){
   if(aliasKeys.length){
     h+='<div class="tbl-wrap"><table><thead><tr><th>Nazwa (ukryta)</th><th>Liczona jako</th><th></th></tr></thead><tbody>';
     aliasKeys.forEach(function(k){
-      h+='<tr><td class="lbl">'+k+'</td><td class="lbl">'+aliases[k]+'</td><td><button class="btn btn-s btn-sm" onclick="msalesAliasRemoveClick(\''+k.replace(/'/g,"\\'")+'\')">✕ Rozłącz</button></td></tr>';
+      h+='<tr><td class="lbl">'+esc(k)+'</td><td class="lbl">'+esc(aliases[k])+'</td><td>'+(ro?'':'<button class="btn btn-s btn-sm" onclick="msalesAliasRemoveClick(\''+escAttr(k)+'\')">✕ Rozłącz</button>')+'</td></tr>';
     });
     h+='</tbody></table></div>';
   }
   h+='</div>';
 
   el.innerHTML=h;
+  deCompleteRefresh();
 }
 
 // Zgaduje miesiąc (YYYY-MM) na podstawie daty początkowej wykrytej w nagłówku raportu ("DD.MM.RR").
@@ -6786,63 +7198,37 @@ function msalesDayOfDMY(s){
   var m=String(s||'').match(/^(\d{1,2})\./);
   return m?+m[1]:null;
 }
-function msalesShiftMonth(delta){
-  S._msalesTargetMonth=delta>0?nextM(S._msalesTargetMonth):prevM(S._msalesTargetMonth);
-  renderMenuSales();
-}
-
 function renderMsalesPreview(parsed){
-  var pid=S.pid,map=getMsalesMap(pid);
-  var h='<div class="card" style="margin-bottom:14px">';
-  h+='<div class="fsect">👁️ Podgląd — dopasuj outlety</div>';
+  var map=getMsalesMap(S.pid);
+  var totN=0,totItems=0;
+  parsed.outlets.forEach(function(o){
+    totN+=o.compNetto;
+    totItems+=o.categories.reduce(function(s,c){return s+c.items.length},0);
+  });
+  var h=deMeta(deRangeText(parsed.sourceRange)+(parsed.sourceRange?' — miesiąc rozpoznany automatycznie.':' — wybierz miesiąc ręcznie.'),
+    deMonthField('Zapisz do miesiąca','msales-target-month',S._msalesTargetMonth,'if(this.value){S._msalesTargetMonth=this.value;renderMenuSales()}'));
+  h+=deChips([['Outlety',parsed.outlets.length],['Pozycje',fmtN(totItems)],['Suma netto',fmt(round2(totN),true)]]);
 
-  // ── Miesiąc docelowy: auto-sugestia z zakresu dat w raporcie + ręczna zmiana ──
-  h+='<div style="background:var(--sur2);border-radius:10px;padding:10px 12px;margin-bottom:12px">';
-  if(parsed.sourceRange){
-    h+='<div style="font-size:.7rem;color:var(--tx3);margin-bottom:6px">Wykryty zakres w raporcie: '+parsed.sourceRange.from+' – '+parsed.sourceRange.to+' → zasugerowany miesiąc poniżej</div>';
-  } else {
-    h+='<div style="font-size:.7rem;color:var(--tx3);margin-bottom:6px">Nie udało się wykryć zakresu dat w raporcie — wybierz miesiąc ręcznie</div>';
-  }
-  h+='<div style="display:flex;align-items:center;gap:10px">';
-  h+='<span style="font-size:.7rem;color:var(--tx2)">🎯 Zapisz do miesiąca:</span>';
-  h+='<button class="btn-icon" onclick="msalesShiftMonth(-1)">◀</button>';
-  h+='<strong style="min-width:120px;text-align:center">'+mLabelFull(S._msalesTargetMonth)+'</strong>';
-  h+='<button class="btn-icon" onclick="msalesShiftMonth(1)">▶</button>';
-  h+='</div></div>';
-
-  // ── Propozycja przepisania sum netto do zakładki "Miesięczne" ──
-  // Tylko gdy zakres w raporcie zaczyna się od 1. dnia miesiąca I nie zmieniono ręcznie miesiąca docelowego
-  // (inaczej dzień "do" z raportu nie odpowiadałby wybranemu miesiącowi).
+  // Propozycja przepisania sum netto do zakładki "Miesięczne" — tylko gdy zakres w raporcie zaczyna się
+  // od 1. dnia miesiąca I nie zmieniono ręcznie miesiąca docelowego (inaczej dzień "do" nie pasowałby).
   if(parsed.sourceRange&&msalesDayOfDMY(parsed.sourceRange.from)===1&&guessMonthFromRange(parsed.sourceRange.from)===S._msalesTargetMonth){
     var toDay=msalesDayOfDMY(parsed.sourceRange.to)||1;
-    h+='<div class="hs-tip" style="margin-bottom:12px">💡 Ten raport obejmuje pełny zakres od 1. dnia miesiąca (01–'+String(toDay).padStart(2,'0')+') — mogę też przepisać sumy netto do zakładki <strong>Miesięczne</strong> dla '+mLabelFull(S._msalesTargetMonth)+'. <button class="btn btn-g btn-sm" style="margin-top:6px" onclick="msalesProposeToMiesieczne()">📋 Przepisz do Miesięcznych</button></div>';
+    h+='<div class="hs-tip de-tip" style="margin:0 0 12px"><span>Raport obejmuje zakres od 1. dnia miesiąca (01–'+String(toDay).padStart(2,'0')+') — te same sumy netto mogę przepisać do zakładki <strong>Miesięczne</strong>.</span><button class="btn btn-s btn-sm" onclick="msalesProposeToMiesieczne()">📋 Przepisz do Miesięcznych</button></div>';
   }
+  h+=deWarn('Rozbieżności między sumami w raporcie a przeliczonymi sumami pozycji ('+parsed.warnings.length+'):',parsed.warnings,5);
+  h+=deWarn('Nietypowe wartości względem poprzednich miesięcy — sprawdź przed zapisem:',msalesDetectAnomalies(parsed,S._msalesTargetMonth),5);
 
-  if(parsed.warnings.length){
-    h+='<div class="hs-warn" style="margin-bottom:10px">⚠️ Wykryto '+parsed.warnings.length+' rozbieżności między sumami w raporcie a przeliczonymi sumami pozycji:<br><small>'+parsed.warnings.slice(0,5).join('<br>')+(parsed.warnings.length>5?'<br>…':'')+'</small></div>';
-  }
-  var anomalies=msalesDetectAnomalies(parsed,S._msalesTargetMonth);
-  if(anomalies.length){
-    h+='<div class="hs-warn" style="margin-bottom:10px">🔎 Nietypowe wartości względem poprzednich miesięcy — sprawdź, zanim zapiszesz:<br><small>'+anomalies.join('<br>')+'</small></div>';
-  }
-  parsed.outlets.forEach(function(o,oi){
+  h+=deRowsOpen(['Outlet w raporcie','Netto','Outlet w aplikacji']);
+  parsed.outlets.forEach(function(o){
     var key=o.rawName.trim().toUpperCase();
     var mappedId=map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName);
-    var okClass=(!o.totalNetto||Math.abs(o.compNetto-o.totalNetto)<=0.1)?'grn':'warn';
-    h+='<div style="border:1px solid var(--brd);border-radius:10px;padding:10px 12px;margin-bottom:8px">';
-    h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
-    h+='<strong style="font-size:.82rem">'+o.rawName+'</strong>';
-    h+='<span style="font-size:.68rem;color:var(--'+okClass+')">'+fmt(o.compNetto,true)+' netto · '+o.categories.reduce(function(s,c){return s+c.items.length},0)+' pozycji</span>';
-    h+='</div>';
-    h+='<select class="fi" style="font-size:.78rem" onchange="msalesMapChange(\''+key.replace(/'/g,"\\'")+'\',this.value)">';
-    h+='<option value="">— wybierz outlet w aplikacji —</option>';
-    S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
-    h+='<option value="__skip__"'+(mappedId==='__skip__'?' selected':'')+'>— pomiń ten outlet —</option>';
-    h+='</select>';
-    h+='</div>';
+    var mismatch=!!(o.totalNetto&&Math.abs(o.compNetto-o.totalNetto)>0.1);
+    var nItems=o.categories.reduce(function(s,c){return s+c.items.length},0);
+    h+=deRow(o.rawName,nItems+' pozycji'+(mismatch?' · suma różni się od „Razem" w raporcie':''),fmt(o.compNetto,true),
+      deOutletSelect(mappedId,'msalesMapChange(\''+escAttr(key)+'\',this.value)'),{todo:!mappedId,valWarn:mismatch});
   });
-  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="msalesSaveClick()">💾 Zapisz do miesiąca '+mLabel(S._msalesTargetMonth)+'</button></div>';
   h+='</div>';
+  h+=deActions('💾 Zapisz','msalesSaveClick()','msalesClearParsed()');
   return h;
 }
 
@@ -7037,7 +7423,7 @@ function empSalesParse(){
     if(r.sourceRange){var gm=guessMonthFromRange(r.sourceRange.from);if(gm)month=gm;}
     return {outletId:outletId,month:month};
   });
-  renderEmpPreview();
+  renderEmpPreview(true);
   var skipped=reports.length-valid.length;
   var totalEmp=valid.reduce(function(s,r){return s+r.employees.length},0);
   toast('Rozpoznano '+valid.length+' raport(ów) ('+totalEmp+' pracownik(ów) łącznie)'+(skipped?' — '+skipped+' fragment pominięto (nie rozpoznano)':''),'ok');
@@ -7045,74 +7431,66 @@ function empSalesParse(){
 function empReportMetaChange(idx,field,val){
   if(S._empReportMeta&&S._empReportMeta[idx])S._empReportMeta[idx][field]=val;
 }
-function renderEmpPreview(){
-  var box=document.getElementById('emp-preview');if(!box)return;
+function renderEmpPreview(reveal){
   var reports=S._empParsedReports;
-  if(!reports||!reports.length){box.innerHTML='';return;}
+  if(!reports||!reports.length){dePreviewSet('emp-preview','');return;}
   var meta=S._empReportMeta;
-  var h='';
-  if(reports.length>1)h+='<div class="hs-tip" style="margin-bottom:10px">📦 Rozpoznano <strong>'+reports.length+'</strong> oddzielne raporty (różne punkty sprzedaży) w jednym wklejonym tekście — sprawdź dopasowanie każdego z nich poniżej, potem zapisz wszystkie naraz.</div>';
+  var totNetto=0,totBrutto=0,totEmp=0,warnings=[],notFirst=[];
+  reports.forEach(function(p){
+    totEmp+=p.employees.length;
+    p.employees.forEach(function(e){totNetto+=e.totalNetto;totBrutto+=e.totalBrutto});
+    (p.warnings||[]).forEach(function(w){if(warnings.indexOf(w)===-1)warnings.push(w)});
+    if(p.sourceRange&&msalesDayOfDMY(p.sourceRange.from)!==1)notFirst.push((p.outletName||'—')+': zakres zaczyna się '+p.sourceRange.from);
+  });
+  var sameRange=reports.every(function(p){return p.sourceRange&&reports[0].sourceRange&&p.sourceRange.from===reports[0].sourceRange.from&&p.sourceRange.to===reports[0].sourceRange.to});
+  var h=deMeta((sameRange?deRangeText(reports[0].sourceRange):'📅 Raporty mają różne zakresy dat — widać je przy każdym punkcie')+' — outlet i miesiąc ustawiasz osobno dla każdego punktu poniżej.','');
+  h+=deChips([['Punkty',reports.length],['Pracownicy',fmtN(totEmp)],['Suma netto',fmt(round2(totNetto),true)],['Suma brutto',fmt(round2(totBrutto),true)]]);
+  h+=deWarn('Raport nie zaczyna się od 1. dnia miesiąca — dane zapisują się zawsze jako „od 1. dnia do X":',notFirst,5);
+  h+=deWarn('Rozbieżności między sumą pozycji a sumą „Razem" (zwykle brakujący wiersz w oryginalnym raporcie):',warnings,3);
 
+  h+=deRowsOpen(['Punkt w raporcie','Netto','Outlet w aplikacji','Zapisz do miesiąca']);
   reports.forEach(function(parsed,idx){
     var m=meta[idx];
-    h+='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
-
-    if(parsed.sourceRange){
-      var r=parsed.sourceRange,fromDay=msalesDayOfDMY(r.from);
-      if(fromDay!==1){
-        h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ Ten raport nie zaczyna się od 1. dnia miesiąca (wykryto: '+r.from+') — dane zapisywane są zawsze jako "od 1. dnia miesiąca do X". Sprawdź, czy to właściwy raport.</div>';
-      } else {
-        h+='<div class="hs-tip" style="margin-bottom:8px">📅 Wykryty zakres: '+r.from+' – '+r.to+'.</div>';
-      }
-    }
-
-    h+='<div class="fg" style="max-width:280px"><label>Outlet (wykryto z raportu: "'+esc(parsed.outletName||'—')+'")</label><select class="fi" onchange="empReportMetaChange('+idx+',\'outletId\',this.value)">';
-    h+='<option value="">— wybierz —</option>';
-    S.outlets.forEach(function(o){h+='<option value="'+esc(o.id)+'"'+(m.outletId===o.id?' selected':'')+'>'+esc(o.name)+'</option>'});
-    h+='</select></div>';
-
-    h+='<div class="fg" style="max-width:220px;margin-top:8px"><label>Miesiąc (do zapisu)</label><input type="month" class="fi" value="'+m.month+'" onchange="empReportMetaChange('+idx+',\'month\',this.value)"></div>';
-
-    var totNetto=0,totBrutto=0;
-    parsed.employees.forEach(function(e){totNetto+=e.totalNetto;totBrutto+=e.totalBrutto});
-    h+='<div class="hs-p" style="margin:10px 0">Rozpoznano <strong>'+parsed.employees.length+'</strong> pracowników, łącznie '+fmt(round2(totNetto),true)+' netto / '+fmt(round2(totBrutto),true)+' brutto.</div>';
-
-    if(parsed.warnings.length){
-      h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ '+parsed.warnings.length+' rozbieżności między sumą pozycji a sumą "Razem" (zwykle brakujący wiersz w oryginalnym raporcie):<br><small>'+parsed.warnings.slice(0,3).join('<br>')+(parsed.warnings.length>3?'<br>…':'')+'</small></div>';
-    }
-
-    var sorted=parsed.employees.slice().sort(function(a,b){return b.totalNetto-a.totalNetto});
-    h+='<div class="hs-p" style="margin-bottom:0">Top 3 wg netto: '+sorted.slice(0,3).map(function(e){return esc(e.name)+' ('+fmt(e.totalNetto,true)+')'}).join(', ')+'</div>';
-    h+='</div>';
+    var n=0;parsed.employees.forEach(function(e){n+=e.totalNetto});
+    var top=parsed.employees.slice().sort(function(a,b){return b.totalNetto-a.totalNetto})[0];
+    var sub=parsed.employees.length+' pracowników'+(top?' · najwyższa sprzedaż: '+esc(top.name):'')+((!sameRange&&parsed.sourceRange)?' · '+esc(parsed.sourceRange.from)+'–'+esc(parsed.sourceRange.to):'');
+    h+=deRow(parsed.outletName||'—',sub,fmt(round2(n),true),
+      deOutletSelect(m.outletId,'empReportMetaChange('+idx+',\'outletId\',this.value)')+
+      '<input type="month" class="fi" value="'+esc(m.month||'')+'" onchange="empReportMetaChange('+idx+',\'month\',this.value)">',
+      {four:true,todo:!m.outletId});
   });
-
-  h+='<div class="fa" style="margin-top:12px"><button class="btn btn-p" onclick="empSalesSaveAll()">💾 Zapisz wszystkie</button><button class="btn btn-s" onclick="empSalesClear()">✕ Wyczyść</button></div>';
-  box.innerHTML=h;
+  h+='</div>';
+  h+=deActions('💾 Zapisz','empSalesSaveAll()','empSalesClear()');
+  dePreviewSet('emp-preview',h,reveal);
 }
 function empSalesSaveAll(){
   var reports=S._empParsedReports,meta=S._empReportMeta;
   if(!reports||!reports.length)return;
+  var toSave=0;
   for(var i=0;i<reports.length;i++){
-    if(!meta[i].outletId||!meta[i].month){toast('Uzupełnij outlet i miesiąc dla każdego raportu przed zapisem','er');return;}
+    if(meta[i].outletId==='__skip__')continue;
+    if(!meta[i].outletId||!meta[i].month){toast('Dopasuj wszystkie outlety (lub wybierz „pomiń") i miesiąc przed zapisem','er');return;}
+    toSave++;
   }
+  if(!toSave){toast('Wszystkie punkty są oznaczone jako pominięte — nie ma czego zapisać','er');return;}
   var conflicts=[];
   reports.forEach(function(r,i){
+    if(meta[i].outletId==='__skip__')return;
     var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId});
     if(outlet&&getEmployeeSales(S.pid,meta[i].outletId,meta[i].month))conflicts.push(outlet.name+' — '+mLabelFull(meta[i].month));
   });
   if(conflicts.length){
-    document.getElementById('emp-conflict-body').innerHTML='<p class="hs-p">Dla poniższych outletów i miesięcy dane już istnieją — nowy import je zastąpi:</p><ul style="margin:6px 0 0 18px;font-size:.8rem">'+conflicts.map(function(c){return '<li>'+c+'</li>'}).join('')+'</ul>';
-    openM('m-emp-conflict');
+    deConfirm('👤 Dane już istnieją','<p class="hs-p">Dla poniższych outletów i miesięcy dane już istnieją — nowy import je zastąpi:</p><ul style="margin:6px 0 0 18px;font-size:.8rem">'+conflicts.map(function(c){return '<li>'+esc(c)+'</li>'}).join('')+'</ul>','🔁 Nadpisz',empDoSaveAll);
     return;
   }
   empDoSaveAll();
 }
 function empDoSaveAll(){
-  closeM('m-emp-conflict');
   var reports=S._empParsedReports,meta=S._empReportMeta;
   if(!reports)return;
   var savedCount=0,failed=0,skipped=0,lastOutletId=null,lastMonth=null;
   reports.forEach(function(r,i){
+    if(meta[i].outletId==='__skip__')return; // świadomie pominięty przez użytkownika
     var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId});
     if(!outlet){skipped++;return;}
     var ok=saveEmployeeSales(S.pid,meta[i].outletId,meta[i].month,{outletName:outlet.name,sourceRange:r.sourceRange,employees:r.employees});
@@ -7120,17 +7498,19 @@ function empDoSaveAll(){
   });
   S._empParsedReports=null;S._empReportMeta=null;
   S._empAllItemNamesCache=null; // unieważnij cache podpowiedzi — mogły dojść nowe pozycje
+  deDraftClear('emp');
   var ta=document.getElementById('emp-input');if(ta)ta.value='';
   if(lastOutletId){S._empViewOutlet=lastOutletId;S._empViewMonth=lastMonth;}
   renderEmpSales();
   if(failed)toast('Zapisano '+savedCount+', NIE zapisano '+failed+' — brak miejsca w pamięci przeglądarki','er');
   else if(skipped)toast('Zapisano '+savedCount+', pominięto '+skipped+' (outlet nie istnieje w tym obiekcie)','er');
-  else toast('Zapisano '+savedCount+' raport(ów)','ok');
+  else toast('Zapisano dane dla '+savedCount+' outlet(ów)','ok');
 }
 function empSalesClear(){
   S._empParsedReports=null;S._empReportMeta=null;
+  deDraftClear('emp');
   var ta=document.getElementById('emp-input');if(ta)ta.value='';
-  var box=document.getElementById('emp-preview');if(box)box.innerHTML='';
+  dePreviewSet('emp-preview','');
 }
 function empViewOutletChange(outletId){
   S._empViewOutlet=outletId;
@@ -7493,41 +7873,29 @@ function renderEmpSales(){
   if(!S._empTargetMonth)S._empTargetMonth=S.month;
   if(!S._empViewOutlet)S._empViewOutlet=S.outlets[0].id;
 
-  var h='';
-  h+='<div class="card" style="margin-bottom:14px">';
-  h+='<div class="fsect">👤 Wklej raport „Sprzedaż użytkowników"</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Raport HosPOS generowany osobno dla każdego punktu sprzedaży, pokazujący co i w jakiej ilości sprzedał każdy pracownik. Możesz wkleić <strong>kilka takich raportów naraz</strong> (jeden po drugim, dla różnych punktów) — program sam je rozdzieli i zaproponuje dopasowanie outletu oraz miesiąca dla każdego z osobna, będzie można je poprawić przed zapisem.</p>';
-  if(!ro){
-    h+='<textarea class="fi" id="emp-input" rows="8" placeholder="Wklej tutaj cały raport..."></textarea>';
-    h+=ocrButtonHTML('emp-photo','emp-input','emp-ocr-status');
-    h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="empSalesParse()">🔍 Wczytaj i przeanalizuj</button></div>';
-  }
-  h+='<div id="emp-preview"></div>';
+  var h=deHead('👤','Sprzedaż pracownika','Raport HosPOS „Sprzedaż użytkowników" — co i w jakiej ilości sprzedał każdy pracownik. Raport może dotyczyć jednego punktu albo kilku naraz; dane zapisują się per outlet i miesiąc.');
+
+  h+=deCardOpen(1,'Źródło — raport HosPOS');
+  h+=deSource({id:'emp',ro:ro,onParse:'empSalesParse()',
+    hint:'Wklej treść raportu albo zrób zdjęcie wydruku. Możesz wkleić kilka raportów jeden po drugim — aplikacja rozdzieli je na punkty sprzedaży.'});
   h+='</div>';
 
-  h+='<div class="card" style="margin-bottom:14px">';
-  h+='<div class="fsect">📅 Zapisane dane</div>';
-  h+='<div class="fg" style="max-width:280px"><label>Outlet do podglądu</label><select class="fi" id="emp-view-outlet-select" onchange="empViewOutletChange(this.value)">'+mengOutletSelectHTML('emp-view-outlet-select',S._empViewOutlet)+'</select></div>';
+  h+=dePreviewCard(2,'emp-preview','');
+
   var savedMonths=S._empViewOutlet?getEmployeeSalesMonthsForOutlet(S.pid,S._empViewOutlet):[];
-  if(!savedMonths.length){
-    h+='<p class="hs-p">Brak jeszcze zapisanych danych sprzedaży pracowników dla tego outletu.</p>';
-  } else {
-    h+='<div class="pick-wrap" id="mp-wrap-emp" style="margin:12px 0">';
-    h+='<button class="mpick-btn" id="mpick-btn-emp" onclick="toggleMPicker(event,\'-emp\')">';
-    h+='<span>📅 '+(S._empViewMonth?mLabelFull(S._empViewMonth):'Wybierz miesiąc do podglądu')+'</span><span class="arr">▾</span></button>';
-    h+='<div class="picker-pop" id="mp-pop-emp" style="display:none">';
-    h+='<div class="yr-nav"><button class="yr-btn" onclick="mpYearNav(-1,\'-emp\');event.stopPropagation()">◀</button><strong id="mp-yr-emp"></strong><button class="yr-btn" onclick="mpYearNav(1,\'-emp\');event.stopPropagation()">▶</button></div>';
-    h+='<div class="mgrid" id="mp-grid-emp"></div>';
-    h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z zapisanym importem dla tego outletu</div>';
-    h+='</div></div>';
-  }
-  h+='<div id="emp-view-body"></div>';
+  h+=deCardOpen(3,'Zapisane dane');
+  h+='<div class="de-saved-bar">';
+  h+='<div class="fg"><label>Outlet</label><select class="fi" id="emp-view-outlet-select" onchange="empViewOutletChange(this.value)">'+mengOutletSelectHTML('emp-view-outlet-select',S._empViewOutlet)+'</select></div>';
+  if(savedMonths.length)h+=deMonthPicker('-emp',S._empViewMonth,'miesiące z zapisanymi danymi tego outletu');
   h+='</div>';
-
-  h+='<div class="hs-tip">📊 Analizy i rankingi sprzedaży pracowników znajdziesz w osobnej sekcji <strong>Pracownicy</strong> w menu głównym. <button class="btn btn-s btn-sm" style="margin-left:8px" onclick="go(\'employees\')">Przejdź do Pracowników</button></div>';
+  if(!savedMonths.length)h+='<p class="de-empty">Brak zapisanych danych sprzedaży pracowników dla tego outletu.</p>';
+  h+='<div id="emp-view-body"></div>';
+  h+=deAnalysisTip('Rankingi i analizy zespołu są w sekcji <strong>Pracownicy</strong>.','Przejdź',"go('employees')");
+  h+='</div>';
 
   el.innerHTML=h;
-  if(S._empParsedReports&&S._empParsedReports.length)renderEmpPreview();
+  deCompleteRefresh();
+  if(S._empParsedReports&&S._empParsedReports.length&&!ro)renderEmpPreview();
   if(S._empViewMonth)renderEmpView();
 }
 
@@ -7637,6 +8005,7 @@ function msalesParse(){
   S._msalesParsed=parsed;
   S._msalesTargetMonth=(parsed.sourceRange&&guessMonthFromRange(parsed.sourceRange.from))||S.month;
   renderMenuSales();
+  deReveal('msales-preview-card');
   toast('Rozpoznano '+parsed.outlets.length+' outlet(ów)','ok');
 }
 function msalesClearParsed(){
@@ -7825,41 +8194,34 @@ function renderMenuEng(){
   if(!S._mengMonth)S._mengMonth=S.month;
   if(!S._mengViewOutlet&&S.outlets.length)S._mengViewOutlet=S.outlets[0].id;
 
-  var h='';
-  h+='<div class="card" style="margin-bottom:14px">';
-  h+='<div class="fsect">📊 Wgraj plik Menu Engineering (Material Control)</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Wgraj eksport .xlsx/.xlsm z analizy Menu Engineering — jeśli plik zawiera wiele outletów naraz (kolumna CK/Magazyn), aplikacja sama rozdzieli pozycje na poszczególne punkty. Pozwoli to liczyć Food cost i Beverage cost osobno dla każdego punktu, w podziale na miesiące.</p>';
-  h+='<div class="hs-tip" style="margin-bottom:10px">Macierz 2×2, zmianę kwadrantu między miesiącami i zestawienie FC/BC za okres znajdziesz w zakładce <a href="#" onclick="go(\'menuanalysis\')">Analiza Menu</a>.</div>';
-  h+='<div class="fg" style="max-width:220px"><label>Miesiąc</label><input type="month" class="fi" id="meng-month" value="'+S._mengMonth+'"></div>';
-  if(!ro){
+  var h=deHead('📊','Menu Engineering','Eksport analizy Menu Engineering z Material Control — koszty, marże i klasyfikacja pozycji. Na tej podstawie liczony jest Food cost i Beverage cost każdego punktu; dane zapisują się per outlet i miesiąc.');
+
+  h+=deCardOpen(1,'Źródło — plik z Material Control');
+  h+='<p class="hs-p" style="margin-bottom:10px">Wybierz plik eksportu (.xlsx / .xlsm). Jeśli zawiera kilka outletów naraz (kolumna CK/Magazyn), aplikacja sama rozdzieli pozycje na punkty. Miesiąc wskażesz w podglądzie.</p>';
+  if(ro){
+    h+='<p class="de-empty">Wczytywanie danych jest niedostępne w trybie tylko do odczytu.</p>';
+  } else {
     h+='<input type="file" id="meng-file" accept=".xlsx,.xlsm" style="display:none" onchange="mengFileSelected(this)">';
-    h+='<button class="btn btn-p" onclick="document.getElementById(\'meng-file\').click()">📂 Wybierz plik i wczytaj</button>';
+    h+='<div class="fa"><button class="btn btn-p" onclick="document.getElementById(\'meng-file\').click()">📂 Wybierz plik i wczytaj</button></div>';
   }
-  h+='<div id="meng-preview" style="margin-top:12px"></div>';
   h+='</div>';
 
-  // ── ZAPISANE IMPORTY ──
-  h+='<div class="card">';
-  h+='<div class="fsect">📅 Zapisane dane</div>';
-  h+='<div class="fg" style="max-width:280px"><label>Outlet do podglądu</label><select class="fi" id="meng-view-outlet" onchange="mengViewOutletChange(this.value)">'+mengOutletSelectHTML('meng-view-outlet',S._mengViewOutlet)+'</select></div>';
+  h+=dePreviewCard(2,'meng-preview','');
+
   var savedMonths=S._mengViewOutlet?getMenuEngMonthsForOutlet(S.pid,S._mengViewOutlet):[];
-  if(!savedMonths.length){
-    h+='<p class="hs-p">Brak jeszcze zapisanych danych Menu Engineering dla tego outletu.</p>';
-  } else {
-    h+='<div class="pick-wrap" id="mp-wrap-meng" style="margin:12px 0;display:inline-block">';
-    h+='<button class="mpick-btn" id="mpick-btn-meng" style="display:inline-flex;width:auto;white-space:nowrap" onclick="toggleMPicker(event,\'-meng\')">';
-    h+='<span>📅 '+(S._mengViewMonth?mLabelFull(S._mengViewMonth):'Wybierz miesiąc do podglądu')+'</span><span class="arr">▾</span></button>';
-    h+='<div class="picker-pop" id="mp-pop-meng" style="display:none;left:0;right:auto;width:260px">';
-    h+='<div class="yr-nav"><button class="yr-btn" onclick="mpYearNav(-1,\'-meng\');event.stopPropagation()">◀</button><strong id="mp-yr-meng"></strong><button class="yr-btn" onclick="mpYearNav(1,\'-meng\');event.stopPropagation()">▶</button></div>';
-    h+='<div class="mgrid" id="mp-grid-meng"></div>';
-    h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z zapisanym importem dla tego outletu</div>';
-    h+='</div></div>';
-  }
+  h+=deCardOpen(3,'Zapisane dane');
+  h+='<div class="de-saved-bar">';
+  h+='<div class="fg"><label>Outlet</label><select class="fi" id="meng-view-outlet" onchange="mengViewOutletChange(this.value)">'+mengOutletSelectHTML('meng-view-outlet',S._mengViewOutlet)+'</select></div>';
+  if(savedMonths.length)h+=deMonthPicker('-meng',S._mengViewMonth,'miesiące z zapisanymi danymi tego outletu');
+  h+='</div>';
+  if(!savedMonths.length)h+='<p class="de-empty">Brak zapisanych danych Menu Engineering dla tego outletu.</p>';
   h+='<div id="meng-view-body"></div>';
+  h+=deAnalysisTip('Macierz 2×2, zmiana kwadrantu i zestawienie FC/BC za okres są w sekcji <strong>Analiza Menu</strong>.','Przejdź',"go('menuanalysis')");
   h+='</div>';
 
   el.innerHTML=h;
-  if(S._mengParsed)mengRenderPreview();
+  deCompleteRefresh();
+  if(S._mengParsed&&!ro)mengRenderPreview();
   if(S._mengViewMonth)mengRenderView();
 }
 
@@ -7877,40 +8239,39 @@ function mengFileSelected(input){
     var res=parseMenuEngXlsx(e.target.result);
     if(res.error){toast(res.error,'er');return;}
     S._mengParsed=res.outlets;
-    S._mengMonth=document.getElementById('meng-month').value;
-    mengRenderPreview();
+    if(!S._mengMonth)S._mengMonth=S.month;
+    mengRenderPreview(true);
     var totalItems=res.outlets.reduce(function(s,o){return s+o.items.length},0);
-    toast('Wczytano '+totalItems+' pozycji z '+res.outlets.length+' outlet(ów)','ok');
+    toast('Rozpoznano '+res.outlets.length+' outlet(ów), '+totalItems+' pozycji','ok');
   };
   reader.readAsArrayBuffer(file);
+  input.value=''; // pozwala wybrać ponownie ten sam plik
 }
 
-function mengRenderPreview(){
-  var box=document.getElementById('meng-preview');if(!box)return;
+function mengRenderPreview(reveal){
   var outlets=S._mengParsed;
-  if(!outlets){box.innerHTML='';return;}
+  if(!outlets){dePreviewSet('meng-preview','');return;}
   var map=getMengMap(S.pid);
-  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px">';
-  h+='<div class="hs-p" style="margin-bottom:10px">Podgląd — dopasuj outlety dla <strong>'+mLabelFull(S._mengMonth)+'</strong></div>';
-  outlets.forEach(function(o){
+  var totSale=0,totItems=0;
+  var totals=outlets.map(function(o){var t=mengComputeTotals(o.items);totSale+=t.sale;totItems+=o.items.length;return t});
+  var h=deMeta('📅 Plik z Material Control nie zawiera zakresu dat — wskaż miesiąc, którego dotyczy.',
+    deMonthField('Zapisz do miesiąca','meng-month',S._mengMonth,'if(this.value)S._mengMonth=this.value'));
+  h+=deChips([['Outlety',outlets.length],['Pozycje',fmtN(totItems)],['Sprzedaż',fmt(round2(totSale),true)]]);
+  h+=deRowsOpen(['Outlet w pliku','Sprzedaż','Outlet w aplikacji']);
+  outlets.forEach(function(o,i){
     var key=o.rawName.trim().toUpperCase();
     var mappedId=map[key]!==undefined?map[key]:mengGuessOutlet(o.rawName);
-    var t=mengComputeTotals(o.items);
-    h+='<div style="border:1px solid var(--brd);border-radius:10px;padding:10px 12px;margin-bottom:8px">';
-    h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">';
-    h+='<strong style="font-size:.82rem">'+o.rawName+'</strong>';
-    h+='<span style="font-size:.68rem;color:var(--tx3)">'+fmt(t.sale,true)+' sprzedaży · '+o.items.length+' pozycji · Food '+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+' · Bev '+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+' · FC+BC '+(t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'—')+'</span>';
-    h+='</div>';
-    h+='<select class="fi" style="font-size:.78rem" onchange="mengMapChange(\''+key.replace(/'/g,"\\'")+'\',this.value)">';
-    h+='<option value="">— wybierz outlet w aplikacji —</option>';
-    S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
-    h+='<option value="__skip__"'+(mappedId==='__skip__'?' selected':'')+'>— pomiń ten outlet —</option>';
-    h+='</select>';
-    h+='</div>';
+    var t=totals[i];
+    var sub=o.items.length+' pozycji · Food '+(t.foodCostPct!==null?t.foodCostPct.toFixed(1)+'%':'—')+' · Bev '+(t.bevCostPct!==null?t.bevCostPct.toFixed(1)+'%':'—')+' · FC+BC '+(t.fcBcCostPct!==null?t.fcBcCostPct.toFixed(1)+'%':'—');
+    h+=deRow(o.rawName,sub,fmt(t.sale,true),deOutletSelect(mappedId,'mengMapChange(\''+escAttr(key)+'\',this.value)'),{todo:!mappedId});
   });
-  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="mengSaveClick()">💾 Zapisz wszystkie</button><button class="btn btn-s" onclick="S._mengParsed=null;mengRenderPreview()">✕ Anuluj</button></div>';
   h+='</div>';
-  box.innerHTML=h;
+  h+=deActions('💾 Zapisz','mengSaveClick()','mengClear()');
+  dePreviewSet('meng-preview',h,reveal);
+}
+function mengClear(){
+  S._mengParsed=null;
+  dePreviewSet('meng-preview','');
 }
 function mengMapChange(rawKey,val){
   var map=getMengMap(S.pid);
@@ -7919,7 +8280,8 @@ function mengMapChange(rawKey,val){
 }
 function mengSaveClick(){
   var outlets=S._mengParsed;if(!outlets)return;
-  var month=document.getElementById('meng-month').value;
+  var mEl=document.getElementById('meng-month');
+  var month=(mEl&&mEl.value)||S._mengMonth;
   if(!month){toast('Wybierz miesiąc','er');return;}
   S._mengMonth=month;
   var map=getMengMap(S.pid);
@@ -7927,7 +8289,7 @@ function mengSaveClick(){
     var key=o.rawName.trim().toUpperCase();
     return map[key]===undefined&&mengGuessOutlet(o.rawName)===undefined;
   });
-  if(missing){toast('Dopasuj wszystkie outlety (lub wybierz "pomiń") przed zapisem','er');return;}
+  if(missing){toast('Dopasuj wszystkie outlety (lub wybierz „pomiń") przed zapisem','er');return;}
 
   var conflicts=[];
   outlets.forEach(function(o){
@@ -7935,17 +8297,15 @@ function mengSaveClick(){
     var mapped=map[key]!==undefined?map[key]:mengGuessOutlet(o.rawName);
     if(mapped==='__skip__')return;
     var so=S.outlets.find(function(x){return x.id===mapped});
-    if(so&&getMenuEng(S.pid,mapped,month))conflicts.push(so.name);
+    if(so&&getMenuEng(S.pid,mapped,month))conflicts.push(so.name+' — '+mLabelFull(month));
   });
   if(conflicts.length){
-    document.getElementById('meng-conflict-body').innerHTML='<p class="hs-p">Dla '+mLabelFull(month)+' dane już istnieją dla: <strong>'+conflicts.join(', ')+'</strong>. Import zastąpi je nowymi (dane z Material Control nie są sumowalne).</p>';
-    openM('m-meng-conflict');
+    deConfirm('📊 Dane już istnieją','<p class="hs-p">Dla poniższych outletów i miesięcy dane już istnieją — nowy import je zastąpi (dane z Material Control nie są sumowalne):</p><ul style="margin:6px 0 0 18px;font-size:.8rem">'+conflicts.map(function(c){return '<li>'+esc(c)+'</li>'}).join('')+'</ul>','🔁 Nadpisz',mengDoSave);
   } else {
     mengDoSave();
   }
 }
 function mengDoSave(){
-  closeM('m-meng-conflict');
   var outlets=S._mengParsed;if(!outlets)return;
   var month=S._mengMonth;
   var map=getMengMap(S.pid);
@@ -8261,15 +8621,14 @@ function renderDaily(){
   var hasLocation=!!(prop&&prop.lat);
   var dayWeather=dd.weather&&dd.weather[_dailyDay];
 
-  var h='';
-  if(ro)h+='<div class="hs-warn" style="margin-bottom:12px">Masz uprawnienia tylko do odczytu (rola: Podgląd) — nie możesz edytować danych tego obiektu.</div>';
-  h+='<p class="hs-p" style="margin-bottom:14px">Wprowadzaj sprzedaż netto osobno dla każdego dnia miesiąca (bez budżetu). Te dane zasilają rzeczywistą Heatmapę w Analityce i będą wykorzystywane w przyszłych analizach oraz imporcie z systemu Material Control.</p>';
+  var h=deHead('📆','Dzienne','Sprzedaż netto każdego outletu dzień po dniu (bez budżetu) — zasila Heatmapę, Wzorce i analizę wpływu pogody. Wynik dnia wpisujesz ręcznie albo wypełniasz z raportu HosPOS.');
 
   if(!hasLocation){
-    h+='<div class="hs-warn" style="margin-bottom:12px">Ten obiekt nie ma ustawionej lokalizacji — dane pogodowe nie będą dopasowywane do dni. Ustaw miasto w zakładce <a href="#" onclick="go(\'properties\')">Obiekty i outlety</a> (ikona 📍 przy obiekcie).</div>';
+    h+='<div class="hs-warn" style="margin:0 0 14px">Ten obiekt nie ma ustawionej lokalizacji — dane pogodowe nie będą dopasowywane do dni. Ustaw miasto w zakładce <a href="#" onclick="go(\'properties\')">Obiekty i outlety</a> (ikona 📍 przy obiekcie).</div>';
   }
 
-  // ── MONTH PICKER (suf=-daily) ──
+  // ── KROK 1: OKRES (miesiąc + dzień) ──
+  h+=deCardOpen(1,'Okres — miesiąc i dzień');
   h+='<div class="pick-wrap" style="margin-bottom:12px" id="mp-wrap-daily">';
   h+='<button class="mpick-btn" id="mpick-btn-daily" onclick="toggleMPicker(event,\'-daily\')">';
   h+='<span>📅 '+mLabelFull(S.month)+'</span><span class="arr">▾</span></button>';
@@ -8281,31 +8640,25 @@ function renderDaily(){
   h+='</div><div class="mgrid" id="mp-grid-daily"></div>';
   h+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);font-size:.65rem;color:var(--tx3)">Podświetlone = miesiące z danymi dziennymi</div>';
   h+='</div></div>';
-
-  // ── WYBÓR DNIA ──
-  h+='<div class="card" style="margin-bottom:12px">';
-  h+='<div class="fsect">📆 Wybierz dzień</div>';
   h+='<div class="cal-hd"><div class="cal-dh">Pn</div><div class="cal-dh">Wt</div><div class="cal-dh">Śr</div><div class="cal-dh">Cz</div><div class="cal-dh">Pt</div><div class="cal-dh">Sb</div><div class="cal-dh">Nd</div></div>';
   h+='<div class="cal-dg" id="daily-cal"></div>';
   h+='</div>';
 
-  // ── SZYBKIE WYPEŁNIENIE: wklej raport HosPOS (ten sam format co "Sprzedaż menu") ──
+  // ── KROK 2 i 3: ŹRÓDŁO (opcjonalne wypełnienie z raportu HosPOS) + PODGLĄD ──
   if(!ro){
-    h+='<div class="card" style="margin-bottom:12px">';
-    h+='<div class="fsect">🔗 Wklej raport HosPOS (szybkie wypełnienie)</div>';
-    h+='<p class="hs-p" style="margin-bottom:10px">Alternatywa dla ręcznego wpisywania — wklej treść raportu sprzedaży z HosPOS (ten sam format co w karcie "Sprzedaż menu"), a aplikacja wyciągnie sumę netto per outlet i wypełni nią pola poniżej dla wybranego dnia ('+_dailyDay+' '+mLabel(S.month)+'). Nic nie zapisuje się automatycznie — po wypełnieniu nadal klikasz "Zapisz dzień".</p>';
-    h+='<textarea class="fi" id="daily-hospos-input" rows="4" placeholder="Wklej tutaj raport..."></textarea>';
-    h+=ocrButtonHTML('daily-hospos-photo','daily-hospos-input','daily-hospos-ocr-status');
-    h+='<div class="fa" style="margin-top:8px"><button class="btn btn-p" onclick="dailyHosposParse()">🔍 Wczytaj i przeanalizuj</button></div>';
-    h+='<div id="daily-hospos-preview"></div>';
+    h+=deCardOpen(2,'Źródło — raport HosPOS lub plik (opcjonalnie)');
+    h+=deSource({id:'daily-hospos',onParse:'dailyHosposParse()',
+      hint:'Zamiast wpisywać wynik dnia ręcznie, wklej raport sprzedaży z HosPOS za jeden dzień (ten sam co w zakładce Sprzedaż menu) albo zrób zdjęcie wydruku — dzień zostanie rozpoznany z raportu, a sumy netto trafią do formularza w kroku 4. Wiele dni naraz wczytasz z pliku Material Control „Sprzedaż wg Typu Aktywności" — zapisuje się po sprawdzeniu w podglądzie, bez formularza.',
+      files:deFileRow([{label:'📊 Material Control — wiele dni (.xlsx)',onclick:'triggerImportMC()',title:'„Sprzedaż wg Typu Aktywności" — dane trafiają do każdego dnia osobno'}])+
+        '<input type="file" id="fi-mc" accept=".xlsx,.xlsm,.xls" style="display:none" onchange="handleImportMC(this)">'});
     h+='</div>';
+    h+=dePreviewCard(3,'daily-hospos-preview','');
   }
 
-  // ── TABELA WPROWADZANIA DLA WYBRANEGO DNIA ──
-  h+='<div class="card"><div class="fsect" style="flex-wrap:wrap;gap:8px">💰 Sprzedaż netto — dzień <span id="daily-day-lbl">'+_dailyDay+'</span> '+mLabel(S.month)+
-     '<span id="daily-wx-badge">'+(dayWeather?weatherBadgeHTML(dayWeather):(hasLocation?'<span class="wx-badge">⏳ ładowanie pogody...</span>':''))+'</span>'+
-     (hasLocation?'<button class="btn-icon" id="wx-refresh-btn" onclick="refreshWeatherNow()" title="Odśwież pogodę teraz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.7L1 10"/></svg></button>':'')+
-     '</div>';
+  // ── KROK 4: DANE DLA WYBRANEGO DNIA ──
+  h+=deCardOpen(ro?2:4,'Dane — sprzedaż netto, dzień <span id="daily-day-lbl">'+_dailyDay+'</span> '+mLabel(S.month),
+     '<span class="de-title-right"><span id="daily-wx-badge">'+(dayWeather?weatherBadgeHTML(dayWeather):(hasLocation?'<span class="wx-badge">⏳ ładowanie pogody...</span>':''))+'</span>'+
+     (hasLocation?'<button class="btn-icon" id="wx-refresh-btn" onclick="refreshWeatherNow()" title="Odśwież pogodę teraz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.7L1 10"/></svg></button>':'')+'</span>');
   h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="det"><thead><tr><th>Outlet</th><th>Wynik netto (PLN)</th></tr></thead><tbody id="daily-rows">';
   S.outlets.forEach(function(o){
     var k=okey(o.name),v=dayVals[k]||'';
@@ -8315,12 +8668,12 @@ function renderDaily(){
   h+='</tbody></table></div>';
   h+='<div class="fg" style="margin-top:12px"><label>📝 Notatka do tego dnia (np. przyczyna nagłego spadku/wzrostu sprzedaży)</label>';
   h+='<textarea class="fi" id="daily-note" rows="2" placeholder="np. Aroma: awaria klimatyzacji, ograniczona liczba gości..."'+(ro?' disabled':'')+'>'+esc(getDailyNote(S.pid,S.month,_dailyDay))+'</textarea></div>';
-  if(!ro)h+='<div class="fa"><button class="btn btn-p" onclick="saveDailyEntry()">💾 Zapisz dzień</button><button class="btn btn-s" onclick="clearDailyEntry()">🗑 Wyczyść</button></div>';
+  if(!ro)h+='<div class="fa"><button class="btn btn-p" onclick="saveDailyEntry()">💾 Zapisz</button><button class="btn btn-s" onclick="clearDailyEntry()">🗑 Wyczyść</button></div>';
   h+='</div>';
 
   // ── PODSUMOWANIE MIESIĄCA ──
   var filledDays=Object.keys(dd.days||{}).map(Number).sort(function(a,b){return a-b});
-  h+='<div class="stitle" style="margin-top:16px">Wypełnione dni <small>'+filledDays.length+' z '+DIM+'</small></div>';
+  h+=deCardOpen(null,'Zapisane dane — wypełnione dni: '+filledDays.length+' z '+DIM);
   if(filledDays.length){
     h+='<div class="tbl-wrap"><table><thead><tr><th>Dzień</th><th>Suma dnia</th><th>Liczba outletów</th>'+(hasLocation?'<th>Pogoda</th>':'')+'</tr></thead><tbody id="daily-summary-rows">';
     filledDays.forEach(function(day){
@@ -8334,13 +8687,17 @@ function renderDaily(){
     h+='<tr style="font-weight:700;background:var(--sur2)"><td>RAZEM</td><td class="td-acc">'+fmt(monthTotal)+'</td><td>—</td>'+(hasLocation?'<td>—</td>':'')+'</tr>';
     h+='</tbody></table></div>';
   } else {
-    h+='<div class="empty"><p>Brak jeszcze wprowadzonych dni w tym miesiącu.</p></div>';
+    h+='<p class="de-empty">Brak zapisanych dni w tym miesiącu.</p>';
   }
+  h+=deAnalysisTip('Dane dzienne analizujesz w sekcji <strong>Analityka</strong> — Heatmapa, Wzorce i Pogoda.','Przejdź',"go('analytics')");
+  h+='</div>';
 
   el.innerHTML=h;
   buildMGrid('-daily');
   buildDailyCal();
+  if((S._dailyHosposParsed||_mcPending)&&!ro)renderDailyHosposPreview();
   dailyRecalc();
+  deCompleteRefresh();
 
   // Automatyczne pobranie pogody dla całego miesiąca (jedno zapytanie), jeśli obiekt ma lokalizację
   if(hasLocation){
@@ -8420,7 +8777,7 @@ function selectDailyDay(day,skipHosposClear){
   _dailyDay=day;
   var lbl=document.getElementById('daily-day-lbl');if(lbl)lbl.textContent=day;
   buildDailyCal();
-  if(!skipHosposClear)dailyHosposClear();
+  if(!skipHosposClear&&S._dailyHosposParsed)renderDailyHosposPreview();
   var dd=getDailyData(S.pid,S.month);
   var dayVals=(dd.days&&dd.days[day])||{};
   S.outlets.forEach(function(o){
@@ -8507,38 +8864,34 @@ function dailyHosposParse(){
         dateNote={ok:true,msg:'📅 Wykryto dzień raportu: '+String(detectedDay).padStart(2,'0')+'.'+detectedMonth.split('-')[1]+'.'+detectedMonth.split('-')[0]+' — kalendarz ustawiony automatycznie.'};
       }
     } else {
-      dateNote={ok:false,msg:'⚠️ Raport obejmuje więcej niż jeden dzień (zakres '+r.from+'–'+r.to+') — wybierz właściwy dzień ręcznie w kalendarzu przed wypełnieniem pól.'};
+      dateNote={ok:false,msg:'Raport obejmuje więcej niż jeden dzień (zakres '+r.from+'–'+r.to+') — wybierz właściwy dzień ręcznie w kalendarzu przed wypełnieniem pól.'};
     }
   }
   S._dailyHosposParsed=parsed;
   S._dailyHosposDateNote=dateNote;
-  renderDailyHosposPreview();
+  renderDailyHosposPreview(true);
   toast('Rozpoznano '+parsed.outlets.length+' outlet(ów)','ok');
 }
-function renderDailyHosposPreview(){
-  var box=document.getElementById('daily-hospos-preview');if(!box)return;
+function renderDailyHosposPreview(reveal){
+  if(_mcPending)return renderDailyMCPreview(reveal);
   var parsed=S._dailyHosposParsed;
-  if(!parsed){box.innerHTML='';return;}
+  if(!parsed){dePreviewSet('daily-hospos-preview','');return;}
   var map=getMsalesMap(S.pid);
-  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
+  var tot=0;parsed.outlets.forEach(function(o){tot+=o.compNetto});
   var dn=S._dailyHosposDateNote;
-  if(dn)h+='<div class="'+(dn.ok?'hs-tip':'hs-warn')+'" style="margin-bottom:8px">'+dn.msg+'</div>';
-  h+='<div class="hs-p" style="margin-bottom:8px">Dopasuj outlety, jeśli trzeba, i wypełnij pola dla dnia <strong>'+_dailyDay+' '+mLabel(S.month)+'</strong>:</div>';
+  var note=deRangeText(parsed.sourceRange)+(dn&&dn.ok?' — kalendarz ustawiony automatycznie na ten dzień.':'');
+  var h=deMeta(note,deStaticField('Wypełnię dzień',String(_dailyDay).padStart(2,'0')+' '+mLabel(S.month)));
+  h+=deChips([['Outlety',parsed.outlets.length],['Suma netto',fmt(round2(tot),true)]]);
+  if(dn&&!dn.ok)h+='<div class="hs-warn" style="margin:0 0 12px">'+dn.msg+'</div>';
+  h+=deRowsOpen(['Outlet w raporcie','Netto','Outlet w aplikacji']);
   parsed.outlets.forEach(function(o,i){
     var key=o.rawName.trim().toUpperCase();
     var mappedId=(o._mapped!==undefined)?o._mapped:(map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName));
-    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">';
-    h+='<strong style="font-size:.78rem;min-width:110px">'+o.rawName+'</strong>';
-    h+='<span style="font-size:.72rem;color:var(--tx3);min-width:80px">'+fmt(o.compNetto,true)+'</span>';
-    h+='<select class="fi" style="flex:1;min-width:140px;font-size:.75rem" onchange="dailyHosposMapChange('+i+',this.value)">';
-    h+='<option value="">— pomiń —</option>';
-    S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
-    h+='</select>';
-    h+='</div>';
+    h+=deRow(o.rawName,'',fmt(o.compNetto,true),deOutletSelect(mappedId,'dailyHosposMapChange('+i+',this.value)'),{todo:!mappedId});
   });
-  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p btn-sm" onclick="dailyHosposFillDay()">➡️ Wypełnij pola dla dnia '+_dailyDay+'</button><button class="btn btn-s btn-sm" onclick="dailyHosposClear()">✕ Wyczyść</button></div>';
   h+='</div>';
-  box.innerHTML=h;
+  h+=deActions('➡️ Wypełnij formularz','dailyHosposFillDay()','dailyHosposClear()');
+  dePreviewSet('daily-hospos-preview',h,reveal);
 }
 function dailyHosposMapChange(idx,val){
   if(S._dailyHosposParsed&&S._dailyHosposParsed.outlets[idx])S._dailyHosposParsed.outlets[idx]._mapped=val;
@@ -8558,14 +8911,16 @@ function dailyHosposFillDay(){
   });
   if(!filled){toast('Brak dopasowanych outletów — wybierz je z listy','er');return;}
   dailyRecalc();
-  toast('Wypełniono '+filled+' outlet(ów) — sprawdź i kliknij "Zapisz dzień"','ok');
+  toast('Wypełniono '+filled+' outlet(ów) — sprawdź i kliknij "Zapisz"','ok');
   dailyHosposClear();
 }
 function dailyHosposClear(){
   S._dailyHosposParsed=null;
   S._dailyHosposDateNote=null;
+  _mcPending=null;
+  deDraftClear('daily-hospos');
   var ta=document.getElementById('daily-hospos-input');if(ta)ta.value='';
-  var box=document.getElementById('daily-hospos-preview');if(box)box.innerHTML='';
+  dePreviewSet('daily-hospos-preview','');
 }
 
 function dailyRecalc(){
@@ -8620,12 +8975,12 @@ function buildMGrid(suf){
   suf=suf||'';
   var yrEl=document.getElementById('mp-yr'+suf);if(!yrEl)return;
   var yr=parseInt(yrEl.textContent)||parseInt(S.month.split('-')[0]);
-  var haveData=suf==='-daily'?getAllDailyData(S.pid):suf==='-msales'?getAllMenuSalesMap(S.pid):suf==='-meng'?mengMonthsMap():suf==='-emp'?empMonthsMap():getAllMD(S.pid);
+  var haveData=suf==='-daily'?getAllDailyData(S.pid):suf==='-msales'?getAllMenuSalesMap(S.pid):suf==='-meng'?mengMonthsMap():suf==='-emp'?empMonthsMap():suf==='-perf'?perfMonthsMap():getAllMD(S.pid);
   var mn=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
   var h='';
   for(var i=0;i<12;i++){
     var ym=yr+'-'+String(i+1).padStart(2,'0');
-    var has=!!haveData[ym],cur=suf==='-msales'?ym===S._msalesViewMonth:suf==='-meng'?ym===S._mengViewMonth:suf==='-emp'?ym===S._empViewMonth:ym===S.month;
+    var has=!!haveData[ym],cur=suf==='-msales'?ym===S._msalesViewMonth:suf==='-meng'?ym===S._mengViewMonth:suf==='-emp'?ym===S._empViewMonth:suf==='-perf'?ym===S._perfViewMonth:ym===S.month;
     var cls='mgrid-btn'+(cur?' cur':has?' has':'');
     h+='<button class="'+cls+'" onclick="setDMonth(\''+ym+'\',\''+suf+'\');event.stopPropagation()">'+mn[i]+'</button>';
   }
@@ -8652,6 +9007,7 @@ function setDMonth(ym,suf){
   if(suf==='-msales'){msalesViewMonth(ym);closeAllPickers();return;}
   if(suf==='-meng'){mengViewMonth(ym);closeAllPickers();return;}
   if(suf==='-emp'){empViewMonth(ym);closeAllPickers();return;}
+  if(suf==='-perf'){perfViewMonth(ym);closeAllPickers();return;}
   S.month=ym;
   S._monthlyHosposParsed=null;
   syncMonthUI();
@@ -8698,7 +9054,7 @@ function setDR(d){
 }
 
 function closeAllPickers(){
-  ['','-daily','-global','-msales','-meng','-emp'].forEach(function(suf){
+  ['','-daily','-global','-msales','-meng','-emp','-perf'].forEach(function(suf){
     var mp=document.getElementById('mp-pop'+suf),dp=document.getElementById('dp-pop'+suf);
     var mb=document.getElementById('mpick-btn'+suf),db2=document.getElementById('dpick-btn'+suf);
     if(mp)mp.style.display='none';
@@ -8723,31 +9079,30 @@ function monthlyHosposParse(){
   var parsed=parseMenuSalesReport(raw);
   if(!parsed.outlets.length){toast('Nie udało się rozpoznać żadnego outletu w tekście — sprawdź format','er');return;}
   S._monthlyHosposParsed=parsed;
-  renderMonthlyHosposPreview();
+  renderMonthlyHosposPreview(true);
   toast('Rozpoznano '+parsed.outlets.length+' outlet(ów)','ok');
 }
-function renderMonthlyHosposPreview(){
-  var box=document.getElementById('monthly-hospos-preview');if(!box)return;
+function renderMonthlyHosposPreview(reveal){
+  if(S._monthlyExcelPending)return renderMonthlyExcelPreview(reveal);
   var parsed=S._monthlyHosposParsed;
-  if(!parsed){box.innerHTML='';return;}
+  if(!parsed){dePreviewSet('monthly-hospos-preview','');return;}
   var map=getMonthlyPasteMap(S.pid);
-  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
-  h+='<div class="hs-p" style="margin-bottom:8px">Dopasuj outlety, jeśli trzeba, i wypełnij kolumnę "Wynik" dla <strong>'+mLabelFull(S.month)+'</strong>:</div>';
+  var tot=0;parsed.outlets.forEach(function(o){tot+=o.compNetto});
+  var endDay=deRangeEndDay(parsed.sourceRange,S.month);
+  var h=deMeta((parsed.fromFile?'📄 Plik: <strong>'+esc(parsed.fromFile)+'</strong><br>':'')+deRangeText(parsed.sourceRange)+' — dopasowanie outletów zapamiętuje się na kolejne miesiące.',deStaticField('Wypełnię miesiąc',mLabelFull(S.month)+(endDay?' · do dnia '+endDay:'')));
+  h+=deChips([['Outlety',parsed.outlets.length],['Suma netto',fmt(round2(tot),true)]]);
+  var rm=parsed.sourceRange?guessMonthFromRange(parsed.sourceRange.from):null;
+  if(rm&&rm!==S.month)h+='<div class="hs-warn de-warn-act" style="margin:0 0 12px"><span>Raport dotyczy miesiąca <strong>'+mLabelFull(rm)+'</strong>, a formularz poniżej jest otwarty na <strong>'+mLabelFull(S.month)+'</strong>.</span><button class="btn btn-s btn-sm" onclick="monthlySwitchToReport(\''+rm+'\')">Przełącz na '+mLabel(rm)+'</button></div>';
+  if(parsed.sourceRange&&msalesDayOfDMY(parsed.sourceRange.from)!==1)h+='<div class="hs-warn" style="margin:0 0 12px">Raport nie zaczyna się od 1. dnia miesiąca ('+esc(parsed.sourceRange.from)+') — wynik może być niepełny.</div>';
+  h+=deRowsOpen(['Outlet w raporcie','Netto','Outlet w aplikacji']);
   parsed.outlets.forEach(function(o,i){
     var key=o.rawName.trim().toUpperCase();
     var mappedId=(o._mapped!==undefined)?o._mapped:(map[key]!==undefined?map[key]:msalesGuessOutlet(o.rawName));
-    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">';
-    h+='<strong style="font-size:.78rem;min-width:110px">'+o.rawName+'</strong>';
-    h+='<span style="font-size:.72rem;color:var(--tx3);min-width:80px">'+fmt(o.compNetto,true)+'</span>';
-    h+='<select class="fi" style="flex:1;min-width:140px;font-size:.75rem" onchange="monthlyHosposMapChange('+i+',this.value,\''+key.replace(/'/g,"\\'")+'\')">';
-    h+='<option value="">— pomiń —</option>';
-    S.outlets.forEach(function(so){h+='<option value="'+esc(so.id)+'"'+(mappedId===so.id?' selected':'')+'>'+esc(so.name)+'</option>'});
-    h+='</select>';
-    h+='</div>';
+    h+=deRow(o.rawName,'',fmt(o.compNetto,true),deOutletSelect(mappedId,'monthlyHosposMapChange('+i+',this.value,\''+escAttr(key)+'\')'),{todo:!mappedId});
   });
-  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p btn-sm" onclick="monthlyHosposFill()">➡️ Wypełnij kolumnę "Wynik"</button><button class="btn btn-s btn-sm" onclick="monthlyHosposClear()">✕ Wyczyść</button></div>';
   h+='</div>';
-  box.innerHTML=h;
+  h+=deActions('➡️ Wypełnij formularz','monthlyHosposFill()','monthlyHosposClear()');
+  dePreviewSet('monthly-hospos-preview',h,reveal);
 }
 // Zapamiętuje dopasowanie od razu przy zmianie — obowiązuje na kolejne dni i miesiące (per obiekt).
 function monthlyHosposMapChange(idx,val,key){
@@ -8756,8 +9111,16 @@ function monthlyHosposMapChange(idx,val,key){
   if(val)map[key]=val;else delete map[key];
   saveMonthlyPasteMap(S.pid,map);
 }
+// Przełącza formularz na miesiąc z raportu, zachowując wczytany podgląd.
+function monthlySwitchToReport(ym){
+  S.month=ym;
+  syncMonthUI();
+  renderCur();
+  deReveal('monthly-hospos-preview-card');
+}
 function monthlyHosposFill(){
   var parsed=S._monthlyHosposParsed;if(!parsed)return;
+  var endDay=deRangeEndDay(parsed.sourceRange,S.month);
   var map=getMonthlyPasteMap(S.pid);
   var filled=0;
   parsed.outlets.forEach(function(o){
@@ -8770,14 +9133,17 @@ function monthlyHosposFill(){
     if(el){el.value=o.compNetto;filled++;}
   });
   if(!filled){toast('Brak dopasowanych outletów — wybierz je z listy','er');return;}
+  if(endDay)setDR(endDay);
   recalc();
-  toast('Wypełniono '+filled+' outlet(ów) — sprawdź i kliknij "Zapisz"','ok');
+  toast('Wypełniono '+filled+' outlet(ów)'+(endDay?', zakres dni: do '+endDay:'')+' — sprawdź i kliknij "Zapisz"','ok');
   monthlyHosposClear();
 }
 function monthlyHosposClear(){
   S._monthlyHosposParsed=null;
+  S._monthlyExcelPending=null;
+  deDraftClear('monthly-hospos');
   var ta=document.getElementById('monthly-hospos-input');if(ta)ta.value='';
-  var box=document.getElementById('monthly-hospos-preview');if(box)box.innerHTML='';
+  dePreviewSet('monthly-hospos-preview','');
 }
 
 function recalc(){
@@ -11023,8 +11389,10 @@ function clearPropTransientState(){
    '_mengParsed','_mengOutlet','_mengMonth','_mengViewOutlet','_mengViewMonth','_mengFilterCat','_mengFilterQuadrant',
    '_msalesParsed','_msalesRawInput','_msalesTargetMonth','_msalesViewMonth','_msalesModalOutlet','_msalesModalOutletId','_msalesModalMonth','_msalesToMiesieczneCtx',
    '_monthlyHosposParsed','_dailyHosposParsed','_dailyHosposDateNote','_kpiPrev','_tableExpanded',
-   '_empTab','_pgMonth','_patOutlet','_patMonths','_perfParsed','_perfMonth'
+   '_empTab','_pgMonth','_patOutlet','_patMonths','_perfParsed','_perfMonth','_perfViewMonth',
+   '_monthlyExcelPending','_msalesDraftInfo'
   ].forEach(function(k){S[k]=null});
+  _mcPending=null;
   dChart('emp-trend-chart'); // wykres należy do poprzedniego obiektu
   empCacheClear();
   var ta=document.getElementById('emp-input');if(ta)ta.value='';
@@ -11321,7 +11689,7 @@ function renderExport(){
   h+=eCard('💾','Eksport JSON','Pełna kopia bazy danych (wszystkie obiekty, outlety, dane miesięczne)','exportJSON()');
   h+=eCard('📂','Import JSON','Przywróć bazę z pliku .json (kopia zapasowa)','triggerImportJSON()');
   h+='</div>';
-  h+='<div class="hs-tip" style="margin-bottom:24px">Import Excel, HosPOS i Material Control znajdziesz teraz w zakładce <a href="#" onclick="goDataImport()">Wprowadź dane → Import plików</a>.</div>';
+  h+='<div class="hs-tip" style="margin-bottom:24px">Pliki Excel i raport HosPOS w PDF wczytasz w <a href="#" onclick="deGoTab(\'monthly\')">Wprowadź dane → Miesięczne</a>, a plik z Material Control (sprzedaż dzienna) w <a href="#" onclick="deGoTab(\'daily\')">Wprowadź dane → Dzienne</a> — krok „Źródło".</div>';
 
   // hidden file inputs
   h+='<input type="file" id="fi-json" accept=".json" style="display:none" onchange="handleImportJSON(this)">';
@@ -11344,150 +11712,121 @@ function perfParseClick(){
   S._perfParsed=r;
   var gm=r.sourceRange?guessMonthFromRange(r.sourceRange.from):null;
   S._perfMonth=gm||S.month;
-  renderPerfPreview();
+  renderPerfPreview(true);
   var nEmp=r.outlets.reduce(function(a,o){return a+o.employees.length},0);
-  toast('Rozpoznano '+r.outlets.length+' punktów i '+nEmp+' pracowników','ok');
+  toast('Rozpoznano '+r.outlets.length+' punkt(ów), '+nEmp+' pracowników','ok');
 }
-function renderPerfPreview(){
-  var box=document.getElementById('perf-preview');if(!box)return;
+function renderPerfPreview(reveal){
   var r=S._perfParsed;
-  if(!r){box.innerHTML='';return;}
-  var h='<div style="background:var(--sur2);border-radius:10px;padding:12px;margin-top:10px">';
-  if(r.sourceRange){
-    var fromDay=msalesDayOfDMY(r.sourceRange.from);
-    if(fromDay!==1)h+='<div class="hs-warn" style="margin-bottom:8px">⚠️ Raport nie zaczyna się od 1. dnia miesiąca (wykryto '+esc(r.sourceRange.from)+'). Dane zapisywane są narastająco od 1. dnia — sprawdź, czy to właściwy zakres.</div>';
-    else h+='<div class="hs-tip" style="margin-bottom:8px">📅 Zakres: '+esc(r.sourceRange.from)+' – '+esc(r.sourceRange.to)+' (narastająco od początku miesiąca).</div>';
-  }
-  h+='<div class="fg" style="max-width:220px"><label>Miesiąc (do zapisu)</label><input type="month" class="fi" id="perf-month" value="'+S._perfMonth+'" onchange="S._perfMonth=this.value"></div>';
-  var g=r.grand;
-  if(g){
-    h+='<div class="kpi-grid" style="margin:10px 0">';
-    h+='<div class="kpi"><div class="kpi-lbl">Rachunki</div><div class="kpi-val">'+fmtN(g.bills)+'</div></div>';
-    h+='<div class="kpi"><div class="kpi-lbl">Wartość</div><div class="kpi-val">'+fmt(round2(g.billsValue),true)+'</div></div>';
-    h+='<div class="kpi"><div class="kpi-lbl">Storna</div><div class="kpi-val">'+fmtN(g.voids)+'</div><div class="kpi-sub">'+fmt(round2(g.voidsValue),true)+'</div></div>';
-    h+='<div class="kpi"><div class="kpi-lbl">Rabaty</div><div class="kpi-val">'+fmt(round2(g.discounts),true)+'</div></div>';
-    h+='</div>';
-  }
-  h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Punkt</th><th>Pracowników</th><th>Rachunki</th><th>Wartość</th><th>Śr. rachunek</th></tr></thead><tbody>';
+  if(!r){dePreviewSet('perf-preview','');return;}
+  var nEmp=r.outlets.reduce(function(a,o){return a+o.employees.length},0);
+  var g=r.grand||{bills:0,billsValue:0,voids:0,voidsValue:0,discounts:0};
+  var h=deMeta(deRangeText(r.sourceRange)+' — dane zapisują się narastająco od 1. dnia miesiąca.',
+    deMonthField('Zapisz do miesiąca','perf-month',S._perfMonth,'if(this.value)S._perfMonth=this.value'));
+  h+=deChips([['Punkty',r.outlets.length],['Pracownicy',fmtN(nEmp)],['Rachunki',fmtN(g.bills)],['Wartość',fmt(round2(g.billsValue),true)],['Storna',fmt(round2(g.voidsValue),true)],['Rabaty',fmt(round2(g.discounts),true)]]);
+  if(r.sourceRange&&msalesDayOfDMY(r.sourceRange.from)!==1)h+=deWarn('Raport nie zaczyna się od 1. dnia miesiąca — sprawdź, czy to właściwy zakres:',['Wykryty początek zakresu: '+r.sourceRange.from],1);
+  h+=deRowsOpen(['Punkt w raporcie','Wartość','Rachunki']);
   r.outlets.forEach(function(o){
     var avg=o.totals.bills>0?o.totals.billsValue/o.totals.bills:null;
-    h+='<tr><td class="lbl">'+esc(o.outletName)+'</td><td>'+o.employees.length+'</td><td>'+fmtN(o.totals.bills)+'</td><td>'+fmt(round2(o.totals.billsValue),true)+'</td><td>'+(avg===null?'—':fmt(round2(avg),true))+'</td></tr>';
+    h+=deRow(o.outletName,o.employees.length+' pracowników'+(avg===null?'':' · śr. rachunek '+fmt(round2(avg),true)),fmt(round2(o.totals.billsValue),true),
+      '<div class="de-static">'+fmtN(o.totals.bills)+' rachunków</div>');
   });
-  h+='</tbody></table></div>';
-  h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="perfSave()">💾 Zapisz</button><button class="btn btn-s" onclick="perfClear()">✕ Wyczyść</button></div>';
   h+='</div>';
-  box.innerHTML=h;
+  h+=deActions('💾 Zapisz','perfSave()','perfClear()');
+  dePreviewSet('perf-preview',h,reveal);
 }
 function perfSave(){
   var r=S._perfParsed;if(!r)return;
   var mEl=document.getElementById('perf-month');
-  var month=mEl?mEl.value:S._perfMonth;
+  var month=(mEl&&mEl.value)||S._perfMonth;
   if(!month){toast('Wybierz miesiąc','er');return;}
-  if(getPerfReport(S.pid,month)&&!confirm('Raport okresowy za '+mLabelFull(month)+' już istnieje. Nadpisać?'))return;
+  S._perfMonth=month;
+  if(getPerfReport(S.pid,month)){
+    deConfirm('🧾 Dane już istnieją','<p class="hs-p">Raport okresowy za <strong>'+mLabelFull(month)+'</strong> jest już zapisany — nowy import go zastąpi (raport jest narastający, więc nowszy zawiera starszy).</p>','🔁 Nadpisz',perfDoSave);
+  } else {
+    perfDoSave();
+  }
+}
+function perfDoSave(){
+  var r=S._perfParsed;if(!r)return;
+  var month=S._perfMonth;
   var ok=savePerfReport(S.pid,month,{sourceRange:r.sourceRange,outlets:r.outlets,grand:r.grand});
   S._perfParsed=null;
+  S._perfViewMonth=month;
+  deDraftClear('perf');
   var ta=document.getElementById('perf-input');if(ta)ta.value='';
   renderPerfImport();
-  toast(ok?'Zapisano raport okresowy':'NIE zapisano lokalnie — brak miejsca w pamięci przeglądarki',ok?'ok':'er');
+  toast(ok?'Zapisano raport okresowy — '+mLabelFull(month):'NIE zapisano lokalnie — brak miejsca w pamięci przeglądarki',ok?'ok':'er');
 }
 function perfClear(){
   S._perfParsed=null;
+  deDraftClear('perf');
   var ta=document.getElementById('perf-input');if(ta)ta.value='';
-  var box=document.getElementById('perf-preview');if(box)box.innerHTML='';
+  dePreviewSet('perf-preview','');
 }
 function perfDeleteMonth(month){
   if(!confirm('Usunąć raport okresowy za '+mLabel(month)+'?'))return;
   var backup=getPerfReport(S.pid,month),pid=S.pid;
   delPerfReport(S.pid,month);
+  if(S._perfViewMonth===month)S._perfViewMonth=null;
   renderPerfImport();
   offerUndo('Usunięto raport okresowy — '+mLabel(month),function(){
     if(backup)savePerfReport(pid,month,backup);
     if(S.pid===pid)renderPerfImport();
   });
 }
+function perfMonthsMap(){
+  var r={};
+  getAllPerfMonths(S.pid).forEach(function(m){r[m]=true});
+  return r;
+}
+function perfViewMonth(m){S._perfViewMonth=(S._perfViewMonth===m?null:m);renderPerfImport();}
+function renderPerfView(){
+  var body=document.getElementById('perf-view-body');if(!body)return;
+  var d=getPerfReport(S.pid,S._perfViewMonth);
+  if(!d){body.innerHTML='';return;}
+  var g=d.grand||{bills:0,billsValue:0,voids:0,voidsValue:0,discounts:0};
+  var h='<div class="hs-p" style="margin:8px 0">Razem za '+mLabel(S._perfViewMonth)+': <strong>'+fmtN(g.bills)+' rachunków</strong> / '+fmt(round2(g.billsValue),true)+(d.sourceRange?' · zakres w źródle: '+esc(d.sourceRange.from)+'–'+esc(d.sourceRange.to):'')+'</div>';
+  h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Punkt</th><th>Pracowników</th><th>Rachunki</th><th>Wartość</th><th>Śr. rachunek</th><th>Storna</th><th>Rabaty</th></tr></thead><tbody>';
+  d.outlets.forEach(function(o){
+    var t=o.totals,avg=t.bills>0?t.billsValue/t.bills:null;
+    h+='<tr><td class="lbl">'+esc(o.outletName)+'</td><td>'+o.employees.length+'</td><td>'+fmtN(t.bills)+'</td><td>'+fmt(round2(t.billsValue),true)+'</td><td>'+(avg===null?'—':fmt(round2(avg),true))+'</td><td>'+fmt(round2(t.voidsValue),true)+'</td><td>'+fmt(round2(t.discounts),true)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  if(canEdit())h+='<div class="fa" style="margin-top:10px"><button class="btn btn-s btn-sm" onclick="perfDeleteMonth(\''+S._perfViewMonth+'\')">🗑 Usuń dane tego miesiąca</button></div>';
+  body.innerHTML=h;
+}
 function renderPerfImport(){
   var el=document.getElementById('v-perf');if(!el)return;
   var ro=!canEdit();
   if(!S.pid){el.innerHTML=emptyStateHTML('🧾','Brak obiektu','Dodaj obiekt hotelowy, aby wgrywać raporty okresowe.','','');return;}
   if(!ro)perfCleanupStored(S.pid);
-  var h='<div class="card" style="margin-bottom:14px">';
-  h+='<div class="fsect">🧾 Wklej „Raport okresowy" z HosPOS</div>';
-  h+='<p class="hs-p" style="margin-bottom:10px">Raport z podziałem na punkty i pracowników: liczba i wartość rachunków, formy płatności, serwisy, storna i rabaty. Generuj go zawsze <strong>od 1. dnia miesiąca do dnia bieżącego</strong> — dane zapisują się narastająco, a po zamknięciu miesiąca raport obejmie cały miesiąc.</p>';
-  if(!ro){
-    h+='<textarea class="fi" id="perf-input" rows="8" placeholder="Wklej tutaj cały raport..."></textarea>';
-    h+=ocrButtonHTML('perf-photo','perf-input','perf-ocr-status');
-    h+='<div class="fa" style="margin-top:10px"><button class="btn btn-p" onclick="perfParseClick()">🔍 Wczytaj i przeanalizuj</button></div>';
-  }
-  h+='<div id="perf-preview"></div>';
+
+  var h=deHead('🧾','Raport okresowy','Raport HosPOS „Raport okresowy" — liczba i wartość rachunków, formy płatności, serwisy, storna i rabaty, w podziale na punkty i pracowników. Jeden raport obejmuje wszystkie punkty; dane zapisują się per miesiąc.');
+
+  h+=deCardOpen(1,'Źródło — raport HosPOS');
+  h+=deSource({id:'perf',ro:ro,onParse:'perfParseClick()',
+    hint:'Wklej treść raportu albo zrób zdjęcie wydruku. Generuj raport zawsze <strong>od 1. dnia miesiąca do dnia bieżącego</strong> — po zamknięciu miesiąca obejmie cały miesiąc.'});
   h+='</div>';
+
+  h+=dePreviewCard(2,'perf-preview','');
 
   var months=getAllPerfMonths(S.pid);
-  h+='<div class="card">';
-  h+='<div class="fsect">📅 Zapisane raporty</div>';
+  if(S._perfViewMonth&&months.indexOf(S._perfViewMonth)===-1)S._perfViewMonth=null;
+  h+=deCardOpen(3,'Zapisane dane');
   if(!months.length){
-    h+='<p class="hs-p" style="color:var(--tx3)">Brak zapisanych raportów okresowych.</p>';
+    h+='<p class="de-empty">Brak zapisanych raportów okresowych dla tego obiektu.</p>';
   } else {
-    h+='<div class="tbl-wrap"><table class="msales-table"><thead><tr><th>Miesiąc</th><th>Zakres</th><th>Rachunki</th><th>Wartość</th><th>Storna</th><th></th></tr></thead><tbody>';
-    months.slice().reverse().forEach(function(m){
-      var d=getPerfReport(S.pid,m);if(!d)return;
-      var g=d.grand||{bills:0,billsValue:0,voids:0};
-      h+='<tr><td class="lbl">'+mLabelFull(m)+'</td><td style="font-size:.7rem;color:var(--tx3)">'+(d.sourceRange?esc(d.sourceRange.from)+'–'+esc(d.sourceRange.to):'—')+'</td>'+
-         '<td>'+fmtN(g.bills)+'</td><td>'+fmt(round2(g.billsValue),true)+'</td><td>'+fmtN(g.voids)+'</td>'+
-         '<td>'+(ro?'':'<button class="btn btn-s btn-sm" onclick="perfDeleteMonth(\''+m+'\')">🗑</button>')+'</td></tr>';
-    });
-    h+='</tbody></table></div>';
-    h+='<div class="hs-tip" style="margin-top:10px">📊 Analizy na podstawie tych danych znajdziesz w sekcji <strong>Pracownicy → Rachunki</strong>. <button class="btn btn-s btn-sm" style="margin-left:6px" onclick="go(\'employees\')">Przejdź</button></div>';
+    h+='<div class="de-saved-bar">'+deMonthPicker('-perf',S._perfViewMonth,'miesiące z zapisanym raportem okresowym')+'</div>';
   }
+  h+='<div id="perf-view-body"></div>';
+  h+=deAnalysisTip('Rachunki, rabaty i formy płatności analizujesz w sekcji <strong>Pracownicy</strong>.','Przejdź',"go('employees')");
   h+='</div>';
-  el.innerHTML=h;
-  if(S._perfParsed)renderPerfPreview();
-}
-
-function renderDataImport(){
-  var el=document.getElementById('v-data-import');if(!el)return;
-  var h='';
-
-  // ── IMPORT EXCEL ──
-  h+='<div class="stitle">Import z pliku Excel</div>';
-  h+='<div class="card" style="margin-bottom:24px">';
-  h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj dane z pliku <strong>.xlsx</strong>. Obsługiwane formaty:<br>';
-  h+='<strong>Format A</strong> — plik "Aktualne wyniki budżetu" (arkusze nazwane miesiącami, wiersze Wynik netto / BUDŻET NETTO)<br>';
-  h+='<strong>Format B</strong> — szablon CSV (pobierz szablon poniżej)</p>';
-  h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
-  h+='<button class="btn btn-p" onclick="triggerImportExcel()">📥 Importuj Excel (.xlsx)</button>';
-  h+='<button class="btn btn-s" onclick="downloadExcelTemplate()">📋 Pobierz szablon Excel</button>';
-  h+='</div>';
-  h+='<div id="import-preview" style="margin-top:14px"></div>';
-  h+='</div>';
-
-  // ── IMPORT HOSPOS PDF ──
-  h+='<div class="stitle">Import raportu HosPOS (PDF)</div>';
-  h+='<div class="card" style="margin-bottom:24px">';
-  h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj dane bezpośrednio z eksportu HosPOS <strong>"Sprzedaż pozycji menu po rabacie"</strong> (.pdf). Algorytm automatycznie odczyta zakres dat i wynik netto (wiersz <em>Razem</em>) dla każdego punktu, dopasuje go do outletów w tym obiekcie i pominie punkty, których nie ma w aplikacji.</p>';
-  h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
-  h+='<button class="btn btn-p" onclick="triggerImportHosPOS()">📄 Importuj raport HosPOS (.pdf)</button>';
-  h+='</div>';
-  h+='<div class="hs-warn" style="margin-top:12px">Raport musi obejmować <strong>jeden miesiąc kalendarzowy</strong>, zaczynając od 1. dnia miesiąca (dokładnie tak, jak domyślnie generuje go HosPOS). Raporty obejmujące dwa miesiące nie mogą być rozdzielone automatycznie — wygeneruj osobny raport dla każdego miesiąca.</div>';
-  h+='<div id="hospos-preview" style="margin-top:14px"></div>';
-  h+='</div>';
-
-  // ── IMPORT MATERIAL CONTROL (dane dzienne) ──
-  h+='<div class="stitle">Import danych dziennych (Material Control)</div>';
-  h+='<div class="card">';
-  h+='<p style="font-size:.78rem;color:var(--tx2);margin-bottom:12px;line-height:1.6">Importuj plik <strong>"Sprzedaż wg Typu Aktywności"</strong> (.xlsx/.xlsm) z systemu Material Control — dane trafiają bezpośrednio do pod-zakładki <strong>Dzienne</strong> w Danych, osobno dla każdego dnia i outletu. Dni obecne w pliku, dla których dany outlet nie ma wiersza, zostaną uzupełnione wartością 0 (outlet zamknięty). Po imporcie aplikacja automatycznie pobierze dane pogodowe dla wszystkich dotkniętych miesięcy.</p>';
-  h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
-  h+='<button class="btn btn-p" onclick="triggerImportMC()">📦 Importuj Material Control (.xlsx)</button>';
-  h+='</div>';
-  h+='<div class="hs-warn" style="margin-top:12px">Import <strong>nadpisuje</strong> istniejące dane dzienne dla każdego dnia, który występuje w pliku. Dni spoza zakresu pliku pozostają nietknięte.</div>';
-  h+='<div id="mc-preview" style="margin-top:14px"></div>';
-  h+='</div>';
-
-  // hidden file inputs
-  h+='<input type="file" id="fi-excel" accept=".xlsx,.xls" style="display:none" onchange="handleImportExcel(this)">';
-  h+='<input type="file" id="fi-hospos" accept=".pdf" style="display:none" onchange="handleImportHosPOS(this)">';
-  h+='<input type="file" id="fi-mc" accept=".xlsx,.xlsm,.xls" style="display:none" onchange="handleImportMC(this)">';
 
   el.innerHTML=h;
+  deCompleteRefresh();
+  if(S._perfParsed&&!ro)renderPerfPreview();
+  if(S._perfViewMonth)renderPerfView();
 }
 
 /* ── JSON EXPORT ── */
@@ -11544,52 +11883,100 @@ function handleImportJSON(input){
 /* ── EXCEL IMPORT ── */
 function triggerImportExcel(){document.getElementById('fi-excel')&&document.getElementById('fi-excel').click()}
 
+// ── PLIK EXCEL (budżet + wyniki, wiele miesięcy) → Miesięczne: podgląd → Zapisz ──
 function handleImportExcel(input){
   var file=input.files&&input.files[0];if(!file)return;
+  input.value='';
   if(!window.XLSX){toast('Biblioteka XLSX nie załadowana','er');return;}
-  if(!S.pid){toast('Wybierz obiekt docelowy w sidebarze','er');input.value='';return;}
+  if(!S.pid){toast('Wybierz obiekt docelowy w sidebarze','er');return;}
+  deBusy('monthly-hospos-preview','Analizuję plik Excel…');
   var reader=new FileReader();
   reader.onload=function(e){
     try{
       var wb=XLSX.read(e.target.result,{type:'array'});
-      var imported=0,errors=[];
-      var preview=document.getElementById('import-preview');
-      if(preview)preview.innerHTML='<div style="font-size:.75rem;color:var(--tx3)">Analizuję plik...</div>';
-
+      var months=[],errors=[];
       wb.SheetNames.forEach(function(shName){
+        if(/^instrukcja$/i.test(String(shName).trim()))return; // arkusz z opisem w szablonie
         var month=detectMonth(shName);
-        if(!month){errors.push('Arkusz "'+shName+'" — nie rozpoznano miesiąca');return;}
-        var ws=wb.Sheets[shName];
-        var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        if(!month){errors.push('Arkusz „'+shName+'" — nie rozpoznano miesiąca');return;}
+        var rows=XLSX.utils.sheet_to_json(wb.Sheets[shName],{header:1,defval:''});
         var result=parseExcelSheet(rows,shName);
-        if(!result){errors.push('Arkusz "'+shName+'" — nie rozpoznano formatu');return;}
-        // Ensure outlets exist
-        if(result.outlets&&result.outlets.length){
-          var existing=getOutlets(S.pid).map(function(o){return o.name});
-          result.outlets.forEach(function(n,i){
-            if(!existing.includes(n)){
-              saveOutletItem(S.pid,{id:'o'+Date.now()+i,name:n,order:existing.length+i});
-            }
-          });
-          S.outlets=getOutlets(S.pid);
-        }
-        saveMD(S.pid,month,{dim:result.dim,dr:result.dr,b:result.budgets,a:result.actuals,c:''});
-        imported++;
+        if(!result){errors.push('Arkusz „'+shName+'" — nie rozpoznano formatu');return;}
+        result.dim=result.dim||dim(month);
+        result.dr=Math.min(result.dr||result.dim,result.dim);
+        months.push({month:month,sheet:shName,res:result});
       });
-
-      updatePropSel();
-      var msg='<div style="margin-top:10px;padding:10px 14px;border-radius:9px;border:1px solid var(--brd);font-size:.76rem">';
-      msg+='<div style="font-weight:700;color:var(--grn);margin-bottom:6px">✅ Zaimportowano '+imported+' miesiąc(y)</div>';
-      if(errors.length){msg+='<div style="color:var(--warn);margin-top:6px"><strong>Uwagi:</strong><br>'+errors.join('<br>')+'</div>';}
-      msg+='</div>';
-      if(preview)preview.innerHTML=msg;
-      if(imported>0){toast('Import Excel: '+imported+' miesięcy','ok');renderCur();}
-      else toast('Brak rozpoznanych danych','er');
-    }catch(err){toast('Błąd importu Excel: '+err.message,'er');}
-    input.value='';
+      if(!months.length){deErrorPreview('monthly-hospos-preview','W pliku <strong>'+esc(file.name)+'</strong> nie rozpoznano żadnego miesiąca.'+(errors.length?'<br><small>'+errors.map(esc).join('<br>')+'</small>':''));toast('Brak rozpoznanych danych','er');return;}
+      months.sort(function(a,b){return a.month.localeCompare(b.month)});
+      S._monthlyHosposParsed=null;
+      S._monthlyExcelPending={file:file.name,months:months,errors:errors};
+      renderMonthlyHosposPreview(true);
+      toast('Rozpoznano '+months.length+' miesiąc(e) w pliku','ok');
+    }catch(err){deErrorPreview('monthly-hospos-preview','Błąd odczytu pliku Excel: '+esc(err.message));toast('Błąd importu Excel','er');}
   };
   reader.readAsArrayBuffer(file);
 }
+function monthlyExcelNewOutlets(p){
+  var existing=getOutlets(S.pid).map(function(o){return o.name});
+  var seen={},out=[];
+  p.months.forEach(function(x){(x.res.outlets||[]).forEach(function(n){if(existing.indexOf(n)===-1&&!seen[n]){seen[n]=1;out.push(n)}})});
+  return out;
+}
+function renderMonthlyExcelPreview(reveal){
+  var p=S._monthlyExcelPending;if(!p)return;
+  var sumA=0,outl={};
+  p.months.forEach(function(x){
+    Object.keys(x.res.actuals||{}).forEach(function(k){sumA+=x.res.actuals[k]||0});
+    (x.res.outlets||[]).forEach(function(n){outl[n]=1});
+  });
+  var newOut=monthlyExcelNewOutlets(p);
+  var h=deMeta('📄 Plik: <strong>'+esc(p.file)+'</strong> — każdy arkusz z rozpoznanym miesiącem zapisze się jako osobny miesiąc (budżet, wynik i zakres dni).',
+    deStaticField('Zapiszę',p.months.length+' mies.'));
+  h+=deChips([['Miesiące',p.months.length],['Outlety w pliku',Object.keys(outl).length],['Nowe outlety',newOut.length],['Suma wyników',fmt(round2(sumA),true)]]);
+  h+=deWarn('Pominięte arkusze:',p.errors);
+  if(newOut.length)h+=deWarn('Tych outletów nie ma jeszcze w obiekcie — zostaną dodane przy zapisie:',newOut,8);
+  h+=deRowsOpen(['Miesiąc (arkusz)','Wynik netto','Stan w aplikacji']);
+  p.months.forEach(function(x){
+    var a=0,b=0;
+    Object.keys(x.res.actuals||{}).forEach(function(k){a+=x.res.actuals[k]||0});
+    Object.keys(x.res.budgets||{}).forEach(function(k){b+=x.res.budgets[k]||0});
+    var ex=getMD(S.pid,x.month);
+    var has=!!(ex&&((ex.a&&Object.keys(ex.a).length)||(ex.b&&Object.keys(ex.b).length)));
+    h+=deRow(mLabelFull(x.month),'arkusz „'+esc(x.sheet)+'" · dane do dnia '+x.res.dr+' z '+x.res.dim+' · budżet '+fmt(round2(b),true),fmt(round2(a),true),
+      '<div class="de-static">'+(has?'⚠️ zastąpi zapisane dane':'nowy miesiąc')+'</div>',{valWarn:false});
+  });
+  h+='</div>';
+  h+=deActions('💾 Zapisz','monthlyExcelSave()','monthlyHosposClear()');
+  dePreviewSet('monthly-hospos-preview',h,reveal);
+}
+function monthlyExcelSave(){
+  var p=S._monthlyExcelPending;if(!p)return;
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var over=p.months.filter(function(x){var ex=getMD(S.pid,x.month);return ex&&((ex.a&&Object.keys(ex.a).length)||(ex.b&&Object.keys(ex.b).length))});
+  if(over.length){
+    deConfirm('📝 Dane już istnieją','<p class="hs-p">Te miesiące mają już zapisany budżet lub wynik — import zastąpi je danymi z pliku (komentarze zostaną):</p><ul class="de-confirm-list">'+over.map(function(x){return '<li>'+mLabelFull(x.month)+'</li>'}).join('')+'</ul>','🔁 Nadpisz',monthlyExcelDoSave);
+  } else monthlyExcelDoSave();
+}
+function monthlyExcelDoSave(){
+  var p=S._monthlyExcelPending;if(!p)return;
+  var newOut=monthlyExcelNewOutlets(p);
+  if(newOut.length){
+    var n0=getOutlets(S.pid).length;
+    newOut.forEach(function(n,i){saveOutletItem(S.pid,{id:'o'+Date.now()+i,name:n,order:n0+i})});
+    S.outlets=getOutlets(S.pid);
+  }
+  p.months.forEach(function(x){
+    var ex=getMD(S.pid,x.month)||{};
+    saveMD(S.pid,x.month,{dim:x.res.dim,dr:x.res.dr,b:x.res.budgets,a:x.res.actuals,c:ex.c||''});
+  });
+  S._monthlyExcelPending=null;
+  deDraftClear('monthly-hospos');
+  updatePropSel();
+  toast('Zapisano '+p.months.length+' miesiąc(e) z pliku'+(newOut.length?' — dodano '+newOut.length+' outlet(ów)':''),'ok');
+  haptic([10,5,10]);
+  renderCur();
+}
+
 
 function detectMonth(sheetName){
   // Format: "2026-01", "Styczeń 2026", "Styczen 2026", etc.
@@ -11619,6 +12006,34 @@ function detectMonth(sheetName){
 }
 
 function parseExcelSheet(rows,shName){
+  // Format B — szablon aplikacji (nagłówek: Outlet | Budżet | Wynik | Dni w miesiącu | Zakres dni).
+  // Sprawdzany jako pierwszy: nagłówek szablonu ma ≥3 tekstowe komórki, więc detekcja formatu A
+  // brała go wcześniej za wiersz nazw outletów i szablon nie dawał się wczytać z powrotem.
+  if(rows.length>0){
+    var header=rows[0].map(function(c){return String(c||'').toLowerCase().trim()});
+    var outletCol=header.findIndex(function(c){return c.includes('outlet')||c.includes('nazwa')});
+    var budCol=header.findIndex(function(c){return c.includes('budżet')||c.includes('budzet')});
+    var actCol=header.findIndex(function(c){return c.includes('wynik')||c.includes('actual')});
+    if(outletCol!==-1&&(budCol!==-1||actCol!==-1)){
+      var budgets2={},actuals2={},outlets2=[];
+      for(var r=1;r<rows.length;r++){
+        var row2=rows[r];
+        var oName=String(row2[outletCol]||'').trim();
+        if(!oName||oName.toLowerCase()==='razem')continue;
+        var k=okey(oName);
+        outlets2.push(oName);
+        var bv=budCol!==-1?parseFloat(row2[budCol])||0:0,av=actCol!==-1?parseFloat(row2[actCol])||0:0;
+        if(bv>0)budgets2[k]=bv;
+        if(av>0)actuals2[k]=av;
+      }
+      var dimCol=header.findIndex(function(c){return c.includes('dni_m')||c.includes('dni w mies')||c.includes('days_in')});
+      var drCol2=header.findIndex(function(c){return c.includes('zakres')||c.includes('range')});
+      var dimVal=dimCol!==-1&&rows[1]?parseInt(rows[1][dimCol])||null:null;
+      var drVal=drCol2!==-1&&rows[1]?parseInt(rows[1][drCol2])||null:null;
+      return{outlets:outlets2,budgets:budgets2,actuals:actuals2,dim:dimVal,dr:drVal};
+    }
+  }
+
   // Try to detect Format A: "Aktualne wyniki budżetu" style
   var outletRow=-1,budgetRow=-1,actualRow=-1,drRow=-1;
   var outletNames=[];
@@ -11640,32 +12055,6 @@ function parseExcelSheet(rows,shName){
           outletNames=row.filter(function(c){return c&&String(c).trim()&&isNaN(c)&&String(c).trim().toLowerCase()!=='razem'&&String(c).trim().length>1}).map(function(c){return String(c).trim()});
         }
       }
-    }
-  }
-
-  // Try Format B: simple template (header row + data rows)
-  // Header: Outlet | Budżet | Wynik | Dni_miesiąc | Zakres_dni
-  if(outletRow===-1&&rows.length>0){
-    var header=rows[0].map(function(c){return String(c||'').toLowerCase().trim()});
-    var outletCol=header.findIndex(function(c){return c.includes('outlet')||c.includes('nazwa')});
-    var budCol=header.findIndex(function(c){return c.includes('budżet')||c.includes('budzet')});
-    var actCol=header.findIndex(function(c){return c.includes('wynik')||c.includes('actual')});
-    if(outletCol!==-1&&(budCol!==-1||actCol!==-1)){
-      var budgets2={},actuals2={},outlets2=[];
-      for(var r=1;r<rows.length;r++){
-        var row2=rows[r];
-        var oName=String(row2[outletCol]||'').trim();
-        if(!oName)continue;
-        var k=oName.replace(/\s+/g,'_').toUpperCase();
-        outlets2.push(oName);
-        if(budCol!==-1)budgets2[k]=parseFloat(row2[budCol])||0;
-        if(actCol!==-1)actuals2[k]=parseFloat(row2[actCol])||0;
-      }
-      var dimCol=header.findIndex(function(c){return c.includes('dni_m')||c.includes('days_in')});
-      var drCol2=header.findIndex(function(c){return c.includes('zakres')||c.includes('range')});
-      var dimVal=dimCol!==-1&&rows[1]?parseInt(rows[1][dimCol])||30:30;
-      var drVal=drCol2!==-1&&rows[1]?parseInt(rows[1][drCol2])||dimVal:dimVal;
-      return{outlets:outlets2,budgets:budgets2,actuals:actuals2,dim:dimVal,dr:drVal};
     }
   }
 
@@ -11844,131 +12233,45 @@ function parseHosPOSReport(lines){
   return {startDate:startDate,endDate:endDate,outlets:outlets};
 }
 
+// ── RAPORT HosPOS W PDF → Miesięczne: ten sam podgląd i dopasowanie co wklejony tekst ──
 function triggerImportHosPOS(){
   if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   if(!S.pid){toast('Wybierz obiekt docelowy w sidebarze','er');return;}
   document.getElementById('fi-hospos')&&document.getElementById('fi-hospos').click();
 }
-
-var _hosposPending=null; // przechowuje sparsowane dane do czasu potwierdzenia importu
-
+function hosposDMY(d){return String(d.day).padStart(2,'0')+'.'+String(d.month).padStart(2,'0')+'.'+String(d.year).slice(-2)}
 function handleImportHosPOS(input){
   var file=input.files&&input.files[0];if(!file)return;
-  if(!window.pdfjsLib){toast('Biblioteka PDF nie załadowana','er');input.value='';return;}
+  input.value='';
+  if(!window.pdfjsLib){toast('Biblioteka PDF nie załadowana','er');return;}
   pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-  var preview=document.getElementById('hospos-preview');
-  if(preview)preview.innerHTML='<div style="font-size:.75rem;color:var(--tx3)">⏳ Analizuję plik PDF...</div>';
-
+  deBusy('monthly-hospos-preview','Analizuję plik PDF…');
   var reader=new FileReader();
   reader.onload=function(e){
     extractPdfLines(e.target.result).then(function(lines){
       var report;
-      try{
-        report=parseHosPOSReport(lines);
-      }catch(err){
-        if(preview)preview.innerHTML='<div class="hs-warn">'+err.message+'</div>';
-        toast('Nie udało się odczytać pliku','er');
-        input.value='';
-        return;
-      }
-
-      // Sprawdź czy zakres mieści się w jednym miesiącu kalendarzowym
+      try{report=parseHosPOSReport(lines)}
+      catch(err){deErrorPreview('monthly-hospos-preview',esc(err.message));toast('Nie udało się odczytać pliku','er');return;}
       if(report.startDate.month!==report.endDate.month||report.startDate.year!==report.endDate.year){
-        var msg='Ten raport obejmuje więcej niż jeden miesiąc: '+
-          String(report.startDate.day).padStart(2,'0')+'.'+String(report.startDate.month).padStart(2,'0')+'.'+report.startDate.year+
-          ' – '+String(report.endDate.day).padStart(2,'0')+'.'+String(report.endDate.month).padStart(2,'0')+'.'+report.endDate.year+
-          '. HosPOS nie dostarcza podziału dziennego w tym raporcie, więc nie da się automatycznie rozdzielić wyniku między miesiące. '+
-          'Wygeneruj w HosPOS osobny raport dla każdego miesiąca (zakres od 1. dnia do ostatniego dnia danego miesiąca) i zaimportuj je po kolei.';
-        if(preview)preview.innerHTML='<div class="hs-warn">'+msg+'</div>';
-        toast('Raport obejmuje więcej niż jeden miesiąc — pomiń lub podziel','er');
-        input.value='';
-        return;
+        deErrorPreview('monthly-hospos-preview','Ten raport obejmuje więcej niż jeden miesiąc: <strong>'+hosposDMY(report.startDate)+' – '+hosposDMY(report.endDate)+'</strong>. HosPOS nie podaje w nim podziału na dni, więc wyniku nie da się rozdzielić między miesiące — wygeneruj osobny raport dla każdego miesiąca (od 1. dnia).');
+        toast('Raport obejmuje więcej niż jeden miesiąc','er');return;
       }
-      if(report.startDate.day!==1){
-        toast('Uwaga: raport nie zaczyna się od 1. dnia miesiąca — wynik może być niepełny','in');
-      }
-
-      var targetMonth=report.startDate.year+'-'+String(report.startDate.month).padStart(2,'0');
-      var dimVal=dim(targetMonth);
-      var drVal=report.endDate.day;
-      var existing=getMD(S.pid,targetMonth)||{};
-
-      // Dopasuj outlety z raportu do outletów w aplikacji
-      var appOutletByKey={};
-      S.outlets.forEach(function(o){appOutletByKey[okey(o.name)]=o});
-
-      var matched=[],unmatched=[];
-      report.outlets.forEach(function(ro){
-        var norm=normOutletName(ro.name);
-        var targetKey=HOSPOS_ALIASES[norm]||norm;
-        var appOutlet=appOutletByKey[targetKey];
-        if(appOutlet){
-          matched.push({reportName:ro.name,outletName:appOutlet.name,key:targetKey,netto:ro.netto,oldVal:(existing.a&&existing.a[targetKey])||0});
-        } else {
-          unmatched.push(ro.name);
-        }
-      });
-
-      _hosposPending={targetMonth:targetMonth,dim:dimVal,dr:drVal,matched:matched,existing:existing};
-
-      // Build preview UI
-      var h='<div class="card">';
-      h+='<div class="fsect">📋 Podgląd importu — '+mLabelFull(targetMonth)+' <small style="font-weight:400;color:var(--tx3)">dane do dnia '+drVal+'</small></div>';
-      if(matched.length){
-        h+='<div class="tbl-wrap"><table><thead><tr><th>Punkt (raport)</th><th>Outlet w aplikacji</th><th>Obecna wartość</th><th>Nowa wartość</th></tr></thead><tbody>';
-        matched.forEach(function(m){
-          var changed=Math.round(m.oldVal*100)!==Math.round(m.netto*100);
-          h+='<tr><td>'+m.reportName+'</td><td><strong>'+m.outletName+'</strong></td><td>'+fmt(m.oldVal)+'</td>';
-          h+='<td class="'+(changed?'td-acc':'')+'">'+fmt(m.netto)+'</td></tr>';
-        });
-        h+='</tbody></table></div>';
-      } else {
-        h+='<div class="hs-warn">Żaden punkt z raportu nie pasuje do outletów dodanych w tym obiekcie — sprawdź nazwy outletów lub dodaj brakujące w zakładce Obiekty i outlety.</div>';
-      }
-      if(unmatched.length){
-        h+='<div style="margin-top:10px;font-size:.72rem;color:var(--tx3)">Pominięto (brak takiego outletu w aplikacji): '+unmatched.join(', ')+'</div>';
-      }
-      if(matched.length){
-        h+='<div class="fa"><button class="btn btn-p" onclick="confirmHosPOSImport()">✅ Zatwierdź import</button><button class="btn btn-s" onclick="cancelHosPOSImport()">Anuluj</button></div>';
-      }
-      h+='</div>';
-      if(preview)preview.innerHTML=h;
-      input.value='';
+      S._monthlyExcelPending=null;
+      S._monthlyHosposParsed={
+        outlets:report.outlets.map(function(o){return {rawName:o.name,compNetto:round2(o.netto),categories:[]}}),
+        sourceRange:{from:hosposDMY(report.startDate),to:hosposDMY(report.endDate)},
+        fromFile:file.name
+      };
+      renderMonthlyHosposPreview(true);
+      toast('Rozpoznano '+report.outlets.length+' punkt(ów) w pliku PDF','ok');
     }).catch(function(err){
-      if(preview)preview.innerHTML='<div class="hs-warn">Błąd odczytu PDF: '+err.message+'</div>';
+      deErrorPreview('monthly-hospos-preview','Błąd odczytu PDF: '+esc(err.message));
       toast('Błąd odczytu pliku PDF','er');
-      input.value='';
     });
   };
   reader.readAsArrayBuffer(file);
 }
 
-function confirmHosPOSImport(){
-  if(!_hosposPending){toast('Brak danych do zatwierdzenia','er');return;}
-  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
-  var p=_hosposPending;
-  var data=p.existing||{};
-  data.dim=data.dim||p.dim;
-  data.dr=p.dr; // zawsze aktualizujemy zakres dni do tego z raportu
-  data.b=data.b||{};
-  data.a=data.a||{};
-  data.c=data.c||'';
-  p.matched.forEach(function(m){data.a[m.key]=m.netto});
-  saveMD(S.pid,p.targetMonth,data);
-  toast('Zaimportowano '+p.matched.length+' outletów za '+mLabelFull(p.targetMonth),'ok');
-  haptic([10,5,10]);
-  var preview=document.getElementById('hospos-preview');
-  if(preview)preview.innerHTML='<div class="hs-tip">Import zakończony. Przejdź do Dashboard lub Wprowadź dane, aby zobaczyć wyniki.</div>';
-  _hosposPending=null;
-  if(S.view==='dashboard'||S.view==='data')renderCur();
-}
-
-function cancelHosPOSImport(){
-  _hosposPending=null;
-  var preview=document.getElementById('hospos-preview');
-  if(preview)preview.innerHTML='';
-}
 
 /* ═══════════════════════════════════════════
    IMPORT DANYCH DZIENNYCH — Material Control (.xlsx/.xlsm)
@@ -12069,20 +12372,18 @@ function parseMaterialControlRows(rows){
   };
 }
 
+// ── PLIK MATERIAL CONTROL (sprzedaż dzienna, wiele dni) → Dzienne: podgląd → Zapisz ──
 function triggerImportMC(){
   if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   if(!S.pid){toast('Wybierz obiekt docelowy w sidebarze','er');return;}
   document.getElementById('fi-mc')&&document.getElementById('fi-mc').click();
 }
-
 var _mcPending=null;
-
 function handleImportMC(input){
   var file=input.files&&input.files[0];if(!file)return;
-  if(!window.XLSX){toast('Biblioteka XLSX nie załadowana','er');input.value='';return;}
-  var preview=document.getElementById('mc-preview');
-  if(preview)preview.innerHTML='<div style="font-size:.75rem;color:var(--tx3)">⏳ Analizuję plik...</div>';
-
+  input.value='';
+  if(!window.XLSX){toast('Biblioteka XLSX nie załadowana','er');return;}
+  deBusy('daily-hospos-preview','Analizuję plik…');
   var reader=new FileReader();
   reader.onload=function(e){
     var parsed;
@@ -12091,37 +12392,48 @@ function handleImportMC(input){
       var sheetName=wb.SheetNames.indexOf('Data')!==-1?'Data':wb.SheetNames[0];
       var rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,defval:''});
       parsed=parseMaterialControlRows(rows);
-    }catch(err){
-      if(preview)preview.innerHTML='<div class="hs-warn">'+err.message+'</div>';
-      toast('Nie udało się odczytać pliku','er');input.value='';return;
-    }
-
-    if(!parsed.rowCount||!parsed.monthsAffected.length){
-      if(preview)preview.innerHTML='<div class="hs-warn">Nie rozpoznano żadnych wierszy z danymi w pliku.</div>';
-      toast('Brak rozpoznanych danych','er');input.value='';return;
-    }
-
+    }catch(err){deErrorPreview('daily-hospos-preview',esc(err.message));toast('Nie udało się odczytać pliku','er');return;}
+    if(!parsed.rowCount||!parsed.monthsAffected.length){deErrorPreview('daily-hospos-preview','Nie rozpoznano żadnych wierszy z danymi w pliku.');toast('Brak rozpoznanych danych','er');return;}
+    parsed.file=file.name;
+    S._dailyHosposParsed=null;S._dailyHosposDateNote=null;
     _mcPending=parsed;
-
-    var h='<div class="card">';
-    h+='<div class="fsect">📋 Podgląd importu Material Control</div>';
-    h+='<div class="info-grid" style="margin-bottom:12px">';
-    h+='<div class="info-box"><strong>Zakres dat</strong><span style="font-size:.72rem">'+parsed.minDate+' – '+parsed.maxDate+'</span></div>';
-    h+='<div class="info-box"><strong>Dni z danymi</strong><span>'+parsed.daysAffected+'</span></div>';
-    h+='<div class="info-box"><strong>Miesięcy</strong><span>'+parsed.monthsAffected.length+'</span></div>';
-    h+='<div class="info-box"><strong>Wierszy w pliku</strong><span>'+parsed.rowCount+'</span></div>';
-    h+='</div>';
-    h+='<div style="font-size:.75rem;color:var(--tx2);margin-bottom:6px"><strong>Dopasowane outlety:</strong> '+parsed.matchedOutletNames.join(', ')+'</div>';
-    if(parsed.unmatchedOutletNames.length)h+='<div style="font-size:.72rem;color:var(--tx3);margin-bottom:6px">Pominięto (brak takiego outletu w aplikacji): '+parsed.unmatchedOutletNames.join(', ')+'</div>';
-    h+='<div class="hs-warn">Zatwierdzenie nadpisze dane dzienne dla wszystkich '+parsed.daysAffected+' dni występujących w pliku, w '+parsed.monthsAffected.length+' miesiącach. Po imporcie aplikacja automatycznie pobierze pogodę dla tych miesięcy.</div>';
-    h+='<div class="fa"><button class="btn btn-p" onclick="confirmMCImport()">✅ Zatwierdź import</button><button class="btn btn-s" onclick="cancelMCImport()">Anuluj</button></div>';
-    h+='</div>';
-    if(preview)preview.innerHTML=h;
-    input.value='';
+    renderDailyHosposPreview(true);
+    toast('Rozpoznano '+parsed.daysAffected+' dni w '+parsed.monthsAffected.length+' mies.','ok');
   };
   reader.readAsArrayBuffer(file);
 }
-
+function mcOverlap(parsed,month){
+  var dd=getDailyData(S.pid,month)||{};
+  return Object.keys(parsed.byMonth[month]||{}).filter(function(d){var v=dd.days&&dd.days[+d];return v&&Object.keys(v).length}).length;
+}
+function renderDailyMCPreview(reveal){
+  var p=_mcPending;if(!p)return;
+  var tot=0;
+  p.monthsAffected.forEach(function(m){Object.keys(p.byMonth[m]).forEach(function(d){tot+=dailyDayTotal(p.byMonth[m][d])})});
+  var h=deMeta('📅 Zakres w pliku: <strong>'+esc(p.minDate)+' – '+esc(p.maxDate)+'</strong> — każdy dzień zapisze się osobno; outlet bez wiersza w danym dniu dostaje 0 (zamknięty). Po zapisie pobiorę pogodę dla tych miesięcy.',
+    deStaticField('Zapiszę',p.daysAffected+' dni · '+p.monthsAffected.length+' mies.'));
+  h+=deChips([['Dni',p.daysAffected],['Miesiące',p.monthsAffected.length],['Wiersze',fmtN(p.rowCount)],['Suma netto',fmt(round2(tot),true)]]);
+  h+=deWarn('Pominięte punkty z pliku (nie ma ich w aplikacji):',p.unmatchedOutletNames,8);
+  h+='<p class="hs-p" style="margin:0 0 10px">Dopasowane outlety: '+(p.matchedOutletNames.length?esc(p.matchedOutletNames.join(', ')):'—')+'</p>';
+  h+=deRowsOpen(['Miesiąc','Netto','Stan w aplikacji']);
+  p.monthsAffected.forEach(function(m){
+    var days=Object.keys(p.byMonth[m]).length,sum=0;
+    Object.keys(p.byMonth[m]).forEach(function(d){sum+=dailyDayTotal(p.byMonth[m][d])});
+    var ov=mcOverlap(p,m);
+    h+=deRow(mLabelFull(m),days+' dni w pliku',fmt(round2(sum),true),'<div class="de-static">'+(ov?'⚠️ zastąpi '+ov+' zapisanych dni':'nowe dni')+'</div>');
+  });
+  h+='</div>';
+  h+=deActions('💾 Zapisz','dailyMCSave()','dailyHosposClear()');
+  dePreviewSet('daily-hospos-preview',h,reveal);
+}
+function dailyMCSave(){
+  var p=_mcPending;if(!p)return;
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var over=p.monthsAffected.map(function(m){return {m:m,n:mcOverlap(p,m)}}).filter(function(x){return x.n>0});
+  if(over.length){
+    deConfirm('📆 Dane już istnieją','<p class="hs-p">W tych miesiącach część dni jest już zapisana — import zastąpi je danymi z pliku (pozostałe dni bez zmian):</p><ul class="de-confirm-list">'+over.map(function(x){return '<li>'+mLabelFull(x.m)+' — '+x.n+' dni</li>'}).join('')+'</ul>','🔁 Nadpisz',confirmMCImport);
+  } else confirmMCImport();
+}
 function commitMCImport(parsed){
   parsed.monthsAffected.forEach(function(month){
     var dd=getDailyData(S.pid,month);
@@ -12134,39 +12446,22 @@ function commitMCImport(parsed){
     if(S.uid)fsWrite(db.collection('properties/'+S.pid+'/dailyData').doc(month),dd);
   });
 }
-
 function confirmMCImport(){
-  if(!_mcPending){toast('Brak danych do zatwierdzenia','er');return;}
-  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
   var parsed=_mcPending;
+  if(!parsed){toast('Brak danych do zapisania','er');return;}
   commitMCImport(parsed);
-  toast('Zaimportowano '+parsed.daysAffected+' dni w '+parsed.monthsAffected.length+' miesiącach','ok');
+  _mcPending=null;
+  toast('Zapisano '+parsed.daysAffected+' dni w '+parsed.monthsAffected.length+' mies. — pobieram pogodę…','ok');
   haptic([10,5,10]);
-
-  var preview=document.getElementById('mc-preview');
-  if(preview)preview.innerHTML='<div class="hs-tip">⏳ Import zakończony. Pobieram dane pogodowe dla dotkniętych miesięcy...</div>';
-
-  // Sekwencyjne pobranie pogody dla każdego dotkniętego miesiąca (z lekkim odstępem, uprzejmie wobec API)
-  var months=parsed.monthsAffected.slice();
-  var pidAtImport=S.pid;
-  function fetchNext(idx){
+  if(S.view==='data')renderDaily();
+  var months=parsed.monthsAffected.slice(),pidAtImport=S.pid;
+  (function fetchNext(idx){
     if(idx>=months.length){
-      if(preview&&S.pid===pidAtImport)preview.innerHTML='<div class="hs-tip">✅ Import i dane pogodowe zakończone. Sprawdź pod-zakładkę Dzienne w Danych lub Analityka → Heatmapa.</div>';
-      _mcPending=null;
       if((S.view==='data'||S.view==='analytics')&&S.pid===pidAtImport)renderCur();
       return;
     }
-    ensureMonthWeather(pidAtImport,months[idx]).then(function(){
-      setTimeout(function(){fetchNext(idx+1)},250);
-    });
-  }
-  fetchNext(0);
-}
-
-function cancelMCImport(){
-  _mcPending=null;
-  var preview=document.getElementById('mc-preview');
-  if(preview)preview.innerHTML='';
+    ensureMonthWeather(pidAtImport,months[idx]).then(function(){setTimeout(function(){fetchNext(idx+1)},250)});
+  })(0);
 }
 
 function csvMonth(){
