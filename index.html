@@ -318,6 +318,12 @@ body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{dis
 .oc-head-right{display:flex;align-items:center;gap:8px}
 .oc-check{width:16px;height:16px;accent-color:var(--acc);cursor:pointer;flex-shrink:0}
 .oc.oc-excluded{opacity:.5}
+.excl-banner{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.excl-banner>span{flex:1;min-width:0}
+.excl-banner-x{flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1px solid var(--brd);background:var(--sur2);color:var(--tx3);cursor:pointer;font-size:.72rem;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+.excl-banner-x:hover{color:var(--tx);border-color:var(--acc)}
+.excl-chip{font-size:.65rem;padding:2px 9px;border-radius:6px;border:1px dashed var(--brd);background:transparent;color:var(--tx3);cursor:pointer;font-family:inherit;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.excl-chip:hover{color:var(--tx);border-color:var(--acc)}
 .oc.oc-excluded .oc-val,.oc.oc-excluded .prog-fill{filter:grayscale(.6)}
 .oc-val{font-size:1.4rem;font-family:var(--fd);font-weight:700;line-height:1;margin-bottom:3px}
 .oc-meta{font-size:.65rem;color:var(--tx3);margin-bottom:10px}
@@ -1041,6 +1047,225 @@ body.presentation-mode #presentation-exit{display:flex}
 .cl-date{font-size:.65rem;color:var(--tx3)}
 .cl-list{margin:0;padding-left:18px}
 .cl-list li{font-size:.76rem;color:var(--tx2);line-height:1.6;margin-bottom:2px}
+/* ── KONKURSY (Pracownicy → Konkursy) ── */
+.ct-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.ct-empty{padding:12px 2px 2px}
+.ct-empty-t{font-weight:600;margin-bottom:8px;font-size:.86rem}
+.ct-howto{margin:0;padding-left:18px;font-size:.78rem;color:var(--tx2);line-height:1.55}
+.ct-howto li{margin-bottom:6px}
+.ct-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:2px 0 12px}
+.ct-seg{display:inline-flex;flex-wrap:wrap;gap:3px;padding:3px;border-radius:11px;background:var(--sur2);border:1px solid var(--brd)}
+.ct-seg button{border:none;background:transparent;color:var(--tx2);font:inherit;font-size:.74rem;padding:6px 12px;border-radius:8px;cursor:pointer}
+.ct-seg button.on{background:var(--sur);color:var(--acc);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.ct-seg button:disabled{opacity:.5;cursor:not-allowed}
+.ct-list-wrap{border:none;background:transparent}
+.ct-list{display:flex;flex-direction:column;gap:8px;min-width:760px}
+.ct-lrow{display:grid;grid-template-columns:minmax(0,2.2fr) 160px minmax(0,1.6fr) 150px 130px;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--sur2);border:1px solid var(--brd);cursor:pointer;transition:border-color .15s}
+.ct-lrow:hover{border-color:var(--acc)}
+.ct-lrow-hd{background:transparent;border:none;cursor:default;padding:0 14px;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);font-weight:600}
+.ct-lrow-hd:hover{border-color:transparent}
+.ct-lname{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ct-lname strong{font-size:.86rem}
+.ct-lname span,.ct-ldata{font-size:.72rem;color:var(--tx3)}
+.ct-llead{font-size:.8rem}
+.ct-st{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;white-space:nowrap;vertical-align:middle;font-family:var(--fb)}
+.ct-st-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.ct-st-prep{background:rgba(127,138,160,.18);color:var(--tx2)}
+.ct-st-run{background:rgba(34,197,94,.15);color:var(--grn)}
+.ct-st-done{background:rgba(var(--acc-rgb),.15);color:var(--acc)}
+.ct-st-undone{background:rgba(239,68,68,.13);color:var(--red)}
+.ct-st-due{background:rgba(245,158,11,.16);color:var(--warn)}
+.ct-lst{display:flex;flex-wrap:wrap;gap:4px}
+.ct-row2{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end;margin-bottom:14px}
+.ct-row2 .fg{flex:1 1 260px;margin-bottom:0}
+.ct-opt{display:flex;flex-wrap:wrap;gap:12px 28px;padding:18px 0;border-top:1px solid var(--brd)}
+.ct-opt-l{flex:1 1 240px;max-width:300px;display:flex;gap:12px;align-items:flex-start}
+.ct-opt-r{flex:999 1 460px;min-width:0;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.ct-opt-r>*{max-width:100%}
+.ct-opt-r>.ct-tree,.ct-opt-r>.ct-metrics,.ct-opt-r>.ct-fields,.ct-opt-r>.ct-chips,.ct-opt-r>.ct-prizes{align-self:stretch}
+.ct-opt-t{font-size:.86rem;font-weight:600}
+.ct-opt-h{font-size:.72rem;color:var(--tx3);line-height:1.45;margin-top:3px}
+.ct-opt-ico{flex:0 0 40px;height:22px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.ct-lock{font-size:.72rem}
+.ct-sw{flex:0 0 40px;width:40px;height:22px;border-radius:11px;border:1px solid var(--brd2);background:var(--sur2);padding:2px;display:flex;align-items:center;cursor:pointer;transition:background .2s,border-color .2s}
+.ct-sw span{width:16px;height:16px;border-radius:50%;background:var(--tx3);transition:transform .2s,background .2s}
+.ct-sw.on{background:var(--acc);border-color:var(--acc)}
+.ct-sw.on span{transform:translateX(18px);background:#fff}
+.ct-sw:disabled{opacity:.5;cursor:not-allowed}
+.ct-fields{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+.ct-fields .fg{margin-bottom:0}
+.ct-info{display:inline-flex;align-items:center;height:35px;box-sizing:border-box;padding:0 12px;border-radius:9px;background:var(--sur2);border:1px solid var(--brd);font-size:.74rem;color:var(--tx2);white-space:nowrap}
+.ct-info-txt{font-size:.78rem;color:var(--tx2);line-height:1.5}
+.ct-chips{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.ct-chips-scroll{max-height:190px;overflow-y:auto;padding:2px}
+.ct-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;border:1px solid var(--brd);background:var(--sur2);color:var(--tx2);font:inherit;font-size:.74rem;cursor:pointer}
+.ct-chip.on{border-color:var(--acc);color:var(--acc);font-weight:600;background:rgba(var(--acc-rgb),.08)}
+.ct-chip:disabled{opacity:.55;cursor:not-allowed}
+.ct-chip-x{cursor:default;padding:3px 3px 3px 11px;color:var(--tx)}
+.ct-chip-x button{border:none;background:transparent;color:var(--tx3);cursor:pointer;width:24px;height:24px;border-radius:6px;font:inherit}
+.ct-st-chip.on{color:inherit;border-color:currentColor}
+.ct-mini-l{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);font-weight:600}
+.ct-excl-sel{width:auto;min-width:150px;padding:6px 10px;font-size:.74rem}
+.ct-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.ct-metric{display:flex;flex-direction:column;gap:3px;text-align:left;padding:12px 14px;border-radius:12px;border:1.5px solid var(--brd);background:var(--sur2);color:var(--tx);font:inherit;cursor:pointer}
+.ct-metric strong{font-size:.84rem}
+.ct-metric span{font-size:.7rem;color:var(--tx3)}
+.ct-metric.on{border-color:var(--acc);background:rgba(var(--acc-rgb),.08)}
+.ct-metric.on strong{color:var(--acc)}
+.ct-metric:disabled{opacity:.6;cursor:not-allowed}
+.ct-inline{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.78rem;color:var(--tx2)}
+.ct-num{width:90px;text-align:right}
+.ct-step{width:34px;padding:6px 0;justify-content:center}
+.ct-step-v{min-width:24px;text-align:center}
+.ct-prizes{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px 10px;align-items:center;max-width:620px}
+.ct-place{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0}
+.ct-place-1{background:#f0c64f;color:#3d2c00}.ct-place-2{background:#c9d0db;color:#2e3446}.ct-place-3{background:#e2a873;color:#3a1f05}.ct-place-4{background:var(--sur3);color:var(--tx2)}
+.ct-tree{border:1px solid var(--brd);border-radius:14px;padding:10px;background:var(--sur2);display:flex;flex-direction:column;gap:4px;overflow-x:auto}
+.ct-tree-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+.ct-tree-bar .fi{width:auto}
+#ct-tree-body{max-height:520px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.ct-tree-count{margin-left:auto;font-size:.74rem;font-weight:600;color:var(--acc)}
+.ct-tr{display:grid;grid-template-columns:30px minmax(160px,1fr) 110px 120px;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;min-width:460px}
+.ct-tr-hd{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);font-weight:600;padding:2px 8px}
+.ct-tr-hd span:nth-child(3),.ct-tr-hd span:nth-child(4){text-align:right}
+.ct-tr-g{background:var(--sur);border:1px solid var(--brd);margin-top:4px}
+.ct-tr-name{border:none;background:transparent;color:var(--tx);font:inherit;font-size:.82rem;font-weight:600;text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;min-width:0;flex-wrap:wrap}
+span.ct-tr-name{cursor:default;font-weight:400}
+.ct-tr-i .ct-tr-iname{padding-left:22px;font-size:.78rem}
+.ct-tr-sub{font-weight:400;font-size:.7rem;color:var(--tx3)}
+.ct-chev{width:14px;color:var(--tx3)}
+.ct-tr-q{text-align:right;font-size:.72rem;color:var(--tx3)}
+.ct-tr-p{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:.72rem;color:var(--tx3)}
+.ct-pts{width:64px;padding:5px 8px;text-align:right;font-size:.78rem}
+.ct-cb{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--brd2);background:var(--sur);cursor:pointer;padding:0;position:relative;flex-shrink:0}
+.ct-cb-full,.ct-cb-part{background:var(--acc);border-color:var(--acc)}
+.ct-cb-full::after{content:'';position:absolute;left:5.5px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.ct-cb-part::after{content:'';position:absolute;left:3.5px;top:7.5px;width:10px;height:2.5px;background:#fff;border-radius:2px}
+.ct-cb:disabled{opacity:.5;cursor:not-allowed}
+.ct-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:16px;border-top:1px solid var(--brd)}
+.ct-detail>.card,.ct-detail>.ct-two,.ct-detail>.kpi-grid{margin-bottom:14px}
+.ct-two>.card{margin:0}
+.ct-title-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.ct-title{font-size:1.25rem;font-weight:700;display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-family:var(--fd)}
+.ct-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ct-status-sel{width:auto;padding:6px 10px;font-size:.74rem}
+.ct-prog{margin:14px 0 10px}
+.ct-prog-l{display:flex;justify-content:space-between;font-size:.72rem;color:var(--tx2);margin-bottom:6px}
+.ct-prog-bar{height:8px;border-radius:5px;background:var(--sur2);border:1px solid var(--brd);overflow:hidden}
+.ct-prog-bar div{height:100%;background:var(--acc);border-radius:5px}
+.ct-rule{font-size:.72rem;padding:5px 10px;border-radius:9px;background:var(--sur2);border:1px solid var(--brd);color:var(--tx)}
+.ct-rule>span{color:var(--tx3)}
+.ct-rule-lock{color:var(--tx3)}
+.ct-datato{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--sur2);border:1px solid var(--brd)}
+.ct-dt{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:7px}
+.ct-dt-ok{background:rgba(34,197,94,.14);color:var(--grn)}
+.ct-dt-part{background:rgba(245,158,11,.16);color:var(--warn)}
+.ct-dt-no{background:rgba(239,68,68,.12);color:var(--red)}
+.ct-dt-msg{font-size:.74rem;color:var(--tx2);flex:1 1 260px}
+.ct-sec-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ct-sec-head .fsect{border-bottom:none;padding-bottom:0}
+.ct-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end}
+.ct-pod{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:14px 10px;border-radius:14px;background:var(--sur2);border:1px solid var(--brd);min-width:0}
+.ct-pod-1{padding:22px 10px;border:2px solid #f0c64f}
+.ct-pod strong{font-size:.9rem;word-break:break-word}
+.ct-pod-v{font-size:1.15rem;font-weight:700}
+.ct-pod-1 .ct-pod-v{font-size:1.5rem;color:var(--acc)}
+.ct-pod-p{font-size:.7rem;color:var(--tx3)}
+.ct-pod-empty{visibility:hidden}
+.ct-chart-wrap{position:relative}
+.ct-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px}
+.ct-bar-row{display:grid;grid-template-columns:minmax(90px,150px) minmax(0,1fr) 92px;gap:10px;align-items:center;margin-bottom:8px}
+.ct-bar-n{font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-bar-track{position:relative;height:12px;border-radius:6px;background:var(--sur2);border:1px solid var(--brd)}
+.ct-bar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.ct-bar-thr{position:absolute;top:-4px;bottom:-4px;border-left:2px dashed var(--red)}
+.ct-bar-v{font-size:.78rem;font-weight:700;text-align:right;white-space:nowrap}
+.ct-out{opacity:.6}
+.ct-thr-ok{color:var(--grn)}.ct-thr-no{color:var(--red)}
+.ct-points{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.ct-point{display:grid;grid-template-columns:62px minmax(0,1.5fr) minmax(0,1fr) 36px;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;background:var(--sur2);border:1px solid var(--brd);font-size:.76rem}
+.ct-point .btn{padding:4px 0;width:30px;justify-content:center}
+.ct-point-o{color:var(--tx3)}
+.ct-paste{padding:12px;border-radius:12px;border:1px dashed var(--brd2)}
+.ct-paste-msgs{margin-top:8px;font-size:.74rem;color:var(--tx2);display:flex;flex-direction:column;gap:3px}
+.ct-board{display:flex;flex-direction:column;gap:12px}
+.ct-board-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px;padding-right:30px}
+.ct-board-t{font-size:1.6rem;font-weight:800;font-family:var(--fd);line-height:1.15}
+.ct-board-s{font-size:.8rem;color:var(--tx3);margin-top:4px}
+.ct-board-row{display:grid;grid-template-columns:44px minmax(120px,240px) minmax(0,1fr) 120px;gap:14px;align-items:center}
+.ct-board-row .ct-place{width:40px;height:40px;font-size:1rem}
+.ct-board-n{font-size:1.05rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-board-bar{height:18px;border-radius:9px;background:var(--sur2);border:1px solid var(--brd);overflow:hidden}
+.ct-board-bar div{height:100%;border-radius:9px}
+.ct-board-v{font-size:1.1rem;font-weight:800;text-align:right;white-space:nowrap}
+#m-ct-board .modal{max-width:1000px;width:94vw}
+#m-ct-board .modal:fullscreen{max-width:none;width:100vw;height:100vh;max-height:none;border-radius:0;padding:5vh 6vw;overflow:auto;background:var(--bg)}
+#m-ct-board .modal:fullscreen .ct-board-t{font-size:3rem}
+#m-ct-board .modal:fullscreen .ct-board-row{grid-template-columns:70px minmax(160px,360px) minmax(0,1fr) 200px;gap:22px}
+#m-ct-board .modal:fullscreen .ct-board-row .ct-place{width:60px;height:60px;font-size:1.5rem}
+#m-ct-board .modal:fullscreen .ct-board-n{font-size:1.7rem}
+#m-ct-board .modal:fullscreen .ct-board-v{font-size:1.8rem}
+#m-ct-board .modal:fullscreen .ct-board-bar{height:28px;border-radius:14px}
+.ct-badges{display:flex;flex-wrap:wrap;gap:8px}
+.ct-badge{display:flex;gap:10px;align-items:center;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--brd);background:var(--sur2);color:var(--tx);font:inherit;cursor:pointer;max-width:360px}
+.ct-badge-won{border-color:#f0c64f}
+.ct-badge-m{font-size:1.4rem}
+.ct-badge strong{display:block;font-size:.8rem}
+.ct-badge small{display:block;font-size:.68rem;color:var(--tx3)}
+.ct-banner{position:relative;overflow:hidden;border-radius:20px;padding:24px 26px;margin-bottom:14px;background:linear-gradient(135deg,rgba(var(--acc-rgb),.14),rgba(240,198,79,.13));border:1.5px solid rgba(var(--acc-rgb),.35)}
+.ct-banner-x{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:1px solid var(--brd);background:var(--sur);color:var(--tx2);cursor:pointer;font:inherit;font-size:.75rem;z-index:2}
+.ct-banner-top{display:flex;gap:16px;align-items:center;padding-right:40px;margin-bottom:16px}
+.ct-banner-ico{font-size:2.6rem}
+.ct-banner-k{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);font-weight:700}
+.ct-banner-t{font-size:1.5rem;font-weight:800;font-family:var(--fd);line-height:1.2}
+.ct-banner-s{font-size:.76rem;color:var(--tx2);margin-top:2px}
+.ct-banner-win{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin-bottom:14px}
+.ct-win{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--sur);border:1px solid var(--brd)}
+.ct-win-1{border:2px solid #f0c64f}
+.ct-win strong{display:block;font-size:.9rem}
+.ct-win-v{display:block;font-size:.8rem;font-weight:700;color:var(--acc)}
+.ct-win-p{display:block;font-size:.7rem;color:var(--tx3)}
+.ct-banner-act,.ct-small-act{display:flex;flex-wrap:wrap;gap:8px}
+.ct-smalls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px;margin-bottom:14px}
+.ct-small{position:relative;padding:16px 18px;border-radius:16px;background:var(--sur);border:1px solid var(--brd);display:flex;flex-direction:column;gap:8px}
+.ct-small-pre{border-color:rgba(245,158,11,.55);background:rgba(245,158,11,.07)}
+.ct-small-k{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--tx3);padding-right:34px}
+.ct-small-pre .ct-small-k{color:var(--warn)}
+.ct-small-t{font-size:.9rem;font-weight:600;padding-right:30px}
+.ct-strip{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:var(--sur2);border:1px solid var(--brd);margin-bottom:12px;font-size:.8rem}
+.ct-strip-t{flex:1 1 300px}
+.ct-strip-x{width:28px;height:28px;border-radius:50%;border:1px solid var(--brd);background:var(--sur);color:var(--tx3);cursor:pointer;font:inherit;font-size:.7rem}
+#m-ct-diploma .modal{max-width:1200px;width:96vw}
+.ct-dip{display:flex;flex-wrap:wrap;gap:18px}
+.ct-dip-side{flex:1 1 320px;max-width:410px;min-width:0}
+.ct-dip-main{flex:999 1 520px;min-width:0}
+.ct-dip-list{max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;border:1px solid var(--brd);border-radius:12px;padding:6px;background:var(--sur2)}
+.ct-dip-row{display:grid;grid-template-columns:20px 30px minmax(0,1fr);gap:8px;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:.78rem}
+.ct-dip-row:hover{background:var(--sur)}
+.ct-dip-pl{font-weight:700;text-align:center}
+.ct-dip-n small{display:block;color:var(--tx3);font-size:.68rem}
+.ct-dip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;align-items:end}
+.ct-dip-grid .fg{margin-bottom:0}
+.ct-dip-chk{display:inline-flex;gap:6px;align-items:center;font-size:.76rem;margin:10px 14px 0 0;cursor:pointer}
+.ct-dip-logo{min-height:64px;display:flex;align-items:center;justify-content:center;padding:8px;border:1px dashed var(--brd2);border-radius:10px;margin-bottom:8px;background:#fbf8f0}
+.ct-dip-logo img{max-height:80px;max-width:100%}
+.ct-dip-logo .hs-p{color:#6b5a35}
+.ct-dip-prev{border-radius:8px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.22)}
+.ct-dip-prev canvas{display:block;width:100%;height:auto}
+.ct-dip-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0;font-size:.78rem;color:var(--tx2)}
+[data-theme="neu-light"] .ct-lrow:not(.ct-lrow-hd),[data-theme="neu-dark"] .ct-lrow:not(.ct-lrow-hd),[data-theme="neu-light"] .ct-chip,[data-theme="neu-dark"] .ct-chip,[data-theme="neu-light"] .ct-metric,[data-theme="neu-dark"] .ct-metric,[data-theme="neu-light"] .ct-tr-g,[data-theme="neu-dark"] .ct-tr-g,[data-theme="neu-light"] .ct-pod,[data-theme="neu-dark"] .ct-pod,[data-theme="neu-light"] .ct-point,[data-theme="neu-dark"] .ct-point,[data-theme="neu-light"] .ct-rule,[data-theme="neu-dark"] .ct-rule,[data-theme="neu-light"] .ct-win,[data-theme="neu-dark"] .ct-win,[data-theme="neu-light"] .ct-small,[data-theme="neu-dark"] .ct-small,[data-theme="neu-light"] .ct-badge,[data-theme="neu-dark"] .ct-badge{border-color:transparent;box-shadow:var(--neu-flat)}
+[data-theme="neu-light"] .ct-chip.on,[data-theme="neu-dark"] .ct-chip.on,[data-theme="neu-light"] .ct-metric.on,[data-theme="neu-dark"] .ct-metric.on{box-shadow:var(--neu-in-sm);border-color:var(--acc)}
+[data-theme="neu-light"] .ct-seg,[data-theme="neu-dark"] .ct-seg,[data-theme="neu-light"] .ct-tree,[data-theme="neu-dark"] .ct-tree,[data-theme="neu-light"] .ct-datato,[data-theme="neu-dark"] .ct-datato,[data-theme="neu-light"] .ct-prog-bar,[data-theme="neu-dark"] .ct-prog-bar,[data-theme="neu-light"] .ct-bar-track,[data-theme="neu-dark"] .ct-bar-track,[data-theme="neu-light"] .ct-strip,[data-theme="neu-dark"] .ct-strip{border-color:transparent;box-shadow:var(--neu-in-sm)}
+[data-theme="neu-light"] .ct-seg button.on,[data-theme="neu-dark"] .ct-seg button.on{box-shadow:var(--neu-out-sm)}
+[data-theme="neu-light"] .ct-pod-1,[data-theme="neu-dark"] .ct-pod-1,[data-theme="neu-light"] .ct-win-1,[data-theme="neu-dark"] .ct-win-1{box-shadow:var(--neu-flat),0 0 0 2px #f0c64f}
+@media(max-width:640px){
+  .ct-podium{gap:6px}.ct-pod{padding:10px 4px}.ct-pod strong{font-size:.78rem}.ct-pod-v{font-size:.92rem}.ct-pod-1 .ct-pod-v{font-size:1.1rem}
+  .ct-banner{padding:18px 16px}.ct-banner-t{font-size:1.15rem}.ct-banner-ico{font-size:2rem}
+  .ct-board-row{grid-template-columns:36px minmax(0,1fr) 96px}.ct-board-bar{display:none}
+  .ct-dip-grid{grid-template-columns:1fr}
+  .ct-point{grid-template-columns:52px minmax(0,1fr) 34px}.ct-point-o{grid-column:2}
+  .ct-bar-row{grid-template-columns:minmax(70px,110px) minmax(0,1fr) 78px}
+}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
@@ -1947,6 +2172,22 @@ body.presentation-mode #presentation-exit{display:flex}
     <button class="btn btn-p" id="de-confirm-ok" onclick="deConfirmOk()">🔁 Nadpisz</button>
     <button class="btn btn-s" onclick="closeM('m-de-confirm')">Anuluj</button>
   </div>
+</div></div>
+
+<!-- KONKURSY: TABLICA WYNIKÓW -->
+<div class="moverlay" id="m-ct-board">
+<div class="modal">
+  <button class="mclose" onclick="if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();closeM('m-ct-board')">✕</button>
+  <div id="ct-board-body"></div>
+  <div class="fa"><button class="btn btn-p" onclick="ctBoardFull()">⛶ Pełny ekran</button><button class="btn btn-s" onclick="ctBoardPNG(S._ctBoardId)">🖼️ Zapisz jako obraz</button></div>
+</div></div>
+
+<!-- KONKURSY: DYPLOMY -->
+<div class="moverlay" id="m-ct-diploma">
+<div class="modal">
+  <div class="mtitle" id="ct-dip-title">🎓 Dyplomy</div>
+  <button class="mclose" onclick="closeM('m-ct-diploma')">✕</button>
+  <div id="ct-dip-body"></div>
 </div></div>
 
 <!-- WKLEJ DOWOLNY RAPORT -->
@@ -3917,6 +4158,7 @@ var SEARCH_SECTIONS=[
   {id:'d-empsales',icon:'👤',label:'Wprowadź dane — Sprzedaż pracownika',action:function(){goEmpSales()}},
   {id:'d-perf',icon:'🧾',label:'Wprowadź dane — Raport okresowy',action:function(){deGoTab('perf')}},
   {id:'d-quick',icon:'⚡',label:'Wklej dowolny raport (rozpoznanie typu)',action:function(){deGoTab('monthly');deQuickOpen()}},
+  {id:'e-contests',icon:'🏅',label:'Pracownicy — Konkursy',action:function(){goContests()}},
   {id:'a-charts',icon:'📊',label:'Analityka — Wykresy',action:function(){srGoTab('analytics','charts','atabs')}},
   {id:'a-heatmap',icon:'🗓️',label:'Analityka — Heatmapa',action:function(){srGoTab('analytics','heatmap','atabs')}},
   {id:'a-ranking',icon:'🏆',label:'Analityka — Ranking',action:function(){srGoTab('analytics','ranking','atabs')}},
@@ -4651,7 +4893,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.10.0';
+var APP_VERSION='3.11.0';
 var APP_BUILD_DATE='2026-11-10';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -4660,6 +4902,16 @@ var APP_BUILD_DATE='2026-11-10';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.11.0',date:'2026-11-16',changes:[
+    'Nowa zakładka Pracownicy → 🏅 Konkursy: tworzenie konkursów sprzedażowych (okres, outlety, uczestnicy z listą kont do pominięcia, wynik liczony jako wartość / ilość / punkty / udział %, filtr ceny, drzewko grup i pozycji z punktacją, nagrody za miejsca albo za osiągnięcie celu, próg, zasada remisu, statusy)',
+    'Wyniki z raportów „Sprzedaż użytkowników": każdy import dopisuje punkt pomiaru do trwających konkursów; konkurs od środka miesiąca odejmuje punkt startowy; raport można też wkleić bezpośrednio w konkursie',
+    'Karta konkursu: podium, wykres przebiegu (top 5 / wszyscy / tempo na dzień), porównanie z linią progu, „co sprzedali", ranking, punkty pomiaru, ocena „czy konkurs się opłaca" (tempo vs poprzedni miesiąc i rok wcześniej, marża z Menu Engineering, koszt nagród)',
+    'Rozstrzygnięcie zamraża wyniki; Dashboard pokazuje baner ze zwycięzcami z konfetti i fajerwerkami (raz na osobę), wyniki wstępne do zatwierdzenia, „czekamy na dane" i pasek trwającego konkursu; nowe alerty (koniec za ≤3 dni, brak danych, brak punktu startowego)',
+    'Protokół rozstrzygnięcia (PDF i wydruk), dyplomy A4 poziomo z logo hotelu i podpisem (wybór osób), tablica wyników na pełny ekran, ranking jako obraz PNG, duplikowanie konkursów, odznaki w Karcie pracownika'
+  ]},
+  {v:'3.10.1',date:'2026-11-16',changes:[
+    'Dashboard: komunikat „Wynik netto i budżet liczone są bez…" można ukryć (✕) — zostaje mały znacznik „⊘ bez: …" obok miesiąca; komunikat wraca, gdy zmienisz listę wyłączonych punktów. Usunięto podwójną ikonę ⚠️'
+  ]},
   {v:'3.10.0',date:'2026-11-10',changes:[
     'Zakładka „Import plików" zlikwidowana — każde źródło jest tam, gdzie trafiają jego dane: raport HosPOS w PDF i Excel z budżetem w Miesięcznych, plik Material Control (wiele dni) w Dziennych, jako „albo wczytaj z pliku" w kroku Źródło. Pliki przechodzą przez ten sam podgląd co wklejony tekst; PDF ma teraz ręczne dopasowanie outletów, a Excel nie zapisuje się już bez podglądu',
     'Autozapis wklejanego tekstu we wszystkich zakładkach (wcześniej tylko w Sprzedaży menu) — po odświeżeniu strony tekst wraca z informacją, kiedy został wklejony; znika po zapisie albo „Wyczyść"',
@@ -4917,6 +5169,12 @@ function sumActive(valuesObj){
   Object.keys(valuesObj).forEach(function(k){if(isOutletActive(k))s+=(Number(valuesObj[k])||0)});
   return s;
 }
+// Ukrycie komunikatu „liczone bez…" — zapamiętane dla konkretnego zestawu wyłączonych punktów
+// (np. sezonowy Beach Bar). Gdy zestaw się zmieni, komunikat pokaże się ponownie.
+function exclSignature(){return Array.from(S.excludedOutlets).sort().join('|')}
+function exclBannerIsHidden(){return !!S.excludedOutlets.size&&lsGet(uk('excl-banner-hidden-'+S.pid),'')===exclSignature()}
+function exclBannerHide(){lsSet(uk('excl-banner-hidden-'+S.pid),exclSignature());renderCur()}
+function exclBannerShow(){lsDel(uk('excl-banner-hidden-'+S.pid));renderCur()}
 function toggleOutletActive(key){
   if(S.excludedOutlets.has(key))S.excludedOutlets.delete(key);
   else S.excludedOutlets.add(key);
@@ -5622,7 +5880,9 @@ function loadUserDataFromFirestore(){
       var t9=db.collection('properties/'+p.id+'/perfReports').get().then(function(s){
         s.docs.forEach(function(d){hvSet(uk('perf-'+p.id+'-'+d.id),d.data())});
       });
-      return Promise.all([t1,t2,t3,t4,t5,t6,t7,t8,t9]);
+      // Konkursy: brak uprawnień do nowej kolekcji (reguły Firestore) nie może zablokować logowania
+      var t10=db.collection('properties/'+p.id+'/contests').get().then(function(s){ctLoadFromCloud(p.id,s)}).catch(function(e){console.warn('Konkursy — brak dostępu do chmury:',e&&e.message)});
+      return Promise.all([t1,t2,t3,t4,t5,t6,t7,t8,t9,t10]);
     });
     return Promise.all(tasks);
   });
@@ -6175,6 +6435,7 @@ function alerts(metrics,outlets){
   alertsMenuEngineering(al);
   alertsDailyDrop(al);
   alertsMissingData(al);
+  alertsContests(al);
   return al;
 }
 
@@ -6372,8 +6633,10 @@ function renderDashboard(){
 
   if(!T.a&&!Object.keys(d).length){
     var h0='<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap"><div class="badge">'+mLabelFull(S.month)+'</div></div>';
+    h0+=ctDashboardHTML(); // konkursy nie zależą od wyników miesiąca
     h0+=emptyStateHTML('📭','Brak danych za '+mLabelFull(S.month),'Nie wprowadzono jeszcze wyników dla tego miesiąca. Wpisz je ręcznie, zaimportuj z Excela lub raportu HosPOS.','✏️ Wprowadź dane teraz',"go('data')");
     el.innerHTML=h0;
+    ctAfterDashboard();
     return;
   }
 
@@ -6387,12 +6650,17 @@ function renderDashboard(){
   h+='<div class="badge">'+mLabelFull(S.month)+'</div>';
   h+='<span style="font-size:.68rem;color:var(--tx3)">'+T.DR+'/'+T.M+' dni · pozostało: '+T.DL+'</span>';
   if(com)h+='<span style="font-size:.65rem;background:var(--sur2);padding:2px 8px;border-radius:6px;border:1px solid var(--brd);color:var(--tx3)">📝 '+com+'</span>';
+  var exclNames=S.excludedOutlets.size?S.outlets.filter(function(o){return !isOutletActive(okey(o.name))}).map(function(o){return o.name}):[];
+  var exclHidden=exclNames.length&&exclBannerIsHidden();
+  // Ukryty baner zostawia mały znacznik — liczby na ekranie nadal są liczone bez tych punktów
+  if(exclHidden)h+='<button class="excl-chip" onclick="exclBannerShow()" title="Wynik netto i budżet liczone bez: '+escAttr(exclNames.join(', '))+' — kliknij, aby pokazać komunikat">⊘ bez: '+esc(exclNames.join(', '))+'</button>';
   h+='<button class="btn btn-g btn-sm" onclick="openCommentM()" style="margin-left:auto">📝</button></div>';
 
-  if(S.excludedOutlets.size){
-    var exclNames=S.outlets.filter(function(o){return !isOutletActive(okey(o.name))}).map(function(o){return o.name});
-    h+='<div class="hs-warn" style="margin-bottom:12px">⚠️ Wynik netto i budżet liczone są <strong>bez</strong>: '+exclNames.join(', ')+'. <a href="#" onclick="event.preventDefault();S.excludedOutlets.clear();renderCur();" style="color:var(--acc);font-weight:600">Przywróć wszystkie</a></div>';
+  if(exclNames.length&&!exclHidden){
+    h+='<div class="hs-warn excl-banner"><span>Wynik netto i budżet liczone są <strong>bez</strong>: '+esc(exclNames.join(', '))+'. <a href="#" onclick="event.preventDefault();S.excludedOutlets.clear();renderCur();" style="color:var(--acc);font-weight:600">Przywróć wszystkie</a></span><button class="excl-banner-x" onclick="exclBannerHide()" title="Ukryj komunikat (wróci, gdy zmienisz listę wyłączonych punktów)">✕</button></div>';
   }
+
+  h+=ctDashboardHTML();
 
   // ── HERO CARD: podsumowanie miesiąca ──
   h+='<div class="hero-card"><div class="hero-top">';
@@ -6487,6 +6755,7 @@ function renderDashboard(){
   el.innerHTML=h;
   setupOutletSwipes();
   animateKpis(el);
+  ctAfterDashboard();
 }
 
 /* ═══════════════════════════════════════════
@@ -6665,7 +6934,8 @@ var TAB_DEFS={
     {id:'trend',icon:'📈',label:'Trend'},
     {id:'bills',icon:'🧾',label:'Rachunki'},
     {id:'disc',icon:'💸',label:'Rabaty'},
-    {id:'pay',icon:'💳',label:'Płatności'}
+    {id:'pay',icon:'💳',label:'Płatności'},
+    {id:'contests',icon:'🏅',label:'Konkursy'}
   ]
 };
 function getTabOrder(section){return lsGet(uk('taborder-'+section),null)}
@@ -7488,13 +7758,13 @@ function empSalesSaveAll(){
 function empDoSaveAll(){
   var reports=S._empParsedReports,meta=S._empReportMeta;
   if(!reports)return;
-  var savedCount=0,failed=0,skipped=0,lastOutletId=null,lastMonth=null;
+  var savedCount=0,failed=0,skipped=0,lastOutletId=null,lastMonth=null,ctMsgs=[];
   reports.forEach(function(r,i){
     if(meta[i].outletId==='__skip__')return; // świadomie pominięty przez użytkownika
     var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId});
     if(!outlet){skipped++;return;}
     var ok=saveEmployeeSales(S.pid,meta[i].outletId,meta[i].month,{outletName:outlet.name,sourceRange:r.sourceRange,employees:r.employees});
-    if(ok){savedCount++;lastOutletId=meta[i].outletId;lastMonth=meta[i].month;}else{failed++;}
+    if(ok){savedCount++;lastOutletId=meta[i].outletId;lastMonth=meta[i].month;ctMsgs=ctMsgs.concat(ctIngestFromImport(meta[i].outletId,r));}else{failed++;}
   });
   S._empParsedReports=null;S._empReportMeta=null;
   S._empAllItemNamesCache=null; // unieważnij cache podpowiedzi — mogły dojść nowe pozycje
@@ -7505,6 +7775,11 @@ function empDoSaveAll(){
   if(failed)toast('Zapisano '+savedCount+', NIE zapisano '+failed+' — brak miejsca w pamięci przeglądarki','er');
   else if(skipped)toast('Zapisano '+savedCount+', pominięto '+skipped+' (outlet nie istnieje w tym obiekcie)','er');
   else toast('Zapisano dane dla '+savedCount+' outlet(ów)','ok');
+  if(ctMsgs.length){
+    var uq={};ctMsgs.forEach(function(m){uq[m]=(uq[m]||0)+1});
+    var lst=Object.keys(uq).map(function(m){return m+(uq[m]>1?' ('+uq[m]+' outlety)':'')});
+    setTimeout(function(){toast('🏅 Konkursy: '+lst.slice(0,3).join(' · ')+(lst.length>3?' …':''),'in')},1400);
+  }
 }
 function empSalesClear(){
   S._empParsedReports=null;S._empReportMeta=null;
@@ -9380,6 +9655,1829 @@ function empMonthsAvailable(pid){
   var m={};getAllEmployeeSalesKeys(pid).forEach(function(k){m[k.month]=true});
   return Object.keys(m).sort();
 }
+/* ═══════════════════════════════════════════
+   KONKURSY SPRZEDAŻOWE (Pracownicy → Konkursy)
+   Źródło danych: raport HosPOS „Sprzedaż użytkowników". Raport NIE ma podziału na dni —
+   to suma za zakres Od–Do. Dlatego konkurs zbiera „punkty pomiaru": każdy pasujący raport
+   zapisuje w konkursie stan na dzień „Do" (per pracownik, już przeliczony wg zasad konkursu).
+   Z kolejnych pomiarów powstaje wykres narastający, a konkurs od środka miesiąca odejmuje
+   „punkt startowy" (raport od 1. dnia do dnia przed startem).
+   Zapis: IndexedDB (hv) + Firestore properties/{pid}/contests/{id} jako JEDEN spakowany
+   JSON — nazwy pozycji i pracowników bywają kluczami map, a Firestore nie lubi kropek
+   w kluczach (np. „Olga .", „KOZEL 0.5L") i ma limit pól indeksowanych na dokument.
+═══════════════════════════════════════════ */
+var CT_STATUS={
+  prep:{l:'W przygotowaniu',c:'ct-st-prep'},
+  run:{l:'W trakcie',c:'ct-st-run'},
+  done:{l:'Rozstrzygnięty',c:'ct-st-done'},
+  undone:{l:'Nie rozstrzygnięty',c:'ct-st-undone'}
+};
+var CT_METRICS={
+  value:{l:'Wartość sprzedaży',d:'zł netto lub brutto',u:'zł'},
+  qty:{l:'Ilość',d:'sztuki / porcje',u:'szt.'},
+  points:{l:'Punkty',d:'pkt za sztukę wg tabeli',u:'pkt'},
+  share:{l:'Udział w sprzedaży',d:'% pozycji konkursowych w obrocie osoby',u:'%'}
+};
+var CT_ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+
+// ── DATY (lokalne, format ISO YYYY-MM-DD) ──
+function ctISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function ctToday(){return ctISO(new Date())}
+function ctDate(iso){var p=String(iso).split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function ctAddDays(iso,n){var d=ctDate(iso);d.setDate(d.getDate()+n);return ctISO(d)}
+function ctDays(a,b){return Math.round((ctDate(b)-ctDate(a))/86400000)+1} // włącznie
+function ctMonthOf(iso){return String(iso).slice(0,7)}
+function ctFirstOf(m){return m+'-01'}
+function ctLastOf(m){return m+'-'+String(dim(m)).padStart(2,'0')}
+function ctMaxD(a,b){return a>b?a:b}
+function ctMinD(a,b){return a<b?a:b}
+function ctFmt(iso){if(!iso)return '—';var p=iso.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
+function ctFmtS(iso){if(!iso)return '—';var p=iso.split('-');return p[2]+'.'+p[1]}
+function ctPeriod(c){return c.start===c.end?ctFmt(c.start):(ctMonthOf(c.start).slice(0,4)===ctMonthOf(c.end).slice(0,4)?ctFmtS(c.start):ctFmt(c.start))+' – '+ctFmt(c.end)}
+// „01.11.26" / „01.11.2026" → „2026-11-01"
+function ctParseDMY(s){
+  var m=String(s||'').match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/);
+  if(!m)return null;
+  var y=+m[3];if(y<100)y+=2000;
+  return y+'-'+String(+m[2]).padStart(2,'0')+'-'+String(+m[1]).padStart(2,'0');
+}
+function ctAddMonths(m,k){var p=m.split('-'),t=(+p[0])*12+(+p[1]-1)+k;return Math.floor(t/12)+'-'+String(t%12+1).padStart(2,'0')}
+function ctMonthsBetween(a,b){
+  var out=[],m=ctMonthOf(a),e=ctMonthOf(b),guard=0;
+  while(m<=e&&guard++<60){out.push(m);var p=m.split('-'),y=+p[0],mo=+p[1]+1;if(mo>12){mo=1;y++}m=y+'-'+String(mo).padStart(2,'0')}
+  return out;
+}
+
+// ── ZAPIS ──
+function ctKey(pid){return uk('contests-'+(pid||S.pid))}
+function ctAll(pid){return hvGet(ctKey(pid))||{}}
+function ctGet(id){return ctAll()[id]||null}
+function ctList(){
+  var m=ctAll();
+  return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return (b.start||'').localeCompare(a.start||'')||(b.createdAt||0)-(a.createdAt||0)});
+}
+function ctWho(){var p=getUserProfile();return (p&&p.displayName)||S.userEmail||'—'}
+function ctSave(c,opts){
+  opts=opts||{};
+  if(!opts.keepStamp){c.updatedAt=Date.now();c.updatedBy=ctWho();}
+  var m=Object.assign({},ctAll());m[c.id]=c;
+  hvSet(ctKey(),m);
+  if(S.uid)fsWrite(db.collection('properties/'+S.pid+'/contests').doc(c.id),{json:JSON.stringify(c),name:c.name||'',status:c.status||'prep',updatedAt:c.updatedAt||Date.now()});
+  if(opts.audit)logAudit(S.pid,'contest',opts.audit);
+}
+function ctRemove(id){
+  var m=Object.assign({},ctAll()),c=m[id];if(!c)return null;
+  delete m[id];hvSet(ctKey(),m);
+  if(S.uid){connBeginWrite();db.collection('properties/'+S.pid+'/contests').doc(id).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});}
+  logAudit(S.pid,'contest','Usunięto konkurs: '+(c.name||id));
+  return c;
+}
+// Ustawienia dyplomu (logo, podpis, nazwa hotelu) — jeden dokument na obiekt, w tej samej
+// kolekcji co konkursy (id „_diploma"), żeby reguły Firestore obejmowały jedną ścieżkę.
+var CT_DIP_DEFAULT={logo:null,hotel:'',signTitle:'Manager F&B',signName:'',showScore:true,showPrize:true};
+function ctDipGet(){return Object.assign({},CT_DIP_DEFAULT,hvGet(uk('diploma-'+S.pid))||{})}
+function ctDipSave(s){
+  hvSet(uk('diploma-'+S.pid),s);
+  if(S.uid)fsWrite(db.collection('properties/'+S.pid+'/contests').doc('_diploma'),{json:JSON.stringify(s),updatedAt:Date.now()});
+}
+// Pobranie z chmury (wołane z loadUserDataFromFirestore)
+function ctLoadFromCloud(pid,snap){
+  var map={};
+  snap.docs.forEach(function(d){
+    var raw=d.data()||{};
+    var v=null;try{v=JSON.parse(raw.json||'null')}catch(e){v=null}
+    if(!v)return;
+    if(d.id==='_diploma')hvSet(uk('diploma-'+pid),v);
+    else map[d.id]=v;
+  });
+  hvSet(uk('contests-'+pid),map);
+}
+
+// ── STATUS / FAZA ──
+function ctPhase(c){var t=ctToday();return t<c.start?'before':(t>c.end?'after':'during')}
+// „W przygotowaniu" przechodzi w „W trakcie" samo w dniu startu (zapisuje to pierwszy
+// manager/administrator, który otworzy aplikację; pozostali widzą to samo wyliczone).
+function ctStatus(c){return (c.status==='prep'&&ctToday()>=c.start)?'run':(c.status||'prep')}
+function ctLocked(c){return ctStatus(c)!=='prep'}
+function ctAutoAdvance(){
+  if(!canEdit()||!S.pid)return;
+  ctList().forEach(function(c){
+    if(c.status==='prep'&&ctToday()>=c.start){c.status='run';ctSave(c,{keepStamp:true});}
+  });
+}
+function ctStatusPill(st,c){
+  var s=CT_STATUS[st]||CT_STATUS.prep;
+  var h='<span class="ct-st '+s.c+'"><span class="ct-st-dot"></span>'+s.l+'</span>';
+  // termin minął, a wyników nikt jeszcze nie zatwierdził
+  if(c&&st==='run'&&ctPhase(c)==='after')h+=' <span class="ct-st ct-st-due">⏳ do rozstrzygnięcia</span>';
+  return h;
+}
+
+// ── NOWY KONKURS (wartości domyślne) ──
+function ctNewDraft(){
+  var t=new Date(),nm=new Date(t.getFullYear(),t.getMonth()+1,1);
+  var m=nm.getFullYear()+'-'+String(nm.getMonth()+1).padStart(2,'0');
+  return {
+    id:'ct'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    name:'',desc:'',single:false,start:ctFirstOf(m),end:ctLastOf(m),
+    outletsMode:'all',outlets:[],
+    empMode:'all',emps:[],exclude:[],
+    metric:'points',amount:'brutto',minPriceOn:false,minPrice:25,minTurnover:500,
+    itemsMode:'sel',groups:{},items:{},allPts:1,
+    prizesOn:true,prizeType:'rank',places:3,prizes:['','',''],goalPrize:'',prizeCost:0,
+    thresholdOn:false,threshold:0,
+    tie:'value',status:'prep',meas:{},frozen:null,
+    createdAt:Date.now(),createdBy:ctWho()
+  };
+}
+function ctClone(o){return JSON.parse(JSON.stringify(o))}
+
+// ── DOPASOWANIE POZYCJI ──
+// Pozycja w konkursie, jeśli: tryb „wszystkie", albo zaznaczona jej grupa (cała), albo
+// zaznaczona sama pozycja. Punkty: pozycja > grupa > 0. Klucze znormalizowane (srNorm),
+// więc ta sama nazwa w dwóch grupach to jedna pozycja (np. FRYTKI w KIDS i Dodatkach).
+function ctItemMatch(c,catKey,itemKey){
+  var it=c.items&&c.items[itemKey],gr=c.groups&&c.groups[catKey];
+  if(c.itemsMode!=='sel'){
+    // grupa INFO to rozliczenia posiłków w pakiecie i liczniki gości — nie sprzedaż kelnera
+    if(catKey==='info'&&!it)return {in:false,pts:0};
+    var p0=(it&&it.pts!=null&&it.pts!=='')?+it.pts:(+c.allPts||0);
+    return {in:true,pts:p0};
+  }
+  if(!it&&!gr)return {in:false,pts:0};
+  var pts=(it&&it.pts!=null&&it.pts!=='')?+it.pts:((gr&&gr.pts!=null&&gr.pts!=='')?+gr.pts:0);
+  return {in:true,pts:pts||0};
+}
+function ctOutletIn(c,outletId){return c.outletsMode!=='sel'||(c.outlets||[]).indexOf(outletId)!==-1}
+function ctOutletIds(c){
+  if(c.outletsMode==='sel')return (c.outlets||[]).slice();
+  return S.outlets.map(function(o){return o.id});
+}
+
+// Przelicza raport „Sprzedaż użytkowników" (jeden outlet) wg zasad konkursu.
+// per[osoba]={vn,vb,q,p,tn,tb} — vn/vb: wartość pozycji konkursowych netto/brutto,
+// q: sztuki, p: punkty, tn/tb: CAŁY obrót osoby (do trybu „udział %").
+function ctBuildRecord(c,employees){
+  var per={},items={};
+  (employees||[]).forEach(function(e){
+    var name=String(e.name||'').trim();if(!name)return;
+    var acc=per[name]||(per[name]={vn:0,vb:0,q:0,p:0,tn:0,tb:0});
+    (e.items||[]).forEach(function(it){
+      var nn=+it.netto||0,bb=+it.brutto||0,q=+it.qty||0;
+      acc.tn+=nn;acc.tb+=bb;
+      if(!nn&&!bb)return; // pozycje za 0 zł (INFO, ŚN, numer pagera) zawyżałyby ilość
+      var catKey=srNorm(it.category||''),itemKey=srNorm(it.name||'');
+      var mt=ctItemMatch(c,catKey,itemKey);if(!mt.in)return;
+      if(c.minPriceOn&&q>0&&(bb/q)<(+c.minPrice||0)-0.005)return;
+      var p=c.metric==='points'?q*mt.pts:0;
+      acc.vn+=nn;acc.vb+=bb;acc.q+=q;acc.p+=p;
+      var ie=items[name]||(items[name]={});
+      var x=ie[itemKey]||(ie[itemKey]={n:it.name,g:it.category||'',q:0,vb:0,vn:0,p:0});
+      x.q+=q;x.vb+=bb;x.vn+=nn;x.p+=p;
+    });
+  });
+  Object.keys(per).forEach(function(n){var a=per[n];['vn','vb','q','p','tn','tb'].forEach(function(k){a[k]=round2(a[k])})});
+  return {per:per,items:items};
+}
+
+// Czy raport o zakresie F–T (ISO) pasuje do konkursu?
+//  • baseline — od 1. dnia miesiąca do dnia przed startem (konkurs od środka miesiąca),
+//  • direct   — od dnia startu konkursu (lub od 1. dnia kolejnego miesiąca konkursu),
+//  • month    — od 1. dnia miesiąca, gdy start wypada w środku (wymaga punktu startowego).
+function ctAccept(c,outletId,F,T){
+  if(!ctOutletIn(c,outletId))return {ok:false,silent:true,reason:'Outlet nie bierze udziału w konkursie.'};
+  var m=ctMonthOf(T);
+  if(ctMonthOf(F)!==m)return {ok:false,reason:'Raport obejmuje więcej niż jeden miesiąc ('+ctFmt(F)+' – '+ctFmt(T)+'). Wygeneruj osobny raport dla każdego miesiąca.'};
+  if(m<ctMonthOf(c.start)||m>ctMonthOf(c.end))return {ok:false,silent:true,reason:'Raport spoza miesięcy konkursu.'};
+  if(T>c.end)return {ok:false,reason:'Raport kończy się '+ctFmt(T)+', czyli po końcu konkursu ('+ctFmt(c.end)+') — zawyżyłby wyniki. Wygeneruj raport do '+ctFmt(c.end)+'.'};
+  var ws=ctMaxD(c.start,ctFirstOf(m));
+  if(T<ws){
+    if(F===ctFirstOf(m)&&T===ctAddDays(ws,-1))return {ok:true,kind:'baseline'};
+    return {ok:false,silent:true,reason:'Raport kończy się przed startem konkursu.'};
+  }
+  if(F===ws)return {ok:true,kind:'direct'};
+  if(F===ctFirstOf(m))return {ok:true,kind:'month'};
+  return {ok:false,reason:'Raport zaczyna się '+ctFmt(F)+'. Konkurs przyjmuje raporty od '+ctFmt(ws)+' albo od 1. dnia miesiąca — wygeneruj raport z taką datą „Od".'};
+}
+// Dopisuje raport do konkursu (bez zapisu — zapisuje wołający).
+function ctIngest(c,outletId,report,src){
+  var sr=report&&report.sourceRange;
+  var F=sr&&ctParseDMY(sr.from),T=sr&&ctParseDMY(sr.to);
+  if(!F||!T)return {ok:false,reason:'Raport nie ma zakresu dat „Od: … do: …".'};
+  if(c.status==='done')return {ok:false,silent:true,reason:'Konkurs jest rozstrzygnięty — wyniki zamrożone.'};
+  var acc=ctAccept(c,outletId,F,T);
+  if(!acc.ok)return acc;
+  var built=ctBuildRecord(c,report.employees);
+  var rec={f:F,t:T,kind:acc.kind,src:src||'',ts:Date.now(),per:built.per,items:built.items};
+  if(!c.meas)c.meas={};
+  var mo=c.meas[outletId]||(c.meas[outletId]={});
+  var m=ctMonthOf(T);
+  var mm=mo[m]||(mo[m]={recs:[]});
+  mm.recs=mm.recs.filter(function(r){return !(r.f===F&&r.t===T)}); // korekta zastępuje pomiar
+  mm.recs.push(rec);
+  mm.recs.sort(function(a,b){return a.t<b.t?-1:a.t>b.t?1:0});
+  // Szczegóły pozycji trzymamy tylko w najnowszym pomiarze z danym „Od" (i w punkcie
+  // startowym) — reszta to same sumy, żeby dokument nie puchł z każdym importem.
+  var latestByF={};
+  mm.recs.forEach(function(r){if(!latestByF[r.f]||r.t>latestByF[r.f])latestByF[r.f]=r.t});
+  mm.recs.forEach(function(r){if(r.items&&r.kind!=='baseline'&&r.t!==latestByF[r.f])delete r.items});
+  return {ok:true,kind:acc.kind,t:T};
+}
+// Wczytuje do konkursu wszystko, co już jest zapisane w „Sprzedaży pracownika" (ostatni
+// import każdego outletu/miesiąca). Używane przy tworzeniu konkursu i po odblokowaniu zasad.
+function ctReingest(c){
+  var months=ctMonthsBetween(c.start,c.end),n=0;
+  getAllEmployeeSalesKeys(S.pid).forEach(function(k){
+    if(months.indexOf(k.month)===-1||!ctOutletIn(c,k.outletId))return;
+    var d=getEmployeeSales(S.pid,k.outletId,k.month);
+    if(!d||!d.employees)return;
+    var r=ctIngest(c,k.outletId,d,'Zapisane dane');
+    if(r.ok)n++;
+  });
+  return n;
+}
+// Hak wołany po zapisie raportu w „Wprowadź dane → Sprzedaż pracownika".
+function ctIngestFromImport(outletId,report){
+  if(!S.pid)return [];
+  var msgs=[];
+  ctList().forEach(function(c){
+    if(c.status==='done')return;
+    var r=ctIngest(c,outletId,report,'Import: Sprzedaż pracownika');
+    if(r.ok){ctSave(c,{keepStamp:true});msgs.push('„'+c.name+'": '+(r.kind==='baseline'?'punkt startowy':'pomiar')+' '+ctFmtS(r.t));}
+    else if(!r.silent)msgs.push('„'+c.name+'": '+r.reason);
+  });
+  return msgs;
+}
+
+function ctSubPer(a,b){
+  var out={};
+  Object.keys(a||{}).forEach(function(n){
+    var x=a[n],y=(b&&b[n])||{};
+    out[n]={vn:round2(x.vn-(y.vn||0)),vb:round2(x.vb-(y.vb||0)),q:round2(x.q-(y.q||0)),p:round2(x.p-(y.p||0)),tn:round2(x.tn-(y.tn||0)),tb:round2(x.tb-(y.tb||0))};
+  });
+  return out;
+}
+function ctSubItems(a,b){
+  if(!b)return a||{};
+  var out={};
+  Object.keys(a||{}).forEach(function(n){
+    out[n]={};
+    Object.keys(a[n]).forEach(function(k){
+      var x=a[n][k],y=(b[n]&&b[n][k])||{};
+      out[n][k]={n:x.n,g:x.g,q:x.q-(y.q||0),vb:x.vb-(y.vb||0),vn:x.vn-(y.vn||0),p:x.p-(y.p||0)};
+    });
+  });
+  return out;
+}
+// Wkład jednego outletu w jednym miesiącu na dzień D: najnowszy użyteczny pomiar ≤ D
+// (minus punkt startowy, jeśli trzeba).
+function ctMonthContrib(c,outletId,m,D){
+  var mm=c.meas&&c.meas[outletId]&&c.meas[outletId][m];
+  if(!mm||!mm.recs||!mm.recs.length)return null;
+  var first=ctFirstOf(m),ws=ctMaxD(c.start,first),we=ctMinD(c.end,ctLastOf(m)),lim=ctMinD(D,we);
+  var base=null;
+  mm.recs.forEach(function(r){if(r.f===first&&r.t===ctAddDays(ws,-1))base=r});
+  var best=null,needBase=false;
+  mm.recs.forEach(function(r){
+    if(r.t<ws||r.t>lim)return;
+    var usable=r.f===ws||(r.f===first&&(ws===first||base));
+    if(!usable){if(r.f===first)needBase=true;return;}
+    if(!best||r.t>best.t||(r.t===best.t&&r.f===ws))best=r;
+  });
+  if(!best)return {to:null,needBase:needBase,we:we};
+  var useBase=best.f!==ws&&ws!==first;
+  return {to:best.t,we:we,per:useBase?ctSubPer(best.per,base.per):best.per,items:best.items?(useBase?ctSubItems(best.items,base.items):best.items):null,needBase:false};
+}
+function ctAddPer(tot,per){
+  Object.keys(per||{}).forEach(function(n){
+    var a=tot[n]||(tot[n]={vn:0,vb:0,q:0,p:0,tn:0,tb:0}),b=per[n];
+    ['vn','vb','q','p','tn','tb'].forEach(function(k){a[k]=round2(a[k]+(b[k]||0))});
+  });
+}
+// Stan konkursu na dzień D: suma wkładów wszystkich outletów i miesięcy.
+function ctStateAt(c,D){
+  var tot={},items={},dataTo={},needBase=[];
+  var months=ctMonthsBetween(c.start,ctMinD(D,c.end));
+  Object.keys(c.meas||{}).forEach(function(o){
+    if(!ctOutletIn(c,o))return;
+    var cov=null,broken=false;
+    months.forEach(function(m){
+      var r=ctMonthContrib(c,o,m,D);
+      if(r&&r.needBase&&needBase.indexOf(o)===-1)needBase.push(o);
+      if(!r||!r.to){broken=true;return;} // luka w danych — „dane do" zatrzymują się przed nią
+      ctAddPer(tot,r.per);
+      if(r.items)Object.keys(r.items).forEach(function(n){
+        var ie=items[n]||(items[n]={});
+        Object.keys(r.items[n]).forEach(function(k){
+          var x=r.items[n][k],y=ie[k]||(ie[k]={n:x.n,g:x.g,q:0,vb:0,vn:0,p:0});
+          y.q+=x.q;y.vb+=x.vb;y.vn+=x.vn;y.p+=x.p;
+        });
+      });
+      // ciągłość: dane outletu są „do dnia X" tylko gdy wcześniejsze miesiące są pełne
+      if(!broken){cov=r.to;if(r.to<r.we)broken=true;}
+    });
+    dataTo[o]=cov;
+  });
+  return {per:tot,items:items,dataTo:dataTo,needBase:needBase};
+}
+function ctScore(c,e){
+  if(!e)return 0;
+  if(c.metric==='qty')return e.q;
+  if(c.metric==='points')return e.p;
+  var v=c.amount==='netto'?e.vn:e.vb,t=c.amount==='netto'?e.tn:e.tb;
+  if(c.metric==='share')return t>0?round2(v/t*100):0;
+  return v;
+}
+function ctUnit(c){return (CT_METRICS[c.metric]||CT_METRICS.value).u}
+function ctFmtScore(c,v){
+  if(v==null)return '—';
+  if(c.metric==='value')return fmt(v);
+  if(c.metric==='share')return (Math.round(v*10)/10).toLocaleString('pl-PL')+'%';
+  return (Math.round(v*100)/100).toLocaleString('pl-PL')+' '+ctUnit(c);
+}
+function ctParticipants(c,per){
+  var ex=(c.exclude||[]).map(function(x){return x.toLowerCase()});
+  var names=c.empMode==='sel'?(c.emps||[]).slice():Object.keys(per||{});
+  return names.filter(function(n){return ex.indexOf(n.toLowerCase())===-1});
+}
+// Ranking: zakwalifikowani (wynik > 0, ≥ próg, w trybie % także min. obrót) na górze;
+// remis rozstrzyga wartość sprzedaży (potem ilość), a gdy wszystko równe — ex aequo.
+function ctRank(c,per){
+  var rows=ctParticipants(c,per).map(function(n){
+    var e=per[n]||{vn:0,vb:0,q:0,p:0,tn:0,tb:0};
+    var score=ctScore(c,e),val=c.amount==='netto'?e.vn:e.vb,turn=c.amount==='netto'?e.tn:e.tb;
+    var q=score>0&&(!c.thresholdOn||score>=(+c.threshold||0)-1e-9)&&(c.metric!=='share'||turn>=(+c.minTurnover||0));
+    return {n:n,score:score,val:round2(val),q:round2(e.q),p:round2(e.p),turn:round2(turn),qual:q};
+  });
+  rows.sort(function(a,b){
+    if(a.qual!==b.qual)return a.qual?-1:1;
+    if(b.score!==a.score)return b.score-a.score;
+    if(c.tie==='value'){if(b.val!==a.val)return b.val-a.val;if(b.q!==a.q)return b.q-a.q;}
+    return a.n.localeCompare(b.n,'pl');
+  });
+  var lead=rows.length?rows[0].score:0,place=0,prev=null;
+  rows.forEach(function(r,i){
+    if(!r.qual){r.place=null;}
+    else{
+      var same=prev&&prev.score===r.score&&(c.tie!=='value'||(prev.val===r.val&&prev.q===r.q));
+      place=same?prev.place:i+1;r.place=place;prev=r;
+    }
+    r.gapLead=round2(r.score-lead);
+    r.gapThr=c.thresholdOn?Math.max(0,round2((+c.threshold||0)-r.score)):null;
+    r.prize='';
+    if(c.prizesOn&&r.qual){
+      if(c.prizeType==='goal')r.prize=c.goalPrize||'Nagroda za osiągnięcie celu';
+      else if(r.place&&r.place<=(+c.places||0))r.prize=(c.prizes&&c.prizes[r.place-1])||('Nagroda za '+r.place+'. miejsce');
+    }
+  });
+  return rows;
+}
+// Pełny wynik konkursu (ranking, oś czasu do wykresu, kompletność danych, macierz pozycji).
+function ctCompute(c){
+  var st=ctStateAt(c,c.end);
+  var rows=ctRank(c,st.per);
+  // oś czasu: każdy użyteczny pomiar to punkt; każdy outlet „trzyma" ostatni znany stan
+  var dates={};
+  Object.keys(c.meas||{}).forEach(function(o){
+    if(!ctOutletIn(c,o))return;
+    Object.keys(c.meas[o]).forEach(function(m){(c.meas[o][m].recs||[]).forEach(function(r){if(r.kind!=='baseline'&&r.t>=c.start&&r.t<=c.end)dates[r.t]=1})});
+  });
+  var dl=Object.keys(dates).sort();
+  var series={};rows.forEach(function(r){series[r.n]=[]});
+  var tl=[];
+  dl.forEach(function(d){
+    var s=ctStateAt(c,d);
+    tl.push(d);
+    rows.forEach(function(r){series[r.n].push(ctScore(c,s.per[r.n]))});
+  });
+  var outs=Object.keys(st.dataTo);
+  if(c.outletsMode==='sel')(c.outlets||[]).forEach(function(o){if(outs.indexOf(o)===-1){outs.push(o);st.dataTo[o]=null}});
+  var complete=outs.length>0&&outs.every(function(o){return st.dataTo[o]===c.end});
+  var last=null;outs.forEach(function(o){if(st.dataTo[o]&&(!last||st.dataTo[o]<last))last=st.dataTo[o]});
+  var lastMax=null;outs.forEach(function(o){if(st.dataTo[o]&&(!lastMax||st.dataTo[o]>lastMax))lastMax=st.dataTo[o]});
+  var totals={score:0,vb:0,vn:0,q:0};
+  ctParticipants(c,st.per).forEach(function(n){var e=st.per[n];if(!e)return;totals.vb+=e.vb;totals.vn+=e.vn;totals.q+=e.q;totals.score+=c.metric==='share'?0:ctScore(c,e)});
+  return {rows:rows,per:st.per,items:st.items,dataTo:st.dataTo,outlets:outs,needBase:st.needBase,complete:complete,
+    dataMin:last,dataMax:lastMax,timeline:{dates:tl,series:series},totals:{score:round2(totals.score),vb:round2(totals.vb),vn:round2(totals.vn),q:round2(totals.q)},
+    matrix:ctMatrix(c,st.items,rows)};
+}
+// Kolumny macierzy „co sprzedali": wybrane grupy i pozycje (do 8), a przy „wszystkie
+// pozycje" — 6 najczęściej sprzedawanych grup.
+function ctMatrix(c,items,rows){
+  var cols=[];
+  if(c.itemsMode==='sel'){
+    Object.keys(c.groups||{}).forEach(function(k){cols.push({key:'g:'+k,l:c.groups[k].n})});
+    Object.keys(c.items||{}).forEach(function(k){
+      var gk=null;
+      // pozycja z grupy zaznaczonej w całości nie dostaje osobnej kolumny
+      Object.keys(items).some(function(n){var x=items[n][k];if(x){gk=srNorm(x.g);return true}return false});
+      if(gk&&c.groups&&c.groups[gk])return;
+      cols.push({key:'i:'+k,l:c.items[k].n});
+    });
+  }
+  if(c.itemsMode!=='sel'||cols.length>8){
+    var byG={};
+    Object.keys(items).forEach(function(n){Object.keys(items[n]).forEach(function(k){var x=items[n][k],g=srNorm(x.g);byG[g]=byG[g]||{l:x.g,q:0};byG[g].q+=x.q})});
+    cols=Object.keys(byG).sort(function(a,b){return byG[b].q-byG[a].q}).slice(0,6).map(function(g){return {key:'g:'+g,l:byG[g].l}});
+  }
+  var out=rows.filter(function(r){return r.q>0}).slice(0,15).map(function(r){
+    var ie=items[r.n]||{},vals=cols.map(function(){return 0});
+    Object.keys(ie).forEach(function(k){
+      var x=ie[k],g=srNorm(x.g);
+      cols.forEach(function(col,ci){if(col.key==='i:'+k||col.key==='g:'+g)vals[ci]+=x.q});
+    });
+    return {n:r.n,vals:vals.map(function(v){return round2(v)}),tot:r.q};
+  });
+  return {cols:cols,rows:out};
+}
+function ctResult(c){return (c.status==='done'&&c.frozen&&c.frozen.res)?c.frozen.res:ctCompute(c)}
+
+// ── EFEKT KONKURSU: tempo sprzedaży pozycji konkursowych vs okres odniesienia ──
+// Źródło porównania: „Sprzedaż pracownika" z poprzedniego miesiąca i rok wcześniej
+// (te same outlety i zasady), a gdy jej brak — „Sprzedaż menu". Marża z Menu Engineering.
+function ctEffect(c,res){
+  var out={ok:false};
+  var to=res.dataMax;if(!to)return out;
+  var days=ctDays(c.start,to);if(days<1)return out;
+  var cq=0,cv=0;
+  Object.keys(res.per).forEach(function(n){var e=res.per[n];cq+=e.q;cv+=c.amount==='netto'?e.vn:e.vb});
+  out.ok=true;out.days=days;out.q=round2(cq);out.v=round2(cv);out.rate=cq/days;
+  function refFor(month){
+    // 1) Sprzedaż pracownika (wszyscy pracownicy, te same zasady)
+    var q=0,v=0,daysRef=0,found=false;
+    ctOutletIds(c).forEach(function(o){
+      var d=getEmployeeSales(S.pid,o,month);if(!d||!d.employees)return;
+      var b=ctBuildRecord(c,d.employees);found=true;
+      Object.keys(b.per).forEach(function(n){q+=b.per[n].q;v+=c.amount==='netto'?b.per[n].vn:b.per[n].vb});
+      var F=d.sourceRange&&ctParseDMY(d.sourceRange.from),T=d.sourceRange&&ctParseDMY(d.sourceRange.to);
+      var dd=(F&&T)?ctDays(F,T):dim(month);if(dd>daysRef)daysRef=dd;
+    });
+    if(found&&daysRef>0)return {q:q,v:v,days:daysRef,rate:q/daysRef,src:'Sprzedaż pracownika'};
+    // 2) Sprzedaż menu (cały outlet)
+    var ms=getMenuSales(S.pid,month);if(!ms||!ms.outlets)return null;
+    var ids=ctOutletIds(c);
+    ms.outlets.forEach(function(o){
+      if(o.outletId&&ids.indexOf(o.outletId)===-1)return;
+      (o.categories||[]).forEach(function(cat){(cat.items||[]).forEach(function(it){
+        var nn=+it.netto||0,bb=+it.brutto||0,qq=+it.qty||0;if(!nn&&!bb)return;
+        var mt=ctItemMatch(c,srNorm(cat.name),srNorm(it.name));if(!mt.in)return;
+        if(c.minPriceOn&&qq>0&&(bb/qq)<(+c.minPrice||0))return;
+        q+=qq;v+=c.amount==='netto'?nn:bb;found=true;
+      })});
+    });
+    if(!found)return null;
+    var F2=ms.sourceRange&&ctParseDMY(ms.sourceRange.from),T2=ms.sourceRange&&ctParseDMY(ms.sourceRange.to);
+    var d2=(F2&&T2)?ctDays(F2,T2):dim(month);
+    return {q:q,v:v,days:d2,rate:q/d2,src:'Sprzedaż menu'};
+  }
+  var m0=ctMonthOf(c.start);
+  out.prev=refFor(prevM(m0));out.prevLabel=mLabelFull(prevM(m0));
+  var yy=(+m0.slice(0,4)-1)+m0.slice(4);
+  out.yoy=refFor(yy);out.yoyLabel=mLabelFull(yy);
+  // średnia marża na sztukę pozycji konkursowych (Menu Engineering, ostatni dostępny miesiąc ≤ start)
+  var mq=0,mm=0;
+  Object.keys(res.items||{}).forEach(function(n){Object.keys(res.items[n]).forEach(function(k){mq+=res.items[n][k].q})});
+  var marginPerUnit=null;
+  if(mq>0){
+    var sum=0,cnt=0;
+    ctOutletIds(c).forEach(function(o){
+      var months=getMenuEngMonthsForOutlet(S.pid,o).filter(function(m){return m<=m0}).sort();
+      var mmap=months.length?empMarginMap(S.pid,o,months[months.length-1]):null;
+      if(!mmap)return;
+      Object.keys(res.items).forEach(function(n){Object.keys(res.items[n]).forEach(function(k){
+        var x=res.items[n][k],mu=mmap[srNorm(x.n)];
+        if(mu!=null&&x.q>0){sum+=mu*x.q;cnt+=x.q}
+      })});
+    });
+    if(cnt>0)marginPerUnit=sum/cnt;
+  }
+  out.marginPerUnit=marginPerUnit;
+  var ref=out.prev||out.yoy;
+  if(ref){
+    out.incQty=round2((out.rate-ref.rate)*days);
+    out.incPct=ref.rate>0?round2((out.rate/ref.rate-1)*100):null;
+    if(marginPerUnit!=null)out.incMargin=round2(out.incQty*marginPerUnit);
+    var totalDays=ctDays(c.start,c.end);
+    out.projQty=round2((out.rate-ref.rate)*totalDays);
+    if(marginPerUnit!=null)out.projMargin=round2(out.projQty*marginPerUnit);
+  }
+  out.cost=+c.prizeCost||0;
+  return out;
+}
+
+// ── DUPLIKOWANIE: ten sam schemat, kolejny okres o tej samej długości ──
+function ctDuplicate(id){
+  var src=ctGet(id);if(!src)return null;
+  var c=ctClone(src);
+  c.id='ct'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  var monthAligned=src.start===ctFirstOf(ctMonthOf(src.start))&&src.end===ctLastOf(ctMonthOf(src.end));
+  if(monthAligned){
+    var ms=ctMonthsBetween(src.start,src.end).length;
+    var nextM=ctMonthOf(ctAddDays(src.end,1));
+    c.start=ctFirstOf(nextM);c.end=ctLastOf(ctAddMonths(nextM,ms-1));
+  } else {
+    var len=ctDays(src.start,src.end);
+    c.start=ctAddDays(src.end,1);c.end=ctAddDays(c.start,len-1);
+  }
+  c.name=src.name+' (kopia)';c.status='prep';c.meas={};c.frozen=null;
+  c.createdAt=Date.now();c.createdBy=ctWho();
+  return c;
+}
+
+// ═══ KONKURSY — INTERFEJS ═══
+function renderContests(){
+  var el=document.getElementById('emp-contests');if(!el)return;
+  ctAutoAdvance();
+  var v=S._ctView||'list';
+  if(v==='form'&&S._ctDraft){ctRenderForm();return;}
+  if(v==='detail'&&S._ctOpen&&ctGet(S._ctOpen)){ctRenderDetail();return;}
+  S._ctView='list';ctRenderList();
+}
+function ctGoList(){S._ctView='list';S._ctOpen=null;S._ctDraft=null;S._ctEditId=null;renderContests();ctScrollTop();}
+function ctOpen(id){S._ctOpen=id;S._ctView='detail';S._ctChartMode=S._ctChartMode||'top';renderContests();ctScrollTop();}
+function ctScrollTop(){var el=document.getElementById('emp-contests');if(el&&el.getBoundingClientRect().top<0){try{el.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}}}
+function goContests(id){
+  go('employees');
+  S._empTab='contests';
+  if(id){S._ctOpen=id;S._ctView='detail';}
+  renderEmployees();
+}
+
+// ── LISTA ──
+function ctRenderList(){
+  var el=document.getElementById('emp-contests');
+  var all=ctList(),f=S._ctFilter||'all';
+  var cnt={all:all.length,run:0,prep:0,ended:0};
+  all.forEach(function(c){var st=ctStatus(c);if(st==='run')cnt.run++;else if(st==='prep')cnt.prep++;else cnt.ended++;});
+  var h='<div class="card"><div class="ct-head"><div style="flex:1;min-width:240px"><div class="fsect" style="margin-bottom:4px">🏅 Konkursy sprzedażowe</div>';
+  h+='<p class="hs-p" style="margin:0">Twórz konkursy dla zespołu, śledź wyniki na bieżąco i rozstrzygaj je jednym kliknięciem. Wyniki liczą się z raportów „Sprzedaż użytkowników" z HosPOS.</p></div>';
+  if(canEdit())h+='<button class="btn btn-p" onclick="ctNew()">➕ Nowy konkurs</button>';
+  h+='</div>';
+  if(!all.length){
+    h+='<div class="ct-empty"><div class="ct-empty-t">Nie ma jeszcze żadnego konkursu</div>';
+    h+='<ul class="ct-howto"><li><strong>Konkurs od 1. dnia miesiąca</strong> liczy się sam — każdy import w „Wprowadź dane → Sprzedaż pracownika" dopisuje punkt pomiaru i przesuwa wykres.</li>';
+    h+='<li><strong>Konkurs od środka miesiąca</strong> potrzebuje punktu startowego: raportu od 1. dnia do dnia przed startem. Aplikacja podpowie, który raport wkleić.</li>';
+    h+='<li><strong>Rozstrzygnięcie</strong> wymaga raportu kończącego się w dniu końca konkursu. Po zatwierdzeniu wyniki zostają zamrożone, a na Dashboardzie pojawia się baner ze zwycięzcami.</li></ul></div>';
+    h+='</div>';el.innerHTML=h;return;
+  }
+  h+='<div class="ct-toolbar"><div class="ct-seg">';
+  [['all','Wszystkie · '+cnt.all],['run','W trakcie · '+cnt.run],['prep','W przygotowaniu · '+cnt.prep],['ended','Zakończone · '+cnt.ended]].forEach(function(o){
+    h+='<button type="button" class="'+(f===o[0]?'on':'')+'" onclick="S._ctFilter=\''+o[0]+'\';renderContests()">'+o[1]+'</button>';
+  });
+  h+='</div></div>';
+  var list=all.filter(function(c){var st=ctStatus(c);return f==='all'||(f==='run'&&st==='run')||(f==='prep'&&st==='prep')||(f==='ended'&&(st==='done'||st==='undone'))});
+  if(!list.length)h+='<p class="de-empty">Brak konkursów w tej grupie.</p>';
+  else{
+    h+='<div class="tbl-wrap ct-list-wrap"><div class="ct-list">';
+    h+='<div class="ct-lrow ct-lrow-hd"><span>Konkurs</span><span>Status</span><span>Prowadzi / zwycięzca</span><span>Dane</span><span></span></div>';
+    list.forEach(function(c){
+      var st=ctStatus(c),res=ctResult(c),top=res.rows.filter(function(r){return r.qual})[0];
+      var lead='—',data='—';
+      if(st==='prep'){var dd=ctDays(ctToday(),c.start)-1;lead='—';data=dd>0?'start za '+dd+' dni':'start dziś';}
+      else{
+        lead=top?esc(top.n)+' — '+ctFmtScore(c,top.score):'brak wyników';
+        if(st==='done')data='zamrożone '+ctFmt(ctISO(new Date(c.frozen&&c.frozen.at||Date.now())));
+        else data=res.dataMax?('do '+ctFmtS(res.dataMax)+(res.complete?' — komplet':'')):'brak danych';
+      }
+      h+='<div class="ct-lrow" onclick="ctOpen(\''+c.id+'\')"><div class="ct-lname"><strong>'+esc(c.name)+'</strong><span>'+ctPeriod(c)+' · '+CT_METRICS[c.metric].l.toLowerCase()+'</span></div>';
+      h+='<div class="ct-lst">'+ctStatusPill(st,c)+'</div><div class="ct-llead">'+lead+'</div><div class="ct-ldata">'+data+'</div>';
+      h+='<div style="text-align:right"><button class="btn btn-s btn-sm" onclick="event.stopPropagation();ctOpen(\''+c.id+'\')">Pokaż wyniki</button></div></div>';
+    });
+    h+='</div></div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+// ── FORMULARZ ──
+function ctNew(){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  S._ctDraft=ctNewDraft();S._ctEditId=null;S._ctUnlocked=false;S._ctTreeQ='';S._ctTreeOpen={};S._ctEmpQ='';
+  S._ctView='form';renderContests();ctScrollTop();
+}
+function ctEdit(id){
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var c=ctGet(id);if(!c)return;
+  S._ctDraft=ctClone(c);S._ctEditId=id;S._ctUnlocked=false;S._ctTreeQ='';S._ctTreeOpen={};S._ctEmpQ='';
+  S._ctView='form';renderContests();ctScrollTop();
+}
+function ctFormLocked(){
+  if(!S._ctEditId||S._ctUnlocked)return false;
+  var o=ctGet(S._ctEditId);return !!(o&&ctLocked(o));
+}
+function ctD(field,value,rerender){
+  var d=S._ctDraft;if(!d)return;
+  d[field]=value;
+  if(field==='start'&&d.single)d.end=value;
+  if(rerender)ctRenderForm();
+}
+function ctToggle(field){
+  var d=S._ctDraft;if(!d)return;
+  if(field==='outletsMode'||field==='empMode'||field==='itemsMode')d[field]=d[field]==='sel'?'all':'sel';
+  else if(field==='single'){d.single=!d.single;if(d.single)d.end=d.start;}
+  else d[field]=!d[field];
+  if(field==='prizesOn'&&d.prizesOn&&d.prizeType==='goal'&&!d.thresholdOn)d.thresholdOn=true;
+  ctRenderForm();
+}
+function ctSwitch(on,onclick,label,disabled){return '<button type="button" class="ct-sw'+(on?' on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" aria-label="'+escAttr(label)+'" onclick="'+onclick+'"'+(disabled?' disabled':'')+'><span></span></button>'}
+function ctSeg(opts,cur,fnName,disabled){
+  return '<div class="ct-seg">'+opts.map(function(o){return '<button type="button" class="'+(cur===o[0]?'on':'')+'"'+(disabled?' disabled':'')+' onclick="'+fnName+'(\''+o[0]+'\')">'+o[1]+'</button>'}).join('')+'</div>';
+}
+function ctOpt(o){
+  var left=o.sw?ctSwitch(o.on,o.sw,o.title,o.locked):'<span class="ct-opt-ico" aria-hidden="true">'+o.icon+'</span>';
+  return '<div class="ct-opt"><div class="ct-opt-l">'+left+'<div><div class="ct-opt-t">'+o.title+(o.locked?' <span class="ct-lock" title="Zasada zablokowana — konkurs już trwa">🔒</span>':'')+'</div><div class="ct-opt-h">'+o.hint+'</div></div></div><div class="ct-opt-r">'+(o.body||'')+'</div></div>';
+}
+function ctSetSingle(v){ctD('single',v==='1',false);if(S._ctDraft.single)S._ctDraft.end=S._ctDraft.start;ctRenderForm()}
+function ctSetMetric(v){ctD('metric',v,true)}
+function ctSetAmount(v){ctD('amount',v,true)}
+function ctSetPrizeType(v){var d=S._ctDraft;d.prizeType=v;if(v==='goal'&&!d.thresholdOn)d.thresholdOn=true;ctRenderForm()}
+function ctSetStatusDraft(v){ctD('status',v,true)}
+function ctPlaces(delta){
+  var d=S._ctDraft,n=Math.max(1,Math.min(10,(+d.places||1)+delta));
+  d.places=n;d.prizes=(d.prizes||[]).slice(0,n);while(d.prizes.length<n)d.prizes.push('');
+  ctRenderForm();
+}
+function ctPrize(i,v){var d=S._ctDraft;d.prizes[i]=v}
+function ctToggleOutlet(id){
+  var d=S._ctDraft,i=d.outlets.indexOf(id);
+  if(i===-1)d.outlets.push(id);else d.outlets.splice(i,1);
+  S._ctCat=null;ctRenderForm();
+}
+// Kandydaci na uczestników: osoby z danych „Sprzedaż pracownika" z ostatnich 6 miesięcy
+// w outletach konkursu (plus osoby już wybrane, nawet jeśli nie ma ich w danych).
+function ctEmpCandidates(d){
+  var from=ctAddMonths(currentRealMonth(),-5),set={};
+  getAllEmployeeSalesKeys(S.pid).forEach(function(k){
+    if(k.month<from||!ctOutletIn(d,k.outletId))return;
+    var e=getEmployeeSales(S.pid,k.outletId,k.month);
+    (e&&e.employees||[]).forEach(function(x){var n=String(x.name||'').trim();if(n)set[n]=1});
+  });
+  (d.emps||[]).concat(d.exclude||[]).forEach(function(n){set[n]=1});
+  return Object.keys(set).sort(function(a,b){return a.localeCompare(b,'pl')});
+}
+function ctEmpToggle(i){var d=S._ctDraft,n=S._ctEmpCand[i];if(n==null)return;var j=d.emps.indexOf(n);if(j===-1)d.emps.push(n);else d.emps.splice(j,1);ctRenderForm()}
+function ctEmpAll(on){var d=S._ctDraft;d.emps=on?S._ctEmpCand.slice():[];ctRenderForm()}
+function ctExclAdd(sel){var d=S._ctDraft,n=S._ctEmpCand[+sel.value];if(n!=null&&d.exclude.indexOf(n)===-1)d.exclude.push(n);ctRenderForm()}
+function ctExclDel(i){S._ctDraft.exclude.splice(i,1);ctRenderForm()}
+function ctEmpQuery(v){S._ctEmpQ=v;var box=document.getElementById('ct-emp-chips');if(box)box.innerHTML=ctEmpChipsHTML(S._ctDraft)}
+function ctEmpChipsHTML(d){
+  var q=srNorm(S._ctEmpQ||''),h='';
+  S._ctEmpCand.forEach(function(n,i){
+    if(q&&srNorm(n).indexOf(q)===-1)return;
+    var on=d.emps.indexOf(n)!==-1;
+    h+='<button type="button" class="ct-chip'+(on?' on':'')+'" aria-pressed="'+on+'" onclick="ctEmpToggle('+i+')">'+(on?'✓ ':'')+esc(n)+'</button>';
+  });
+  return h||'<span class="hs-p">Brak osób pasujących do filtra.</span>';
+}
+
+// Katalog pozycji do drzewka: grupy (kategorie z POS) → pozycje, z ilością z ostatnich 6 mies.
+function ctCatalog(d){
+  var from=ctAddMonths(currentRealMonth(),-5),G={};
+  function add(cat,name,q){
+    var gk=srNorm(cat||'Bez kategorii'),ik=srNorm(name||'');if(!ik)return;
+    var g=G[gk]||(G[gk]={key:gk,n:cat||'Bez kategorii',q:0,items:{}});
+    var it=g.items[ik]||(g.items[ik]={key:ik,n:name,q:0});
+    it.q+=q;g.q+=q;
+  }
+  getAllEmployeeSalesKeys(S.pid).forEach(function(k){
+    if(k.month<from||!ctOutletIn(d,k.outletId))return;
+    var e=getEmployeeSales(S.pid,k.outletId,k.month);
+    (e&&e.employees||[]).forEach(function(x){(x.items||[]).forEach(function(it){if(!(+it.netto)&&!(+it.brutto))return;add(it.category,it.name,+it.qty||0)})});
+  });
+  getAllMenuSalesMonths(S.pid).forEach(function(m){
+    if(m<from)return;
+    var ms=getMenuSales(S.pid,m);
+    (ms&&ms.outlets||[]).forEach(function(o){
+      if(o.outletId&&!ctOutletIn(d,o.outletId))return;
+      (o.categories||[]).forEach(function(cat){(cat.items||[]).forEach(function(it){if(!(+it.netto)&&!(+it.brutto))return;if(!G[srNorm(cat.name)]||!G[srNorm(cat.name)].items[srNorm(it.name)])add(cat.name,it.name,0)})});
+    });
+  });
+  // wybrane wcześniej pozycje/grupy, których nie ma już w danych
+  Object.keys(d.groups||{}).forEach(function(k){if(!G[k])G[k]={key:k,n:d.groups[k].n,q:0,items:{}}});
+  Object.keys(d.items||{}).forEach(function(k){
+    var found=Object.keys(G).some(function(g){return G[g].items[k]});
+    if(!found){var g=G['__inne']||(G['__inne']={key:'__inne',n:'Inne wybrane',q:0,items:{}});g.items[k]={key:k,n:d.items[k].n,q:0}}
+  });
+  var groups=Object.keys(G).map(function(k){var g=G[k];g.list=Object.keys(g.items).map(function(i){return g.items[i]}).sort(function(a,b){return b.q-a.q||a.n.localeCompare(b.n,'pl')});return g});
+  groups.sort(function(a,b){return b.q-a.q||a.n.localeCompare(b.n,'pl')});
+  return groups;
+}
+function ctTreeState(d,g){
+  if(d.groups[g.key])return 'full';
+  return g.list.some(function(it){return d.items[it.key]})?'part':'none';
+}
+function ctCheckHTML(state,label,onclick,disabled){
+  return '<button type="button" class="ct-cb ct-cb-'+state+'" role="checkbox" aria-checked="'+(state==='full'?'true':state==='part'?'mixed':'false')+'" aria-label="'+escAttr(label)+'" onclick="'+onclick+'"'+(disabled?' disabled':'')+'></button>';
+}
+function ctTreeBodyHTML(){
+  var d=S._ctDraft,locked=ctFormLocked(),pts=d.metric==='points';
+  var cat=S._ctCat||(S._ctCat=ctCatalog(d));
+  var q=srNorm(S._ctTreeQ||'');
+  S._ctTreeVisible=[];
+  var h='';
+  cat.forEach(function(g,gi){
+    var gMatch=!q||srNorm(g.n).indexOf(q)!==-1;
+    var items=g.list.filter(function(it){return gMatch||srNorm(it.n).indexOf(q)!==-1});
+    if(!gMatch&&!items.length)return;
+    S._ctTreeVisible.push({gi:gi,whole:gMatch,items:items.map(function(it){return g.list.indexOf(it)})});
+    var st=ctTreeState(d,g),open=!!(S._ctTreeOpen&&S._ctTreeOpen[g.key])||(q&&!gMatch);
+    var gp=d.groups[g.key];
+    h+='<div class="ct-tr ct-tr-g">'+ctCheckHTML(st,g.n,'ctTreeGroup('+gi+')',locked);
+    h+='<button type="button" class="ct-tr-name" onclick="ctTreeOpenToggle('+gi+')" aria-expanded="'+(open?'true':'false')+'"><span class="ct-chev">'+(open?'▾':'▸')+'</span>'+esc(g.n)+' <span class="ct-tr-sub">'+g.list.length+' poz.'+(st==='full'?' · cała grupa':'')+'</span></button>';
+    h+='<span class="ct-tr-q">'+(g.q?fmtN(g.q)+' szt.':'—')+'</span>';
+    h+='<span class="ct-tr-p">'+(pts&&st==='full'?'<input class="fi ct-pts" type="number" step="0.5" min="0" value="'+(gp.pts!=null?gp.pts:'')+'" placeholder="—" aria-label="Punkty za sztukę: '+escAttr(g.n)+'" oninput="ctTreePts(\'g\','+gi+',-1,this.value)"'+(locked?' disabled':'')+'><span>pkt</span>':'')+'</span></div>';
+    if(open){
+      items.forEach(function(it){
+        var ii=g.list.indexOf(it),on=st==='full'||!!d.items[it.key],ip=d.items[it.key];
+        h+='<div class="ct-tr ct-tr-i">'+ctCheckHTML(on?'full':'none',it.n,'ctTreeItem('+gi+','+ii+')',locked);
+        h+='<span class="ct-tr-name ct-tr-iname">'+esc(it.n)+'</span><span class="ct-tr-q">'+(it.q?fmtN(it.q)+' szt.':'—')+'</span>';
+        h+='<span class="ct-tr-p">'+(pts&&on?'<input class="fi ct-pts" type="number" step="0.5" min="0" value="'+(ip&&ip.pts!=null?ip.pts:'')+'" placeholder="'+(gp&&gp.pts!=null?gp.pts:'—')+'" aria-label="Punkty za sztukę: '+escAttr(it.n)+'" oninput="ctTreePts(\'i\','+gi+','+ii+',this.value)"'+(locked?' disabled':'')+'><span>pkt</span>':'')+'</span></div>';
+      });
+    }
+  });
+  if(!h)h='<p class="de-empty">'+(cat.length?'Nic nie pasuje do wyszukiwania.':'Brak pozycji w danych wybranych outletów z ostatnich 6 miesięcy — wczytaj najpierw „Sprzedaż użytkowników" albo „Sprzedaż menu".')+'</p>';
+  return h;
+}
+function ctTreeCount(){
+  var d=S._ctDraft;
+  var g=Object.keys(d.groups).length,i=Object.keys(d.items).length;
+  return 'Wybrano: '+g+' '+(g===1?'grupę':'grup(y)')+' i '+i+' '+(i===1?'pozycję':'pozycji');
+}
+function ctTreeRefresh(){
+  var b=document.getElementById('ct-tree-body');if(b)b.innerHTML=ctTreeBodyHTML();
+  var c=document.getElementById('ct-tree-count');if(c)c.textContent=ctTreeCount();
+}
+function ctTreeQuery(v){S._ctTreeQ=v;ctTreeRefresh()}
+function ctTreeOpenToggle(gi){var g=S._ctCat[gi];if(!g)return;S._ctTreeOpen=S._ctTreeOpen||{};S._ctTreeOpen[g.key]=!S._ctTreeOpen[g.key];ctTreeRefresh()}
+function ctTreeGroup(gi){
+  var d=S._ctDraft,g=S._ctCat[gi];if(!g)return;
+  if(d.groups[g.key]){delete d.groups[g.key];g.list.forEach(function(it){delete d.items[it.key]});}
+  else d.groups[g.key]={n:g.n,pts:null};
+  ctTreeRefresh();
+}
+function ctTreeItem(gi,ii){
+  var d=S._ctDraft,g=S._ctCat[gi],it=g&&g.list[ii];if(!it)return;
+  var gp=d.groups[g.key];
+  if(gp){
+    // odznaczenie pozycji z grupy zaznaczonej w całości: grupa → pojedyncze pozycje (bez tej jednej)
+    delete d.groups[g.key];
+    g.list.forEach(function(x){if(x.key===it.key){delete d.items[x.key];return;}if(!d.items[x.key])d.items[x.key]={n:x.n,pts:gp.pts}});
+  } else if(d.items[it.key])delete d.items[it.key];
+  else d.items[it.key]={n:it.n,pts:null};
+  ctTreeRefresh();
+}
+function ctTreePts(kind,gi,ii,v){
+  var d=S._ctDraft,g=S._ctCat[gi];if(!g)return;
+  var val=v===''?null:+v;
+  if(kind==='g'){if(d.groups[g.key])d.groups[g.key].pts=val;}
+  else{var it=g.list[ii];if(!it)return;if(!d.items[it.key])d.items[it.key]={n:it.n,pts:null};d.items[it.key].pts=val;}
+}
+function ctTreeSelectVisible(){
+  var d=S._ctDraft;
+  (S._ctTreeVisible||[]).forEach(function(v){
+    var g=S._ctCat[v.gi];
+    if(v.whole){if(!d.groups[g.key])d.groups[g.key]={n:g.n,pts:null};}
+    else v.items.forEach(function(ii){var it=g.list[ii];if(!d.groups[g.key]&&!d.items[it.key])d.items[it.key]={n:it.n,pts:null}});
+  });
+  ctTreeRefresh();
+}
+function ctTreeClear(){var d=S._ctDraft;d.groups={};d.items={};ctTreeRefresh()}
+
+function ctRenderForm(){
+  var el=document.getElementById('emp-contests'),d=S._ctDraft;if(!el||!d)return;
+  var locked=ctFormLocked(),isEdit=!!S._ctEditId,orig=isEdit?ctGet(S._ctEditId):null;
+  if(!S._ctCat)S._ctCat=ctCatalog(d);
+  S._ctEmpCand=ctEmpCandidates(d);
+  var unit=ctUnit(d);
+  var h='<div class="card ct-form">';
+  h+='<div class="ct-head"><button class="btn btn-s btn-sm" onclick="ctGoList()">← Wszystkie konkursy</button><div class="fsect" style="margin:0;flex:1">'+(isEdit?'✏️ Edycja konkursu':'➕ Nowy konkurs')+'</div><span class="hs-p" style="margin:0">Pola z przełącznikiem są opcjonalne — wyłączony = „wszystko"</span></div>';
+  if(locked)h+='<div class="hs-warn" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:220px">Konkurs już trwa, więc zasady liczenia (start, outlety, sposób liczenia, pozycje i punktacja) są zablokowane — uczciwie wobec uczestników i spójnie dla wykresu. Nazwę, nagrody, próg, uczestników i datę końca możesz zmieniać.</span><button class="btn btn-s btn-sm" onclick="ctUnlockRules()">🔓 Odblokuj zasady</button></div>';
+
+  h+='<div class="ct-row2"><div class="fg"><label for="ct-name">Nazwa konkursu</label><input class="fi" id="ct-name" value="'+escAttr(d.name)+'" placeholder="np. Listopadowe piwo — Kozel i Peroni" oninput="ctD(\'name\',this.value)"></div>';
+  h+='<div class="fg"><label for="ct-desc">Opis dla zespołu (opcjonalnie)</label><input class="fi" id="ct-desc" value="'+escAttr(d.desc||'')+'" placeholder="np. Polecaj piwo do dań z grilla" oninput="ctD(\'desc\',this.value)"></div></div>';
+
+  // Okres
+  var days=d.end>=d.start?ctDays(d.start,d.single?d.start:d.end):0,toStart=ctDays(ctToday(),d.start)-1;
+  var body=ctSeg([['1','Jeden dzień'],['0','Zakres dat']],d.single?'1':'0','ctSetSingle',locked);
+  body+='<div class="ct-fields"><div class="fg"><label for="ct-start">'+(d.single?'Dzień':'Od')+'</label><input type="date" class="fi" id="ct-start" value="'+d.start+'" onchange="ctD(\'start\',this.value,true)"'+(locked?' disabled':'')+'></div>';
+  if(!d.single)body+='<div class="fg"><label for="ct-end">Do</label><input type="date" class="fi" id="ct-end" value="'+d.end+'" onchange="ctD(\'end\',this.value,true)"></div>';
+  body+='<div class="fg"><label>&nbsp;</label><span class="ct-info">'+(days>0?days+' '+(days===1?'dzień':'dni'):'sprawdź daty')+' · '+(toStart>0?'start za '+toStart+' dni':(ctToday()>d.end?'zakończony':'trwa'))+'</span></div></div>';
+  if(d.start!==ctFirstOf(ctMonthOf(d.start)))body+='<p class="hs-p" style="margin:0">Start w środku miesiąca: do liczenia potrzebny będzie punkt startowy — raport „Sprzedaż użytkowników" za '+ctFmtS(ctFirstOf(ctMonthOf(d.start)))+'–'+ctFmtS(ctAddDays(d.start,-1))+' (albo raporty generowane od '+ctFmtS(d.start)+').</p>';
+  else body+='<p class="hs-p" style="margin:0">Start 1. dnia miesiąca: wyniki liczą się same z każdego importu w „Wprowadź dane → Sprzedaż pracownika".</p>';
+  h+=ctOpt({icon:'📅',title:'Okres konkursu',hint:'Wymagany — od niego zależy, które raporty się liczą i kiedy pokazać baner z wynikami.',body:body,locked:locked});
+
+  // Outlety
+  body='';
+  if(d.outletsMode==='sel'){
+    body='<div class="ct-chips">'+S.outlets.map(function(o){var on=d.outlets.indexOf(o.id)!==-1;return '<button type="button" class="ct-chip'+(on?' on':'')+'" aria-pressed="'+on+'" onclick="ctToggleOutlet(\''+o.id+'\')"'+(locked?' disabled':'')+'>'+(on?'✓ ':'')+esc(o.name)+'</button>'}).join('')+'</div>';
+  } else body='<span class="ct-info-txt">Wszystkie punkty obiektu, także dodane później.</span>';
+  h+=ctOpt({sw:"ctToggle('outletsMode')",on:d.outletsMode==='sel',title:'Tylko wybrane outlety',hint:'Wyłączone = wszystkie outlety.',body:body,locked:locked});
+
+  // Pracownicy
+  if(d.empMode==='sel'){
+    body='<div class="ct-fields"><div class="fg" style="flex:1 1 220px"><label for="ct-emp-q">Szukaj osoby</label><input class="fi" id="ct-emp-q" value="'+escAttr(S._ctEmpQ||'')+'" placeholder="imię lub nazwisko" oninput="ctEmpQuery(this.value)"></div>';
+    body+='<div class="fg"><label>&nbsp;</label><div style="display:flex;gap:8px"><button class="btn btn-s btn-sm" onclick="ctEmpAll(true)">Zaznacz wszystkich</button><button class="btn btn-s btn-sm" onclick="ctEmpAll(false)">Wyczyść</button></div></div></div>';
+    body+='<div class="ct-chips ct-chips-scroll" id="ct-emp-chips">'+ctEmpChipsHTML(d)+'</div><span class="ct-info-txt">Wybrano: '+d.emps.length+' '+(d.emps.length===1?'osobę':'osób')+'</span>';
+  } else {
+    body='<span class="ct-info-txt">Uczestnicy: <strong>wszyscy sprzedający</strong> w outletach konkursu — w danych z ostatnich 6 miesięcy to '+S._ctEmpCand.length+' osób. Nowe osoby dołączają same.</span>';
+    body+='<div class="ct-chips" style="align-items:center"><span class="ct-mini-l">Pomiń konta</span>';
+    (d.exclude||[]).forEach(function(n,i){body+='<span class="ct-chip ct-chip-x">'+esc(n)+'<button type="button" aria-label="Usuń '+escAttr(n)+' z wykluczonych" onclick="ctExclDel('+i+')">×</button></span>'});
+    body+='<select class="fi ct-excl-sel" aria-label="Dodaj konto do pominięcia" onchange="ctExclAdd(this)"><option value="">+ dodaj…</option>'+S._ctEmpCand.map(function(n,i){return (d.exclude||[]).indexOf(n)===-1?'<option value="'+i+'">'+esc(n)+'</option>':''}).join('')+'</select></div>';
+  }
+  h+=ctOpt({sw:"ctToggle('empMode')",on:d.empMode==='sel',title:'Tylko wybrani pracownicy',hint:'Wyłączone = wszyscy, którzy sprzedają w outletach konkursu; konta techniczne (np. recepcja) możesz pominąć.',body:body});
+
+  // Sposób liczenia
+  body='<div class="ct-metrics">';
+  Object.keys(CT_METRICS).forEach(function(k){var m=CT_METRICS[k];body+='<button type="button" class="ct-metric'+(d.metric===k?' on':'')+'" aria-pressed="'+(d.metric===k)+'" onclick="ctSetMetric(\''+k+'\')"'+(locked?' disabled':'')+'><strong>'+m.l+'</strong><span>'+m.d+'</span></button>'});
+  body+='</div><div class="ct-fields" style="align-items:center">';
+  body+='<div class="ct-inline">'+ctSwitch(d.minPriceOn,"ctToggle('minPriceOn')",'Licz tylko pozycje od ceny',locked)+'<span>Licz tylko pozycje od ceny</span><input class="fi ct-num" type="number" min="0" step="1" value="'+(d.minPrice||0)+'" aria-label="Minimalna cena pozycji w zł brutto" oninput="ctD(\'minPrice\',+this.value)"'+(locked||!d.minPriceOn?' disabled':'')+'><span>zł brutto / szt.</span></div>';
+  if(d.metric==='value'||d.metric==='share')body+='<div class="ct-inline"><span>Kwoty</span>'+ctSeg([['netto','netto'],['brutto','brutto']],d.amount,'ctSetAmount')+'</div>';
+  body+='</div>';
+  if(d.metric==='share')body+='<div class="ct-inline"><span>Minimalny obrót osoby</span><input class="fi ct-num" type="number" min="0" step="50" value="'+(d.minTurnover||0)+'" aria-label="Minimalny obrót w zł" oninput="ctD(\'minTurnover\',+this.value)"><span>zł — żeby jedna sprzedaż nie dawała 100%</span></div>';
+  h+=ctOpt({icon:'📊',title:'Wynik liczony jako',hint:'Jedna zasada wyłania zwycięzcę. Punktacja jest jedną z opcji, więc nie da się ustawić dwóch sprzecznych reguł naraz.',body:body,locked:locked});
+
+  // Pozycje
+  if(d.itemsMode==='sel'){
+    body='<div class="ct-tree"><div class="ct-tree-bar"><input class="fi" style="flex:1 1 220px" placeholder="Szukaj pozycji lub grupy, np. „wino”" aria-label="Szukaj pozycji lub grupy" value="'+escAttr(S._ctTreeQ||'')+'" oninput="ctTreeQuery(this.value)">';
+    body+='<button class="btn btn-s btn-sm" onclick="ctTreeSelectVisible()"'+(locked?' disabled':'')+'>Zaznacz widoczne</button><button class="btn btn-s btn-sm" onclick="ctTreeClear()"'+(locked?' disabled':'')+'>Wyczyść</button><span class="ct-tree-count" id="ct-tree-count">'+ctTreeCount()+'</span></div>';
+    body+='<div class="ct-tr ct-tr-hd"><span></span><span>Grupa / pozycja</span><span>Sprzedaż 6 mies.</span><span>'+(d.metric==='points'?'Punkty za szt.':'')+'</span></div>';
+    body+='<div id="ct-tree-body">'+ctTreeBodyHTML()+'</div></div>';
+    body+='<p class="hs-p" style="margin:0">Lista pochodzi z zapisanych raportów sprzedaży outletów konkursu. Pozycje za 0 zł (INFO, numer pagera) są pomijane. Ta sama nazwa w dwóch grupach to jedna pozycja.'+(d.metric==='points'?' Pole punktów przy pozycji jest ważniejsze niż przy grupie.':'')+'</p>';
+  } else {
+    body='<span class="ct-info-txt">Wszystkie sprzedane pozycje — bez pozycji za 0 zł i bez grupy INFO (posiłki w pakiecie, liczniki gości).</span>';
+    if(d.metric==='points')body+='<div class="ct-inline"><span>Punkty za każdą sztukę</span><input class="fi ct-num" type="number" step="0.5" min="0" value="'+(d.allPts||0)+'" aria-label="Punkty za każdą sztukę" oninput="ctD(\'allPts\',+this.value)"'+(locked?' disabled':'')+'><span>pkt</span></div>';
+  }
+  h+=ctOpt({sw:"ctToggle('itemsMode')",on:d.itemsMode==='sel',title:'Tylko wybrane pozycje',hint:'Cała zaznaczona grupa obejmuje też pozycje dodane do karty w trakcie konkursu.',body:body,locked:locked});
+
+  // Nagrody
+  body='';
+  if(d.prizesOn){
+    body+='<div class="ct-fields" style="align-items:center">'+ctSeg([['rank','Ranking — miejsca'],['goal','Cel — każdy powyżej progu']],d.prizeType,'ctSetPrizeType');
+    if(d.prizeType==='rank')body+='<div class="ct-inline"><span>Liczba miejsc</span><button class="btn btn-s btn-sm ct-step" aria-label="Mniej miejsc" onclick="ctPlaces(-1)">−</button><strong class="ct-step-v">'+d.places+'</strong><button class="btn btn-s btn-sm ct-step" aria-label="Więcej miejsc" onclick="ctPlaces(1)">+</button></div>';
+    body+='</div>';
+    if(d.prizeType==='rank'){
+      body+='<div class="ct-prizes">';
+      for(var i=0;i<d.places;i++)body+='<span class="ct-place ct-place-'+Math.min(i+1,4)+'">'+(i+1)+'</span><input class="fi" value="'+escAttr(d.prizes[i]||'')+'" placeholder="np. '+(['Voucher 300 zł do SPA','Kolacja dla 2 osób','Butelka wina z karty'][i]||'nagroda')+'" aria-label="Nagroda za '+(i+1)+'. miejsce" oninput="ctPrize('+i+',this.value)">';
+      body+='</div>';
+    } else body+='<div class="fg" style="max-width:520px"><label for="ct-goal">Nagroda dla każdego, kto przekroczy próg</label><input class="fi" id="ct-goal" value="'+escAttr(d.goalPrize||'')+'" placeholder="np. premia 100 zł" oninput="ctD(\'goalPrize\',this.value)"></div>';
+    body+='<div class="ct-inline"><span>Łączny koszt nagród</span><input class="fi ct-num" type="number" min="0" step="10" value="'+(d.prizeCost||0)+'" aria-label="Łączny koszt nagród w zł" oninput="ctD(\'prizeCost\',+this.value)"><span>zł — opcjonalnie, do oceny, czy konkurs się opłacił</span></div>';
+  } else body='<span class="ct-info-txt">Bez nagród — sam ranking.</span>';
+  h+=ctOpt({sw:"ctToggle('prizesOn')",on:d.prizesOn,title:'Nagrody',hint:'Ranking: miejsca 1, 2, 3… Cel: nagroda dla każdego powyżej progu.',body:body});
+
+  // Próg
+  body=d.thresholdOn?'<div class="ct-inline"><input class="fi ct-num" type="number" min="0" step="1" value="'+(d.threshold||0)+'" aria-label="Próg kwalifikacji" oninput="ctD(\'threshold\',+this.value)"><span>'+unit+'</span><span class="ct-info-txt">Kto nie osiągnie progu, zostaje w tabeli z dopiskiem „poza klasyfikacją" i nie zdobywa nagrody.</span></div>':'<span class="ct-info-txt">Bez progu — klasyfikowany jest każdy z wynikiem większym od zera.</span>';
+  h+=ctOpt({sw:"ctToggle('thresholdOn')",on:d.thresholdOn,title:'Próg kwalifikacji',hint:'W jednostce wyniku: zł, szt., pkt albo %.',body:body});
+
+  // Remis
+  body='<div class="fg" style="max-width:460px;margin:0"><label for="ct-tie">Przy równym wyniku decyduje</label><select class="fi" id="ct-tie" onchange="ctD(\'tie\',this.value)"><option value="value"'+(d.tie==='value'?' selected':'')+'>Wyższa wartość sprzedaży, potem ilość, potem ex aequo</option><option value="exaequo"'+(d.tie==='exaequo'?' selected':'')+'>Ex aequo — wspólne miejsce</option></select></div>';
+  h+=ctOpt({icon:'⚖️',title:'Remis',hint:'Raport nie ma podziału na dni, więc nie rozstrzygniemy „kto pierwszy".',body:body});
+
+  // Status
+  if(canEdit()){
+    body='<div class="ct-chips">'+Object.keys(CT_STATUS).map(function(k){return '<button type="button" class="ct-chip ct-st-chip '+CT_STATUS[k].c+(d.status===k?' on':'')+'" aria-pressed="'+(d.status===k)+'" onclick="ctSetStatusDraft(\''+k+'\')"><span class="ct-st-dot"></span>'+CT_STATUS[k].l+'</button>'}).join('')+'</div>';
+    if(d.status==='prep'&&ctToday()>=d.start)body+='<span class="ct-info-txt">Data startu już minęła — po zapisie konkurs będzie „W trakcie".</span>';
+    h+=ctOpt({icon:'🕒',title:'Status',hint:'Zmienia manager lub administrator. „W trakcie" włącza się sam w dniu startu; „Rozstrzygnięty" zamraża wyniki.',body:body});
+  }
+
+  h+='<div class="ct-foot"><button class="btn btn-p" onclick="ctSaveDraft()">💾 '+(isEdit?'Zapisz zmiany':'Utwórz konkurs')+'</button><button class="btn btn-s" onclick="'+(isEdit?'ctOpen(\''+S._ctEditId+'\')':'ctGoList()')+'">Anuluj</button>';
+  h+='<span class="hs-p" style="margin:0;flex:1 1 300px">🔒 Po starcie konkursu zasady liczenia zostają zablokowane.</span></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+function ctUnlockRules(){
+  deConfirm('🔓 Odblokować zasady?','<p class="hs-p">Po zmianie zasad konkurs przeliczę od nowa z danych zapisanych w „Sprzedaży pracownika" (ostatni import każdego outletu i miesiąca). Pomiary pośrednie i raporty wklejone bezpośrednio w konkursie znikną, więc wykres przebiegu może się skrócić.</p>','🔓 Odblokuj',function(){S._ctUnlocked=true;ctRenderForm()});
+}
+function ctRulesSig(c){
+  return JSON.stringify([c.start,c.outletsMode,(c.outlets||[]).slice().sort(),c.metric,!!c.minPriceOn,c.minPriceOn?+c.minPrice:0,c.itemsMode,c.groups,c.items,c.itemsMode==='sel'?0:+c.allPts]);
+}
+function ctSaveDraft(force){
+  var d=S._ctDraft;if(!d)return;
+  d.name=String(d.name||'').trim();
+  if(d.single)d.end=d.start;
+  var err=null;
+  if(!d.name)err='Podaj nazwę konkursu';
+  else if(!d.start||!d.end||d.end<d.start)err='Sprawdź daty — koniec nie może być przed startem';
+  else if(d.outletsMode==='sel'&&!d.outlets.length)err='Wybierz co najmniej jeden outlet';
+  else if(d.empMode==='sel'&&!d.emps.length)err='Wybierz uczestników albo wyłącz przełącznik „Tylko wybrani pracownicy"';
+  else if(d.itemsMode==='sel'&&!Object.keys(d.groups).length&&!Object.keys(d.items).length)err='Zaznacz pozycje lub grupy konkursowe';
+  else if(d.metric==='share'&&!(+d.minTurnover>0))err='W trybie „udział %" podaj minimalny obrót osoby';
+  else if(d.thresholdOn&&!(+d.threshold>0))err='Podaj próg kwalifikacji większy od zera';
+  else if(d.prizesOn&&d.prizeType==='goal'&&!d.thresholdOn)err='Nagroda typu „Cel" wymaga progu';
+  if(err){toast(err,'er');return;}
+  if(!force&&d.metric==='points'){
+    var noPts=[];
+    if(d.itemsMode==='sel'){
+      Object.keys(d.groups).forEach(function(k){if(d.groups[k].pts==null||d.groups[k].pts==='')noPts.push(d.groups[k].n+' (grupa)')});
+      Object.keys(d.items).forEach(function(k){var it=d.items[k];if((it.pts==null||it.pts==='')&&!ctItemGroupPts(d,k))noPts.push(it.n)});
+    } else if(!(+d.allPts>0))noPts.push('wszystkie pozycje');
+    if(noPts.length){
+      deConfirm('⭐ Pozycje bez punktów','<p class="hs-p">Te pozycje nie mają punktów, więc ich sprzedaż da 0 pkt:</p><ul class="de-confirm-list">'+noPts.slice(0,12).map(function(n){return '<li>'+esc(n)+'</li>'}).join('')+(noPts.length>12?'<li>… i '+(noPts.length-12)+' innych</li>':'')+'</ul>','Zapisz mimo to',function(){ctSaveDraft(true)});
+      return;
+    }
+  }
+  d.places=Math.max(1,+d.places||1);d.prizes=(d.prizes||[]).slice(0,d.places);while(d.prizes.length<d.places)d.prizes.push('');
+  var orig=S._ctEditId?ctGet(S._ctEditId):null;
+  var reingest=!orig||S._ctUnlocked||ctRulesSig(orig)!==ctRulesSig(d);
+  var n=0;
+  if(reingest){d.meas={};d.frozen=null;n=ctReingest(d);}
+  if(!orig&&d.status==='prep'&&ctToday()>=d.start)d.status='run';
+  if(d.status==='done'&&!d.frozen){d.frozen={at:Date.now(),by:ctWho(),res:ctCompute(d)};}
+  if(d.status!=='done')d.frozen=null;
+  ctSave(d,{audit:(orig?'Zmieniono':'Utworzono')+' konkurs: '+d.name});
+  S._ctOpen=d.id;S._ctView='detail';S._ctDraft=null;S._ctEditId=null;S._ctUnlocked=false;S._ctCat=null;
+  toast((orig?'Zapisano zmiany':'Utworzono konkurs')+(reingest?(n?' — wczytano '+n+' raport(ów) z zapisanych danych':' — brak pasujących zapisanych raportów'):''),'ok');
+  renderContests();ctScrollTop();
+}
+// czy pozycja należy do grupy zaznaczonej w całości z punktami
+function ctItemGroupPts(d,itemKey){
+  var cat=S._ctCat||[];
+  return cat.some(function(g){var gp=d.groups[g.key];return gp&&gp.pts!=null&&gp.pts!==''&&g.items[itemKey]});
+}
+
+// ── KARTA KONKURSU ──
+function ctRulesChips(c){
+  var ch=[];
+  ch.push(['Wynik',CT_METRICS[c.metric].l.toLowerCase()+(c.metric==='value'||c.metric==='share'?' ('+c.amount+')':'')]);
+  ch.push(['Outlety',c.outletsMode==='sel'?(c.outlets||[]).map(function(id){var o=S.outlets.find(function(x){return x.id===id});return o?o.name:'(usunięty)'}).join(', '):'wszystkie']);
+  ch.push(['Uczestnicy',c.empMode==='sel'?(c.emps||[]).length+' wybranych':'wszyscy'+((c.exclude||[]).length?' (bez '+c.exclude.length+' kont)':'')]);
+  if(c.itemsMode==='sel'){
+    var parts=[];
+    Object.keys(c.groups||{}).forEach(function(k){var g=c.groups[k];parts.push(g.n+(c.metric==='points'&&g.pts!=null?' ('+g.pts+' pkt)':''))});
+    Object.keys(c.items||{}).forEach(function(k){var it=c.items[k];parts.push(it.n+(c.metric==='points'&&it.pts!=null?' ('+it.pts+' pkt)':''))});
+    ch.push(['Pozycje',parts.length>6?parts.slice(0,6).join(', ')+' … +'+(parts.length-6):parts.join(', ')]);
+  } else ch.push(['Pozycje','wszystkie'+(c.metric==='points'?' ('+c.allPts+' pkt/szt.)':'')]);
+  if(c.minPriceOn)ch.push(['Od ceny',c.minPrice+' zł brutto/szt.']);
+  if(c.metric==='share')ch.push(['Min. obrót',fmt(c.minTurnover||0)]);
+  if(c.thresholdOn)ch.push(['Próg',ctFmtScore(c,+c.threshold)]);
+  if(c.prizesOn)ch.push(['Nagrody',c.prizeType==='goal'?'każdy powyżej progu':c.places+' '+(c.places===1?'miejsce':'miejsca')]);
+  return '<div class="ct-chips">'+ch.map(function(x){return '<span class="ct-rule"><span>'+x[0]+':</span> '+esc(String(x[1]))+'</span>'}).join('')+(ctLocked(c)?'<span class="ct-rule ct-rule-lock">🔒 zasady zablokowane</span>':'')+'</div>';
+}
+function ctOutletName(id){var o=S.outlets.find(function(x){return x.id===id});return o?o.name:'(usunięty outlet)'}
+function ctRenderDetail(){
+  var el=document.getElementById('emp-contests'),c=ctGet(S._ctOpen);if(!el||!c)return;
+  var st=ctStatus(c),ph=ctPhase(c),res=ctResult(c),ed=canEdit();
+  var h='<div class="ct-detail">';
+  h+='<div class="ct-head"><button class="btn btn-s btn-sm" onclick="ctGoList()">← Wszystkie konkursy</button></div>';
+  // nagłówek
+  h+='<div class="card ct-card-head"><div class="ct-title-row"><div style="flex:1 1 360px;min-width:0"><div class="ct-title">'+esc(c.name)+' '+ctStatusPill(st,c)+'</div>';
+  h+='<div class="hs-p" style="margin:4px 0 0">'+ctPeriod(c)+(c.desc?' · „'+esc(c.desc)+'"':'')+'</div></div>';
+  h+='<div class="ct-actions">';
+  if(ed&&st!=='done')h+='<button class="btn btn-p btn-sm" onclick="ctFocusPaste()">➕ Dodaj wyniki</button>';
+  h+='<button class="btn btn-s btn-sm" onclick="ctProtocol(\''+c.id+'\',\'pdf\')">📄 PDF</button>';
+  h+='<button class="btn btn-s btn-sm" onclick="ctProtocol(\''+c.id+'\',\'print\')">🖨️ Drukuj</button>';
+  h+='<button class="btn btn-s btn-sm" onclick="ctDipOpen(\''+c.id+'\')">🎓 Dyplomy</button>';
+  h+='<button class="btn btn-s btn-sm" onclick="ctBoardOpen(\''+c.id+'\')">📺 Tablica</button>';
+  h+='<button class="btn btn-s btn-sm" onclick="ctBoardPNG(\''+c.id+'\')">🖼️ Obraz PNG</button>';
+  if(ed){
+    h+='<select class="fi ct-status-sel" aria-label="Status konkursu" onchange="ctSetStatus(\''+c.id+'\',this.value)">'+Object.keys(CT_STATUS).map(function(k){return '<option value="'+k+'"'+(st===k?' selected':'')+'>'+CT_STATUS[k].l+'</option>'}).join('')+'</select>';
+    h+='<button class="btn btn-s btn-sm" onclick="ctEdit(\''+c.id+'\')">✏️ Edytuj</button>';
+    h+='<button class="btn btn-s btn-sm" onclick="ctDuplicateClick(\''+c.id+'\')">⧉ Duplikuj</button>';
+    h+='<button class="btn btn-s btn-sm" onclick="ctDeleteClick(\''+c.id+'\')" title="Usuń konkurs">🗑️</button>';
+  }
+  h+='</div></div>';
+  // postęp czasu
+  var tot=ctDays(c.start,c.end),dayN=ph==='before'?0:(ph==='after'?tot:ctDays(c.start,ctToday()));
+  h+='<div class="ct-prog"><div class="ct-prog-l"><span>'+(ph==='before'?'Start za '+(ctDays(ctToday(),c.start)-1)+' dni':ph==='after'?'Zakończony '+ctFmt(c.end):'Dzień '+dayN+' z '+tot)+'</span><span>'+(ph==='during'?'zostało '+(tot-dayN)+' dni':tot+' dni')+'</span></div><div class="ct-prog-bar"><div style="width:'+Math.round(dayN/tot*100)+'%"></div></div></div>';
+  h+=ctRulesChips(c);
+  // dane do
+  if(st!=='prep'||Object.keys(c.meas||{}).length){
+    var expect=ctMinD(c.end,ctAddDays(ctToday(),-1));
+    h+='<div class="ct-datato"><span class="ct-mini-l">Dane do</span>';
+    if(!res.outlets.length)h+='<span class="ct-dt ct-dt-no">brak pomiarów</span>';
+    res.outlets.forEach(function(o){var t=res.dataTo[o];h+='<span class="ct-dt '+(!t?'ct-dt-no':t>=expect?'ct-dt-ok':'ct-dt-part')+'">'+esc(ctOutletName(o))+' '+(t?ctFmtS(t):'—')+'</span>'});
+    var msg='';
+    if(st==='done')msg='Wyniki zamrożone '+ctFmt(ctISO(new Date(c.frozen.at)))+' — zatwierdził(a) '+esc(c.frozen.by)+'.';
+    else if(res.complete)msg='Dane kompletne'+(ph==='after'?' — można rozstrzygnąć konkurs.':'.');
+    else msg='Do rozstrzygnięcia potrzebny jest raport kończący się <strong>'+ctFmt(c.end)+'</strong>.';
+    h+='<span class="ct-dt-msg">'+msg+'</span></div>';
+  }
+  if(res.needBase&&res.needBase.length&&st!=='done'){
+    var m0=ctMonthOf(c.start);
+    h+='<div class="hs-warn" style="margin:10px 0 0">Konkurs startuje '+ctFmt(c.start)+', a raporty z „Sprzedaży pracownika" liczą się od 1. dnia miesiąca. Brakuje punktu startowego dla: <strong>'+res.needBase.map(ctOutletName).map(esc).join(', ')+'</strong>. Wklej niżej raport „Sprzedaż użytkowników" za <strong>'+ctFmtS(ctFirstOf(m0))+'–'+ctFmtS(ctAddDays(c.start,-1))+'</strong> — aplikacja odejmie go od kolejnych raportów.</div>';
+  }
+  h+='</div>';
+
+  var qual=res.rows.filter(function(r){return r.qual});
+  if(!Object.keys(res.per).length){
+    h+='<div class="card"><p class="de-empty">'+(st==='prep'?'Konkurs jeszcze się nie zaczął. Wyniki pojawią się po pierwszym imporcie „Sprzedaży pracownika" od '+ctFmt(c.start)+'.':'Brak jeszcze pomiarów. Wczytaj raport „Sprzedaż użytkowników" w „Wprowadź dane → Sprzedaż pracownika" albo wklej go niżej.')+'</p></div>';
+  } else {
+    // KPI
+    var eff=ctEffect(c,res);
+    h+='<div class="kpi-grid ct-kpis">';
+    h+='<div class="kpi"><div class="kpi-lbl">Uczestnicy</div><div class="kpi-val">'+res.rows.length+'</div><div class="kpi-sub">'+qual.length+' w klasyfikacji</div></div>';
+    if(c.metric!=='share')h+='<div class="kpi"><div class="kpi-lbl">Suma wyników</div><div class="kpi-val">'+ctFmtScore(c,res.totals.score)+'</div><div class="kpi-sub">zespołu od '+ctFmtS(c.start)+'</div></div>';
+    h+='<div class="kpi"><div class="kpi-lbl">Sprzedane szt.</div><div class="kpi-val">'+fmtN(res.totals.q)+'</div><div class="kpi-sub">pozycje konkursowe</div></div>';
+    h+='<div class="kpi"><div class="kpi-lbl">Wartość pozycji</div><div class="kpi-val">'+fmt(c.amount==='netto'?res.totals.vn:res.totals.vb,true)+'</div><div class="kpi-sub">'+c.amount+'</div></div>';
+    if(eff.ok&&eff.prev)h+='<div class="kpi"><div class="kpi-lbl">Tempo zespołu</div><div class="kpi-val">'+(Math.round(eff.rate*10)/10).toLocaleString('pl-PL')+' szt./dzień</div><div class="kpi-sub">vs '+(Math.round(eff.prev.rate*10)/10).toLocaleString('pl-PL')+' w '+eff.prevLabel.split(' ')[0].toLowerCase()+'</div></div>';
+    h+='</div>';
+    // podium
+    if(qual.length){
+      h+='<div class="card"><div class="ct-sec-head"><div class="fsect" style="margin:0">'+(st==='done'?'🏆 Zwycięzcy':'Prowadzą teraz')+'</div><span class="hs-p" style="margin:0">'+(st==='done'?'Wyniki ostateczne':(ph==='after'?'Wyniki wstępne — czekają na rozstrzygnięcie':'Wyniki wstępne — rozstrzygnięcie po '+ctFmt(c.end)))+'</span></div>';
+      h+='<div class="ct-podium">';
+      [1,0,2].forEach(function(i){
+        var r=qual[i];if(!r){h+='<div class="ct-pod ct-pod-empty"></div>';return;}
+        h+='<div class="ct-pod ct-pod-'+(i+1)+'"><span class="ct-place ct-place-'+Math.min(r.place,4)+'">'+r.place+'</span><strong>'+esc(r.n)+'</strong><span class="ct-pod-v">'+ctFmtScore(c,r.score)+'</span><span class="ct-pod-p">'+(r.prize?esc(r.prize):'&nbsp;')+'</span></div>';
+      });
+      h+='</div></div>';
+    }
+    // wykres
+    var mode=S._ctChartMode||'top';
+    h+='<div class="card"><div class="ct-sec-head"><div class="fsect" style="margin:0">📈 Przebieg konkursu</div>'+ctSeg([['top','Top 5'],['all','Wszyscy'],['inc','Tempo na dzień']],mode,'ctChartMode')+'</div>';
+    if(res.timeline.dates.length<1)h+='<p class="de-empty">Wykres pojawi się po pierwszym pomiarze.</p>';
+    else h+='<div class="ct-chart-wrap"><canvas id="ct-line-chart" height="120"></canvas></div><p class="hs-p" style="margin:6px 0 0">Każdy punkt to wczytany raport (pomiar). Między pomiarami nie znamy podziału na dni.</p>';
+    h+='</div>';
+    // porównanie + macierz
+    h+='<div class="ct-two"><div class="card"><div class="fsect">Porównanie uczestników</div>';
+    var maxS=Math.max.apply(null,res.rows.map(function(r){return r.score}).concat([c.thresholdOn?+c.threshold:0,1]));
+    res.rows.slice(0,15).forEach(function(r,i){
+      var w=Math.max(0,r.score/maxS*100);
+      h+='<div class="ct-bar-row'+(r.qual?'':' ct-out')+'"><span class="ct-bar-n">'+esc(r.n)+'</span><div class="ct-bar-track"><div class="ct-bar-fill" style="width:'+w.toFixed(1)+'%;background:'+(r.qual?ctColor(i):'var(--brd2)')+'"></div>'+(c.thresholdOn?'<div class="ct-bar-thr" style="left:'+(+c.threshold/maxS*100).toFixed(1)+'%"></div>':'')+'</div><span class="ct-bar-v">'+ctFmtScore(c,r.score)+'</span></div>';
+    });
+    if(res.rows.length>15)h+='<p class="hs-p">… i '+(res.rows.length-15)+' kolejnych osób (pełna lista w rankingu).</p>';
+    if(c.thresholdOn)h+='<p class="hs-p" style="margin:6px 0 0">Czerwona linia — próg '+ctFmtScore(c,+c.threshold)+'. Szare paski: poza klasyfikacją.</p>';
+    h+='</div><div class="card"><div class="fsect">Co sprzedali — pozycje konkursowe</div>';
+    var mx=res.matrix;
+    if(!mx.rows.length||!mx.cols.length)h+='<p class="de-empty">Szczegóły pozycji pojawią się po kolejnym pomiarze.</p>';
+    else{
+      h+='<div class="tbl-wrap"><table class="msales-table matrix-table ct-matrix"><thead><tr><th>Pracownik</th>'+mx.cols.map(function(col){return '<th>'+esc(col.l)+'</th>'}).join('')+'<th>Razem szt.</th></tr></thead><tbody>';
+      mx.rows.forEach(function(r){h+='<tr><td>'+esc(r.n)+'</td>'+r.vals.map(function(v){return '<td>'+(v?fmtN(v):'—')+'</td>'}).join('')+'<td><strong>'+fmtN(r.tot)+'</strong></td></tr>'});
+      h+='</tbody></table></div>';
+    }
+    h+='</div></div>';
+    // ranking
+    h+='<div class="card"><div class="ct-sec-head"><div class="fsect" style="margin:0">🏆 Ranking</div><span class="hs-p" style="margin:0">'+res.rows.length+' uczestników · '+qual.length+' w klasyfikacji</span></div>';
+    h+='<div class="tbl-wrap"><table class="msales-table matrix-table ct-rank"><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wynik</th><th>Szt.</th><th>Wartość</th><th>Do lidera</th>'+(c.thresholdOn?'<th>Próg</th>':'')+(c.prizesOn?'<th>Nagroda</th>':'')+'</tr></thead><tbody>';
+    var showAll=S._ctRankAll,lim=showAll?res.rows.length:12;
+    res.rows.slice(0,lim).forEach(function(r){
+      h+='<tr class="'+(r.qual?'':'ct-out')+'"><td><strong>'+(r.place||'—')+'</strong></td><td><strong>'+esc(r.n)+'</strong></td><td><strong>'+ctFmtScore(c,r.score)+'</strong></td><td>'+fmtN(r.q)+'</td><td>'+fmt(r.val)+'</td><td>'+(r.gapLead===0?'—':ctFmtScore(c,r.gapLead))+'</td>';
+      if(c.thresholdOn)h+='<td class="'+(r.gapThr>0?'ct-thr-no':'ct-thr-ok')+'">'+(r.gapThr>0?'brakuje '+ctFmtScore(c,r.gapThr):(r.qual?'✓ zakwalifikowany':(c.metric==='share'?'za mały obrót':'—')))+'</td>';
+      if(c.prizesOn)h+='<td>'+(r.prize?esc(r.prize):(r.qual?'—':'poza klasyfikacją'))+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    if(res.rows.length>12)h+='<button class="btn btn-s btn-sm" style="margin-top:8px" onclick="S._ctRankAll=!S._ctRankAll;renderContests()">'+(showAll?'Pokaż mniej':'Pokaż wszystkie ('+res.rows.length+')')+'</button>';
+    h+='</div>';
+    // efekt
+    h+=ctEffectHTML(c,eff);
+  }
+  // punkty pomiaru + wklejanie
+  h+=ctPointsHTML(c,st,ed);
+  h+='</div>';
+  el.innerHTML=h;
+  ctDrawChart(c,res);
+}
+var CT_COLORS=['#7b6ef6','#f59e0b','#14b8a6','#ec4899','#64748b','#22c55e','#ef4444','#0ea5e9','#a855f7','#84cc16','#f97316','#06b6d4'];
+function ctColor(i){return CT_COLORS[i%CT_COLORS.length]}
+function ctChartMode(m){S._ctChartMode=m;renderContests()}
+function ctDrawChart(c,res){
+  var cv=document.getElementById('ct-line-chart');if(!cv||!window.Chart)return;
+  dChart('ct-line-chart');
+  var mode=S._ctChartMode||'top',tl=res.timeline;
+  var rows=res.rows.filter(function(r){return r.score>0||r.qual});
+  if(mode==='top')rows=rows.slice(0,5);else rows=rows.slice(0,12);
+  var labels=[ctFmtS(c.start)+' start'].concat(tl.dates.map(ctFmtS));
+  var prevDates=[ctAddDays(c.start,-1)].concat(tl.dates);
+  var ds=rows.map(function(r,i){
+    var s=tl.series[r.n]||[];
+    var data=[0].concat(s);
+    if(mode==='inc'){
+      data=[0].concat(s.map(function(v,j){var pv=j?s[j-1]:0,dd=Math.max(1,ctDays(prevDates[j],tl.dates[j])-1);return round2((v-pv)/dd)}));
+    }
+    return {label:r.n,data:data,borderColor:ctColor(i),backgroundColor:ctColor(i)+'22',tension:.25,pointRadius:3,borderWidth:i===0?3:2,fill:false};
+  });
+  if(mode!=='inc'&&c.thresholdOn)ds.push({label:'Próg',data:labels.map(function(){return +c.threshold}),borderColor:'#ef4444',borderDash:[6,5],pointRadius:0,borderWidth:1.5,fill:false});
+  S.charts['ct-line-chart']=new Chart(cv,{type:'line',data:{labels:labels,datasets:ds},
+    options:chOpts(function(v){return c.metric==='value'?fmtR(v):(mode==='inc'?(Math.round(v*10)/10)+' '+ctUnit(c)+'/dzień':ctFmtScore(c,v))})});
+}
+function ctEffectHTML(c,eff){
+  var h='<div class="card"><div class="ct-sec-head"><div class="fsect" style="margin:0">💡 Czy konkurs się opłaca?</div><span class="hs-p" style="margin:0">Szacunek — na sprzedaż wpływa też sezon, obłożenie i pogoda</span></div>';
+  if(!eff.ok){return h+'<p class="de-empty">Ocena pojawi się po pierwszym pomiarze.</p></div>';}
+  h+='<div class="kpi-grid">';
+  h+='<div class="kpi"><div class="kpi-lbl">Tempo w konkursie</div><div class="kpi-val">'+(Math.round(eff.rate*10)/10).toLocaleString('pl-PL')+' szt./dzień</div><div class="kpi-sub">'+fmtN(eff.q)+' szt. w '+eff.days+' dni</div></div>';
+  if(eff.prev)h+='<div class="kpi"><div class="kpi-lbl">'+esc(eff.prevLabel)+'</div><div class="kpi-val">'+(Math.round(eff.prev.rate*10)/10).toLocaleString('pl-PL')+' szt./dzień</div><div class="kpi-sub">'+esc(eff.prev.src)+'</div></div>';
+  if(eff.yoy)h+='<div class="kpi"><div class="kpi-lbl">'+esc(eff.yoyLabel)+'</div><div class="kpi-val">'+(Math.round(eff.yoy.rate*10)/10).toLocaleString('pl-PL')+' szt./dzień</div><div class="kpi-sub">'+esc(eff.yoy.src)+'</div></div>';
+  if(eff.incPct!=null)h+='<div class="kpi"><div class="kpi-lbl">Zmiana tempa</div><div class="kpi-val" style="color:'+(eff.incPct>=0?'var(--grn)':'var(--red)')+'">'+(eff.incPct>0?'+':'')+eff.incPct.toLocaleString('pl-PL')+'%</div><div class="kpi-sub">'+(eff.incQty>0?'+':'')+fmtN(eff.incQty)+' szt. do tej pory</div></div>';
+  if(eff.incMargin!=null)h+='<div class="kpi"><div class="kpi-lbl">Dodatkowa marża</div><div class="kpi-val">'+fmt(eff.incMargin)+'</div><div class="kpi-sub">prognoza na cały konkurs: '+fmt(eff.projMargin)+'</div></div>';
+  if(eff.cost)h+='<div class="kpi"><div class="kpi-lbl">Koszt nagród</div><div class="kpi-val">'+fmt(eff.cost)+'</div><div class="kpi-sub">'+(eff.projMargin!=null?(eff.projMargin-eff.cost>=0?'✓ zwrot: '+fmt(eff.projMargin-eff.cost):'✗ brakuje: '+fmt(eff.cost-eff.projMargin)):'brak marży z Menu Engineering')+'</div></div>';
+  h+='</div>';
+  if(!eff.prev&&!eff.yoy)h+='<p class="hs-p">Brak danych z poprzedniego miesiąca i sprzed roku do porównania.</p>';
+  else if(eff.marginPerUnit==null)h+='<p class="hs-p">Do policzenia marży potrzebny jest plik Menu Engineering outletów konkursu.</p>';
+  else h+='<p class="hs-p">Średnia marża pozycji konkursowych: '+fmt(eff.marginPerUnit)+' / szt. (Menu Engineering). Porównanie: tempo sprzedaży na dzień vs '+(eff.prev?esc(eff.prevLabel.toLowerCase()):esc(eff.yoyLabel.toLowerCase()))+'.</p>';
+  return h+'</div>';
+}
+function ctPointsHTML(c,st,ed){
+  var groups={};
+  Object.keys(c.meas||{}).forEach(function(o){Object.keys(c.meas[o]).forEach(function(m){(c.meas[o][m].recs||[]).forEach(function(r){
+    var k=r.f+'|'+r.t+'|'+r.kind;var g=groups[k]||(groups[k]={f:r.f,t:r.t,kind:r.kind,src:r.src,outs:[]});
+    g.outs.push({o:o,m:m});if(r.src&&g.src.indexOf(r.src)===-1&&g.src!==r.src)g.src=r.src;
+  })})});
+  var list=Object.keys(groups).map(function(k){return groups[k]}).sort(function(a,b){return a.t<b.t?1:a.t>b.t?-1:0});
+  S._ctPointList=list;
+  var h='<div class="card" id="ct-points"><div class="ct-sec-head"><div class="fsect" style="margin:0">📍 Punkty pomiaru</div><span class="hs-p" style="margin:0">Każdy wczytany raport „Sprzedaż użytkowników" to jeden punkt na wykresie</span></div>';
+  if(!list.length)h+='<p class="de-empty">Brak pomiarów.</p>';
+  else{
+    h+='<div class="ct-points">';
+    list.forEach(function(g,i){
+      h+='<div class="ct-point"><strong>'+ctFmtS(g.t)+'</strong><span>'+(g.kind==='baseline'?'Punkt startowy ':'')+esc(g.src||'Pomiar')+' · '+ctFmtS(g.f)+'–'+ctFmtS(g.t)+'</span><span class="ct-point-o">'+g.outs.map(function(x){return esc(ctOutletName(x.o))}).join(', ')+'</span>';
+      h+=(ed&&st!=='done')?'<button class="btn btn-s btn-sm" aria-label="Usuń punkt pomiaru '+ctFmtS(g.t)+'" onclick="ctDelPoint(\''+c.id+'\','+i+')">×</button>':'<span></span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  if(ed&&st!=='done'){
+    var draft=deDraftLoad('ct-'+c.id);
+    h+='<div class="ct-paste" id="ct-paste"><p class="hs-p" style="margin:0 0 8px">Nowe raporty z „Wprowadź dane → Sprzedaż pracownika" dopisują się tu same. Możesz też wkleić raport bezpośrednio — wygenerowany od <strong>'+ctFmt(c.start)+'</strong> (start konkursu) albo od 1. dnia miesiąca do wybranego dnia'+(c.start!==ctFirstOf(ctMonthOf(c.start))?', a także punkt startowy za '+ctFmtS(ctFirstOf(ctMonthOf(c.start)))+'–'+ctFmtS(ctAddDays(c.start,-1)):'')+'. Taki raport trafia tylko do konkursu.</p>';
+    h+='<textarea class="fi" id="ct-paste-input" rows="4" placeholder="Wklej tutaj raport „Sprzedaż użytkowników”…" oninput="deDraftSave(\'ct-'+c.id+'\',this.value)">'+(draft?esc(draft.t):'')+'</textarea>';
+    h+='<div class="fa"><button class="btn btn-p" onclick="ctPasteParse(\''+c.id+'\')">🔍 Wczytaj do konkursu</button></div>';
+    if(S._ctPasteMsgs&&S._ctPasteMsgs.id===c.id)h+='<div class="ct-paste-msgs">'+S._ctPasteMsgs.msgs.map(function(m){return '<div>'+esc(m)+'</div>'}).join('')+'</div>';
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+function ctFocusPaste(){var t=document.getElementById('ct-paste-input');if(t){try{t.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}setTimeout(function(){t.focus()},300)}}
+function ctPasteParse(id){
+  var c=ctGet(id),ta=document.getElementById('ct-paste-input');if(!c||!ta)return;
+  var raw=ta.value;if(!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
+  var reps=parseEmployeeSalesReportMulti(raw).filter(function(r){return !r.error});
+  if(!reps.length){toast('Nie rozpoznano raportu „Sprzedaż użytkowników"','er');return;}
+  var msgs=[],ok=0;
+  reps.forEach(function(r){
+    var oid=r.outletName?msalesGuessOutlet(r.outletName):null;
+    if(!oid){msgs.push('✗ Nie rozpoznano outletu „'+(r.outletName||'?')+'" — dodaj go w Obiektach albo popraw nazwę.');return;}
+    var x=ctIngest(c,oid,r,'Raport wklejony w konkursie');
+    if(x.ok){ok++;msgs.push('✓ '+ctOutletName(oid)+': '+(x.kind==='baseline'?'punkt startowy':'pomiar')+' '+ctFmtS(x.t));}
+    else msgs.push('✗ '+ctOutletName(oid)+': '+x.reason);
+  });
+  if(ok){ctSave(c,{keepStamp:true});deDraftClear('ct-'+id);}
+  S._ctPasteMsgs={id:id,msgs:msgs};
+  toast(ok?'Dopisano '+ok+' pomiar(y)':'Żaden raport nie pasuje do konkursu',ok?'ok':'er');
+  renderContests();
+  if(ok)setTimeout(function(){var p=document.getElementById('ct-points');if(p)try{p.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}},50);
+}
+function ctDelPoint(id,i){
+  var c=ctGet(id),g=S._ctPointList&&S._ctPointList[i];if(!c||!g)return;
+  deConfirm('Usunąć punkt pomiaru?','<p class="hs-p">Pomiar '+ctFmtS(g.f)+'–'+ctFmtS(g.t)+' ('+g.outs.map(function(x){return esc(ctOutletName(x.o))}).join(', ')+') zniknie z konkursu. Dane w „Sprzedaży pracownika" zostają bez zmian.</p>','🗑️ Usuń',function(){
+    g.outs.forEach(function(x){var mm=c.meas[x.o]&&c.meas[x.o][x.m];if(mm)mm.recs=mm.recs.filter(function(r){return !(r.f===g.f&&r.t===g.t)})});
+    ctSave(c,{keepStamp:true});renderContests();toast('Usunięto punkt pomiaru','ok');
+  });
+}
+function ctSetStatus(id,val){
+  var c=ctGet(id);if(!c||!canEdit())return;
+  var cur=ctStatus(c);if(val===cur)return;
+  function apply(){
+    if(val==='done'){c.frozen={at:Date.now(),by:ctWho(),res:ctCompute(c)};}
+    else c.frozen=null;
+    c.status=val;
+    ctSave(c,{audit:'Konkurs „'+c.name+'": status '+CT_STATUS[val].l});
+    toast('Status: '+CT_STATUS[val].l,'ok');
+    renderContests();
+  }
+  if(val==='done'){
+    var res=ctCompute(c);
+    var miss=res.complete?'':'<div class="hs-warn" style="margin:8px 0 0">Dane są niekompletne: '+res.outlets.map(function(o){return esc(ctOutletName(o))+' do '+(res.dataTo[o]?ctFmtS(res.dataTo[o]):'—')}).join(', ')+' (koniec konkursu: '+ctFmtS(c.end)+').</div>';
+    var w=res.rows.filter(function(r){return r.prize}).map(function(r){return '<li>'+(r.place?r.place+'. ':'')+esc(r.n)+' — '+ctFmtScore(c,r.score)+' — '+esc(r.prize)+'</li>'}).join('');
+    deConfirm('🏆 Rozstrzygnąć konkurs?','<p class="hs-p">Wyniki zostaną zamrożone — późniejsze importy ich nie zmienią. Zespół zobaczy na Dashboardzie baner ze zwycięzcami.</p>'+(w?'<ul class="de-confirm-list">'+w+'</ul>':'<p class="hs-p">Nikt nie zdobył nagrody.</p>')+miss,'🏆 Rozstrzygnij',apply);
+  } else if(cur==='done'){
+    deConfirm('Cofnąć rozstrzygnięcie?','<p class="hs-p">Wyniki zostaną odmrożone i znów będą liczone z danych. Baner zwycięzców zniknie z Dashboardu.</p>','↩️ Cofnij',apply);
+  } else apply();
+  var sel=document.querySelector('.ct-status-sel');if(sel)sel.value=cur;
+}
+function ctDuplicateClick(id){
+  var c=ctDuplicate(id);if(!c)return;
+  S._ctDraft=c;S._ctEditId=null;S._ctUnlocked=false;S._ctTreeQ='';S._ctTreeOpen={};S._ctCat=null;
+  S._ctView='form';renderContests();ctScrollTop();
+  toast('Kopia konkursu — sprawdź daty i zapisz','in');
+}
+function ctDeleteClick(id){
+  var c=ctGet(id);if(!c)return;
+  deConfirm('🗑️ Usunąć konkurs?','<p class="hs-p">Konkurs „'+esc(c.name)+'" razem z pomiarami zostanie usunięty dla całego zespołu.</p>','🗑️ Usuń',function(){
+    var copy=ctClone(c);
+    ctRemove(id);ctGoList();
+    offerUndo('Usunięto konkurs',function(){ctSave(copy,{keepStamp:true});renderContests()});
+  });
+}
+
+// ── TABLICA WYNIKÓW (pełny ekran) i obraz PNG ──
+function ctBoardOpen(id){
+  var c=ctGet(id);if(!c)return;
+  var res=ctResult(c),st=ctStatus(c),rows=res.rows.slice(0,10),max=Math.max.apply(null,rows.map(function(r){return r.score}).concat([1]));
+  var h='<div class="ct-board"><div class="ct-board-head"><div><div class="ct-board-t">'+esc(c.name)+'</div><div class="ct-board-s">'+ctPeriod(c)+' · '+(st==='done'?'wyniki ostateczne':'wyniki na '+(res.dataMax?ctFmt(res.dataMax):'—'))+'</div></div>'+ctStatusPill(st)+'</div>';
+  if(!rows.length)h+='<p class="de-empty">Brak wyników.</p>';
+  rows.forEach(function(r,i){
+    h+='<div class="ct-board-row'+(r.qual?'':' ct-out')+'"><span class="ct-place ct-place-'+Math.min(r.place||4,4)+'">'+(r.place||'—')+'</span><span class="ct-board-n">'+esc(r.n)+'</span><div class="ct-board-bar"><div style="width:'+(r.score/max*100).toFixed(1)+'%;background:'+(r.qual?ctColor(i):'var(--brd2)')+'"></div></div><span class="ct-board-v">'+ctFmtScore(c,r.score)+'</span></div>';
+  });
+  h+='</div>';
+  document.getElementById('ct-board-body').innerHTML=h;
+  S._ctBoardId=id;
+  openM('m-ct-board');
+}
+function ctBoardFull(){
+  var el=document.querySelector('#m-ct-board .modal');if(!el)return;
+  if(document.fullscreenElement){document.exitFullscreen&&document.exitFullscreen();return;}
+  if(el.requestFullscreen)el.requestFullscreen().catch(function(){toast('Pełny ekran niedostępny w tej przeglądarce','er')});
+}
+function ctBoardPNG(id){
+  var c=ctGet(id);if(!c)return;
+  var res=ctResult(c),rows=res.rows.slice(0,10),st=ctStatus(c);
+  var W=1600,H=260+Math.max(1,rows.length)*86+90,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  var x=cv.getContext('2d');
+  x.fillStyle='#f6f4ee';x.fillRect(0,0,W,H);
+  x.fillStyle='#ffffff';ctRoundRect(x,40,40,W-80,H-80,28);x.fill();
+  x.strokeStyle='#d8cfb4';x.lineWidth=3;ctRoundRect(x,40,40,W-80,H-80,28);x.stroke();
+  x.fillStyle='#8a6d2b';x.font='600 28px Outfit, sans-serif';x.fillText((st==='done'?'WYNIKI KONKURSU':'RANKING KONKURSU').split('').join(String.fromCharCode(8202)),90,110);
+  x.fillStyle='#1f2433';x.font='700 54px Outfit, sans-serif';ctFitText(x,c.name,90,175,W-180);
+  x.fillStyle='#5c6780';x.font='400 28px Outfit, sans-serif';x.fillText(ctPeriod(c)+' · '+(st==='done'?'wyniki ostateczne':'stan na '+(res.dataMax?ctFmt(res.dataMax):'—')),90,220);
+  var max=Math.max.apply(null,rows.map(function(r){return r.score}).concat([1]));
+  rows.forEach(function(r,i){
+    var y=270+i*86;
+    var medal=['#e8b93e','#b9c1cc','#d39a63'][((r.place||4)-1)]||'#e3e6ee';
+    x.fillStyle=r.qual?medal:'#e3e6ee';x.beginPath();x.arc(120,y+30,28,0,Math.PI*2);x.fill();
+    x.fillStyle='#1f2433';x.font='700 28px Outfit, sans-serif';x.textAlign='center';x.fillText(r.place?String(r.place):'—',120,y+40);x.textAlign='left';
+    x.fillStyle=r.qual?'#1f2433':'#8b93a5';x.font='600 32px Outfit, sans-serif';ctFitText(x,r.n,175,y+42,420);
+    x.fillStyle='#eef0f5';ctRoundRect(x,620,y+14,700,32,16);x.fill();
+    x.fillStyle=r.qual?ctColor(i):'#c3c9d4';ctRoundRect(x,620,y+14,Math.max(32,700*r.score/max),32,16);x.fill();
+    x.fillStyle='#1f2433';x.font='700 32px Outfit, sans-serif';x.textAlign='right';x.fillText(ctFmtScore(c,r.score).replace(/ /g,' '),W-90,y+42);x.textAlign='left';
+  });
+  x.fillStyle='#8b93a5';x.font='400 22px Outfit, sans-serif';x.fillText((ctDipGet().hotel||ctPropName())+' · '+new Date().toLocaleDateString('pl-PL'),90,H-70);
+  var a=document.createElement('a');a.download='Konkurs_'+dePL(c.name).replace(/[^a-z0-9]+/gi,'_')+'.png';a.href=cv.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
+  toast('Zapisano obraz rankingu','ok');
+}
+function ctRoundRect(x,l,t,w,h,r){r=Math.min(r,w/2,h/2);x.beginPath();x.moveTo(l+r,t);x.arcTo(l+w,t,l+w,t+h,r);x.arcTo(l+w,t+h,l,t+h,r);x.arcTo(l,t+h,l,t,r);x.arcTo(l,t,l+w,t,r);x.closePath()}
+function ctFitText(x,txt,l,y,maxW,align){
+  var s=String(txt);
+  if(x.measureText(s).width>maxW){while(s.length>1&&x.measureText(s+'…').width>maxW)s=s.slice(0,-1);s+='…';}
+  x.fillText(s,l,y);
+}
+function ctPropName(){var p=(S.props||[]).find(function(x){return x.id===S.pid});return p?p.name:''}
+
+// ── KARTA PRACOWNIKA: odznaki z konkursów ──
+function ctEmpBadgesHTML(name){
+  if(!S.pid)return '';
+  var items=[];
+  ctList().forEach(function(c){
+    var st=ctStatus(c);if(st==='prep')return;
+    var res=ctResult(c),r=res.rows.find(function(x){return x.n===name});
+    if(!r||!(r.score>0))return;
+    items.push({c:c,st:st,r:r});
+  });
+  if(!items.length)return '';
+  var h='<div class="fsect" style="margin-top:16px">🏅 Konkursy</div><div class="ct-badges">';
+  items.forEach(function(x){
+    var won=x.st==='done'&&x.r.prize,medal=x.r.place&&x.r.place<=3?['🥇','🥈','🥉'][x.r.place-1]:(x.r.qual?'🎖️':'•');
+    h+='<button type="button" class="ct-badge'+(won?' ct-badge-won':'')+'" onclick="goContests(\''+x.c.id+'\')"><span class="ct-badge-m">'+medal+'</span><span><strong>'+esc(x.c.name)+'</strong><small>'+(x.r.place?x.r.place+'. miejsce':'poza klasyfikacją')+' · '+ctFmtScore(x.c,x.r.score)+' · '+(x.st==='done'?(x.r.prize?'nagroda: '+esc(x.r.prize):'rozstrzygnięty'):x.st==='run'?'trwa':'nierozstrzygnięty')+'</small></span></button>';
+  });
+  return h+'</div>';
+}
+
+// ── DASHBOARD: baner, pasek, alerty ──
+function ctHidden(){return lsGet(uk('ct-hide-'+S.pid),[])}
+function ctHide(key){var a=ctHidden();if(a.indexOf(key)===-1)a.push(key);if(a.length>100)a=a.slice(-100);lsSet(uk('ct-hide-'+S.pid),a);renderCur()}
+function ctDashboardHTML(){
+  if(!S.pid)return '';
+  var all=ctList();if(!all.length)return '';
+  var hid=ctHidden(),h='',big=null,small=[],strips=[];
+  all.forEach(function(c){
+    var st=ctStatus(c),ph=ctPhase(c);
+    if(st==='done'&&c.frozen){
+      var age=(Date.now()-c.frozen.at)/86400000;
+      if(age<=14&&hid.indexOf('won:'+c.id)===-1&&(!big||c.frozen.at>big.frozen.at))big=c;
+      return;
+    }
+    if(st==='undone')return;
+    if(ph==='after'){
+      var res=ctCompute(c),key=(res.complete?'pre:':'wait:')+c.id;
+      if(hid.indexOf(key)===-1)small.push({c:c,res:res,key:key});
+    } else if(ph==='during'&&st==='run'&&hid.indexOf('run:'+c.id+':'+ctToday())===-1)strips.push(c);
+  });
+  if(big){
+    var r=big.frozen.res,win=r.rows.filter(function(x){return x.prize||(x.place&&x.place<=3&&x.qual)}).slice(0,big.prizeType==='goal'?8:Math.max(3,big.places||3));
+    h+='<div class="ct-banner" id="ct-banner" data-ct="'+big.id+'"><div class="ct-banner-fx" aria-hidden="true"></div>';
+    h+='<button class="ct-banner-x" aria-label="Ukryj baner" onclick="ctHide(\'won:'+big.id+'\')">✕</button>';
+    h+='<div class="ct-banner-top"><span class="ct-banner-ico" aria-hidden="true">🏆</span><div><div class="ct-banner-k">Konkurs rozstrzygnięty</div><div class="ct-banner-t">'+esc(big.name)+'</div><div class="ct-banner-s">'+ctPeriod(big)+' · '+r.rows.length+' uczestników · zatwierdził(a) '+esc(big.frozen.by)+', '+ctFmt(ctISO(new Date(big.frozen.at)))+'</div></div></div>';
+    h+='<div class="ct-banner-win">';
+    if(!win.length)h+='<p class="hs-p">Nikt nie spełnił warunków nagrody.</p>';
+    win.forEach(function(x){h+='<div class="ct-win'+(x.place===1?' ct-win-1':'')+'"><span class="ct-place ct-place-'+Math.min(x.place||4,4)+'">'+(x.place||'✓')+'</span><div><strong>'+esc(x.n)+'</strong><span class="ct-win-v">'+ctFmtScore(big,x.score)+'</span><span class="ct-win-p">'+(x.prize?esc(x.prize):'')+'</span></div></div>'});
+    h+='</div><div class="ct-banner-act"><button class="btn btn-p btn-sm" onclick="goContests(\''+big.id+'\')">Zobacz pełne wyniki</button><button class="btn btn-s btn-sm" onclick="ctProtocol(\''+big.id+'\',\'pdf\')">📄 Protokół PDF</button><button class="btn btn-s btn-sm" onclick="ctCelebrate()">🎆 Powtórz pokaz</button></div></div>';
+  }
+  if(small.length){
+    h+='<div class="ct-smalls">';
+    small.forEach(function(x){
+      var c=x.c,top=x.res.rows.filter(function(r){return r.qual})[0];
+      if(x.res.complete){
+        h+='<div class="ct-small ct-small-pre"><button class="ct-banner-x" aria-label="Ukryj" onclick="ctHide(\''+x.key+'\')">✕</button><div class="ct-small-k">Wyniki wstępne · do zatwierdzenia</div><div class="ct-small-t">„'+esc(c.name)+'" zakończył się '+ctFmtS(c.end)+' — dane są kompletne</div>';
+        h+='<div class="hs-p" style="margin:0">'+(top?'Prowadzi '+esc(top.n)+' ('+ctFmtScore(c,top.score)+'). ':'')+(canEdit()?'Po zatwierdzeniu wyniki zostaną zamrożone, a zespół zobaczy baner ze zwycięzcami.':'Czeka na zatwierdzenie przez managera.')+'</div>';
+        h+='<div class="ct-small-act">'+(canEdit()?'<button class="btn btn-p btn-sm" onclick="goContests(\''+c.id+'\');setTimeout(function(){ctSetStatus(\''+c.id+'\',\'done\')},80)">🏆 Zatwierdź wyniki</button>':'')+'<button class="btn btn-s btn-sm" onclick="goContests(\''+c.id+'\')">Zobacz</button></div></div>';
+      } else {
+        var dt=x.res.outlets.map(function(o){return ctOutletName(o)+' '+(x.res.dataTo[o]?ctFmtS(x.res.dataTo[o]):'—')}).join(', ');
+        h+='<div class="ct-small"><button class="ct-banner-x" aria-label="Ukryj" onclick="ctHide(\''+x.key+'\')">✕</button><div class="ct-small-k">Konkurs zakończony · czekamy na dane</div><div class="ct-small-t">„'+esc(c.name)+'" zakończył się '+ctFmtS(c.end)+'</div>';
+        h+='<div class="hs-p" style="margin:0">Brakuje raportu do '+ctFmtS(c.end)+(dt?' — ostatnie pomiary: '+esc(dt):'')+'. Zwycięzców ogłosimy po wczytaniu danych.</div>';
+        h+='<div class="ct-small-act"><button class="btn btn-s btn-sm" onclick="goContests(\''+c.id+'\');setTimeout(ctFocusPaste,120)">Wklej raport</button></div></div>';
+      }
+    });
+    h+='</div>';
+  }
+  strips.slice(0,3).forEach(function(c){
+    var res=ctCompute(c),top=res.rows.filter(function(r){return r.qual})[0],tot=ctDays(c.start,c.end),dn=ctDays(c.start,ctToday());
+    h+='<div class="ct-strip"><span aria-hidden="true">🏅</span><span class="ct-strip-t"><strong>Trwa konkurs „'+esc(c.name)+'"</strong> — dzień '+dn+' z '+tot+' · '+(top?'prowadzi '+esc(top.n)+' ('+ctFmtScore(c,top.score)+')':'pierwsze wyniki po imporcie Sprzedaży pracownika')+'</span><button class="btn btn-s btn-sm" onclick="goContests(\''+c.id+'\')">Zobacz</button><button class="ct-strip-x" aria-label="Ukryj do jutra" onclick="ctHide(\'run:'+c.id+':'+ctToday()+'\')">✕</button></div>';
+  });
+  return h;
+}
+// Po narysowaniu Dashboardu: pokaz konfetti/fajerwerków — raz na osobę i konkurs.
+function ctAfterDashboard(){
+  var b=document.getElementById('ct-banner');if(!b)return;
+  var id=b.getAttribute('data-ct'),seen=lsGet(uk('ct-seen-'+S.pid),[]);
+  if(seen.indexOf(id)!==-1)return;
+  seen.push(id);if(seen.length>100)seen=seen.slice(-100);lsSet(uk('ct-seen-'+S.pid),seen);
+  setTimeout(ctCelebrate,350);
+}
+function alertsContests(al){
+  if(!S.pid)return;
+  var today=ctToday();
+  ctList().forEach(function(c){
+    var st=ctStatus(c),ph=ctPhase(c);
+    if(st!=='run'||ph!=='during')return;
+    var left=ctDays(today,c.end)-1;
+    if(left<=3)al.push({t:'wa',key:'ct_end_'+c.id,msg:'Konkurs „'+esc(c.name)+'" kończy się '+(left===0?'dziś':'za '+left+' '+(left===1?'dzień':'dni'))+' ('+ctFmtS(c.end)+'). Do rozstrzygnięcia potrzebny raport do '+ctFmtS(c.end)+'.'});
+    var res=ctCompute(c);
+    if(res.needBase.length)al.push({t:'da',key:'ct_base_'+c.id,msg:'Konkurs „'+esc(c.name)+'": brakuje punktu startowego (raport '+ctFmtS(ctFirstOf(ctMonthOf(c.start)))+'–'+ctFmtS(ctAddDays(c.start,-1))+') dla: '+res.needBase.map(ctOutletName).map(esc).join(', ')+'.'});
+    var last=res.dataMax||ctAddDays(c.start,-1);
+    if(!res.needBase.length&&ctDays(last,today)-1>=4&&ctDays(c.start,today)>=4)al.push({t:'wa',key:'ct_stale_'+c.id+'_'+last,msg:'Konkurs „'+esc(c.name)+'": brak nowych danych od '+ctFmtS(last)+' — wczytaj „Sprzedaż użytkowników".'});
+  });
+}
+
+// ── KONFETTI I FAJERWERKI (canvas, bez bibliotek) ──
+function ctCelebrate(){
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){toast('🎉 Gratulacje dla zwycięzców!','ok');return;}
+  var old=document.getElementById('ct-fx');if(old)old.remove();
+  var cv=document.createElement('canvas');cv.id='ct-fx';
+  cv.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999';
+  document.body.appendChild(cv);
+  var dpr=Math.min(2,window.devicePixelRatio||1),W=window.innerWidth,H=window.innerHeight;
+  cv.width=W*dpr;cv.height=H*dpr;
+  var x=cv.getContext('2d');x.scale(dpr,dpr);
+  var cols=['#7b6ef6','#f0c64f','#1fae6c','#e5484d','#0ea5e9','#f97316','#ec4899','#ffffff'];
+  var conf=[],sparks=[],rockets=[],t0=performance.now(),DUR=6000;
+  for(var i=0;i<170;i++)conf.push({x:Math.random()*W,y:-20-Math.random()*H*0.6,w:6+Math.random()*7,h:9+Math.random()*9,vy:2+Math.random()*3,vx:-1.2+Math.random()*2.4,r:Math.random()*6.28,vr:-.15+Math.random()*.3,c:cols[i%cols.length],ph:Math.random()*6.28});
+  var nextRocket=0;
+  function launch(){rockets.push({x:W*(0.15+Math.random()*0.7),y:H+10,vy:-(H*0.012+Math.random()*4),tx:H*(0.15+Math.random()*0.3),c:cols[Math.floor(Math.random()*7)]})}
+  function burst(r){
+    var n=60+Math.floor(Math.random()*30);
+    for(var k=0;k<n;k++){var a=k/n*6.283,sp=2+Math.random()*3.5;sparks.push({x:r.x,y:r.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,c:Math.random()<.25?'#ffffff':r.c})}
+  }
+  function frame(now){
+    var el=now-t0;
+    x.clearRect(0,0,W,H);
+    if(el<DUR-1500&&now>nextRocket){launch();nextRocket=now+350+Math.random()*450;}
+    rockets=rockets.filter(function(r){
+      r.y+=r.vy;r.vy*=0.985;
+      x.fillStyle=r.c;x.beginPath();x.arc(r.x,r.y,3,0,6.283);x.fill();
+      x.fillStyle='rgba(255,255,255,.5)';x.fillRect(r.x-1,r.y+4,2,10);
+      if(r.y<=r.tx||r.vy>-1.5){burst(r);return false}
+      return true;
+    });
+    sparks=sparks.filter(function(s){
+      s.x+=s.vx;s.y+=s.vy;s.vy+=0.05;s.vx*=0.985;s.vy*=0.985;s.life-=0.012;
+      if(s.life<=0)return false;
+      x.globalAlpha=Math.max(0,s.life);x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,2.2,0,6.283);x.fill();x.globalAlpha=1;
+      return true;
+    });
+    conf.forEach(function(p){
+      p.y+=p.vy;p.x+=p.vx+Math.sin(el/400+p.ph)*0.8;p.r+=p.vr;
+      if(p.y>H+20&&el<DUR-2000){p.y=-20;p.x=Math.random()*W}
+      x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.globalAlpha=el>DUR-1200?Math.max(0,(DUR-el)/1200):1;x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.abs(Math.cos(p.r*1.3)));x.restore();
+    });
+    x.globalAlpha=1;
+    if(el<DUR)requestAnimationFrame(frame);else cv.remove();
+  }
+  requestAnimationFrame(frame);
+}
+
+// ═══ KONKURSY — DOKUMENTY: protokół i dyplomy ═══
+// Oba rysowane na <canvas> i wstawiane do PDF jako obraz: wbudowane fonty jsPDF nie mają
+// polskich znaków (reszta aplikacji je usuwa), a na dyplomie nazwiska muszą być poprawne.
+function ctWrap(x,text,maxW){
+  var words=String(text||'').split(/\s+/),lines=[],cur='';
+  words.forEach(function(w){
+    var t=cur?cur+' '+w:w;
+    if(x.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;
+  });
+  if(cur)lines.push(cur);
+  return lines.length?lines:[''];
+}
+function ctLoadImg(src){return new Promise(function(res){if(!src){res(null);return}var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=src})}
+function ctPrintImages(urls,landscape){
+  var fr=document.createElement('iframe');
+  fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(fr);
+  var doc=fr.contentWindow.document;
+  doc.open();
+  doc.write('<!doctype html><html><head><meta charset="utf-8"><title>Wydruk</title><style>@page{size:A4 '+(landscape?'landscape':'portrait')+';margin:0}html,body{margin:0;padding:0}img{display:block;width:'+(landscape?'297mm;height:210mm':'210mm;height:297mm')+';page-break-after:always;break-after:page}img:last-child{page-break-after:auto;break-after:auto}</style></head><body>'+urls.map(function(u){return '<img src="'+u+'">'}).join('')+'</body></html>');
+  doc.close();
+  var imgs=doc.images,left=imgs.length;
+  function doPrint(){setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){toast('Nie udało się otworzyć wydruku','er')}setTimeout(function(){fr.remove()},60000)},200)}
+  if(!left)doPrint();
+  Array.prototype.forEach.call(imgs,function(im){if(im.complete){if(--left===0)doPrint()}else im.onload=im.onerror=function(){if(--left===0)doPrint()}});
+}
+function ctSavePDF(urls,landscape,fileName){
+  var jsPDF=window.jspdf&&window.jspdf.jsPDF;if(!jsPDF){toast('Biblioteka PDF nie załadowana','er');return;}
+  var doc=new jsPDF({orientation:landscape?'landscape':'portrait',unit:'mm',format:'a4'});
+  urls.forEach(function(u,i){if(i)doc.addPage('a4',landscape?'landscape':'portrait');doc.addImage(u,'JPEG',0,0,landscape?297:210,landscape?210:297,undefined,'FAST')});
+  doc.save(fileName);
+}
+function ctFileSafe(s){return dePL(String(s||'konkurs')).replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'').slice(0,60)||'konkurs'}
+
+// ── PROTOKÓŁ (A4 pionowo, 200 dpi) ──
+function ctProtocol(id,mode){
+  var c=ctGet(id);if(!c)return;
+  toast('Przygotowuję protokół…','in');
+  var p=(document.fonts&&document.fonts.load)?Promise.all([document.fonts.load('600 40px Outfit','ąęłńóśźżĄĘŁŃÓŚŹŻ'),document.fonts.load('400 30px Outfit','ąęłńóśźż')]).catch(function(){}):Promise.resolve();
+  p.then(function(){
+    try{
+      var pages=ctProtocolPages(c);
+      var urls=pages.map(function(cv){return cv.toDataURL('image/jpeg',0.92)});
+      if(mode==='print')ctPrintImages(urls,false);
+      else ctSavePDF(urls,false,'Protokol_'+ctFileSafe(c.name)+'.pdf');
+    }catch(e){console.error(e);toast('Błąd protokołu: '+e.message,'er')}
+  });
+}
+function ctProtocolPages(c){
+  var res=ctResult(c),st=ctStatus(c),W=1654,H=2339,M=130,F='Outfit, Arial, sans-serif';
+  var pages=[],cv,x,y,pageNo=0;
+  var dip=ctDipGet(),hotel=dip.hotel||ctPropName();
+  function newPage(){
+    cv=document.createElement('canvas');cv.width=W;cv.height=H;x=cv.getContext('2d');pages.push(cv);pageNo++;
+    x.fillStyle='#ffffff';x.fillRect(0,0,W,H);x.textBaseline='alphabetic';
+    x.fillStyle='#4a5468';x.font='600 26px '+F;x.fillText(('HOTELMETRICS PRO'+(hotel?' · '+hotel.toUpperCase():'')),M,M);
+    x.textAlign='right';x.fillText('Nr K-'+ctMonthOf(c.start)+'-'+c.id.slice(-4).toUpperCase(),W-M,M);x.textAlign='left';
+    x.fillStyle='#1f2433';x.font='700 54px '+F;
+    x.fillText(st==='done'?'Protokół rozstrzygnięcia konkursu':'Wyniki konkursu — stan na '+ctFmt(res.dataMax||ctToday()),M,M+72);
+    x.fillRect(M,M+100,W-2*M,4);
+    y=M+170;
+  }
+  function footer(){
+    x.fillStyle='#dfe3ea';x.fillRect(M,H-110,W-2*M,2);
+    x.fillStyle='#4a5468';x.font='400 24px '+F;
+    var s='Status: '+CT_STATUS[st].l+(st==='done'&&c.frozen?' · wyniki zamrożone '+ctFmt(ctISO(new Date(c.frozen.at)))+', zatwierdził(a) '+c.frozen.by:' · wyniki wstępne');
+    x.fillText(s,M,H-70);
+    x.textAlign='right';x.fillText('Wygenerowano '+new Date().toLocaleString('pl-PL')+' · strona '+pageNo,W-M,H-70);x.textAlign='left';
+  }
+  function ensure(h){if(y+h>H-170){footer();newPage();}}
+  newPage();
+  x.fillStyle='#1f2433';x.font='700 46px '+F;
+  ctWrap(x,c.name,W-2*M).forEach(function(l){x.fillText(l,M,y);y+=58});
+  x.fillStyle='#4a5468';x.font='400 32px '+F;x.fillText('Okres: '+ctFmt(c.start)+(c.end!==c.start?' – '+ctFmt(c.end)+' ('+ctDays(c.start,c.end)+' dni)':''),M,y);y+=34;
+  if(c.desc){x.font='italic 400 28px '+F;x.fillText('„'+c.desc+'"',M,y+10);y+=44;}
+  y+=30;
+  // tabela zasad
+  var pts=[];
+  if(c.itemsMode==='sel'){
+    Object.keys(c.groups||{}).forEach(function(k){var g=c.groups[k];pts.push(g.n+' (cała grupa'+(c.metric==='points'&&g.pts!=null?', '+g.pts+' pkt/szt.':'')+')')});
+    Object.keys(c.items||{}).forEach(function(k){var it=c.items[k];pts.push(it.n+(c.metric==='points'&&it.pts!=null?' — '+it.pts+' pkt/szt.':''))});
+  }
+  var nMeas=0;Object.keys(c.meas||{}).forEach(function(o){Object.keys(c.meas[o]).forEach(function(m){nMeas+=(c.meas[o][m].recs||[]).length})});
+  var rowsInfo=[
+    ['Outlety',c.outletsMode==='sel'?(c.outlets||[]).map(ctOutletName).join(', '):'wszystkie'],
+    ['Uczestnicy',(c.empMode==='sel'?'wybrani ('+(c.emps||[]).length+' osób)':'wszyscy sprzedający ('+res.rows.length+' osób)')+((c.exclude||[]).length?', bez kont: '+c.exclude.join(', '):'')],
+    ['Wynik liczony jako',CT_METRICS[c.metric].l+(c.metric==='value'||c.metric==='share'?' ('+c.amount+')':'')+(c.minPriceOn?', tylko pozycje od '+c.minPrice+' zł brutto/szt.':'')+(c.metric==='share'?', min. obrót '+fmt(c.minTurnover):'')],
+    ['Pozycje',c.itemsMode==='sel'?pts.join('; '):'wszystkie'+(c.metric==='points'?' ('+c.allPts+' pkt/szt.)':'')],
+    ['Próg i remis',(c.thresholdOn?'min. '+ctFmtScore(c,+c.threshold):'bez progu')+' · remis: '+(c.tie==='value'?'wyższa wartość sprzedaży, potem ilość, potem ex aequo':'ex aequo')],
+    ['Źródło danych','HosPOS „Sprzedaż użytkowników" · '+nMeas+' pomiar(ów) · dane do: '+(res.outlets.length?res.outlets.map(function(o){return ctOutletName(o)+' '+(res.dataTo[o]?ctFmtS(res.dataTo[o]):'—')}).join(', '):'brak')+(res.complete?' · komplet':' · niekompletne')]
+  ];
+  x.font='400 28px '+F;
+  var LW=330,VW=W-2*M-LW-40;
+  rowsInfo.forEach(function(r,i){
+    var lines=ctWrap(x,r[1],VW),hh=Math.max(1,lines.length)*38+26;
+    ensure(hh);
+    x.fillStyle=i%2?'#ffffff':'#f3f5f9';x.fillRect(M,y,W-2*M,hh);
+    x.fillStyle='#1f2433';x.font='600 28px '+F;x.fillText(r[0],M+20,y+42);
+    x.font='400 28px '+F;lines.forEach(function(l,j){x.fillText(l,M+LW+20,y+42+j*38)});
+    y+=hh;
+  });
+  x.strokeStyle='#c8ced8';x.lineWidth=2;
+  y+=40;
+  // wykres przebiegu (top 5)
+  var tl=res.timeline,top=res.rows.filter(function(r){return r.score>0}).slice(0,5);
+  if(tl.dates.length&&top.length){
+    ensure(520);
+    x.fillStyle='#1f2433';x.font='700 34px '+F;x.fillText('Przebieg konkursu',M,y);y+=24;
+    var cx=M+90,cy=y+20,cw=W-2*M-110,ch=360;
+    var max=Math.max.apply(null,top.map(function(r){return Math.max.apply(null,(tl.series[r.n]||[0]).concat([r.score]))}).concat([c.thresholdOn?+c.threshold:0,1]));
+    var mag=Math.pow(10,Math.floor(Math.log10(max/4))),stp=[1,2,2.5,5,10].map(function(k){return k*mag}).find(function(v){return v*4>=max})||mag*10;max=stp*4;
+    x.strokeStyle='#e3e7ee';x.lineWidth=2;x.fillStyle='#4a5468';x.font='400 22px '+F;x.textAlign='right';
+    for(var g=0;g<=4;g++){var gy=cy+ch-ch*g/4;x.beginPath();x.moveTo(cx,gy);x.lineTo(cx+cw,gy);x.stroke();x.fillText((max*g/4).toLocaleString('pl-PL'),cx-12,gy+8)}
+    x.textAlign='left';
+    var span=Math.max(1,ctDays(c.start,c.end)-1);
+    function px(d){return cx+cw*(ctDays(c.start,d)-1)/span}
+    if(c.thresholdOn){var ty=cy+ch-ch*(+c.threshold)/max;x.strokeStyle='#e5484d';x.setLineDash([12,10]);x.beginPath();x.moveTo(cx,ty);x.lineTo(cx+cw,ty);x.stroke();x.setLineDash([])}
+    top.forEach(function(r,i){
+      x.strokeStyle=ctColor(i);x.lineWidth=i===0?5:3.5;x.beginPath();x.moveTo(cx,cy+ch);
+      (tl.series[r.n]||[]).forEach(function(v,j){x.lineTo(px(tl.dates[j]),cy+ch-ch*v/max)});
+      x.stroke();
+    });
+    x.fillStyle='#4a5468';x.font='400 22px '+F;x.fillText(ctFmtS(c.start),cx,cy+ch+34);x.textAlign='right';x.fillText(ctFmtS(c.end),cx+cw,cy+ch+34);x.textAlign='left';
+    var lx=cx;y=cy+ch+80;x.font='400 24px '+F;
+    top.forEach(function(r,i){var t=r.n;x.fillStyle=ctColor(i);x.fillRect(lx,y-14,28,8);x.fillStyle='#1f2433';x.fillText(t,lx+38,y-4);lx+=x.measureText(t).width+80;if(lx>W-M-200){lx=cx;y+=36}});
+    y+=50;
+  }
+  // tabela wyników
+  var cols=[['Miejsce',120],['Pracownik',430],['Wynik',190],['Szt.',110],['Wartość',190]];
+  if(c.prizesOn)cols.push(['Nagroda',W-2*M-120-430-190-110-190]);
+  function head(){
+    x.fillStyle='#1f2433';x.fillRect(M,y,W-2*M,56);
+    x.fillStyle='#ffffff';x.font='600 26px '+F;var cx2=M;
+    cols.forEach(function(cl){x.fillText(cl[0],cx2+16,y+37);cx2+=cl[1]});
+    y+=56;
+  }
+  ensure(160);
+  x.fillStyle='#1f2433';x.font='700 34px '+F;x.fillText('Wyniki',M,y);y+=24;
+  head();
+  var inRank=res.rows.filter(function(r){return r.qual||r.score>0});
+  inRank.forEach(function(r,i){
+    if(y+52>H-170){footer();newPage();head();}
+    x.fillStyle=i%2?'#ffffff':'#f6f7fa';x.fillRect(M,y,W-2*M,52);
+    x.fillStyle=r.qual?'#1f2433':'#7a8396';var cx3=M;
+    var vals=[r.place?String(r.place):'—',r.n,ctFmtScore(c,r.score).replace(/ /g,' '),fmtN(r.q),fmt(r.val).replace(/ /g,' ')];
+    if(c.prizesOn)vals.push(r.prize||(r.qual?'—':'poza klasyfikacją'));
+    vals.forEach(function(v,k){x.font=(k<=2?'600 ':'400 ')+'26px '+F;ctFitText(x,v,cx3+16,y+35,cols[k][1]-24);cx3+=cols[k][1]});
+    y+=52;
+  });
+  y+=40;
+  var outN=res.rows.length-res.rows.filter(function(r){return r.qual}).length;
+  x.fillStyle='#4a5468';x.font='400 26px '+F;
+  if(outN){x.fillText('Poza klasyfikacją: '+outN+' os.'+(c.thresholdOn?' (poniżej progu '+ctFmtScore(c,+c.threshold)+')':''),M,y);y+=40;}
+  // rozstrzygnięcie
+  var winners=res.rows.filter(function(r){return r.prize});
+  var txt=winners.length?'Nagrody otrzymują: '+winners.map(function(r){return (r.place&&c.prizeType!=='goal'?r.place+'. ':'')+r.n+' — '+r.prize}).join('; ')+'.':'Żaden z uczestników nie spełnił warunków nagrody.';
+  x.font='400 28px '+F;
+  var wl=ctWrap(x,txt,W-2*M-60);
+  ensure(wl.length*40+110+260);
+  y+=10;x.strokeStyle='#1f2433';x.lineWidth=3;x.strokeRect(M,y,W-2*M,wl.length*40+90);
+  x.fillStyle='#1f2433';x.font='700 32px '+F;x.fillText(st==='done'?'Rozstrzygnięcie':'Wyniki wstępne',M+30,y+48);
+  x.font='400 28px '+F;wl.forEach(function(l,j){x.fillText(l,M+30,y+92+j*40)});
+  y+=wl.length*40+90;
+  // podpisy
+  var sy=Math.max(y+200,H-330),sw=(W-2*M-120)/3;
+  x.strokeStyle='#1f2433';x.lineWidth=2;x.fillStyle='#4a5468';x.font='400 26px '+F;
+  [dip.signTitle||'Manager F&B','Dyrektor hotelu','Data i podpis odbioru nagród'].forEach(function(t,i){
+    var sx=M+i*(sw+60);x.beginPath();x.moveTo(sx,sy);x.lineTo(sx+sw,sy);x.stroke();x.fillText(t,sx,sy+40);
+  });
+  footer();
+  return pages;
+}
+
+// ── DYPLOMY (A4 poziomo, ~212 dpi) ──
+var CT_DIP_FONTS_URL='https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap';
+function ctDipFonts(sample){
+  if(!document.getElementById('ct-dip-fonts')){
+    var l=document.createElement('link');l.id='ct-dip-fonts';l.rel='stylesheet';l.href=CT_DIP_FONTS_URL;document.head.appendChild(l);
+  }
+  if(!document.fonts||!document.fonts.load)return Promise.resolve();
+  var txt='DYPLOM ąćęłńóśźżĄĆĘŁŃÓŚŹŻ '+(sample||'');
+  var all=Promise.all([
+    document.fonts.load('700 100px Cinzel',txt),document.fonts.load('500 60px Cinzel',txt),
+    document.fonts.load('100px "Great Vibes"',txt),
+    document.fonts.load('italic 500 60px "Cormorant Garamond"',txt),document.fonts.load('600 60px "Cormorant Garamond"',txt)
+  ]).catch(function(){});
+  return Promise.race([all,new Promise(function(r){setTimeout(r,5000)})]);
+}
+function ctDipEntry(c,res,r){
+  var shared=r.place&&res.rows.filter(function(x){return x.place===r.place}).length>1;
+  var line,seal,sealSub,medal;
+  if(r.qual&&c.prizeType==='goal'&&c.prizesOn){line='za osiągnięcie celu sprzedażowego';seal='★';sealSub='CEL';medal='gold';}
+  else if(r.qual&&r.place){line='za zajęcie '+(CT_ROMAN[r.place]||r.place)+' miejsca'+(shared?' ex aequo':'');seal=CT_ROMAN[r.place]||String(r.place);sealSub='MIEJSCE';medal=r.place===1?'gold':r.place===2?'silver':r.place===3?'bronze':'red';}
+  else {line='za udział';seal='★';sealSub='UDZIAŁ';medal='red';}
+  return {name:r.n,line:line,seal:seal,sealSub:sealSub,medal:medal,score:ctFmtScore(c,r.score).replace(/ /g,' '),prize:r.prize||''};
+}
+var CT_MEDALS={gold:['#fbe7a6','#e3b94f','#a87a1f','#7a5512'],silver:['#f7f9fb','#c9d0d9','#8e98a5','#5d6672'],bronze:['#f6d2ad','#d39a63','#9c5f2c','#6b3c17'],red:['#f08a8a','#c43a3a','#8c1d1d','#5e0e0e']};
+function ctDipDraw(cv,c,e,opt,logo){
+  var W=2480,H=1754;cv.width=W;cv.height=H;
+  var x=cv.getContext('2d'),gold='#a8833a',goldD='#7d5f22',ink='#2b2620';
+  var SERIF='"Cormorant Garamond", Georgia, "Times New Roman", serif',CAPS='Cinzel, "Trajan Pro", Georgia, serif',SCRIPT='"Great Vibes", "Brush Script MT", "Segoe Script", cursive';
+  // tło
+  var bg=x.createRadialGradient(W/2,H/2,200,W/2,H/2,W*0.7);bg.addColorStop(0,'#fffdf7');bg.addColorStop(1,'#f5efdf');
+  x.fillStyle=bg;x.fillRect(0,0,W,H);
+  // delikatne fale w tle (giloszowanie)
+  x.lineWidth=1.2;
+  for(var k=0;k<46;k++){
+    x.strokeStyle='rgba(168,131,58,'+(0.05+0.03*(k%3===0))+')';x.beginPath();
+    for(var px=230;px<=W-230;px+=8){var py=300+k*26+Math.sin(px/90+k*0.55)*14+Math.sin(px/37+k)*4;px===230?x.moveTo(px,py):x.lineTo(px,py)}
+    x.stroke();
+  }
+  // pas obramowania: giloszowana siatka z dwóch rodzin sinusoid
+  var O=70,B=118;
+  function bandH(y0,flip){
+    for(var f=0;f<2;f++)for(var n=0;n<9;n++){
+      x.strokeStyle=f?'rgba(168,131,58,.55)':'rgba(125,95,34,.45)';x.lineWidth=1.6;x.beginPath();
+      for(var t=O;t<=W-O;t+=4){var a=(B/2-8)*Math.sin((t-O)/38+n*0.698+(f?Math.PI:0));var yy=y0+B/2+a*(flip?-1:1);t===O?x.moveTo(t,yy):x.lineTo(t,yy)}
+      x.stroke();
+    }
+  }
+  function bandV(x0){
+    for(var f=0;f<2;f++)for(var n=0;n<9;n++){
+      x.strokeStyle=f?'rgba(168,131,58,.55)':'rgba(125,95,34,.45)';x.lineWidth=1.6;x.beginPath();
+      for(var t=O;t<=H-O;t+=4){var a=(B/2-8)*Math.sin((t-O)/38+n*0.698+(f?Math.PI:0));var xx=x0+B/2+a;t===O?x.moveTo(xx,t):x.lineTo(xx,t)}
+      x.stroke();
+    }
+  }
+  x.save();x.beginPath();x.rect(O,O,W-2*O,H-2*O);x.rect(O+B,O+B,W-2*(O+B),H-2*(O+B));x.clip('evenodd');
+  x.fillStyle='#f8f0da';x.fillRect(O,O,W-2*O,H-2*O);
+  bandH(O,false);bandH(H-O-B,true);bandV(O);bandV(W-O-B);
+  x.restore();
+  // linie ramek
+  function rect(m,lw,col){x.strokeStyle=col;x.lineWidth=lw;x.strokeRect(m,m,W-2*m,H-2*m)}
+  rect(O-22,10,goldD);rect(O-6,2.5,gold);rect(O+B+6,2.5,gold);rect(O+B+20,6,goldD);
+  // narożne rozety
+  function rosette(cx,cy){
+    x.save();x.translate(cx,cy);
+    x.fillStyle='#fbf6e8';x.beginPath();x.arc(0,0,74,0,6.283);x.fill();
+    x.strokeStyle=goldD;x.lineWidth=4;x.stroke();
+    x.strokeStyle=gold;x.lineWidth=2;x.beginPath();x.arc(0,0,60,0,6.283);x.stroke();
+    for(var i=0;i<12;i++){x.save();x.rotate(i*Math.PI/6);x.beginPath();x.ellipse(0,-34,10,24,0,0,6.283);x.fillStyle=i%2?'rgba(168,131,58,.55)':'rgba(125,95,34,.75)';x.fill();x.restore()}
+    x.fillStyle=goldD;x.beginPath();x.arc(0,0,11,0,6.283);x.fill();
+    x.restore();
+  }
+  var rc=O+B/2;rosette(rc,rc);rosette(W-rc,rc);rosette(rc,H-rc);rosette(W-rc,H-rc);
+  // logo / nazwa hotelu
+  var cxm=W/2;
+  if(logo){
+    var bw=640,bh=160,s=Math.min(bw/logo.width,bh/logo.height,1.6),lw=logo.width*s,lh=logo.height*s;
+    x.drawImage(logo,cxm-lw/2,236+(bh-lh)/2,lw,lh);
+  } else if(opt.hotel){
+    x.fillStyle=goldD;x.font='500 46px '+CAPS;x.textAlign='center';x.fillText(opt.hotel.toUpperCase(),cxm,350);
+  }
+  // ornament nad tytułem
+  function flourish(cy,wd){
+    x.strokeStyle=gold;x.lineWidth=3;x.fillStyle=gold;
+    [-1,1].forEach(function(d){
+      x.beginPath();x.moveTo(cxm+d*26,cy);x.bezierCurveTo(cxm+d*90,cy-26,cxm+d*150,cy+22,cxm+d*wd,cy);x.stroke();
+      x.beginPath();x.moveTo(cxm+d*70,cy-5);x.bezierCurveTo(cxm+d*100,cy-30,cxm+d*140,cy-28,cxm+d*150,cy-11);x.stroke();
+      x.beginPath();x.arc(cxm+d*(wd+10),cy,6,0,6.283);x.fill();
+    });
+    x.save();x.translate(cxm,cy);x.rotate(Math.PI/4);x.fillRect(-11,-11,22,22);x.restore();
+  }
+  flourish(432,230);
+  // tytuł
+  x.textAlign='center';
+  var tg=x.createLinearGradient(cxm-520,0,cxm+520,0);tg.addColorStop(0,'#8a6526');tg.addColorStop(0.45,'#d1ab5c');tg.addColorStop(0.55,'#c69a45');tg.addColorStop(1,'#7d5a1d');
+  x.fillStyle=tg;x.font='700 176px '+CAPS;
+  if('letterSpacing' in x){x.letterSpacing='22px';x.fillText('DYPLOM',cxm+11,605);x.letterSpacing='0px';}
+  else x.fillText('D Y P L O M',cxm,605);
+  // separator
+  x.strokeStyle=gold;x.lineWidth=2;x.beginPath();x.moveTo(cxm-420,652);x.lineTo(cxm-30,652);x.moveTo(cxm+30,652);x.lineTo(cxm+420,652);x.stroke();
+  x.fillStyle=gold;x.save();x.translate(cxm,652);x.rotate(Math.PI/4);x.fillRect(-9,-9,18,18);x.restore();
+  x.fillStyle='#5b4a28';x.font='italic 500 60px '+SERIF;x.fillText('przyznany',cxm,735);
+  // imię i nazwisko
+  var ns=160;x.font=ns+'px '+SCRIPT;
+  while(x.measureText(e.name).width>1700&&ns>90){ns-=6;x.font=ns+'px '+SCRIPT;}
+  x.fillStyle=ink;x.fillText(e.name,cxm,885);
+  x.strokeStyle=gold;x.lineWidth=2;x.beginPath();x.moveTo(cxm-700,915);x.lineTo(cxm+700,915);x.stroke();
+  x.fillStyle=ink;x.font='600 70px '+SERIF;x.fillText(e.line,cxm,1000);
+  x.fillStyle='#4a3f2a';x.font='italic 500 54px '+SERIF;x.fillText('w konkursie sprzedażowym',cxm,1066);
+  x.fillStyle=goldD;x.font='600 60px '+CAPS;
+  var cl=ctWrap(x,'„'+c.name+'"',1700).slice(0,2),yy=1148;
+  cl.forEach(function(l){x.fillText(l,cxm,yy);yy+=70});
+  x.fillStyle='#4a3f2a';x.font='500 46px '+SERIF;
+  x.fillText(c.start===c.end?'rozegranym '+ctFmt(c.start):'rozegranym w dniach '+ctFmt(c.start)+' – '+ctFmt(c.end),cxm,yy-4);yy+=60;
+  var extra=[];
+  if(opt.showScore&&e.score)extra.push('Wynik: '+e.score);
+  if(opt.showPrize&&e.prize)extra.push('Nagroda: '+e.prize);
+  if(extra.length){x.fillStyle='#6b5a35';x.font='italic 500 44px '+SERIF;ctFitText(x,extra.join('  ·  '),cxm,yy,1500);}
+  // podpisy
+  var ly=1450,lw2=470;
+  x.strokeStyle=goldD;x.lineWidth=2.5;
+  [[640,opt.date?ctFmt(opt.date):'','DATA',false],[W-640,opt.signName||'',(opt.signTitle||'PODPIS').toUpperCase(),true]].forEach(function(s){
+    x.beginPath();x.moveTo(s[0]-lw2/2,ly);x.lineTo(s[0]+lw2/2,ly);x.stroke();
+    if(s[1]){
+      x.fillStyle=ink;var fs=s[3]?72:50;x.font=s[3]?(fs+'px '+SCRIPT):('500 '+fs+'px '+SERIF);
+      while(x.measureText(s[1]).width>lw2+40&&fs>34){fs-=3;x.font=s[3]?(fs+'px '+SCRIPT):('500 '+fs+'px '+SERIF);}
+      ctFitText(x,s[1],s[0],ly-20,lw2+60);
+    }
+    x.fillStyle='#5b4a28';x.font='500 30px '+CAPS;
+    if('letterSpacing' in x){x.letterSpacing='5px';x.fillText(s[2],s[0]+2,ly+52);x.letterSpacing='0px';}else x.fillText(s[2],s[0],ly+52);
+  });
+  // pieczęć / medal
+  var mc=CT_MEDALS[e.medal]||CT_MEDALS.red,sx=cxm,sy=1478,R=128;
+  if(e.medal!=='red'){
+    x.fillStyle=mc[2];
+    [[-1],[1]].forEach(function(d){d=d[0];x.beginPath();x.moveTo(sx+d*30,sy+60);x.lineTo(sx+d*95,sy+R+105);x.lineTo(sx+d*62,sy+R+82);x.lineTo(sx+d*40,sy+R+120);x.lineTo(sx+d*-15,sy+70);x.closePath();x.fill();});
+  }
+  x.save();x.shadowColor='rgba(60,40,10,.35)';x.shadowBlur=18;x.shadowOffsetY=6;
+  x.beginPath();
+  for(var a=0;a<=360;a+=2){var rad=a*Math.PI/180,rr=R+(e.medal==='red'?7*Math.sin(rad*11)+4*Math.sin(rad*29):6*Math.sin(rad*24));var qx=sx+rr*Math.cos(rad),qy=sy+rr*Math.sin(rad);a===0?x.moveTo(qx,qy):x.lineTo(qx,qy)}
+  x.closePath();
+  var sg=x.createRadialGradient(sx-40,sy-50,10,sx,sy,R+10);sg.addColorStop(0,mc[0]);sg.addColorStop(0.55,mc[1]);sg.addColorStop(1,mc[2]);
+  x.fillStyle=sg;x.fill();x.restore();
+  x.strokeStyle=mc[3];x.globalAlpha=.55;x.lineWidth=3;x.beginPath();x.arc(sx,sy,R-24,0,6.283);x.stroke();x.globalAlpha=1;
+  // wieniec laurowy
+  x.fillStyle=mc[3];x.globalAlpha=.6;
+  [-1,1].forEach(function(d){
+    for(var i=0;i<8;i++){var ang=Math.PI/2+d*(0.95+i*0.2),lx=sx+(R-44)*Math.cos(ang),lyy=sy+(R-44)*Math.sin(ang);
+      x.save();x.translate(lx,lyy);x.rotate(ang+d*0.9);x.beginPath();x.ellipse(0,0,6,15,0,0,6.283);x.fill();x.restore();}
+  });
+  x.globalAlpha=1;
+  x.fillStyle=e.medal==='red'?'#fff1ea':mc[3];x.textAlign='center';
+  x.font='700 '+(e.seal.length>3?58:78)+'px '+CAPS;x.fillText(e.seal,sx,sy+(e.seal==='★'?8:12));
+  x.font='600 20px '+CAPS;
+  if('letterSpacing' in x){x.letterSpacing='3px';x.fillText(e.sealSub,sx+1.5,sy+50);x.letterSpacing='0px';}else x.fillText(e.sealSub,sx,sy+50);
+  x.textAlign='left';
+}
+// ── OKNO DYPLOMÓW ──
+function ctDipOpen(id){
+  var c=ctGet(id);if(!c)return;
+  var res=ctResult(c),sel={};
+  var winners=res.rows.filter(function(r){return r.prize});
+  (winners.length?winners:res.rows.filter(function(r){return r.qual}).slice(0,3)).forEach(function(r){sel[r.n]=true});
+  S._ctDip={id:id,sel:sel,date:(c.frozen&&c.frozen.at)?ctISO(new Date(c.frozen.at)):(ctToday()>c.end?ctToday():c.end),idx:0};
+  ctDipRender();openM('m-ct-diploma');
+  ctDipFonts().then(ctDipPreview);
+}
+function ctDipRows(){var d=S._ctDip,c=ctGet(d.id);return ctResult(c).rows}
+function ctDipSelected(){var d=S._ctDip;return ctDipRows().filter(function(r){return d.sel[r.n]})}
+function ctDipRender(){
+  var d=S._ctDip,c=ctGet(d.id);if(!c)return;
+  var rows=ctDipRows(),s=ctDipGet(),selN=ctDipSelected().length;
+  var h='<div class="ct-dip"><div class="ct-dip-side">';
+  h+='<div class="fsect" style="margin-bottom:6px">Dla kogo</div><div class="ct-chips" style="margin-bottom:8px">';
+  [['win','Laureaci'],['qual','W klasyfikacji'],['all','Wszyscy'],['none','Nikt']].forEach(function(b){h+='<button type="button" class="btn btn-s btn-sm" onclick="ctDipQuick(\''+b[0]+'\')">'+b[1]+'</button>'});
+  h+='</div><div class="ct-dip-list">';
+  rows.forEach(function(r,i){
+    h+='<label class="ct-dip-row"><input type="checkbox" '+(d.sel[r.n]?'checked':'')+' onchange="ctDipToggle('+i+',this.checked)"><span class="ct-dip-pl">'+(r.place||'—')+'</span><span class="ct-dip-n">'+esc(r.n)+'<small>'+ctFmtScore(c,r.score)+(r.prize?' · '+esc(r.prize):'')+'</small></span></label>';
+  });
+  if(!rows.length)h+='<p class="de-empty">Brak uczestników z wynikiem.</p>';
+  h+='</div>';
+  h+='<div class="fsect" style="margin:14px 0 6px">Treść i podpis</div>';
+  h+='<div class="ct-dip-grid"><div class="fg"><label for="ctd-date">Data na dyplomie</label><input type="date" class="fi" id="ctd-date" value="'+d.date+'" onchange="S._ctDip.date=this.value;ctDipPreview()"></div>';
+  h+='<div class="fg"><label for="ctd-hotel">Nazwa hotelu</label><input class="fi" id="ctd-hotel" value="'+escAttr(s.hotel||ctPropName())+'" oninput="ctDipSet(\'hotel\',this.value)"></div>';
+  h+='<div class="fg"><label for="ctd-st">Podpis — funkcja</label><input class="fi" id="ctd-st" value="'+escAttr(s.signTitle||'')+'" placeholder="np. Manager F&amp;B" oninput="ctDipSet(\'signTitle\',this.value)"></div>';
+  h+='<div class="fg"><label for="ctd-sn">Podpis — imię i nazwisko</label><input class="fi" id="ctd-sn" value="'+escAttr(s.signName||'')+'" placeholder="opcjonalnie" oninput="ctDipSet(\'signName\',this.value)"></div></div>';
+  h+='<label class="ct-dip-chk"><input type="checkbox" '+(s.showScore?'checked':'')+' onchange="ctDipSet(\'showScore\',this.checked)"> Pokaż wynik</label>';
+  h+='<label class="ct-dip-chk"><input type="checkbox" '+(s.showPrize?'checked':'')+' onchange="ctDipSet(\'showPrize\',this.checked)"> Pokaż nagrodę</label>';
+  h+='<div class="fsect" style="margin:14px 0 6px">Logo hotelu</div>';
+  h+='<div class="ct-dip-logo">'+(s.logo?'<img src="'+s.logo+'" alt="Logo hotelu">':'<span class="hs-p" style="margin:0">Brak logo — na dyplomie pojawi się nazwa hotelu.</span>')+'</div>';
+  h+='<div class="ct-chips"><button type="button" class="btn btn-s btn-sm" onclick="document.getElementById(\'ctd-logo\').click()">📁 '+(s.logo?'Zmień logo':'Wgraj logo')+'</button>'+(s.logo?'<button type="button" class="btn btn-s btn-sm" onclick="ctDipSet(\'logo\',null,true)">Usuń logo</button>':'')+'<input type="file" id="ctd-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="ctDipLogo(this)"></div>';
+  h+='<p class="hs-p" style="margin:6px 0 0">Najlepiej PNG z przezroczystym tłem. Logo i podpis zapamiętują się dla całego obiektu.</p>';
+  h+='</div><div class="ct-dip-main"><div class="ct-dip-prev"><canvas id="ctd-canvas" width="2480" height="1754"></canvas></div>';
+  h+='<div class="ct-dip-nav"><button class="btn btn-s btn-sm" onclick="ctDipNav(-1)" aria-label="Poprzedni dyplom">◀</button><span id="ctd-cap"></span><button class="btn btn-s btn-sm" onclick="ctDipNav(1)" aria-label="Następny dyplom">▶</button></div>';
+  h+='<div class="fa"><button class="btn btn-p" onclick="ctDipMake(\'pdf\')"'+(selN?'':' disabled')+'>📄 Pobierz PDF ('+selN+')</button><button class="btn btn-s" onclick="ctDipMake(\'print\')"'+(selN?'':' disabled')+'>🖨️ Drukuj</button></div>';
+  h+='</div></div>';
+  document.getElementById('ct-dip-body').innerHTML=h;
+  document.getElementById('ct-dip-title').textContent='🎓 Dyplomy — '+c.name;
+}
+function ctDipToggle(i,on){var r=ctDipRows()[i];if(!r)return;S._ctDip.sel[r.n]=on;if(!on)delete S._ctDip.sel[r.n];S._ctDip.idx=0;ctDipRender();ctDipPreview()}
+function ctDipQuick(k){
+  var d=S._ctDip,rows=ctDipRows();d.sel={};
+  rows.forEach(function(r){if(k==='all'||(k==='qual'&&r.qual)||(k==='win'&&r.prize))d.sel[r.n]=true});
+  d.idx=0;ctDipRender();ctDipPreview();
+}
+function ctDipSet(k,v,rerender){var s=ctDipGet();s[k]=v;ctDipSave(s);if(rerender)ctDipRender();clearTimeout(S._ctDipT);S._ctDipT=setTimeout(ctDipPreview,250)}
+function ctDipNav(dir){var n=ctDipSelected().length;if(!n)return;S._ctDip.idx=(S._ctDip.idx+dir+n)%n;ctDipPreview()}
+function ctDipLogo(input){
+  var f=input.files&&input.files[0];input.value='';if(!f)return;
+  if(f.size>8*1024*1024){toast('Plik jest za duży (max 8 MB)','er');return;}
+  var rd=new FileReader();
+  rd.onload=function(ev){
+    ctLoadImg(ev.target.result).then(function(img){
+      if(!img){toast('Nie udało się odczytać obrazu','er');return;}
+      var maxW=900,maxH=360,url=null;
+      for(var tries=0;tries<4;tries++){
+        var s=Math.min(1,maxW/img.width,maxH/img.height),cv=document.createElement('canvas');
+        cv.width=Math.max(1,Math.round(img.width*s));cv.height=Math.max(1,Math.round(img.height*s));
+        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+        url=cv.toDataURL('image/png');
+        if(url.length<650000)break;
+        maxW=Math.round(maxW*0.7);maxH=Math.round(maxH*0.7);
+      }
+      ctDipSet('logo',url,true);toast('Zapisano logo hotelu','ok');
+    });
+  };
+  rd.readAsDataURL(f);
+}
+function ctDipOpts(){var s=ctDipGet();return {hotel:s.hotel||ctPropName(),signTitle:s.signTitle,signName:s.signName,showScore:s.showScore,showPrize:s.showPrize,date:S._ctDip.date}}
+function ctDipPreview(){
+  var cv=document.getElementById('ctd-canvas'),cap=document.getElementById('ctd-cap');if(!cv||!S._ctDip)return;
+  var c=ctGet(S._ctDip.id),res=ctResult(c),list=ctDipSelected();
+  if(!list.length){var x=cv.getContext('2d');x.fillStyle='#f5f1e6';x.fillRect(0,0,cv.width,cv.height);x.fillStyle='#8b7a55';x.font='60px Georgia, serif';x.textAlign='center';x.fillText('Zaznacz osoby, dla których przygotować dyplom',cv.width/2,cv.height/2);if(cap)cap.textContent='Brak wybranych osób';return;}
+  var i=Math.min(S._ctDip.idx,list.length-1),r=list[i];
+  ctLoadImg(ctDipGet().logo).then(function(logo){
+    ctDipFonts(r.n+c.name).then(function(){ctDipDraw(cv,c,ctDipEntry(c,res,r),ctDipOpts(),logo)});
+  });
+  if(cap)cap.textContent='Podgląd: '+r.n+' ('+(i+1)+' z '+list.length+')';
+}
+function ctDipMake(mode){
+  var c=ctGet(S._ctDip.id),res=ctResult(c),list=ctDipSelected();if(!list.length)return;
+  toast('Przygotowuję '+list.length+' dyplom(ów)…','in');
+  ctLoadImg(ctDipGet().logo).then(function(logo){
+    ctDipFonts(list.map(function(r){return r.n}).join(' ')+c.name).then(function(){
+      try{
+        var urls=list.map(function(r){var cv=document.createElement('canvas');ctDipDraw(cv,c,ctDipEntry(c,res,r),ctDipOpts(),logo);return cv.toDataURL('image/jpeg',0.9)});
+        if(mode==='print')ctPrintImages(urls,true);
+        else ctSavePDF(urls,true,'Dyplomy_'+ctFileSafe(c.name)+'.pdf');
+        logAudit(S.pid,'contest','Dyplomy ('+list.length+'): '+c.name);
+      }catch(e){console.error(e);toast('Błąd dyplomu: '+e.message,'er')}
+    });
+  });
+}
+
 function renderEmployees(){
   var el=document.getElementById('v-employees');if(!el)return;
   if(!S.pid||!S.outlets.length){el.innerHTML=emptyStateHTML('👥','Brak obiektu lub outletów','Dodaj obiekt i outlety, aby analizować sprzedaż pracowników.','',''); return;}
@@ -9489,8 +11587,12 @@ function renderEmployees(){
   }
   h+='</div></div>';
 
+  // ── KONKURSY ──
+  h+='<div id="emp-contests" style="display:'+(t==='contests'?'block':'none')+'"></div>';
+
   h+='</div>';
   el.innerHTML=h;
+  if(t==='contests')renderContests();
   if(t==='ranking')empStatsRun();
   else if(t==='card')empCardRun();
   else if(t==='matrix')empMatrixRun();
@@ -9501,7 +11603,8 @@ function renderEmployees(){
 }
 function switchEmpTab(tab,btn){
   S._empTab=tab;
-  ['ranking','card','matrix','trend','bills','disc','pay'].forEach(function(x){var e=document.getElementById('emp-'+x);if(e)e.style.display=x===tab?'block':'none'});
+  ['ranking','card','matrix','trend','bills','disc','pay','contests'].forEach(function(x){var e=document.getElementById('emp-'+x);if(e)e.style.display=x===tab?'block':'none'});
+  if(tab==='contests')renderContests();
   document.querySelectorAll('#emptabs .tab').forEach(function(b){b.classList.remove('on')});
   if(btn)btn.classList.add('on');
   scrollActiveTabIntoView(btn);
@@ -9610,6 +11713,7 @@ function empCardRun(){
     });
     h+='</tbody></table></div>';
   }
+  h+=ctEmpBadgesHTML(name);
   res.innerHTML=h;
   haptic(8);
 }
@@ -11390,7 +13494,8 @@ function clearPropTransientState(){
    '_msalesParsed','_msalesRawInput','_msalesTargetMonth','_msalesViewMonth','_msalesModalOutlet','_msalesModalOutletId','_msalesModalMonth','_msalesToMiesieczneCtx',
    '_monthlyHosposParsed','_dailyHosposParsed','_dailyHosposDateNote','_kpiPrev','_tableExpanded',
    '_empTab','_pgMonth','_patOutlet','_patMonths','_perfParsed','_perfMonth','_perfViewMonth',
-   '_monthlyExcelPending','_msalesDraftInfo'
+   '_monthlyExcelPending','_msalesDraftInfo',
+   '_ctView','_ctOpen','_ctDraft','_ctEditId','_ctUnlocked','_ctCat','_ctTreeQ','_ctTreeOpen','_ctEmpQ','_ctFilter','_ctPasteMsgs','_ctDip','_ctRankAll','_ctPointList'
   ].forEach(function(k){S[k]=null});
   _mcPending=null;
   dChart('emp-trend-chart'); // wykres należy do poprzedniego obiektu
