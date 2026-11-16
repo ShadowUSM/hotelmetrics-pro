@@ -1285,10 +1285,18 @@ span.ct-tr-name{cursor:default;font-weight:400}
 .ct-dip-grid .fg{margin-bottom:0}
 .ct-dip-chk{display:inline-flex;gap:6px;align-items:center;font-size:.76rem;margin:10px 14px 0 0;cursor:pointer}
 .ct-dip-logo{min-height:64px;display:flex;align-items:center;justify-content:center;padding:8px;border:1px dashed var(--brd2);border-radius:10px;margin-bottom:8px;background:#fbf8f0}
-.ct-dip-logo img{max-height:80px;max-width:100%}
+.ct-dip-logos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.ct-dip-logos .ct-dip-logo{margin:0;flex-direction:column;gap:6px;min-height:96px}
+.ct-dip-logos figcaption{font-size:.62rem;color:#6b5a35}
+.ct-dip-logo-dk{background:#152240!important;border-color:#152240!important}
+.ct-dip-logo-dk figcaption,.ct-dip-logo-dk .hs-p{color:#d6ccb4!important}
+.ct-dip-logo-pill{background:#faf6ec;border-radius:8px;padding:4px 8px;display:flex}
+.ct-dip-logo-pill img{max-height:60px}
+.ct-dip-logo img{max-height:70px;max-width:100%}
 .ct-dip-logo .hs-p{color:#6b5a35}
 .ct-dip-prev{border-radius:8px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.22)}
-.ct-dip-tpls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.ct-dip-tpls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+@media(max-width:900px){.ct-dip-tpls{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .ct-dip-tpl{border:2px solid var(--brd);border-radius:12px;background:var(--sur2);padding:6px 6px 8px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px;font:inherit;color:var(--tx);min-width:0}
 .ct-dip-tpl canvas{display:block;width:100%;height:auto;border-radius:6px;background:#f5f1e6;aspect-ratio:2480/1754}
 .ct-dip-tpl strong{font-size:.76rem;padding:2px 2px 0}
@@ -5001,7 +5009,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.12.2';
+var APP_VERSION='3.13.0';
 var APP_BUILD_DATE='2026-11-10';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -5010,6 +5018,11 @@ var APP_BUILD_DATE='2026-11-10';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.13.0',date:'2026-11-16',changes:[
+    'Logo hotelu: po wgraniu aplikacja sama usuwa jednolite tło (np. białe w JPG), przycina marginesy i przygotowuje dwie wersje — ciemną na jasne tło i jasną na ciemne tło; logo wgrane wcześniej przetwarza się przy pierwszym użyciu',
+    'Nowy, czwarty szablon dyplomu „Granatowa noc” (ciemne tło, złote ramki, jasne logo); w oknie dyplomów podgląd obu wersji logo',
+    'Grafika posta w motywie Nocnym używa jasnego logo bez białej podkładki'
+  ]},
   {v:'3.12.2',date:'2026-11-16',changes:[
     'Post — Social Media: po 10 gotowych haseł motywacyjnych na każdy etap konkursu (110) + po 5 haseł na sytuację w rankingu (wyrównana walka, uciekający lider, wiele osób pod progiem)',
     'Moje hasła: dodawanie własnych haseł pojedynczo lub wiele naraz (każde w nowej linii, numery i punktory usuwane automatycznie), przypisanie do etapu, użycie jednym kliknięciem, usuwanie z cofnięciem; własne hasła i hashtagi zapisują się dla obiektu i synchronizują między urządzeniami'
@@ -11091,10 +11104,13 @@ function ctpBackground(x,T,W,H,m,P){
 }
 function ctpTopBar(x,T,P,W,y,m,logo){
   var h=52;
-  if(logo&&logo.width){
-    var s=Math.min(190/logo.width,(h-(T.shadow?0:12))/logo.height),lw=logo.width*s,lh=logo.height*s;
-    if(!T.shadow){x.fillStyle='rgba(255,255,255,.94)';ctpRR(x,P-12,y-2,lw+24,h+4,14);x.fill();}
-    x.drawImage(logo,P,y+(h-lh)/2,lw,lh);
+  var lg=null,pill=false;
+  if(logo&&(logo.d!==undefined||logo.l!==undefined)){if(T.shadow)lg=logo.d||logo.l;else if(logo.l)lg=logo.l;else{lg=logo.d;pill=true}}
+  else if(logo&&logo.width){lg=logo;pill=!T.shadow}
+  if(lg&&lg.width){
+    var s=Math.min(200/lg.width,(h-(pill?12:0))/lg.height),lw=lg.width*s,lh=lg.height*s;
+    if(pill){x.fillStyle='rgba(255,255,255,.94)';ctpRR(x,P-12,y-2,lw+24,h+4,14);x.fill();}
+    x.drawImage(lg,P,y+(h-lh)/2,lw,lh);
   }
   else{x.fillStyle=T.mu;ctpFont(x,600,22);ctpLS(x,4);x.textBaseline='middle';x.fillText(ctpClip(x,String(m.hotel||'').toUpperCase(),W/2-P),P,y+h/2+1);ctpLS(x,0);}
   var pc=T.pills[m.statusKind]||T.pills.run;
@@ -11668,7 +11684,7 @@ function ctPostOpen(id){
     else history.pushState({hmModal:'m-ct-post'},'',location.href);
   } else openM('m-ct-post');
   ctPostRender();
-  ctLoadImg(ctDipGet().logo).then(function(img){if(S._ctPost!==P)return;P.logo=img;ctPostRender()});
+  ctLogoPair().then(function(pair){if(S._ctPost!==P)return;P.logo=pair;ctPostRender()});
 }
 function ctPostRender(){
   var P=S._ctPost,c=P&&ctGet(P.id);if(!c)return;
@@ -12221,7 +12237,8 @@ var CT_MEDALS={gold:['#fbe7a6','#e3b94f','#a87a1f','#7a5512'],silver:['#f7f9fb',
 var CT_DIP_TPL={
   classic:{l:'Klasyczny złoty',d:'Kremowe tło, giloszowana ramka, rozety, pieczęć z wstęgą'},
   elegant:{l:'Elegancki',d:'Białe tło, brązowa ramka z ornamentami, złote akcenty'},
-  deco:{l:'Art déco',d:'Kość słoniowa, granatowa ramka ze schodkowymi narożnikami'}
+  deco:{l:'Art déco',d:'Kość słoniowa, granatowa ramka ze schodkowymi narożnikami'},
+  night:{l:'Granatowa noc',d:'Ciemny granat, złote ramki i jasne logo'}
 };
 var CT_DIP_F={
   SERIF:'"Cormorant Garamond", Georgia, "Times New Roman", serif',
@@ -12235,8 +12252,10 @@ function ctSpaced(x,txt,cx,y,sp){
 function ctDipDraw(cv,c,e,opt,logo){
   var W=2480,H=1754;cv.width=W;cv.height=H;
   var x=cv.getContext('2d'),tpl=CT_DIP_TPL[opt.tpl]?opt.tpl:'classic';
-  var th=tpl==='elegant'?ctDipFrameElegant(x,W,H):tpl==='deco'?ctDipFrameDeco(x,W,H):ctDipFrameClassic(x,W,H);
-  ctDipContent(x,W,H,c,e,opt,logo,th);
+  var th=tpl==='elegant'?ctDipFrameElegant(x,W,H):tpl==='deco'?ctDipFrameDeco(x,W,H):tpl==='night'?ctDipFrameNight(x,W,H):ctDipFrameClassic(x,W,H);
+  var lg=logo;
+  if(logo&&(logo.d!==undefined||logo.l!==undefined)){lg=th.dark?(logo.l||logo.d):(logo.d||logo.l);th.logoPill=!!(th.dark&&!logo.l&&logo.d);}
+  ctDipContent(x,W,H,c,e,opt,lg,th);
   if(tpl==='deco')ctDipSealDeco(x,W/2,1478,e,th);else ctDipSealMedal(x,W/2,th.sealY||1478,e,th);
   x.textAlign='left';
 }
@@ -12407,6 +12426,43 @@ function ctDipFrameDeco(x,W,H){
     sep:'double'
   };
 }
+// ── 4. GRANATOWA NOC (ciemne tło, jasne logo) ──
+function ctDipFrameNight(x,W,H){
+  var gold='#c9a55a',goldL='#e6cc8f',goldD='#9c7a35';
+  var bg=x.createRadialGradient(W/2,H*0.4,120,W/2,H/2,W*0.75);bg.addColorStop(0,'#22325a');bg.addColorStop(0.55,'#152240');bg.addColorStop(1,'#0a1122');
+  x.fillStyle=bg;x.fillRect(0,0,W,H);
+  // delikatne promienie i złoty pył
+  x.save();x.translate(W/2,250);
+  for(var i=0;i<40;i++){x.rotate(Math.PI/40);x.fillStyle=i%2?'rgba(230,204,143,.035)':'rgba(255,255,255,.012)';x.beginPath();x.moveTo(0,0);x.lineTo(-46,1700);x.lineTo(46,1700);x.closePath();x.fill();}
+  x.restore();
+  var sd=97;function rnd(){sd=(sd*16807)%2147483647;return sd/2147483647}
+  for(var k=0;k<220;k++){var px=150+rnd()*(W-300),py=150+rnd()*(H-300),cen=Math.abs(px-W/2)<760&&py>200&&py<1300;if(cen&&rnd()>.25)continue;x.fillStyle='rgba(230,204,143,'+(0.12+rnd()*0.3)+')';x.beginPath();x.arc(px,py,0.8+rnd()*2.2,0,6.283);x.fill();}
+  // ramki
+  x.strokeStyle=goldD;x.lineWidth=12;x.strokeRect(58,58,W-116,H-116);
+  x.strokeStyle=gold;x.lineWidth=3;x.strokeRect(86,86,W-172,H-172);
+  x.strokeStyle='rgba(201,165,90,.55)';x.lineWidth=1.5;x.strokeRect(106,106,W-212,H-212);
+  function corner(cx,cy,sx,sy){
+    x.save();x.translate(cx,cy);x.scale(sx,sy);
+    x.strokeStyle=goldL;x.lineWidth=3.5;x.beginPath();x.moveTo(0,170);x.lineTo(0,0);x.lineTo(170,0);x.stroke();
+    x.strokeStyle=gold;x.lineWidth=1.6;x.beginPath();x.moveTo(20,124);x.lineTo(20,20);x.lineTo(124,20);x.stroke();
+    x.beginPath();x.arc(0,0,58,0,Math.PI/2);x.stroke();x.beginPath();x.arc(0,0,72,0,Math.PI/2);x.stroke();
+    x.fillStyle=goldL;x.save();x.translate(40,40);x.rotate(Math.PI/4);x.fillRect(-10,-10,20,20);x.restore();
+    x.fillStyle='#152240';x.save();x.translate(40,40);x.rotate(Math.PI/4);x.fillRect(-4,-4,8,8);x.restore();
+    x.restore();
+  }
+  corner(132,132,1,1);corner(W-132,132,-1,1);corner(132,H-132,1,-1);corner(W-132,H-132,-1,-1);
+  x.fillStyle=gold;
+  x.save();x.translate(W/2,72);x.rotate(Math.PI/4);x.fillRect(-12,-12,24,24);x.restore(); // na dole jest wstęga pieczęci
+  return {
+    dark:true,ink:'#f4ecd8',sub:'#d6ccb4',soft:'#bdb197',label:goldL,line:gold,lineD:goldL,accent:goldL,hotel:goldL,
+    ornament:function(x,cx,cy){ctDipFlourish(x,cx,cy,230,gold)},
+    title:function(x,cx){var g=x.createLinearGradient(cx-520,0,cx+520,0);g.addColorStop(0,'#b0843a');g.addColorStop(0.45,'#f3dc9c');g.addColorStop(0.55,'#e2c27d');g.addColorStop(1,'#a8792c');return g},
+    titleFont:'700 176px '+CT_DIP_F.CAPS,titleSp:24,
+    granted:{text:'przyznany',font:'italic 500 60px '+CT_DIP_F.SERIF,sp:0},
+    name:{script:true,size:160,color:'#f7e7c0'},
+    ribbons:true,wax:true
+  };
+}
 function ctDipFan(x,cx,cy,gold,navy){
   x.save();x.translate(cx,cy);
   for(var i=0;i<=12;i++){var a=Math.PI+i*Math.PI/12;x.strokeStyle=i%2?gold:navy;x.lineWidth=i%2?2:3;x.beginPath();x.moveTo(Math.cos(a)*16,Math.sin(a)*16);x.lineTo(Math.cos(a)*(i%3===0?52:42),Math.sin(a)*(i%3===0?52:42));x.stroke();}
@@ -12423,6 +12479,7 @@ function ctDipContent(x,W,H,c,e,opt,logo,th){
   x.textAlign='center';
   if(logo){
     var bw=640,bh=160,s=Math.min(bw/logo.width,bh/logo.height,1.6),lw=logo.width*s,lh=logo.height*s;
+    if(th.logoPill){x.fillStyle='rgba(250,246,236,.96)';ctRoundRect(x,cxm-lw/2-36,236+(bh-lh)/2-22,lw+72,lh+44,26);x.fill();}
     x.drawImage(logo,cxm-lw/2,236+(bh-lh)/2,lw,lh);
   } else if(opt.hotel){
     x.fillStyle=th.hotel;x.font='500 46px '+F.CAPS;ctSpaced(x,opt.hotel.toUpperCase(),cxm,350,6);
@@ -12524,6 +12581,7 @@ function ctDipOpen(id){
   S._ctDip={id:id,sel:sel,date:(c.frozen&&c.frozen.at)?ctISO(new Date(c.frozen.at)):(ctToday()>c.end?ctToday():c.end),idx:0};
   ctDipRender();openM('m-ct-diploma');
   ctDipFonts().then(ctDipPreview);
+  var s0=ctDipGet();if(s0.logo&&!s0.logoV)ctLogoPair().then(function(){if(S._ctDip&&S._ctDip.id===id)ctDipRender()});
 }
 function ctDipRows(){var d=S._ctDip,c=ctGet(d.id);return ctResult(c).rows}
 function ctDipSelected(){var d=S._ctDip;return ctDipRows().filter(function(r){return d.sel[r.n]})}
@@ -12547,9 +12605,14 @@ function ctDipRender(){
   h+='<label class="ct-dip-chk"><input type="checkbox" '+(s.showScore?'checked':'')+' onchange="ctDipSet(\'showScore\',this.checked)"> Pokaż wynik</label>';
   h+='<label class="ct-dip-chk"><input type="checkbox" '+(s.showPrize?'checked':'')+' onchange="ctDipSet(\'showPrize\',this.checked)"> Pokaż nagrodę</label>';
   h+='<div class="fsect" style="margin:14px 0 6px">Logo hotelu</div>';
-  h+='<div class="ct-dip-logo">'+(s.logo?'<img src="'+s.logo+'" alt="Logo hotelu">':'<span class="hs-p" style="margin:0">Brak logo — na dyplomie pojawi się nazwa hotelu.</span>')+'</div>';
-  h+='<div class="ct-chips"><button type="button" class="btn btn-s btn-sm" onclick="document.getElementById(\'ctd-logo\').click()">📁 '+(s.logo?'Zmień logo':'Wgraj logo')+'</button>'+(s.logo?'<button type="button" class="btn btn-s btn-sm" onclick="ctDipSet(\'logo\',null,true)">Usuń logo</button>':'')+'<input type="file" id="ctd-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="ctDipLogo(this)"></div>';
-  h+='<p class="hs-p" style="margin:6px 0 0">Najlepiej PNG z przezroczystym tłem. Logo i podpis zapamiętują się dla całego obiektu.</p>';
+  if(s.logo){
+    var inf=s.logoInfo||{};
+    h+='<div class="ct-dip-logos"><figure class="ct-dip-logo"><img src="'+s.logo+'" alt="Logo na jasne tło"><figcaption>na jasne tło</figcaption></figure>';
+    h+='<figure class="ct-dip-logo ct-dip-logo-dk">'+(s.logoLight?'<img src="'+s.logoLight+'" alt="Logo na ciemne tło">':(s.logoV?'<span class="ct-dip-logo-pill"><img src="'+s.logo+'" alt="Logo na jasnej podkładce"></span>':'<span class="hs-p" style="margin:0">przygotuje się przy podglądzie</span>'))+'<figcaption>na ciemne tło</figcaption></figure></div>';
+    h+='<p class="hs-p" style="margin:6px 0 0">'+(inf.complex?'⚠️ Tła logo nie udało się usunąć automatycznie — na ciemnych tłach logo pojawi się na jasnej podkładce. Najlepiej wgraj PNG z przezroczystym tłem albo logo na jednolitym tle.':'Obie wersje przygotowują się automatycznie'+(inf.removed?' (tło usunięte)':'')+'. Jasna wersja trafia do szablonu „Granatowa noc” i grafik posta w motywie Nocnym.')+'</p>';
+  } else h+='<div class="ct-dip-logo"><span class="hs-p" style="margin:0">Brak logo — na dyplomie pojawi się nazwa hotelu.</span></div>';
+  h+='<div class="ct-chips"><button type="button" class="btn btn-s btn-sm" onclick="document.getElementById(\'ctd-logo\').click()">📁 '+(s.logo?'Zmień logo':'Wgraj logo')+'</button>'+(s.logo?'<button type="button" class="btn btn-s btn-sm" onclick="ctDipLogoDel()">Usuń logo</button>':'')+'<input type="file" id="ctd-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="ctDipLogo(this)"></div>';
+  h+='<p class="hs-p" style="margin:6px 0 0">PNG, JPG lub SVG — jednolite tło (np. białe) zostanie usunięte. Logo i podpis zapamiętują się dla całego obiektu.</p>';
   h+='</div><div class="ct-dip-main"><div class="fsect" style="margin-bottom:6px">Szablon</div><div class="ct-dip-tpls">';
   Object.keys(CT_DIP_TPL).forEach(function(k){
     var t=CT_DIP_TPL[k],on=(s.tpl||'classic')===k;
@@ -12571,6 +12634,87 @@ function ctDipQuick(k){
 }
 function ctDipSet(k,v,rerender){var s=ctDipGet();s[k]=v;ctDipSave(s);if(rerender)ctDipRender();clearTimeout(S._ctDipT);S._ctDipT=setTimeout(ctDipPreview,250)}
 function ctDipNav(dir){var n=ctDipSelected().length;if(!n)return;S._ctDip.idx=(S._ctDip.idx+dir+n)%n;ctDipPreview()}
+// ── LOGO: automatyczne wersje na jasne i ciemne tło ──
+// 1) tło: jeśli brzegi obrazu są jednolite (np. białe), zamieniamy ten kolor na przezroczystość
+//    metodą „color to alpha" (miękkie krawędzie zostają gładkie); przezroczyste PNG zostaje bez zmian;
+// 2) przycięcie pustych marginesów; 3) wersja ciemna (na jasne tło) i jasna (na ciemne tło):
+//    logo ciemne zostaje w oryginalnych kolorach, a jasna wersja to biała sylwetka — i odwrotnie.
+function ctLogoProcess(img,maxW,maxH){
+  maxW=maxW||900;maxH=maxH||360;
+  var s0=Math.min(1,1600/img.width,800/img.height),W=Math.max(1,Math.round(img.width*s0)),H=Math.max(1,Math.round(img.height*s0));
+  var cv=document.createElement('canvas');cv.width=W;cv.height=H;var x=cv.getContext('2d');x.drawImage(img,0,0,W,H);
+  var id=x.getImageData(0,0,W,H),d=id.data,n=W*H;
+  // brzegi
+  var border=[],bw=Math.max(1,Math.round(Math.min(W,H)*0.01));
+  for(var yy=0;yy<H;yy++)for(var xx=0;xx<W;xx++){if(xx>=bw&&xx<W-bw&&yy>=bw&&yy<H-bw){xx=W-bw-1;continue}border.push((yy*W+xx)*4)}
+  var transp=0;border.forEach(function(i){if(d[i+3]<24)transp++});
+  var info={bg:null,removed:false,complex:false};
+  if(transp/border.length<0.6){
+    var op=border.filter(function(i){return d[i+3]>=24}),ch=[[],[],[]];
+    op.forEach(function(i){ch[0].push(d[i]);ch[1].push(d[i+1]);ch[2].push(d[i+2])});
+    var med=ch.map(function(a){a.sort(function(p,q){return p-q});return a[a.length>>1]});
+    var near=0;op.forEach(function(i){if(Math.abs(d[i]-med[0])+Math.abs(d[i+1]-med[1])+Math.abs(d[i+2]-med[2])<60)near++});
+    if(near/op.length>0.9){
+      info.bg=med;info.removed=true;
+      // 1. krycie każdego piksela względem koloru tła („color to alpha")
+      var AA=new Float32Array(n),hist=new Uint32Array(101),cnt=0;
+      for(var p=0;p<n;p++){
+        var k=p*4;if(!d[k+3])continue;
+        var A=0;for(var c=0;c<3;c++){var v=d[k+c],B=med[c],t=v>B?(B<255?(v-B)/(255-B):0):(v<B?(B>0?(B-v)/B:0):0);if(t>A)A=t}
+        AA[p]=A;if(A>0.3){hist[Math.round(A*100)]++;cnt++}
+      }
+      // 2. poziom „pełnego" koloru logo (98. percentyl) — np. grafit na białym daje ~0,8; skalujemy do 100% krycia
+      var lvl=1;if(cnt){var acc=0,lim=cnt*0.98;for(var h2=0;h2<=100;h2++){acc+=hist[h2];if(acc>=lim){lvl=Math.max(0.3,h2/100);break}}}
+      for(var p2=0;p2<n;p2++){
+        var k2=p2*4,a0=d[k2+3]/255;if(!a0)continue;
+        var A2=Math.min(1,AA[p2]/lvl);
+        if(A2<0.06){d[k2+3]=0;continue}
+        for(var c2=0;c2<3;c2++){var nv=(d[k2+c2]-med[c2])/A2+med[c2];d[k2+c2]=nv<0?0:nv>255?255:nv}
+        d[k2+3]=Math.round(A2*a0*255);
+      }
+    } else info.complex=true;
+  }
+  // przycięcie
+  var x0=W,y0=H,x1=-1,y1=-1;
+  for(var q=0;q<n;q++){if(d[q*4+3]>10){var qx=q%W,qy=(q/W)|0;if(qx<x0)x0=qx;if(qx>x1)x1=qx;if(qy<y0)y0=qy;if(qy>y1)y1=qy}}
+  if(x1<0){x0=0;y0=0;x1=W-1;y1=H-1}
+  x.putImageData(id,0,0);
+  var pad=Math.round(Math.max(x1-x0,y1-y0)*0.02),cx0=Math.max(0,x0-pad),cy0=Math.max(0,y0-pad),cw=Math.min(W,x1+pad+1)-cx0,chh=Math.min(H,y1+pad+1)-cy0;
+  // jasność logo (średnia ważona kryciem)
+  var sum=0,wsum=0;
+  for(var r=0;r<n;r++){var kk=r*4,al=d[kk+3]/255;if(al<.1)continue;sum+=al*(0.2126*d[kk]+0.7152*d[kk+1]+0.0722*d[kk+2])/255;wsum+=al}
+  info.lum=wsum?sum/wsum:0.5;
+  function out(mode){ // mode: 'orig' | '#rrggbb' (jednolity kolor z zachowaniem krycia)
+    var sc=Math.min(1,maxW/cw,maxH/chh),ow=Math.max(1,Math.round(cw*sc)),oh=Math.max(1,Math.round(chh*sc));
+    var o=document.createElement('canvas');o.width=ow;o.height=oh;var ox=o.getContext('2d');
+    ox.imageSmoothingQuality='high';ox.drawImage(cv,cx0,cy0,cw,chh,0,0,ow,oh);
+    if(mode!=='orig'){ox.globalCompositeOperation='source-in';ox.fillStyle=mode;ox.fillRect(0,0,ow,oh);}
+    return o.toDataURL('image/png');
+  }
+  if(info.complex){ // tła nie da się usunąć — obie wersje to oryginał (na ciemnym tle w jasnej ramce)
+    var u=out('orig');return {dark:u,light:null,info:info};
+  }
+  var dark=info.lum<0.55?out('orig'):out('#23262e');
+  var light=info.lum>0.72?out('orig'):out('#ffffff');
+  return {dark:dark,light:light,info:info};
+}
+// wersje logo do zapisu w ustawieniach (dokument w chmurze ma limit ~1 MB — w razie potrzeby zmniejszamy)
+function ctLogoMake(img){var mw=900,mh=360,r;for(var t=0;t<4;t++){r=ctLogoProcess(img,mw,mh);if(r.dark.length+(r.light?r.light.length:0)<700000)break;mw=Math.round(mw*.75);mh=Math.round(mh*.75)}return r}
+// para {d: logo na jasne tło, l: logo na ciemne tło}; logo wgrane przed tą wersją przetwarza się przy pierwszym użyciu
+function ctLogoPair(){
+  var s=ctDipGet();if(!s.logo)return Promise.resolve(null);
+  var key=s.logo.length+':'+(s.logoLight?s.logoLight.length:0)+':'+s.logo.slice(-48);
+  if(S._logoPair&&S._logoPair.k===key)return Promise.resolve(S._logoPair.v);
+  var p;
+  if(s.logoV)p=Promise.all([ctLoadImg(s.logo),ctLoadImg(s.logoLight)]).then(function(a){return {d:a[0],l:a[1]}});
+  else p=ctLoadImg(s.logo).then(function(img){
+    if(!img)return null;var r=ctLogoMake(img);
+    if(canEdit()){var s2=ctDipGet();s2.logo=r.dark;s2.logoLight=r.light;s2.logoInfo=r.info;s2.logoV=2;ctDipSave(s2);}
+    return Promise.all([ctLoadImg(r.dark),ctLoadImg(r.light)]).then(function(a){return {d:a[0],l:a[1]}});
+  });
+  return p.then(function(v){S._logoPair={k:key,v:v};return v});
+}
+function ctDipLogoDel(){var s=ctDipGet();s.logo=null;s.logoLight=null;s.logoInfo=null;s.logoV=null;ctDipSave(s);S._logoPair=null;ctDipRender();ctDipPreview()}
 function ctDipLogo(input){
   var f=input.files&&input.files[0];input.value='';if(!f)return;
   if(f.size>8*1024*1024){toast('Plik jest za duży (max 8 MB)','er');return;}
@@ -12578,16 +12722,10 @@ function ctDipLogo(input){
   rd.onload=function(ev){
     ctLoadImg(ev.target.result).then(function(img){
       if(!img){toast('Nie udało się odczytać obrazu','er');return;}
-      var maxW=900,maxH=360,url=null;
-      for(var tries=0;tries<4;tries++){
-        var s=Math.min(1,maxW/img.width,maxH/img.height),cv=document.createElement('canvas');
-        cv.width=Math.max(1,Math.round(img.width*s));cv.height=Math.max(1,Math.round(img.height*s));
-        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-        url=cv.toDataURL('image/png');
-        if(url.length<650000)break;
-        maxW=Math.round(maxW*0.7);maxH=Math.round(maxH*0.7);
-      }
-      ctDipSet('logo',url,true);toast('Zapisano logo hotelu','ok');
+      var r=ctLogoMake(img),s=ctDipGet();
+      s.logo=r.dark;s.logoLight=r.light;s.logoInfo=r.info;s.logoV=2;ctDipSave(s);S._logoPair=null;
+      ctDipRender();ctDipPreview();
+      toast(r.info.complex?'Zapisano logo — tła nie udało się usunąć, na ciemnych tłach pojawi się na jasnej podkładce':'Zapisano logo: wersja na jasne i na ciemne tło'+(r.info.removed?' (tło usunięte)':''),r.info.complex?'in':'ok');
     });
   };
   rd.readAsDataURL(f);
@@ -12605,7 +12743,7 @@ function ctDipThumbs(){
   var c=ctGet(S._ctDip.id);if(!c)return;
   var res=ctResult(c),list=ctDipSelected(),r=list[0]||res.rows[0];
   var e=r?ctDipEntry(c,res,r):{name:'Imię Nazwisko',line:'za zajęcie I miejsca',seal:'I',sealSub:'MIEJSCE',medal:'gold',score:'',prize:''};
-  ctLoadImg(ctDipGet().logo).then(function(logo){
+  ctLogoPair().then(function(logo){
     ctDipFonts(e.name+c.name).then(function(){
       Object.keys(CT_DIP_TPL).forEach(function(k){
         var t=document.getElementById('ctd-th-'+k);if(!t)return;
@@ -12620,7 +12758,7 @@ function ctDipPreview(){
   var c=ctGet(S._ctDip.id),res=ctResult(c),list=ctDipSelected();
   if(!list.length){var x=cv.getContext('2d');x.fillStyle='#f5f1e6';x.fillRect(0,0,cv.width,cv.height);x.fillStyle='#8b7a55';x.font='60px Georgia, serif';x.textAlign='center';x.fillText('Zaznacz osoby, dla których przygotować dyplom',cv.width/2,cv.height/2);if(cap)cap.textContent='Brak wybranych osób';return;}
   var i=Math.min(S._ctDip.idx,list.length-1),r=list[i];
-  ctLoadImg(ctDipGet().logo).then(function(logo){
+  ctLogoPair().then(function(logo){
     ctDipFonts(r.n+c.name).then(function(){ctDipDraw(cv,c,ctDipEntry(c,res,r),ctDipOpts(),logo)});
   });
   if(cap)cap.textContent='Podgląd: '+r.n+' ('+(i+1)+' z '+list.length+')';
@@ -12628,7 +12766,7 @@ function ctDipPreview(){
 function ctDipMake(mode){
   var c=ctGet(S._ctDip.id),res=ctResult(c),list=ctDipSelected();if(!list.length)return;
   toast('Przygotowuję '+list.length+' dyplom(ów)…','in');
-  ctLoadImg(ctDipGet().logo).then(function(logo){
+  ctLogoPair().then(function(logo){
     ctDipFonts(list.map(function(r){return r.n}).join(' ')+c.name).then(function(){
       try{
         var urls=list.map(function(r){var cv=document.createElement('canvas');ctDipDraw(cv,c,ctDipEntry(c,res,r),ctDipOpts(),logo);return cv.toDataURL('image/jpeg',0.9)});
