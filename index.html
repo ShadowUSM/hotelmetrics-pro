@@ -202,6 +202,43 @@ input,select,textarea{font-family:var(--fb)}
   color:var(--tx2);font-size:.85rem;box-shadow:-4px 0 14px rgba(0,0,0,.25)}
 #side-panel-reopen:hover{color:var(--acc)}
 .sp-head{display:flex;gap:6px;align-items:center;margin-bottom:12px}
+.ct-sp-sel{width:100%;margin-bottom:10px}
+.ct-sp-empty{padding:16px 8px;text-align:center;font-size:.76rem;color:var(--tx3)}
+.ct-sp{border:1px solid var(--brd);border-radius:16px;padding:14px;background:var(--sur2);display:flex;flex-direction:column;gap:10px}
+.ct-sp-hd{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.ct-sp-t{border:none;background:none;padding:0;font:inherit;font-size:.95rem;font-weight:700;color:var(--tx);text-align:left;cursor:pointer;line-height:1.25}
+.ct-sp-t:hover{color:var(--acc)}
+.ct-sp-sub,.ct-sp-asof{font-size:.68rem;color:var(--tx3);line-height:1.4}
+.ct-sp-warn{color:var(--warn)}
+.ct-sp-prog{margin:0}
+.ct-sp-soon{font-size:.76rem;font-weight:600;padding:8px 10px;border-radius:10px;background:rgba(var(--acc-rgb),.1);color:var(--acc)}
+.ct-sp-due{background:rgba(245,158,11,.12);color:var(--warn)}
+.ct-sp-won{background:rgba(240,198,79,.18);color:#8a6400}
+.ct-sp-sec{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--tx3);margin-top:2px}
+.ct-sp-p{font-size:.74rem;color:var(--tx2);line-height:1.45;margin:0}
+.ct-sp-prize{font-size:.74rem}
+.ct-sp-rank{display:flex;flex-direction:column;gap:8px}
+.ct-sp-row{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-items:start}
+.ct-sp-row .ct-place{width:26px;height:26px;font-size:.7rem}
+.ct-sp-row.ct-out{opacity:.55}
+.ct-sp-n{min-width:0}
+.ct-sp-nl{display:flex;justify-content:space-between;gap:8px;font-size:.76rem;line-height:1.3}
+.ct-sp-nl span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-sp-nl b{white-space:nowrap}
+.ct-sp-bar{height:6px;border-radius:3px;background:var(--sur);margin-top:4px;overflow:hidden}
+.ct-sp-bar div{height:100%;border-radius:3px}
+.ct-sp-n small{display:block;font-size:.66rem;color:var(--tx3);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-sp-more{border:none;background:none;padding:0;font:inherit;font-size:.7rem;color:var(--acc);cursor:pointer;text-align:left}
+.ct-sp-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ct-sp-kpis div{background:var(--sur);border:1px solid var(--brd);border-radius:10px;padding:8px 10px;min-width:0}
+.ct-sp-kpis b{display:block;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-sp-kpis span{display:block;font-size:.62rem;color:var(--tx3);line-height:1.3;margin-top:2px}
+.ct-sp-chart{display:block;width:100%;height:130px}
+.ct-sp-acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.ct-sp-acts .btn{justify-content:center;white-space:nowrap;padding-left:4px;padding-right:4px}
+.ct-pin-btn.on{border-color:var(--acc);color:var(--acc)}
+[data-theme="neu-light"] .ct-sp,[data-theme="neu-dark"] .ct-sp{border-color:transparent;box-shadow:var(--neu-in-sm)}
+[data-theme="neu-light"] .ct-sp-kpis div,[data-theme="neu-dark"] .ct-sp-kpis div{border-color:transparent;box-shadow:var(--neu-flat)}
 .sp-head select{flex:1}
 body.presentation-mode #side-panel,body.presentation-mode #side-panel-reopen{display:none!important}
 
@@ -1260,6 +1297,62 @@ span.ct-tr-name{cursor:default;font-weight:400}
 .ct-dip-tpl:hover{border-color:var(--acc)}
 .ct-dip-prev canvas{display:block;width:100%;height:auto}
 .ct-dip-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0;font-size:.78rem;color:var(--tx2)}
+/* Post — Social Media */
+#m-ct-post .modal{max-width:1180px;width:96vw}
+.ct-post-btn{border-color:rgba(194,61,117,.45);color:#b02a64}
+.ct-post{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.ct-post-side{flex:1 1 320px;max-width:460px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.ct-post-main{flex:999 1 440px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.ct-post-prev{border-radius:14px;overflow:hidden;background:#0d1433;display:flex;justify-content:center;box-shadow:0 8px 26px rgba(0,0,0,.22)}
+.ct-post-prev canvas{display:block;width:auto;height:auto;max-width:100%;max-height:68vh}
+.ct-post-ctrls{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.ct-post-ctrls>.ct-post-f{flex:0 1 auto}
+.ct-post-f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ct-post-f>span,.ct-post-f>label{font-size:.7rem;font-weight:600;color:var(--tx3);line-height:1.3}
+.ct-post-f .ct-seg{align-self:flex-start}
+.ct-post-ctrls .ct-seg{display:flex;flex-wrap:nowrap}
+.ct-post-ctrls .ct-seg button{flex:1 1 auto;white-space:nowrap}
+.ct-post-dl{display:flex;flex-wrap:wrap;gap:8px}.ct-post-dl .btn{flex:1 1 140px}
+.ct-post-box{border:1px solid var(--brd);border-radius:14px;padding:14px 16px;background:var(--sur2);display:flex;flex-direction:column;gap:12px;min-width:0}
+.ct-post-box h4{margin:0;font-size:.86rem}
+.ct-post-chk{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px 14px}
+.ct-post-chk label{display:flex;align-items:center;gap:8px;font-size:.78rem;min-height:30px;cursor:pointer}
+.ct-post-chk label.dis{opacity:.5;cursor:not-allowed}
+.ct-post-hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
+.ct-post-opts{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+#ctp-text{width:100%;box-sizing:border-box;min-height:300px;resize:vertical;font:inherit;font-size:.82rem;line-height:1.55;white-space:pre-wrap}
+.ct-post-sl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.ct-post-regen{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);font-size:.74rem}
+.ct-post-regen[hidden]{display:none}
+.ct-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ct-tags.dis{opacity:.5}
+.ct-tag{display:inline-flex;align-items:center;border:1px solid var(--brd);border-radius:10px;background:var(--sur);overflow:hidden}
+.ct-tag button{border:none;background:transparent;color:var(--tx2);font:inherit;font-size:.74rem;padding:6px 10px;cursor:pointer;min-height:32px}
+.ct-tag.on{border-color:var(--acc);background:rgba(var(--acc-rgb),.1)}
+.ct-tag.on button{color:var(--acc);font-weight:600}
+.ct-tag .ct-tag-x{padding:6px 8px 6px 2px;color:var(--tx3);font-size:.66rem}
+.ct-post-my{border:1px dashed var(--brd2);border-radius:12px;padding:10px 12px;background:var(--sur)}
+.ct-post-my summary{cursor:pointer;font-size:.76rem;font-weight:600;color:var(--tx2)}
+.ct-post-my[open] summary{margin-bottom:10px}
+.ct-post-my>*+*:not(summary){margin-top:8px}
+#ctp-my-in{width:100%;box-sizing:border-box;resize:vertical;font:inherit;font-size:.78rem;line-height:1.5}
+.ct-my-list{display:flex;flex-direction:column;gap:4px;max-height:240px;overflow-y:auto}
+.ct-my-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:4px 6px;border-radius:8px;background:var(--sur2)}
+.ct-my-row.ct-my-off{opacity:.55}
+.ct-my-t{border:none;background:none;padding:2px 0;font:inherit;font-size:.76rem;color:var(--tx);text-align:left;cursor:pointer;min-width:0}
+.ct-my-t:hover{color:var(--acc)}
+.ct-my-ph{font-size:.62rem;color:var(--tx3);white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.ct-my-row .ct-tag-x{border:none;background:none;cursor:pointer;color:var(--tx3);font-size:.7rem;padding:4px}
+.ct-post-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:4px}
+.ct-post-acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.ct-post-acts .btn-p{flex:1 1 220px;min-height:46px;font-size:.9rem}
+.ct-post-acts .btn-s{flex:0 1 170px;min-height:46px}
+.ct-post-note{font-size:.72rem;color:var(--tx3);line-height:1.45;margin:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+[data-theme="neu-light"] .ct-post-box,[data-theme="neu-dark"] .ct-post-box{border-color:transparent;box-shadow:var(--neu-in-sm)}
+[data-theme="neu-light"] .ct-tag,[data-theme="neu-dark"] .ct-tag{border-color:transparent;box-shadow:var(--neu-flat)}
+[data-theme="neu-light"] .ct-tag.on,[data-theme="neu-dark"] .ct-tag.on{box-shadow:var(--neu-in-sm);border-color:var(--acc)}
+@media(max-width:640px){.ct-post-prev canvas{max-height:62vh}.ct-post-acts .btn-s{flex:1 1 140px}}
 [data-theme="neu-light"] .ct-lrow:not(.ct-lrow-hd),[data-theme="neu-dark"] .ct-lrow:not(.ct-lrow-hd),[data-theme="neu-light"] .ct-chip,[data-theme="neu-dark"] .ct-chip,[data-theme="neu-light"] .ct-metric,[data-theme="neu-dark"] .ct-metric,[data-theme="neu-light"] .ct-tr-g,[data-theme="neu-dark"] .ct-tr-g,[data-theme="neu-light"] .ct-pod,[data-theme="neu-dark"] .ct-pod,[data-theme="neu-light"] .ct-point,[data-theme="neu-dark"] .ct-point,[data-theme="neu-light"] .ct-rule,[data-theme="neu-dark"] .ct-rule,[data-theme="neu-light"] .ct-win,[data-theme="neu-dark"] .ct-win,[data-theme="neu-light"] .ct-small,[data-theme="neu-dark"] .ct-small,[data-theme="neu-light"] .ct-badge,[data-theme="neu-dark"] .ct-badge{border-color:transparent;box-shadow:var(--neu-flat)}
 [data-theme="neu-light"] .ct-chip.on,[data-theme="neu-dark"] .ct-chip.on,[data-theme="neu-light"] .ct-metric.on,[data-theme="neu-dark"] .ct-metric.on{box-shadow:var(--neu-in-sm);border-color:var(--acc)}
 [data-theme="neu-light"] .ct-seg,[data-theme="neu-dark"] .ct-seg,[data-theme="neu-light"] .ct-tree,[data-theme="neu-dark"] .ct-tree,[data-theme="neu-light"] .ct-datato,[data-theme="neu-dark"] .ct-datato,[data-theme="neu-light"] .ct-prog-bar,[data-theme="neu-dark"] .ct-prog-bar,[data-theme="neu-light"] .ct-bar-track,[data-theme="neu-dark"] .ct-bar-track,[data-theme="neu-light"] .ct-strip,[data-theme="neu-dark"] .ct-strip{border-color:transparent;box-shadow:var(--neu-in-sm)}
@@ -2186,7 +2279,15 @@ span.ct-tr-name{cursor:default;font-weight:400}
 <div class="modal">
   <button class="mclose" onclick="if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();closeM('m-ct-board')">✕</button>
   <div id="ct-board-body"></div>
-  <div class="fa"><button class="btn btn-p" onclick="ctBoardFull()">⛶ Pełny ekran</button><button class="btn btn-s" onclick="ctBoardPNG(S._ctBoardId)">🖼️ Zapisz jako obraz</button></div>
+  <div class="fa"><button class="btn btn-p" onclick="ctBoardFull()">⛶ Pełny ekran</button><button class="btn btn-s" onclick="ctBoardPNG(S._ctBoardId)">🖼️ Zapisz jako obraz</button><button class="btn btn-s ct-post-btn" onclick="ctPostOpen(S._ctBoardId)">📣 Post — Social Media</button></div>
+</div></div>
+
+<!-- KONKURSY: POST SOCIAL MEDIA -->
+<div class="moverlay" id="m-ct-post">
+<div class="modal">
+  <div class="mtitle" id="ct-post-title">📣 Post — Social Media</div>
+  <button class="mclose" onclick="closeM('m-ct-post')">✕</button>
+  <div id="ct-post-body"></div>
 </div></div>
 
 <!-- KONKURSY: DYPLOMY -->
@@ -4900,7 +5001,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.11.1';
+var APP_VERSION='3.12.2';
 var APP_BUILD_DATE='2026-11-10';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -4909,6 +5010,20 @@ var APP_BUILD_DATE='2026-11-10';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.12.2',date:'2026-11-16',changes:[
+    'Post — Social Media: po 10 gotowych haseł motywacyjnych na każdy etap konkursu (110) + po 5 haseł na sytuację w rankingu (wyrównana walka, uciekający lider, wiele osób pod progiem)',
+    'Moje hasła: dodawanie własnych haseł pojedynczo lub wiele naraz (każde w nowej linii, numery i punktory usuwane automatycznie), przypisanie do etapu, użycie jednym kliknięciem, usuwanie z cofnięciem; własne hasła i hashtagi zapisują się dla obiektu i synchronizują między urządzeniami'
+  ]},
+  {v:'3.12.1',date:'2026-11-16',changes:[
+    'Panel po prawej (ekrany od 1500 px): nowy widżet 🏅 Konkurs — postęp, stan danych, ranking z nagrodami, statystyki i wykres wyścigu top 3, skróty do konkursu, Tablicy i posta. Wybór konkretnego konkursu albo „Automatycznie” (trwający → świeżo rozstrzygnięty → najbliższa zapowiedź)',
+    'Karta konkursu: przycisk 📌 Przypnij w panelu / Odepnij z panelu'
+  ]},
+  {v:'3.12.0',date:'2026-11-16',changes:[
+    'Konkursy → Tablica → 📣 Post — Social Media: kolorowa grafika z wynikami (podium z nagrodami, statystyki, dalsze miejsca, wykres wyścigu, hasło) w formatach Post 4:5, Kwadrat 1:1 i Story 9:16, motyw Nocny lub Jasny; zapowiedź przed startem i wersja z wynikami po rozstrzygnięciu',
+    'Automatyczny tekst posta (Facebook / Instagram / komunikator, krótki lub pełny) z podsumowaniem, zaciętymi walkami, osobami blisko progu, nagrodami i hasłem motywacyjnym dobranym do etapu konkursu; przyciski Kopiuj treść posta, Pobierz i Kopiuj grafikę oraz Udostępnij na telefonie',
+    'Hashtagi do wyboru (propozycje z nazwy konkursu, hotelu, outletów i pozycji) i własne hashtagi zapamiętywane dla obiektu; podpis osób „Imię N.”, pełny lub samo imię',
+    'Awanse „od ostatniego posta”: aplikacja zapamiętuje ranking z każdej publikacji i w kolejnym poście pokazuje, kto awansował i kto zdobył najwięcej'
+  ]},
   {v:'3.11.1',date:'2026-11-16',changes:[
     'Dyplomy: trzy szablony do wyboru (Klasyczny złoty, Elegancki, Art déco) z miniaturami w oknie dyplomów; wybór zapamiętuje się dla obiektu. Na dyplomie „za udział" nie pokazuje się wynik 0'
   ]},
@@ -10638,6 +10753,7 @@ function ctRenderDetail(){
   h+='<button class="btn btn-s btn-sm" onclick="ctDipOpen(\''+c.id+'\')">🎓 Dyplomy</button>';
   h+='<button class="btn btn-s btn-sm" onclick="ctBoardOpen(\''+c.id+'\')">📺 Tablica</button>';
   h+='<button class="btn btn-s btn-sm" onclick="ctBoardPNG(\''+c.id+'\')">🖼️ Obraz PNG</button>';
+  h+='<button class="btn btn-s btn-sm ct-pin-btn'+(ctIsPinned(c.id)?' on':'')+'" onclick="ctPinToggle(\''+c.id+'\')" title="Widżet konkursu w panelu po prawej (ekrany od 1500 px)">📌 '+(ctIsPinned(c.id)?'Odepnij z panelu':'Przypnij w panelu')+'</button>';
   if(ed){
     h+='<select class="fi ct-status-sel" aria-label="Status konkursu" onchange="ctSetStatus(\''+c.id+'\',this.value)">'+Object.keys(CT_STATUS).map(function(k){return '<option value="'+k+'"'+(st===k?' selected':'')+'>'+CT_STATUS[k].l+'</option>'}).join('')+'</select>';
     h+='<button class="btn btn-s btn-sm" onclick="ctEdit(\''+c.id+'\')">✏️ Edytuj</button>';
@@ -10919,6 +11035,848 @@ function ctFitText(x,txt,l,y,maxW,align){
   x.fillText(s,l,y);
 }
 function ctPropName(){var p=(S.props||[]).find(function(x){return x.id===S.pid});return p?p.name:''}
+
+// ── POST SOCIAL MEDIA: grafika konkursu (canvas) ──
+// ctPostDraw(cv, m, opt) — m: model posta (ctPostModel), opt: {fmt:'feed'|'square'|'story', theme:'night'|'light', logo:Image|null}
+var CT_POST_FMT={feed:{w:1080,h:1350,l:'Post 4:5'},square:{w:1080,h:1080,l:'Kwadrat 1:1'},story:{w:1080,h:1920,l:'Story 9:16'}};
+var CT_POST_THEMES={
+  night:{l:'Nocny',bg1:'#1b1548',bg2:'#0a1631',glow1:'rgba(134,98,255,.50)',glow2:'rgba(0,214,190,.22)',tx:'#ffffff',mu:'#b9c0e8',
+    card:'rgba(255,255,255,.075)',cardBr:'rgba(255,255,255,.14)',track:'rgba(255,255,255,.13)',kick:'#f5c451',grid:'rgba(255,255,255,.11)',
+    chip:'rgba(255,255,255,.10)',chipTx:'#eef0ff',acc:['#a495ff','#2ee6c5','#f5c451','#ff86a3'],
+    series:['#f5c451','#d5dde9','#eaa66d','#2ee6c5','#ff6fa8','#a495ff'],sl1:'#7b5cff',sl2:'#ff5fa2',dim:'rgba(255,255,255,.38)',
+    medalTx:['#ffd56b','#e3e9f2','#f0b27f'],up:'#2ee6c5',down:'#ff86a3',conf:['#f5c451','#2ee6c5','#ff6fa8','#a495ff','#4fb3ff'],confA:.55,pills:{run:['rgba(46,230,197,.16)','#6ff5dc'],done:['rgba(245,196,81,.18)','#ffd56b'],prep:['rgba(164,149,255,.18)','#c3b9ff'],undone:['rgba(255,255,255,.12)','#d0d5ea']}},
+  light:{l:'Jasny',bg1:'#faf8ff',bg2:'#e9f0ff',glow1:'rgba(123,110,246,.20)',glow2:'rgba(20,184,166,.16)',tx:'#1b1f3b',mu:'#565e7d',
+    card:'#ffffff',cardBr:'rgba(27,31,59,.09)',track:'#e6e8f2',kick:'#8a5f00',grid:'rgba(27,31,59,.09)',
+    chip:'#ffffff',chipTx:'#2b3052',acc:['#5b4ce6','#0b8a7c','#a06f00','#cc3462'],
+    series:['#d39b12','#8994a9','#c0763a','#0f9e8e','#e0456f','#6a5cf0'],sl1:'#6a5cf0',sl2:'#e0456f',dim:'#9aa1b9',
+    medalTx:['#a87400','#5d6880','#a35a22'],up:'#0b8a7c',down:'#cc3462',conf:['#f2b631','#14b8a6','#ec4899','#7b6ef6','#0ea5e9'],confA:.5,pills:{run:['#dff7f2','#0b6f64'],done:['#fdf0cf','#7a5300'],prep:['#ebe8ff','#4a3cc9'],undone:['#eceef4','#4c546f']},shadow:true}
+};
+var CT_MEDAL=[['#ffe48f','#e2a423'],['#f3f6fa','#a3afc0'],['#f6c49a','#bd743a']];
+
+function ctpFont(x,w,s){x.font=w+' '+s+'px Outfit, sans-serif'}
+function ctpLS(x,px){if('letterSpacing' in x)x.letterSpacing=px+'px'}
+function ctpRR(x,l,t,w,h,r){r=Math.max(0,Math.min(r,w/2,h/2));x.beginPath();x.moveTo(l+r,t);x.arcTo(l+w,t,l+w,t+h,r);x.arcTo(l+w,t+h,l,t+h,r);x.arcTo(l,t+h,l,t,r);x.arcTo(l,t,l+w,t,r);x.closePath()}
+function ctpWrap(x,txt,maxW){
+  // polska typografia: jednoliterowe spójniki (i, w, z, o, a, u) nie zostają na końcu linii
+  var words=String(txt||'').replace(/(^|\s)([aiouwzAIOUWZ])\s+/g,'$1$2\u00a0').split(/[ \t\n]+/).filter(Boolean),lines=[],cur='';
+  words.forEach(function(w){var t=cur?cur+' '+w:w;if(!cur||x.measureText(t).width<=maxW)cur=t;else{lines.push(cur);cur=w}});
+  if(cur)lines.push(cur);return lines;
+}
+function ctpClip(x,s,maxW){s=String(s);if(x.measureText(s).width<=maxW)return s;while(s.length>1&&x.measureText(s+'…').width>maxW)s=s.slice(0,-1);return s.replace(/\s+$/,'')+'…'}
+// tekst w max N liniach; zwraca linie (ostatnia ucięta „…")
+function ctpLines(x,txt,maxW,n){var L=ctpWrap(x,txt,maxW);if(L.length>n){L=L.slice(0,n);L[n-1]=ctpClip(x,L[n-1]+' …',maxW).replace(/ …$/,'…')}return L}
+function ctpInitials(n){var p=String(n).replace(/\./g,'').trim().split(/\s+/);return ((p[0]||'')[0]||'').toUpperCase()+((p[1]||'')[0]||'').toUpperCase()}
+function ctpRand(seed){var s=seed>>>0||1;return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+function ctpCard(x,T,l,t,w,h,r){
+  if(T.shadow){x.save();x.shadowColor='rgba(40,50,110,.10)';x.shadowBlur=24;x.shadowOffsetY=8;x.fillStyle=T.card;ctpRR(x,l,t,w,h,r);x.fill();x.restore();}
+  else{x.fillStyle=T.card;ctpRR(x,l,t,w,h,r);x.fill();}
+  x.strokeStyle=T.cardBr;x.lineWidth=2;ctpRR(x,l+1,t+1,w-2,h-2,r);x.stroke();
+}
+
+function ctpBackground(x,T,W,H,m,P){
+  var g=x.createLinearGradient(0,0,W*.35,H);g.addColorStop(0,T.bg1);g.addColorStop(1,T.bg2);x.fillStyle=g;x.fillRect(0,0,W,H);
+  var r1=x.createRadialGradient(W*.92,H*.06,10,W*.92,H*.06,W*.75);r1.addColorStop(0,T.glow1);r1.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=r1;x.fillRect(0,0,W,H);
+  var r2=x.createRadialGradient(W*.02,H*.78,10,W*.02,H*.78,W*.7);r2.addColorStop(0,T.glow2);r2.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=r2;x.fillRect(0,0,W,H);
+  // konfetti tylko na marginesach — nigdy pod tekstem (deterministyczne: ten sam obraz przy każdym podglądzie)
+  var rnd=ctpRand(7+W+H),n=m.done?64:30,M=P-18;
+  x.save();x.globalAlpha=T.confA;
+  for(var i=0;i<n;i++){
+    var side=rnd(),px,py;
+    if(side<.38){px=8+rnd()*(M-8);py=rnd()*H}else if(side<.76){px=W-8-rnd()*(M-8);py=rnd()*H}else{px=rnd()*W;py=6+rnd()*30}
+    x.fillStyle=T.conf[i%T.conf.length];x.save();x.translate(px,py);x.rotate(rnd()*Math.PI);
+    if(i%3===0){x.beginPath();x.arc(0,0,3+rnd()*3,0,Math.PI*2);x.fill();}else{ctpRR(x,-8,-3.5,16,7,3);x.fill();}
+    x.restore();
+  }
+  x.restore();
+}
+function ctpTopBar(x,T,P,W,y,m,logo){
+  var h=52;
+  if(logo&&logo.width){
+    var s=Math.min(190/logo.width,(h-(T.shadow?0:12))/logo.height),lw=logo.width*s,lh=logo.height*s;
+    if(!T.shadow){x.fillStyle='rgba(255,255,255,.94)';ctpRR(x,P-12,y-2,lw+24,h+4,14);x.fill();}
+    x.drawImage(logo,P,y+(h-lh)/2,lw,lh);
+  }
+  else{x.fillStyle=T.mu;ctpFont(x,600,22);ctpLS(x,4);x.textBaseline='middle';x.fillText(ctpClip(x,String(m.hotel||'').toUpperCase(),W/2-P),P,y+h/2+1);ctpLS(x,0);}
+  var pc=T.pills[m.statusKind]||T.pills.run;
+  ctpFont(x,700,21);ctpLS(x,2);var t=m.statusL.toUpperCase(),tw=x.measureText(t).width,pw=tw+66,px=W-P-pw;
+  x.fillStyle=pc[0];ctpRR(x,px,y+4,pw,44,22);x.fill();
+  x.fillStyle=pc[1];x.beginPath();x.arc(px+26,y+26,7,0,Math.PI*2);x.fill();
+  x.textBaseline='middle';x.fillText(t,px+42,y+27);ctpLS(x,0);x.textBaseline='alphabetic';
+  return y+h;
+}
+function ctpTitleFit(x,m,maxW,o){var size=o.title,L;for(;size>=o.min;size-=2){ctpFont(x,800,size);L=ctpWrap(x,m.title,maxW);if(L.length<=o.lines)break;}size=Math.max(size,o.min);ctpFont(x,800,size);return {size:size,L:ctpLines(x,m.title,maxW,o.lines)}}
+function ctpHeaderH(x,P,W,m,o){var f=ctpTitleFit(x,m,W-2*P,o);return 40+f.L.length*f.size*1.08+6+(m.desc&&!o.noDesc?44:0)}
+function ctpHeader(x,T,P,W,y,m,o){
+  x.fillStyle=T.kick;ctpFont(x,700,22);ctpLS(x,4);x.fillText(ctpClip(x,m.kicker,W-2*P),P,y+22);ctpLS(x,0);
+  y+=40;var f=ctpTitleFit(x,m,W-2*P,o);
+  x.fillStyle=T.tx;f.L.forEach(function(l,i){x.fillText(l,P,y+f.size*.9+i*f.size*1.08)});
+  y+=f.L.length*f.size*1.08+6;
+  if(m.desc&&!o.noDesc){x.fillStyle=T.mu;ctpFont(x,400,27);x.fillText(ctpLines(x,m.desc,W-2*P,1)[0],P,y+30);y+=44;}
+  return y;
+}
+// pigułki z parametrami; dry=true → tylko liczy wysokość
+function ctpChips(x,T,P,W,y,m,maxRows,dry){
+  var h=46,gap=12,cx=P,row=0,maxW=W-2*P,used=0;
+  ctpFont(x,500,21);
+  for(var i=0;i<m.chips.length;i++){
+    var t=ctpClip(x,m.chips[i].t,maxW-60),w=x.measureText(t).width+60;
+    if(cx>P&&cx+w>P+maxW){row++;cx=P;if(row>=maxRows){row--;break;}}
+    var cy=y+row*(h+gap);used=row+1;
+    if(!dry){
+      x.fillStyle=T.chip;ctpRR(x,cx,cy,w,h,23);x.fill();
+      if(T.shadow){x.strokeStyle=T.cardBr;x.lineWidth=2;ctpRR(x,cx+1,cy+1,w-2,h-2,22);x.stroke();}
+      x.fillStyle=T.acc[i%T.acc.length];x.beginPath();x.arc(cx+24,cy+h/2,6,0,Math.PI*2);x.fill();
+      x.fillStyle=T.chipTx;x.textBaseline='middle';x.fillText(t,cx+40,cy+h/2+1);x.textBaseline='alphabetic';
+    }
+    cx+=w+gap;
+  }
+  return y+used*(h+gap)-gap;
+}
+function ctpTimeH(m){return m.strip?58:52}
+function ctpTime(x,T,P,W,y,m){
+  var w=W-2*P;
+  if(m.strip){
+    var g=x.createLinearGradient(P,0,P+w,0);g.addColorStop(0,T.sl1);g.addColorStop(1,T.sl2);
+    x.fillStyle=g;ctpRR(x,P,y,w,58,29);x.fill();
+    x.fillStyle='#ffffff';ctpFont(x,700,25);x.textAlign='center';x.textBaseline='middle';x.fillText(ctpClip(x,m.strip,w-40),W/2,y+30);x.textAlign='left';x.textBaseline='alphabetic';
+    return y+58;
+  }
+  ctpFont(x,600,23);x.fillStyle=T.tx;x.fillText(m.timeL,P,y+22);
+  ctpFont(x,400,23);x.fillStyle=T.mu;x.textAlign='right';x.fillText(m.timeR,P+w,y+22);x.textAlign='left';
+  var by=y+36,bh=16,f=Math.max(0,Math.min(1,m.timeFrac));
+  x.fillStyle=T.track;ctpRR(x,P,by,w,bh,8);x.fill();
+  var g2=x.createLinearGradient(P,0,P+w,0);g2.addColorStop(0,T.sl1);g2.addColorStop(1,T.acc[1]);
+  x.fillStyle=g2;ctpRR(x,P,by,Math.max(bh,w*f),bh,8);x.fill();
+  x.save();x.shadowColor=T.acc[1];x.shadowBlur=18;x.fillStyle='#ffffff';x.beginPath();x.arc(P+Math.max(bh/2,w*f),by+bh/2,12,0,Math.PI*2);x.fill();x.restore();
+  return by+bh;
+}
+function ctpCrown(x,cx,cy,s,col){
+  x.fillStyle=col;x.beginPath();
+  x.moveTo(cx-s,cy+s*.55);x.lineTo(cx-s,cy-s*.35);x.lineTo(cx-s*.5,cy+s*.08);x.lineTo(cx,cy-s*.6);x.lineTo(cx+s*.5,cy+s*.08);x.lineTo(cx+s,cy-s*.35);x.lineTo(cx+s,cy+s*.55);x.closePath();x.fill();
+  [-1,0,1].forEach(function(k){x.beginPath();x.arc(cx+k*s,cy+(k?-s*.42:-s*.7),s*.16,0,Math.PI*2);x.fill()});
+}
+function ctpTopRR(x,l,t,w,h,r){x.beginPath();x.moveTo(l,t+h);x.lineTo(l,t+r);x.arcTo(l,t,l+r,t,r);x.lineTo(l+w-r,t);x.arcTo(l+w,t,l+w,t+r,r);x.lineTo(l+w,t+h);x.closePath()}
+// podium 2–1–3 w prostokącie (top, h) — h obejmuje awatary i koronę
+var CT_PODIUM_MIN=300;
+function ctpPodium(x,T,P,W,top,h,m){
+  var top3=m.rows.filter(function(r){return r.place&&r.place<=3&&r.qual}).slice(0,3);
+  var colW=Math.min(290,(W-2*P-40)/3),gap=20,mid=W/2,need=214;
+  var b1=Math.max(90,Math.min(176,h-need)),bhs=[b1,b1*.82,b1*.68];
+  var base=top+Math.min(h,b1+need)+(h>b1+need?(h-b1-need)/2:0);
+  var ink='#161a36';
+  [{i:1,cx:mid-colW-gap},{i:0,cx:mid},{i:2,cx:mid+colW+gap}].forEach(function(s){
+    var r=top3[s.i],pl=r?Math.min(r.place,3)-1:s.i,bh=bhs[pl],bt=base-bh,l=s.cx-colW/2;
+    var g=x.createLinearGradient(0,bt,0,base);g.addColorStop(0,CT_MEDAL[pl][0]);g.addColorStop(1,CT_MEDAL[pl][1]);
+    x.save();x.globalAlpha=r?1:(m.prep?.6:.22);x.fillStyle=g;ctpTopRR(x,l,bt,colW,bh,20);x.fill();
+    x.fillStyle='rgba(255,255,255,.5)';ctpTopRR(x,l+14,bt,colW-28,5,2);x.fill();x.restore();
+    var nf=Math.min(50,bh*.37),nb=bt+12+nf*.8;
+    x.textAlign='center';x.fillStyle=r?'rgba(22,26,54,.82)':T.dim;ctpFont(x,800,Math.round(nf));x.fillText(String(r?r.place:pl+1),s.cx,nb);
+    var pz=r?r.prize:(m.prep&&m.prizeByPlace?m.prizeByPlace[pl]:'');
+    if(pz){
+      ctpFont(x,600,17);x.fillStyle='rgba(22,26,54,.86)';
+      var nl=Math.max(0,Math.min(2,Math.floor((base-12-(nb+26))/21)+1));
+      ctpLines(x,pz,colW-30,nl).slice(0,nl).forEach(function(t,i){x.fillText(t,s.cx,nb+26+i*21)});
+    }
+    var ar=pl===0?44:36,nameY=bt-52,ac=nameY-30-ar;
+    if(r){
+      x.save();x.shadowColor=CT_MEDAL[pl][1];x.shadowBlur=pl===0?34:18;
+      var ga=x.createLinearGradient(0,ac-ar,0,ac+ar);ga.addColorStop(0,CT_MEDAL[pl][0]);ga.addColorStop(1,CT_MEDAL[pl][1]);
+      x.fillStyle=ga;x.beginPath();x.arc(s.cx,ac,ar,0,Math.PI*2);x.fill();x.restore();
+      x.fillStyle=ink;ctpFont(x,800,Math.round(ar*.76));x.textBaseline='middle';x.fillText(ctpInitials(r.n),s.cx,ac+3);x.textBaseline='alphabetic';
+      if(pl===0)ctpCrown(x,s.cx,ac-ar-22,22,CT_MEDAL[0][1]);
+      x.fillStyle=T.tx;ctpFont(x,700,28);x.fillText(ctpClip(x,r.n,colW),s.cx,nameY);
+      x.fillStyle=T.medalTx[pl];ctpFont(x,800,34);x.fillText(r.fmt,s.cx,bt-14);
+    } else if(m.prep){
+      x.save();x.globalAlpha=.55;var gq=x.createLinearGradient(0,ac-ar,0,ac+ar);gq.addColorStop(0,CT_MEDAL[pl][0]);gq.addColorStop(1,CT_MEDAL[pl][1]);
+      x.fillStyle=gq;x.beginPath();x.arc(s.cx,ac,ar,0,Math.PI*2);x.fill();x.restore();
+      x.fillStyle=ink;ctpFont(x,800,Math.round(ar*.9));x.textBaseline='middle';x.fillText('?',s.cx,ac+3);x.textBaseline='alphabetic';
+      x.fillStyle=T.tx;ctpFont(x,700,pl===0?28:24);x.fillText(pl===0?'To możesz być Ty!':'Kto tu stanie?',s.cx,nameY);
+      x.fillStyle=T.mu;ctpFont(x,500,22);x.fillText(pl===0?'pierwsze miejsce':(pl+1)+'. miejsce',s.cx,bt-16);
+    } else {x.fillStyle=T.dim;ctpFont(x,600,22);x.fillText('wolne miejsce',s.cx,bt-18);}
+    x.textAlign='left';
+  });
+}
+function ctpKpis(x,T,P,W,y,h,m,n){
+  var k=m.kpis.slice(0,n||4),gap=16,w=(W-2*P-gap*(k.length-1))/k.length;
+  k.forEach(function(it,i){
+    var l=P+i*(w+gap);ctpCard(x,T,l,y,w,h,24);
+    var fs=38;ctpFont(x,800,fs);while(fs>24&&x.measureText(it.v).width>w-36){fs-=2;ctpFont(x,800,fs);}
+    x.fillStyle=T.acc[i%T.acc.length];x.fillText(ctpClip(x,it.v,w-36),l+20,y+h/2+4);
+    x.fillStyle=T.mu;ctpFont(x,500,19);x.fillText(ctpClip(x,it.l,w-36),l+20,y+h/2+34);
+  });
+  return y+h;
+}
+function ctpSecTitle(x,T,l,y,t){x.fillStyle=T.mu;ctpFont(x,700,18);ctpLS(x,3);x.fillText(t.toUpperCase(),l,y);ctpLS(x,0)}
+function ctpRanking(x,T,l,y,w,h,m){
+  ctpCard(x,T,l,y,w,h,26);
+  var pad=24;ctpSecTitle(x,T,l+pad,y+40,m.restTitle||'Dalsze miejsca');
+  var rows=m.rest||[],rh=35,fitAll=Math.floor((h-60-14)/rh),fit=rows.length>fitAll?Math.floor((h-60-34)/rh):fitAll,max=Math.max.apply(null,m.rows.map(function(r){return r.score}).concat([1]));
+  if(!rows.length){x.fillStyle=T.mu;ctpFont(x,400,20);x.fillText('Na razie tylko podium',l+pad,y+84);return;}
+  var shown=rows.slice(0,fit),nameW=Math.min(170,w*.36);
+  shown.forEach(function(r,i){
+    var ry=y+58+i*rh,c=r.qual?T.tx:T.dim;
+    x.fillStyle=T.track;x.beginPath();x.arc(l+pad+15,ry+15,15,0,Math.PI*2);x.fill();
+    x.fillStyle=c;ctpFont(x,700,17);x.textAlign='center';x.fillText(r.place?String(r.place):'–',l+pad+15,ry+21);x.textAlign='left';
+    ctpFont(x,600,21);x.fillText(ctpClip(x,r.n,nameW),l+pad+42,ry+22);
+    ctpFont(x,700,21);var vw=x.measureText(r.fmt).width;x.textAlign='right';x.fillText(r.fmt,l+w-pad,ry+22);x.textAlign='left';
+    if(r.mv){ // zmiana miejsca od ostatniego posta
+      var up=r.mv>0,mc=up?T.up:T.down,ax=l+w-pad-vw-14-(String(Math.abs(r.mv)).length*11+18);
+      x.fillStyle=mc;x.beginPath();if(up){x.moveTo(ax,ry+20);x.lineTo(ax+14,ry+20);x.lineTo(ax+7,ry+8);}else{x.moveTo(ax,ry+9);x.lineTo(ax+14,ry+9);x.lineTo(ax+7,ry+21);}x.closePath();x.fill();
+      ctpFont(x,700,17);x.fillText(String(Math.abs(r.mv)),ax+18,ry+21);vw+=String(Math.abs(r.mv)).length*11+32;
+    }
+    var bx=l+pad+42+nameW+12,bw=l+w-pad-vw-16-bx;ctpFont(x,600,21);
+    if(bw>30){x.fillStyle=T.track;ctpRR(x,bx,ry+9,bw,12,6);x.fill();x.fillStyle=r.qual?T.series[(i+3)%T.series.length]:T.dim;ctpRR(x,bx,ry+9,Math.max(12,bw*r.score/max),12,6);x.fill();}
+  });
+  if(rows.length>shown.length){var k=rows.length-shown.length;x.fillStyle=T.mu;ctpFont(x,500,19);x.fillText('+ '+k+' '+(k===1?'osoba':(k%10>=2&&k%10<=4&&(k%100<10||k%100>=20)?'osoby':'osób'))+' w rankingu',l+pad+42,y+58+shown.length*rh+21);}
+}
+function ctpListCard(x,T,l,y,w,h,title,items){
+  ctpCard(x,T,l,y,w,h,26);var pad=24;ctpSecTitle(x,T,l+pad,y+40,title);
+  var rh=36,fit=Math.floor((h-70)/rh);
+  items.slice(0,fit).forEach(function(it,i){
+    var ry=y+60+i*rh;x.fillStyle=it.c||T.acc[i%T.acc.length];x.beginPath();x.arc(l+pad+9,ry+14,7,0,Math.PI*2);x.fill();
+    ctpFont(x,700,20);var vw=it.v?x.measureText(it.v).width:0;
+    if(it.v){x.fillStyle=T.tx;x.textAlign='right';x.fillText(it.v,l+w-pad,ry+21);x.textAlign='left';}
+    ctpFont(x,500,20);x.fillStyle=T.tx;x.fillText(ctpClip(x,it.l,w-pad*2-28-(vw?vw+14:0)),l+pad+26,ry+21);
+  });
+}
+function ctpChart(x,T,l,y,w,h,m,nSer,title){
+  ctpCard(x,T,l,y,w,h,26);
+  var pad=24;ctpSecTitle(x,T,l+pad,y+40,title);
+  var tl=m.timeline;if(!tl||tl.dates.length<2){x.fillStyle=T.mu;ctpFont(x,400,20);x.fillText('Wykres po drugim imporcie danych',l+pad,y+h/2+10);return;}
+  var ser=tl.series.slice(0,nSer),max=0;ser.forEach(function(s){s.vals.forEach(function(v){if(v>max)max=v})});max=max||1;
+  var step=Math.pow(10,Math.floor(Math.log10(max))),nice=[.1,.2,.25,.5,1,2,2.5,5,10].map(function(k){return k*step}).filter(function(v){return max/v<=4})[0]||step*10,topV=Math.ceil(max/nice)*nice;
+  var px=l+pad+46,pw=w-pad*2-46-10,py=y+60,ph=h-60-76;
+  ctpFont(x,500,16);x.textAlign='right';
+  for(var g=0;g<=topV+1e-9;g+=nice){var gy=py+ph-ph*g/topV;x.strokeStyle=T.grid;x.lineWidth=2;x.beginPath();x.moveTo(px,gy);x.lineTo(px+pw,gy);x.stroke();x.fillStyle=T.mu;x.fillText(Math.round(g).toLocaleString('pl-PL'),px-10,gy+6);}
+  var n=tl.dates.length,every=Math.ceil(n/6);
+  tl.dates.forEach(function(d,i){if(i%every&&i!==n-1)return;x.textAlign=i===0?'left':(i===n-1?'right':'center');x.fillStyle=T.mu;x.fillText(d,px+pw*i/(n-1)+(i===0?-6:i===n-1?6:0),py+ph+26)});
+  x.textAlign='left';
+  for(var si=ser.length-1;si>=0;si--){
+    var s=ser[si],col=T.series[si];
+    x.strokeStyle=col;x.lineWidth=si<3?6:4;x.lineJoin='round';x.lineCap='round';x.beginPath();
+    s.vals.forEach(function(v,i){var X=px+pw*i/(n-1),Y=py+ph-ph*v/topV;i?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke();
+    x.fillStyle=col;x.beginPath();x.arc(px+pw,py+ph-ph*s.vals[n-1]/topV,si<3?8:6,0,Math.PI*2);x.fill();
+  }
+  var lx=l+pad,ly=y+h-24;ctpFont(x,600,18);
+  ser.forEach(function(s,i){var t=ctpClip(x,s.n,Math.max(30,(w-pad*2)/ser.length-50));x.fillStyle=T.series[i];ctpRR(x,lx,ly-12,20,8,4);x.fill();x.fillStyle=T.tx;x.fillText(t,lx+28,ly-4);lx+=x.measureText(t).width+50});
+}
+function ctpSloganH(x,P,W,m,big){ctpFont(x,700,big?32:28);var L=ctpLines(x,'„'+m.slogan+'”',W-2*P-80,2);return L.length*(big?42:38)+(big?40:34)}
+function ctpSlogan(x,T,P,W,y,m,big){
+  var w=W-2*P,lh=big?42:38;ctpFont(x,700,big?32:28);var L=ctpLines(x,'„'+m.slogan+'”',w-80,2),h=L.length*lh+(big?40:34);
+  var g=x.createLinearGradient(P,0,P+w,0);g.addColorStop(0,T.sl1);g.addColorStop(1,T.sl2);
+  x.save();x.shadowColor=T.sl2;x.shadowBlur=T.shadow?16:28;x.fillStyle=g;ctpRR(x,P,y,w,h,Math.min(36,h/2));x.fill();x.restore();
+  x.fillStyle='#ffffff';x.textAlign='center';L.forEach(function(t,i){x.fillText(t,W/2,y+h/2-(L.length-1)*lh/2+lh*.34+i*lh)});x.textAlign='left';
+  return y+h;
+}
+function ctpFoot(x,T,P,W,y,m){ctpFont(x,500,19);x.fillStyle=T.mu;x.fillText(m.footL,P,y);x.textAlign='right';x.fillText(m.footR,W-P,y);x.textAlign='left'}
+
+// układ: góra (nagłówek, parametry, czas) → dół (hasło, ranking+wykres, kafelki) → podium dostaje resztę miejsca
+function ctPostDraw(cv,m,opt){
+  opt=opt||{};var fk=CT_POST_FMT[opt.fmt]?opt.fmt:'feed',F=CT_POST_FMT[fk],T=CT_POST_THEMES[opt.theme]||CT_POST_THEMES.night,W=F.w,H=F.h,P=64;
+  cv.width=W;cv.height=H;var x=cv.getContext('2d');x.textBaseline='alphabetic';x.textAlign='left';
+  ctpBackground(x,T,W,H,m,P);
+  var sh=m.show||{},hasRest=sh.rest!==false&&(m.rest||[]).length>0,hasChart=sh.chart!==false&&!m.prep;
+  var low=m.prep?(fk==='square'?null:(fk==='story'?'prizes':'lists')):(fk==='square'?null:(fk==='story'?(hasChart?'chart':(hasRest?'rest':null)):(hasChart&&hasRest?'split':(hasChart?'chart':(hasRest?'rest':null)))));
+  if(m.prep&&!m.prizeList.length&&low==='prizes')low=null;
+  var L={feed:{top:48,bottom:44,title:{title:62,min:46,lines:2},chips:2,kpi:100,kpiN:4,lowH:low==='rest'?190:210,big:false},
+         square:{top:44,bottom:40,title:{title:58,min:44,lines:1,noDesc:true},chips:1,kpi:100,kpiN:3,lowH:0,big:false},
+         story:{top:210,bottom:250,title:{title:72,min:52,lines:2},chips:2,kpi:112,kpiN:4,lowH:290,big:true}}[fk];
+  if(!low)L.lowH=0;
+  // budżet: jeśli podium się nie mieści — najpierw bez opisu, potem 1 rząd parametrów
+  var headO=Object.assign({},L.title),chipRows=L.chips;
+  if(sh.desc===false)headO.noDesc=true;
+  function topH(){return 52+30+ctpHeaderH(x,P,W,m,headO)+4+(ctpChips(x,T,P,W,0,m,chipRows,true))+24+ctpTimeH(m)}
+  function botH(){return ctpSloganH(x,P,W,m,L.big)+18+(low?L.lowH+18:0)+(L.kpi?L.kpi+20:0)}
+  var avail=function(){return H-L.top-L.bottom-topH()-botH()-24};
+  if(avail()<CT_PODIUM_MIN&&m.desc&&!headO.noDesc)headO.noDesc=true;
+  if(avail()<CT_PODIUM_MIN&&chipRows>1)chipRows=1;
+  var y=ctpTopBar(x,T,P,W,L.top,m,opt.logo)+30;
+  y=ctpHeader(x,T,P,W,y,m,headO)+4;
+  y=ctpChips(x,T,P,W,y,m,chipRows)+24;
+  y=ctpTime(x,T,P,W,y,m)+24;
+  var yb=H-L.bottom,full=W-2*P;
+  yb-=ctpSloganH(x,P,W,m,L.big);ctpSlogan(x,T,P,W,yb,m,L.big);yb-=18;
+  if(low){
+    yb-=L.lowH;var lw=Math.round((full-16)*.46);
+    if(low==='split'){ctpRanking(x,T,P,yb,lw,L.lowH,m);ctpChart(x,T,P+lw+16,yb,full-16-lw,L.lowH,m,3,'Wyścig o podium');}
+    else if(low==='chart')ctpChart(x,T,P,yb,full,L.lowH,m,5,m.unit==='pkt'?'Wyścig punktowy — top 5':'Wyścig — top 5');
+    else if(low==='rest')ctpRanking(x,T,P,yb,full,L.lowH,m);
+    else if(low==='lists'){ctpListCard(x,T,P,yb,lw,L.lowH,'Nagrody',m.prizeList.length?m.prizeList:[{l:'Satysfakcja i uznanie zespołu'}]);ctpListCard(x,T,P+lw+16,yb,full-16-lw,L.lowH,'Zasady',m.ruleList);}
+    else if(low==='prizes')ctpListCard(x,T,P,yb,full,L.lowH,'Nagrody',m.prizeList);
+    yb-=18;
+  }
+  if(L.kpi){yb-=L.kpi;ctpKpis(x,T,P,W,yb,L.kpi,m,L.kpiN);yb-=20;}
+  ctpPodium(x,T,P,W,y,yb-y,m);
+  return cv;
+}
+// ── POST — SOCIAL MEDIA: model, tekst posta, hasła, hashtagi, okno ──
+// Grafika i tekst powstają z tych samych wyników co Tablica (ctResult). Stan rankingu
+// z ostatniej publikacji (kopiuj / pobierz / udostępnij) zapisuje się w konkursie (c.post),
+// żeby kolejny post mógł pokazać awanse „od ostatniego posta".
+var CT_POST_SLOGANS={
+  prep:['Rozgrzewamy się — już wkrótce start!','Nagrody czekają. Kto pierwszy stanie na podium?','Nowy konkurs, nowe szanse — przygotuj najlepsze polecenia!','Odliczamy dni do startu — szykujcie formę!','Zasady znane, nagrody kuszą — czas na plan gry','Już wkrótce walka o podium. Kto się pisze?','Każdy startuje od zera — wszystko w Twoich rękach','Przemyśl, co polecisz gościom — start tuż-tuż!','Wielkie emocje przed nami. Do zobaczenia na starcie!','Podium czeka na nowych bohaterów'],
+  start:['Start! Od dziś liczy się każda sprzedaż','Dobry początek to połowa sukcesu — do dzieła!','Ruszamy! Polecaj z uśmiechem, wynik przyjdzie sam','Pierwsze dni budują przewagę — nie czekaj!','Konkurs wystartował — pokaż, na co Cię stać!','Gong! Zaczynamy walkę o podium','Każde polecenie od pierwszego dnia ma znaczenie','Mocny start to połowa zwycięstwa','Ruszyła gra — uśmiech i polecenie to Twoja broń','Zaczynamy! Powodzenia wszystkim uczestnikom'],
+  early:['Wyścig się rozkręca — liczy się każda sprzedaż','To dopiero początek — wszystko jeszcze przed nami','Małe kroki, wielkie wyniki. Polecaj dalej!','Ranking dopiero się układa — czas na Twój ruch','Każdy dzień to szansa na awans o kilka miejsc','Rozpędzamy się! Systematyczność wygrywa','Do podium bliżej, niż myślisz','Dobra passa? Podtrzymaj ją!','Polecaj z pasją — goście to docenią, ranking też','Wyniki rosną z każdym dniem — tak trzymać!'],
+  half:['Półmetek! Każda sprzedaż to krok bliżej podium','Połowa za nami — teraz zaczyna się prawdziwa walka','Półmetek — idealny moment, żeby przyspieszyć!','Pół drogi za nami, pół szansy przed nami','Na półmetku wszystko jest jeszcze możliwe','Połowa konkursu — sprawdź, ile brakuje Ci do podium','Druga połowa decyduje — zostańmy w grze!','Półmetek to nie meta — dajemy z siebie więcej','Kto przyspieszy teraz, ten zgarnie nagrodę','Półmetek w dobrym stylu — oby tak dalej!'],
+  push:['Tempo rośnie — podium jest w zasięgu ręki','Druga połowa należy do najwytrwalszych','Każdy dzień to nowa szansa na awans!','Nie odpuszczamy — finisz coraz bliżej','Teraz liczy się regularność — polecaj codziennie','Ranking wciąż się zmienia — Twój ruch!','Jeszcze kilka dobrych zmian i podium będzie Twoje','Zwycięzców poznamy wkrótce — walcz o swoje miejsce','Wytrwałość wygrywa konkursy','Trzymamy tempo aż do mety!'],
+  late:['Ostatnia prosta! Teraz liczy się każde polecenie','Finisz tuż-tuż — nie zwalniaj!','Ostatnie dni decydują. Dajmy z siebie wszystko!','Meta na horyzoncie — czas na finałowy zryw','Ostatnie dni to czas na niespodzianki w rankingu','Jeszcze chwila — zawalcz o swoje miejsce na podium','Finałowe odliczanie rozpoczęte!','Każda zmiana do końca może przetasować podium','Nie oglądaj się za siebie — pędź do mety!','Teraz albo nigdy — finisz należy do odważnych'],
+  lastday:['Dziś ostatni dzień — walczymy do ostatniego rachunku!','Ostatnia szansa na podium. Do dzieła!','Ostatnie godziny konkursu — wszystko jeszcze możliwe','Dziś finał! Każde polecenie może przesądzić o wyniku','Ostatni dzień — zostawmy na sali całe serce','Finałowa zmiana — pokaż swoją najlepszą formę!','Dziś decydują ostatnie rachunki','Ostatni dzień, maksimum energii!','Gramy do ostatniej minuty!','Finał konkursu — powodzenia wszystkim!'],
+  after:['Konkurs za nami — liczymy wyniki. Dziękujemy za zaangażowanie!','Meta! Oficjalne wyniki już wkrótce','Koniec rywalizacji — trwa liczenie wyników','Dziękujemy za każdą sprzedaż — wyniki już niebawem','Emocje sięgają zenitu — ogłoszenie wyników wkrótce','Wszyscy daliście z siebie wszystko — dziękujemy!','Konkurs zakończony. Kto stanie na podium?','Czekamy na oficjalne wyniki — trzymajcie kciuki!','Rachunki zamknięte — wyniki już za chwilę','To był świetny konkurs — wkrótce poznamy zwycięzców'],
+  done:['Gratulacje dla zwycięzców i dziękujemy wszystkim za świetną pracę!','Brawo, zespole! Do zobaczenia w kolejnym konkursie','Każde polecenie się liczyło — dziękujemy!','Wielkie brawa dla podium i dla wszystkich uczestników!','Zwycięzcom gratulujemy, wszystkim dziękujemy!','Mistrzowie sprzedaży wyłonieni — brawo!','Świetna robota! Następny konkurs już wkrótce','Dziękujemy za energię i zaangażowanie — jesteście super!','Podium zasłużone — gratulacje!','Razem zrobiliśmy świetny wynik — dziękujemy!'],
+  none:['Tym razem bez zwycięzców — następnym razem podium będzie nasze!','Dziękujemy za udział — w kolejnym konkursie walczymy o podium!','Próg był wysoko — następnym razem damy radę!','Dziękujemy za każdą sprzedaż — wracamy silniejsi','To była dobra lekcja — w kolejnym konkursie celujemy wyżej','Nagrody czekają na kolejną rundę — do zobaczenia!','Nie tym razem — ale następny konkurs już wkrótce','Każdy wynik to krok do przodu — dziękujemy!','Głowa do góry — kolejna szansa już niedługo','Dziękujemy za zaangażowanie — następna runda będzie nasza!'],
+  undone:['Dziękujemy za udział — kolejny konkurs już wkrótce!','Dziękujemy za każdą sprzedaż i zaangażowanie','Konkurs za nami — dziękujemy całemu zespołowi','Każde polecenie miało znaczenie — dziękujemy!','Do zobaczenia w kolejnym konkursie!','Dziękujemy za energię — następna rywalizacja wkrótce','Dobra robota, zespole!','Razem zrobiliśmy kawał dobrej sprzedaży — dzięki!','Dziękujemy — wracamy z nowym konkursem','Wasze zaangażowanie to najlepszy wynik — dziękujemy!'],
+  // sytuacje w rankingu (dokładane do etapów w trakcie konkursu)
+  close:['Wyrównana walka — o podium zdecyduje każda sprzedaż!','Różnice są minimalne. Kto pierwszy przyspieszy?','Łeb w łeb! Jedno polecenie może zmienić lidera','Na szczycie ścisk — liczy się każdy rachunek','Taka walka to czysta przyjemność — kto wygra?'],
+  lead:['Lider ucieka — kto rzuci wyzwanie?','Pościg trwa! Do lidera wciąż da się dobiec','Lider wysoko, ale walka o podium trwa w najlepsze','Gonimy lidera — każdy dzień zmniejsza dystans','Prowadzenie nie jest wieczne — zawalcz o nie!'],
+  thr:['Do progu niedaleko — każda sprzedaż przybliża do nagrody','Próg jest w zasięgu — zawalcz o klasyfikację!','Jeszcze kilka sprzedaży i wejdziesz do klasyfikacji','Próg to dopiero początek — przekrocz go i walcz dalej','Wielu z nas jest tuż pod progiem — dajmy radę!']
+};
+// etapy do przypisania własnych haseł ('all' — zawsze, 'run' — każdy dzień trwania konkursu)
+var CT_POST_PHASES=[['all','Każdy etap'],['run','W trakcie konkursu (każdy dzień)'],['prep','Zapowiedź (przed startem)'],['start','Start (pierwsze dni)'],['early','Rozkręcanie się'],['half','Półmetek'],['push','Druga połowa'],['late','Ostatnia prosta'],['lastday','Ostatni dzień'],['after','Po zakończeniu, przed rozstrzygnięciem'],['done','Wyniki — są zwycięzcy'],['none','Wyniki — bez zwycięzców'],['undone','Nierozstrzygnięty']];
+var CT_POST_RUN=['start','early','half','push','late','lastday'];
+var CT_SLOGAN_MAX=90;
+var CT_POST_PHASE_TAG={prep:'#WkrótceStart',start:'#Startujemy',early:'#WyścigTrwa',half:'#Półmetek',push:'#DrugaPołowa',late:'#OstatniaProsta',lastday:'#OstatniDzień',after:'#LiczymyWyniki',done:'#Wyniki',none:'#Wyniki',undone:'#Podsumowanie'};
+var CT_POST_PHASE_L={start:'Start',half:'Półmetek',late:'Ostatnia prosta',lastday:'Ostatni dzień'};
+var CT_POST_MOTIV=['#WalkaOPodium','#DobraRobota','#RazemDamyRadę','#GramyDoKońca','#PolecamyZPasją','#SprzedażZUśmiechem'];
+var CT_MONTH_NOM=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
+var CT_MONTH_LOC=['styczniu','lutym','marcu','kwietniu','maju','czerwcu','lipcu','sierpniu','wrześniu','październiku','listopadzie','grudniu'];
+var CT_POST_FONTS_URL='https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap';
+
+function ctPl(n,a,b,c){n=Math.abs(n);return n===1?a:((n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c)}
+function ctPostHash(s){var h=0;s=String(s);for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)}
+function ctPostSp(s){return String(s).replace(/[  ]/g,' ')}
+function ctPostFonts(){
+  if(!document.getElementById('ct-post-fonts')){var l=document.createElement('link');l.id='ct-post-fonts';l.rel='stylesheet';l.href=CT_POST_FONTS_URL;document.head.appendChild(l);}
+  if(!document.fonts||!document.fonts.load)return Promise.resolve();
+  var t='Konkurs ąćęłńóśźżĄĆĘŁŃÓŚŹŻ 0123456789';
+  var all=Promise.all(['400','500','600','700','800'].map(function(w){return document.fonts.load(w+' 40px Outfit',t)})).catch(function(){});
+  return Promise.race([all,new Promise(function(r){setTimeout(r,4000)})]);
+}
+
+// ── ustawienia (na urządzeniu, osobno dla obiektu) ──
+var CT_POST_DEF={fmt:'feed',theme:'night',names:'short',chan:'fb',len:'full',show:{desc:true,prizes:true,value:true,chart:true,rest:true,logo:true}};
+function ctPostCfg(){var s=lsGet(uk('ct-post-'+S.pid),null)||{},o=Object.assign({},CT_POST_DEF,s);o.show=Object.assign({},CT_POST_DEF.show,s.show||{});return o}
+function ctPostCfgSave(o){lsSet(uk('ct-post-'+S.pid),o)}
+function ctPostCustomTags(){var a=ctDipGet().postTags;return Array.isArray(a)?a:(lsGet(uk('ct-post-tags-'+S.pid),[])||[])}
+function ctPostCustomSave(a){var s=ctDipGet();s.postTags=a;ctDipSave(s);lsDel(uk('ct-post-tags-'+S.pid))}
+
+// ── imiona: „Anna K." / „Anna Kowalska" / „Anna"; WIELKIE LITERY z POS → Anna ──
+function ctPostCap(w){return w.split('-').map(function(p){return (p.length>1&&p===p.toUpperCase()&&p!==p.toLowerCase())?p.charAt(0)+p.slice(1).toLowerCase():p}).join('-')}
+function ctPostParts(n){return String(n||'').split(/\s+/).filter(function(t){return /[A-Za-zÀ-žĄĆĘŁŃÓŚŹŻąćęłńóśźż]/.test(t)}).map(ctPostCap)}
+function ctPostNames(list,mode){
+  function lv(n,k){
+    var p=ctPostParts(n);if(!p.length)return String(n).trim();
+    var full=p.join(' '),f=p[0],s2=p[1];if(!s2)return f;
+    var L=mode==='full'?[full]:(mode==='first'?[f,f+' '+s2.charAt(0)+'.',full]:[f+' '+s2.charAt(0)+'.',f+' '+s2.slice(0,3)+'.',full]);
+    return L[Math.min(k,L.length-1)];
+  }
+  var lvl={},out={};list.forEach(function(n){lvl[n]=0});
+  for(var round=0;round<3;round++){
+    var seen={};list.forEach(function(n){var v=lv(n,lvl[n]).toLowerCase();(seen[v]=seen[v]||[]).push(n)});
+    var dup=false;Object.keys(seen).forEach(function(k){if(seen[k].length>1){dup=true;seen[k].forEach(function(n){lvl[n]++})}});
+    if(!dup)break;
+  }
+  list.forEach(function(n){out[n]=lv(n,lvl[n])});
+  return out;
+}
+function ctPostPretty(n){return String(n||'').split(/\s+/).map(function(w){return /\d/.test(w)?w:ctPostCap(w)}).join(' ')}
+
+// ── etap konkursu i sytuacja w rankingu ──
+function ctPostPhase(c,res){
+  var st=ctStatus(c),t=ctToday();
+  if(st==='done')return res.rows.some(function(r){return r.qual&&r.score>0})?'done':'none';
+  if(st==='undone')return 'undone';
+  if(t<c.start)return 'prep';
+  if(t>c.end)return 'after';
+  if(t===c.end)return 'lastday';
+  var days=ctDays(c.start,c.end),dx=ctDays(c.start,t),left=days-dx,fr=dx/days;
+  if(dx<=2||fr<.15)return 'start';
+  if(left<=3||fr>=.8)return 'late';
+  if(fr>=.42&&fr<=.58)return 'half';
+  return fr<.42?'early':'push';
+}
+function ctPostSituation(c,rows){
+  var q=rows.filter(function(r){return r.qual&&r.score>0}),all=rows.filter(function(r){return r.score>0});
+  if(q.length>=2){var a=q[0].score,b=q[1].score;if(a>0&&(a-b)<=Math.max(a*.03,c.metric==='value'?50:1))return 'close';if(b>0&&a>=b*1.35)return 'lead';}
+  if(c.thresholdOn&&all.length>=2&&q.length<all.length/2)return 'thr';
+  return null;
+}
+function ctPostPool(ph,sit){
+  var p=(CT_POST_SLOGANS[ph]||CT_POST_SLOGANS.early).slice(),run=CT_POST_RUN.indexOf(ph)!==-1;
+  if(sit&&run)p=p.concat(CT_POST_SLOGANS[sit]||[]);
+  ctPostMySlogans().forEach(function(x){if((x.ph==='all'||x.ph===ph||(x.ph==='run'&&run))&&p.indexOf(x.t)===-1)p.push(x.t)});
+  return p;
+}
+// własne hasła i hashtagi — w ustawieniach konkursów obiektu (synchronizowane jak logo i podpis dyplomów)
+function ctPostMySlogans(){var a=ctDipGet().postSlogans;return Array.isArray(a)?a:[]}
+function ctPostMySave(a){var s=ctDipGet();s.postSlogans=a;ctDipSave(s)}
+function ctPostPhaseL(k){var f=CT_POST_PHASES.filter(function(x){return x[0]===k})[0];return f?f[1]:k}
+function ctPostPhaseGroup(ph){return CT_POST_RUN.indexOf(ph)!==-1?'run':ph}
+// „1. Hasło", „- Hasło", „• Hasło", „„Hasło”" → „Hasło"
+function ctPostCleanSlogan(t){
+  t=String(t||'').replace(/^\s*(?:[-–—•*·▪►✓✔]+|\d+[.)]|[a-z][.)])\s*/i,'').trim();
+  t=t.replace(/^[„"“”'«»]+|[„"“”'«»]+$/g,'').trim();
+  return t.replace(/\s+/g,' ');
+}
+
+// ── „od ostatniego posta" ──
+function ctPostSnap(rows){return rows.filter(function(r){return r.score>0}).map(function(r){return {n:r.n,p:r.place||null,s:round2(r.score)}})}
+function ctPostSame(a,b){if(!a||!b||a.length!==b.length)return false;for(var i=0;i<a.length;i++){if(a[i].n!==b[i].n||a[i].p!==b[i].p||a[i].s!==b[i].s)return false}return true}
+// gdy wyniki się nie zmieniły od ostatniej publikacji — porównanie z publikacją wcześniejszą
+function ctPostRef(c,snap){var p=c.post||{};if(p.cur&&ctPostSame(p.cur.rows,snap))return p.prev||null;return p.cur||null}
+
+// ── zasady konkursu (pigułka na grafice i linia w poście) ──
+function ctPostNum(v){return (Math.round(v*100)/100).toLocaleString('pl-PL')}
+function ctPostRules(c){
+  var out={short:'',list:[],scope:''};
+  var sel=c.itemsMode==='sel',names=[];
+  if(sel){Object.keys(c.groups||{}).forEach(function(k){names.push({n:ctPostPretty(c.groups[k].n),p:c.groups[k].pts})});Object.keys(c.items||{}).forEach(function(k){names.push({n:ctPostPretty(c.items[k].n),p:c.items[k].pts})})}
+  out.scope=sel?names.slice(0,3).map(function(x){return x.n}).join(', ')+(names.length>3?' i inne':''):'wszystkie pozycje';
+  if(c.metric==='points'){
+    var pts=[];
+    if(!sel){pts.push({n:'każda pozycja',p:+c.allPts||0});Object.keys(c.items||{}).forEach(function(k){var it=c.items[k];if(it.pts!=null&&it.pts!=='')pts.unshift({n:ctPostPretty(it.n),p:+it.pts})})}
+    else names.forEach(function(x){pts.push({n:x.n,p:(x.p!=null&&x.p!=='')?+x.p:0})});
+    pts.sort(function(a,b){return b.p-a.p});
+    out.list=pts.map(function(x){return {l:x.n,v:ctPostNum(x.p)+' pkt'}});
+    out.short=pts.slice(0,3).map(function(x){return x.n+' '+ctPostNum(x.p)+' pkt'}).join(' · ')+(pts.length>3?' · …':'');
+    out.full=pts.slice(0,8).map(function(x){return x.n+' — '+ctPostNum(x.p)+' pkt'}).join(' · ')+(pts.length>8?' i inne':'');
+  } else {
+    var ml={value:'wartość sprzedaży ('+(c.amount||'brutto')+')',qty:'liczba sprzedanych sztuk',share:'udział pozycji konkursowych w obrocie'}[c.metric]||'sprzedaż';
+    out.short=ml.charAt(0).toUpperCase()+ml.slice(1)+' · '+out.scope;
+    out.list=[{l:'Liczy się',v:ml},{l:'Pozycje',v:out.scope}];out.full=out.short;
+  }
+  if(c.minPriceOn){out.list.push({l:'Tylko pozycje od',v:ctPostNum(+c.minPrice||0)+' zł'});out.min='pozycje od '+ctPostNum(+c.minPrice||0)+' zł';}
+  if(c.thresholdOn)out.list.push({l:'Próg kwalifikacji',v:ctPostSp(ctFmtScore(c,+c.threshold||0))});
+  return out;
+}
+function ctPostOutlets(c){return c.outletsMode==='sel'?(c.outlets||[]).map(ctOutletName).join(' · '):'Wszystkie outlety'}
+function ctPostMonthKick(c){
+  var a=ctMonthOf(c.start),b=ctMonthOf(c.end),ma=CT_MONTH_NOM[+a.slice(5)-1],mb=CT_MONTH_NOM[+b.slice(5)-1];
+  return (a===b?ma+' '+a.slice(0,4):(a.slice(0,4)===b.slice(0,4)?ma+' – '+mb+' '+b.slice(0,4):ma+' '+a.slice(0,4)+' – '+mb+' '+b.slice(0,4))).toUpperCase();
+}
+function ctPostLeft(n){return n===1?'został 1 dzień':(ctPl(n,'','zostały ','zostało ')+n+' dni')}
+function ctPostPrizes(c){
+  if(!c.prizesOn)return [];
+  if(c.prizeType==='goal')return [{l:'Każdy powyżej progu: '+(c.goalPrize||'nagroda'),c:CT_MEDAL[0][1]}];
+  var a=[];for(var i=0;i<(+c.places||0);i++){var p=(c.prizes||[])[i];if(p)a.push({l:(i+1)+'. '+p,c:(CT_MEDAL[i]||CT_MEDAL[2])[1],pl:i});}
+  return a;
+}
+
+// ── model grafiki ──
+function ctPostModel(c,P){
+  var res=P.res,cfg=P.cfg,ph=P.phase,t=ctToday(),sh=cfg.show,unit=ctUnit(c);
+  var names=ctPostNames(res.rows.map(function(r){return r.n}),cfg.names);
+  var refMap={};if(P.ref)P.ref.rows.forEach(function(x){refMap[x.n]=x});
+  var rows=ph==='prep'?[]:res.rows.filter(function(r){return r.score>0}).map(function(r){
+    var o=refMap[r.n],mv=(o&&o.p&&r.place)?o.p-r.place:0;
+    return {n:names[r.n]||r.n,full:r.n,raw:r,score:r.score,fmt:ctPostSp(ctFmtScore(c,r.score)),place:r.place,qual:r.qual,prize:sh.prizes?(r.prize||''):'',mv:mv};
+  });
+  var top3=rows.filter(function(r){return r.qual&&r.place&&r.place<=3}).slice(0,3);
+  var rest=rows.filter(function(r){return top3.indexOf(r)===-1});
+  var days=ctDays(c.start,c.end),dx=Math.max(0,Math.min(days,ctDays(c.start,t))),left=Math.max(0,ctDays(t,c.end)); // razem z dzisiejszym dniem
+  var rules=ctPostRules(c),prizes=ctPostPrizes(c);
+  var m={hotel:ctDipGet().hotel||ctPropName(),title:c.name||'Konkurs',desc:sh.desc?(c.desc||''):'',unit:unit,rows:rows,rest:rest,
+    restTitle:top3.length?'Dalsze miejsca':'Ranking',show:sh,prep:ph==='prep',done:ph==='done'||ph==='none',slogan:P.slogan||'',
+    prizeList:sh.prizes?prizes:[],ruleList:rules.list,prizeByPlace:{}};
+  prizes.forEach(function(p){if(p.pl!=null)m.prizeByPlace[p.pl]=p.l.replace(/^\d+\.\s*/,'')});
+  if(!sh.prizes)m.prizeByPlace={};
+  var kick={prep:'ZAPOWIEDŹ KONKURSU',done:'WYNIKI KONKURSU',none:'WYNIKI KONKURSU',undone:'PODSUMOWANIE KONKURSU',after:'KONIEC KONKURSU'}[ph]||'KONKURS SPRZEDAŻOWY';
+  m.kicker=kick+' · '+ctPostMonthKick(c);
+  var pill={prep:['Zapowiedź','prep'],after:['Liczymy wyniki','prep'],done:['Rozstrzygnięty','done'],none:['Rozstrzygnięty','done'],undone:['Nierozstrzygnięty','undone'],lastday:['Ostatni dzień!','run']}[ph]||['W trakcie · dzień '+dx+' z '+days,'run'];
+  m.statusL=pill[0];m.statusKind=pill[1];
+  m.chips=[{t:ctPeriod(c)},{t:ctPostOutlets(c)},{t:rules.short}];if(rules.min)m.chips.push({t:rules.min});
+  if(ph==='prep'){var n=ctDays(t,c.start)-1;m.strip=n<=1?'Startujemy jutro — '+ctFmt(c.start)+'!':'Start '+ctFmt(c.start)+' — już za '+n+' dni';}
+  else if(ph==='after')m.strip='Konkurs zakończony '+ctFmt(c.end)+' — wyniki wkrótce';
+  else if(ph==='done')m.strip='Konkurs zakończony '+ctFmt(c.end)+' · gratulacje dla zwycięzców!';
+  else if(ph==='none')m.strip='Konkurs zakończony '+ctFmt(c.end)+' · tym razem bez zwycięzców';
+  else if(ph==='undone')m.strip='Konkurs zakończony bez rozstrzygnięcia';
+  else{
+    var pl=CT_POST_PHASE_L[ph];
+    m.timeL=(pl?pl+' — ':'')+(res.dataMax?'stan na '+ctFmt(res.dataMax):'czekamy na pierwsze dane');
+    m.timeR=left>1?ctPostLeft(left):'dziś ostatni dzień';m.timeFrac=dx/days;
+  }
+  // kafelki
+  var tq=res.totals||{q:0,vb:0,vn:0},val=c.amount==='netto'?tq.vn:tq.vb,withScore=res.rows.filter(function(r){return r.score>0}).length;
+  if(ph==='prep'){
+    m.kpis=[{v:days+' '+ctPl(days,'dzień','dni','dni'),l:'czas trwania'},{v:prizes.length?String(prizes.length):'—',l:prizes.length===1?'nagroda':'nagrody do zdobycia'},
+      c.thresholdOn?{v:ctPostSp(ctFmtScore(c,+c.threshold||0)),l:'próg kwalifikacji'}:{v:c.empMode==='sel'?String((c.emps||[]).length):'Cały',l:c.empMode==='sel'?'uczestników':'zespół gra'},
+      {v:ctFmtS(c.start),l:'start konkursu'}];
+  } else {
+    m.kpis=[{v:ctPostNum(round2(tq.q))+' szt.',l:'sprzedanych sztuk'}];
+    m.kpis.push(sh.value?{v:ctPostSp(fmt(val)),l:'wartość sprzedaży'}:{v:String(withScore),l:ctPl(withScore,'osoba z wynikiem','osoby z wynikiem','osób z wynikiem')});
+    var qn=res.rows.filter(function(r){return r.qual}).length;
+    m.kpis.push(c.thresholdOn?{v:qn+' z '+withScore,l:'powyżej progu '+ctPostSp(ctFmtScore(c,+c.threshold||0))}:{v:String(withScore),l:ctPl(withScore,'uczestnik','uczestników','uczestników')+' z wynikiem'});
+    var pct=ctPostTempo(P),q0=rows[0],q1=rows[1];
+    if(pct!=null&&pct>=5)m.kpis.push({v:'+'+Math.round(pct)+'%',l:'tempo vs '+P.effMonth});
+    else if(q0&&q1&&q0.score>q1.score)m.kpis.push({v:'+'+ctPostSp(ctFmtScore(c,round2(q0.score-q1.score))),l:'przewaga lidera'});
+    else if(['done','none','undone','after'].indexOf(ph)!==-1)m.kpis.push({v:String(days),l:ctPl(days,'dzień','dni','dni')+' rywalizacji'});
+    else m.kpis.push({v:String(left),l:ctPl(left,'dzień','dni','dni')+' do końca'});
+  }
+  // wykres: top 5 wg aktualnego rankingu
+  var tl=res.timeline||{dates:[],series:{}};
+  m.timeline={dates:(tl.dates||[]).map(ctFmtS),series:rows.slice(0,5).map(function(r){return {n:r.n,vals:(tl.series[r.full]||[]).map(function(v){return v||0})}}).filter(function(s){return s.vals.length})};
+  return m;
+}
+function ctPostTempo(P){
+  var e=P.eff;if(!e||!e.ok||!e.prev||!(e.prev.rate>0))return null;
+  return (e.rate/e.prev.rate-1)*100;
+}
+
+// ── tekst posta ──
+function ctPostTagify(s){
+  var w=String(s||'').replace(/[^0-9A-Za-zÀ-žĄĆĘŁŃÓŚŹŻąćęłńóśźż]+/g,' ').trim().split(/\s+/).filter(Boolean);
+  if(!w.length)return '';
+  return ('#'+w.map(function(x){var y=ctPostCap(x);return y.charAt(0).toUpperCase()+y.slice(1)}).join('')).slice(0,40);
+}
+function ctPostTagNorm(s){
+  s=String(s||'').trim();if(!s)return '';
+  if(/^#?[0-9A-Za-zÀ-žĄĆĘŁŃÓŚŹŻąćęłńóśźż_]+$/.test(s))return ('#'+s.replace(/^#/,'')).slice(0,40); // jedno słowo — zostaje jak wpisane
+  return ctPostTagify(s);
+}
+function ctPostSuggest(c){
+  var hotel=String(ctDipGet().hotel||ctPropName()||'').replace(/^\s*hotel\s+/i,'').replace(/\s*\*+\s*$/,'');
+  var out=[];function add(t,k){if(t&&t.length>2&&!out.some(function(o){return o.t.toLowerCase()===t.toLowerCase()}))out.push({t:t,k:k})}
+  if(hotel)add(ctPostTagify('Zespół '+hotel),'team');
+  add('#KonkursSprzedażowy','base');
+  var nm=String(c.name||'').split(/\s[—–-]\s|:/)[0].split(/\s+/).slice(0,3).join(' ');add(ctPostTagify(nm),'contest');
+  add('@phase','phase');
+  add(ctPostTagify(CT_MONTH_NOM[+c.start.slice(5,7)-1]+' '+c.start.slice(0,4)),'month');
+  if(c.outletsMode==='sel')(c.outlets||[]).slice(0,3).forEach(function(id){add(ctPostTagify(ctOutletName(id)),'outlet')});
+  var it=[];Object.keys(c.groups||{}).forEach(function(k){it.push(c.groups[k].n)});Object.keys(c.items||{}).forEach(function(k){it.push(c.items[k].n)});
+  it.slice(0,6).forEach(function(n){var w=String(n).split(/\s+/).filter(function(x){return !/\d/.test(x)})[0];if(w&&w.length>2)add(ctPostTagify(w),'item')});
+  CT_POST_MOTIV.forEach(function(t){add(t,'motiv')});
+  if(hotel)add(ctPostTagify(hotel),'hotel');
+  return out;
+}
+function ctPostDefaultTags(c){return ctPostSuggest(c).filter(function(s){return ['team','base','contest','phase'].indexOf(s.k)!==-1}).map(function(s){return s.t})}
+function ctPostTagLabel(t,ph){return t==='@phase'?(CT_POST_PHASE_TAG[ph]||'#Konkurs'):t}
+function ctPostTagsLine(P){
+  var seen={},a=[];P.tags.forEach(function(t){var x=ctPostTagLabel(t,P.phase);if(x&&!seen[x.toLowerCase()]){seen[x.toLowerCase()]=1;a.push(x)}});
+  return a.join(' ');
+}
+function ctPostText(c,P,m){
+  var cfg=P.cfg,ph=P.phase,short=cfg.len==='short',ch=cfg.chan,res=P.res,L=[],medals=['🥇','🥈','🥉'];
+  function sc(v){return ctPostSp(ctFmtScore(c,v))}
+  var rows=m.rows,top=rows.filter(function(r){return r.qual&&r.place&&r.place<=3}).slice(0,3);
+  var rules=ctPostRules(c),prizes=ctPostPrizes(c),outl=ctPostOutlets(c);
+  var days=ctDays(c.start,c.end),left=Math.max(0,ctDays(ctToday(),c.end));
+  var asOf=res.dataMax?ctFmtS(res.dataMax):null;
+  var thr=c.thresholdOn?sc(+c.threshold||0):null;
+  function podium(withPrize,gaps){
+    top.forEach(function(r,i){
+      var s=medals[Math.min(r.place,3)-1]+' '+r.n+' — '+r.fmt;
+      if(withPrize&&r.prize)s+=' · 🎁 '+r.prize;
+      if(gaps&&i>0){var g=round2(top[i-1].score-r.score),lead=top[0].score||1;
+        if(g===0)s+=' (ex aequo!)';else if(g>0&&g<=Math.max(lead*.05,c.metric==='value'?100:2))s+=' (tylko '+sc(g)+' straty do '+top[i-1].place+'. miejsca!)';}
+      L.push(s);
+    });
+  }
+  function restLine(prefix){
+    if(!cfg.show.rest)return;var r=m.rest.filter(function(x){return x.place}).slice(0,3);if(!r.length)return;
+    L.push(prefix+r.map(function(x){return x.place+'. '+x.n+' — '+x.fmt}).join(' · '));
+  }
+  function totalsLine(verb){
+    var tq=res.totals||{q:0},val=c.amount==='netto'?tq.vn:tq.vb;if(!(tq.q>0))return;
+    var s='📊 '+verb+ctPostNum(round2(tq.q))+' szt.'+(cfg.show.value&&val>0?' za '+ctPostSp(fmt(val)):'');
+    var pct=ctPostTempo(P);if(pct!=null&&pct>=5)s+=' — o '+Math.round(pct)+'% '+(ph==='done'||ph==='none'?'więcej dziennie':'szybciej')+' niż w '+P.effMonthLoc;
+    L.push(s);
+  }
+  function thrLine(done){
+    if(!c.thresholdOn)return;var all=res.rows.filter(function(r){return r.score>0}),q=all.filter(function(r){return r.qual});if(!all.length)return;
+    var s='🎯 Próg '+thr+(done?' osiągnęło ':' ma już ')+q.length+' z '+all.length+' '+ctPl(all.length,'osoby','osób','osób')+'.';
+    if(!done){
+      var near=m.rows.filter(function(r){return !r.qual&&r.raw.gapThr>0&&r.raw.gapThr<=(+c.threshold||0)*.5}).sort(function(a,b){return a.raw.gapThr-b.raw.gapThr}).slice(0,3);
+      if(near.length)s+=' Do progu brakuje: '+near.map(function(r){return r.n+' — '+sc(r.raw.gapThr)}).join(', ');
+    }
+    L.push(s);
+  }
+  function changesLines(){
+    if(P.ref){
+      var d=ctFmtS(P.ref.date||ctISO(new Date(P.ref.at))),refMap={};P.ref.rows.forEach(function(x){refMap[x.n]=x});
+      var lead0=P.ref.rows.filter(function(x){return x.p===1})[0],lead1=top[0];
+      if(lead1&&lead0&&lead0.n!==lead1.full){var nm=ctPostNames(res.rows.map(function(r){return r.n}),cfg.names);L.push('👑 Nowe prowadzenie: '+lead1.n+' (wcześniej '+(nm[lead0.n]||lead0.n)+')');}
+      var ups=m.rows.filter(function(r){return r.mv>0}).sort(function(a,b){return b.mv-a.mv}).slice(0,3);
+      if(ups.length)L.push('⬆️ Awanse od ostatniego posta ('+d+'): '+ups.map(function(r){return r.n+' '+(r.place+r.mv)+'. → '+r.place+'.'}).join(' · '));
+      var gains=m.rows.map(function(r){var o=refMap[r.full];return {r:r,g:round2(r.score-(o?o.s:0))}}).filter(function(x){return x.g>0}).sort(function(a,b){return b.g-a.g});
+      if(gains.length)L.push('🚀 Najwięcej od ostatniego posta: '+gains[0].r.n+' (+'+sc(gains[0].g)+')');
+      return;
+    }
+    var tl=m.timeline;if(!tl||tl.dates.length<2)return;
+    var best=null;tl.series.forEach(function(s){var n=s.vals.length,g=round2(s.vals[n-1]-s.vals[n-2]);if(g>0&&(!best||g>best.g))best={n:s.n,g:g}});
+    if(best)L.push('🚀 Największy skok od ostatniego pomiaru: '+best.n+' (+'+sc(best.g)+')');
+  }
+  function prizesLine(){
+    if(!cfg.show.prizes||!prizes.length)return;
+    if(c.prizeType==='goal')L.push('🎁 Nagroda dla każdego, kto przekroczy próg '+thr+': '+(c.goalPrize||'nagroda'));
+    else L.push('🎁 Nagrody: '+prizes.map(function(p){return p.l}).join(' · '));
+  }
+  var title=c.name||'Konkurs';
+  if(ph==='prep'){
+    var n=ctDays(ctToday(),c.start)-1;
+    L.push('📣 Startujemy: '+title+'!');
+    if(!short){L.push('🗓️ '+ctPeriod(c)+' · '+outl);if(cfg.show.desc&&c.desc)L.push('💡 '+c.desc);L.push('');L.push('📌 Zasady: '+rules.full+(rules.min?' · '+rules.min:''));if(thr)L.push('🎯 Próg kwalifikacji: '+thr);prizesLine();L.push('');}
+    L.push(n<=1?'⏳ Startujemy jutro!':'⏳ Start już za '+n+' dni!');
+    L.push('💪 '+P.slogan);
+  } else if(ph==='done'||ph==='none'||ph==='undone'){
+    L.push('🏆 '+title+(ph==='undone'?' — podsumowanie':' — wyniki!'));
+    L.push(ph==='done'?'🎉 Konkurs zakończony '+ctFmt(c.end)+'. Gratulacje dla zwycięzców!':(ph==='none'?'🏁 Konkurs zakończony '+ctFmt(c.end)+'. Tym razem nikt nie osiągnął progu'+(thr?' '+thr:'')+'.':'🏁 Konkurs zakończony '+ctFmt(c.end)+'. Dziękujemy za udział!'));
+    if(top.length){L.push('');if(c.prizeType==='goal'&&cfg.show.prizes&&c.prizesOn){var w=rows.filter(function(r){return r.qual});L.push('🎁 '+(c.goalPrize||'Nagroda')+' dla: '+w.map(function(r){return r.n}).join(', '));}else podium(true,false);}
+    if(!short){L.push('');restLine('Dalsze miejsca: ');totalsLine('Razem sprzedaliśmy ');thrLine(true);}
+    L.push('');L.push('🙌 '+P.slogan);
+  } else {
+    var pl=CT_POST_PHASE_L[ph],when=(asOf?'Stan na '+asOf:'Czekamy na pierwsze dane')+' · '+(left>1?'do końca '+ctPostLeft(left):'dziś ostatni dzień!');
+    if(ph==='after'){L.push('🏁 '+title+' — koniec konkursu!');L.push('Liczymy wyniki — oficjalne rozstrzygnięcie już wkrótce.');}
+    else{L.push('🏆 '+title+(short&&pl?' — '+pl.toLowerCase()+'!':''));L.push('⏳ '+(pl&&!short?pl+'! ':'')+when);}
+    if(!short&&cfg.show.desc&&c.desc)L.push('💡 '+c.desc);
+    L.push('');
+    if(top.length){L.push(ph==='after'?'Wyniki wstępne:':'Podium na dziś:');podium(false,true);}
+    else L.push('Podium wciąż czeka na pierwszych zwycięzców'+(thr?' — próg to '+thr:'')+'!');
+    if(!short){
+      L.push('');restLine('Tuż za podium: ');changesLines();
+      L.push('');totalsLine('Razem: ');thrLine(false);
+      L.push('');prizesLine();L.push('📌 Zasady: '+rules.full+(rules.min?' · '+rules.min:'')+' ('+outl+')');
+    }
+    L.push('');L.push('💪 '+P.slogan);
+  }
+  if(ch!=='msg'){var tg=ctPostTagsLine(P);if(tg){L.push('');L.push(tg);}}
+  // bez podwójnych pustych linii
+  var out=[];L.forEach(function(l){if(l===''&&(!out.length||out[out.length-1]===''))return;out.push(l)});
+  while(out.length&&out[out.length-1]==='')out.pop();
+  return out.join('\n');
+}
+
+// ── okno ──
+function ctPostCanShare(){
+  try{return !!(navigator.canShare&&navigator.share&&navigator.canShare({files:[new File([new Blob(['x'],{type:'image/png'})],'t.png',{type:'image/png'})]}))}catch(e){return false}
+}
+function ctPostOpen(id){
+  var c=ctGet(id||S._ctBoardId);if(!c)return;
+  if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();
+  var res=ctResult(c),snap=ctPostSnap(res.rows),ph=ctPostPhase(c,res),eff=null;
+  try{eff=ctEffect(c,res)}catch(e){eff=null}
+  var pm=prevM(ctMonthOf(c.start)),mi=+pm.slice(5)-1;
+  var P=S._ctPost={id:c.id,res:res,cfg:ctPostCfg(),phase:ph,sit:ctPostSituation(c,res.rows),snap:snap,ref:ctPostRef(c,snap),eff:eff,
+    effMonth:CT_MONTH_NOM[mi],effMonthLoc:CT_MONTH_LOC[mi],edited:false,blob:null,logo:null,canShare:ctPostCanShare(),
+    canCopyImg:!!(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write)};
+  P.tags=(c.post&&c.post.tags)?c.post.tags.slice():ctPostDefaultTags(c);
+  P.pool=ctPostPool(ph,P.sit);P.slogan=P.pool[ctPostHash(c.id+ctToday())%P.pool.length];
+  document.getElementById('ct-post-title').textContent='📣 Post — Social Media · '+c.name;
+  // Tablica → Post: podmiana okna bez dodatkowego wpisu w historii (gest „wstecz" zamyka post)
+  var b=document.getElementById('m-ct-board'),pm=document.getElementById('m-ct-post');
+  if(b&&b.classList.contains('on')){
+    b.classList.remove('on');pm.classList.add('on');
+    if(history.state&&history.state.hmModal==='m-ct-board')history.replaceState({hmModal:'m-ct-post'},'',location.href);
+    else history.pushState({hmModal:'m-ct-post'},'',location.href);
+  } else openM('m-ct-post');
+  ctPostRender();
+  ctLoadImg(ctDipGet().logo).then(function(img){if(S._ctPost!==P)return;P.logo=img;ctPostRender()});
+}
+function ctPostRender(){
+  var P=S._ctPost,c=P&&ctGet(P.id);if(!c)return;
+  var cfg=P.cfg,sh=cfg.show,res=P.res,hasLogo=!!ctDipGet().logo;
+  function seg(k,opts){return ctSeg(opts,cfg[k],'ctPostSet'+k.charAt(0).toUpperCase()+k.slice(1))}
+  function chk(k,l,dis,title){return '<label class="'+(dis?'dis':'')+'"'+(title?' title="'+escAttr(title)+'"':'')+'><input type="checkbox" '+(sh[k]&&!dis?'checked':'')+(dis?' disabled':'')+' onchange="ctPostShow(\''+k+'\',this.checked)"> '+l+'</label>'}
+  var h='<div class="ct-post"><div class="ct-post-side">';
+  h+='<div class="ct-post-prev"><canvas id="ctp-canvas" width="1080" height="1350" role="img" aria-label="Podgląd grafiki posta"></canvas></div>';
+  h+='<div class="ct-post-ctrls"><div class="ct-post-f"><span>Format</span>'+seg('fmt',[['feed','Post 4:5'],['square','Kwadrat 1:1'],['story','Story 9:16']])+'</div>';
+  h+='<div class="ct-post-f"><span>Motyw</span>'+seg('theme',[['night','Nocny'],['light','Jasny']])+'</div></div>';
+  h+='<div class="ct-post-dl"><button type="button" class="btn btn-s" onclick="ctPostDownload()">⬇️ Pobierz grafikę</button>'+(P.canCopyImg?'<button type="button" class="btn btn-s" onclick="ctPostCopyImg()">📋 Kopiuj grafikę</button>':'')+'</div>';
+  // ostrzeżenie o niepełnych danych
+  if(['start','early','half','push','late','lastday','after'].indexOf(P.phase)!==-1&&res.dataMax){
+    var old=res.outlets.filter(function(o){return res.dataTo[o]!==res.dataMax});
+    if(old.length)h+='<div class="hs-warn" style="margin:0">Nie wszystkie outlety mają dane do '+ctFmt(res.dataMax)+': '+old.map(function(o){return esc(ctOutletName(o))+' — '+(res.dataTo[o]?'do '+ctFmtS(res.dataTo[o]):'brak danych')}).join(', ')+'. Wgraj raporty przed publikacją, żeby ranking był aktualny.</div>';
+  }
+  if(P.ref)h+='<p class="ct-post-note">Awanse liczone od ostatniego posta z '+ctFmt(P.ref.date||ctISO(new Date(P.ref.at)))+(P.ref.by?' ('+esc(P.ref.by)+')':'')+'.</p>';
+  h+='</div><div class="ct-post-main">';
+  // na grafice
+  h+='<section class="ct-post-box"><h4>Na grafice</h4><div class="ct-post-chk">';
+  h+=chk('desc','Opis konkursu',!c.desc,c.desc?'':'Konkurs nie ma opisu');
+  h+=chk('prizes','Nagrody',!c.prizesOn,c.prizesOn?'':'Konkurs nie ma nagród');
+  h+=chk('value','Wartość sprzedaży (zł)');
+  h+=chk('chart','Wykres wyścigu',cfg.fmt==='square','W kwadracie nie ma miejsca na wykres');
+  h+=chk('rest','Dalsze miejsca',cfg.fmt==='square','W kwadracie widać tylko podium');
+  h+=chk('logo','Logo hotelu',!hasLogo,hasLogo?'':'Logo wgrasz w oknie „Dyplomy”');
+  h+='</div><div class="ct-post-f"><span>Podpis osób na grafice i w poście</span>'+seg('names',[['short','Imię N.'],['full','Imię Nazwisko'],['first','Tylko imię']])+'</div></section>';
+  // treść posta
+  h+='<section class="ct-post-box"><div class="ct-post-hd"><h4>Treść posta</h4><div class="ct-post-opts">';
+  h+='<div class="ct-post-f"><span>Kanał</span>'+seg('chan',[['fb','Facebook'],['ig','Instagram'],['msg','Komunikator']])+'</div>';
+  h+='<div class="ct-post-f"><span>Długość</span>'+seg('len',[['short','Krótki'],['full','Pełny']])+'</div></div></div>';
+  h+='<div id="ctp-regen" class="ct-post-regen" hidden><span>Tekst był edytowany — zmiany opcji go nie nadpisują.</span><button type="button" class="btn btn-s btn-sm" onclick="ctPostRegen()">↺ Wygeneruj ponownie</button></div>';
+  h+='<label for="ctp-text" class="sr-only">Treść posta do skopiowania</label><textarea id="ctp-text" class="fi" rows="16" oninput="ctPostEdited()"></textarea>';
+  h+='<div class="ct-post-sl"><div class="ct-post-f"><label for="ctp-slogan">Hasło motywacyjne (na grafice i w poście)</label><input id="ctp-slogan" class="fi" maxlength="90" value="'+escAttr(P.slogan)+'" oninput="ctPostSlogan(this.value)"></div><button type="button" class="btn btn-s" onclick="ctPostShuffle()">🎲 Losuj inne</button></div>';
+  var my=ctPostMySlogans(),phG=P.myPh||ctPostPhaseGroup(P.phase);
+  h+='<details class="ct-post-my"'+(P.myOpen?' open':'')+' ontoggle="S._ctPost.myOpen=this.open"><summary>✍️ Moje hasła ('+my.length+') · w losowaniu teraz: '+P.pool.length+'</summary>';
+  h+='<p class="ct-post-note">Wpisz jedno hasło albo wklej kilka naraz — każde w nowej linii (numery i punktory zostaną usunięte). Maks. '+CT_SLOGAN_MAX+' znaków na hasło. Hasła zapamiętują się dla obiektu i losują się razem z gotowymi na wybranym etapie.</p>';
+  h+='<label for="ctp-my-in" class="sr-only">Nowe hasła — każde w nowej linii</label><textarea id="ctp-my-in" class="fi" rows="3" placeholder="np. Polecaj z pasją — wyniki przyjdą same&#10;Każdy gość zasługuje na dobrą rekomendację">'+esc(P.myDraft||'')+'</textarea>';
+  h+='<div class="ct-post-sl"><div class="ct-post-f"><label for="ctp-my-ph">Etap, na którym hasła mają się losować</label><select id="ctp-my-ph" class="fi" onchange="S._ctPost.myPh=this.value">'+CT_POST_PHASES.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===phG?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></div><button type="button" class="btn btn-s" onclick="ctPostMyAdd()">+ Dodaj hasła</button></div>';
+  if(my.length){
+    h+='<div class="ct-my-list">';
+    my.forEach(function(x,i){
+      var act=x.ph==='all'||x.ph===P.phase||(x.ph==='run'&&CT_POST_RUN.indexOf(P.phase)!==-1);
+      h+='<div class="ct-my-row'+(act?'':' ct-my-off')+'"><button type="button" class="ct-my-t" title="Użyj tego hasła" onclick="ctPostMyUse('+i+')">„'+esc(x.t)+'”</button><span class="ct-my-ph" title="'+escAttr(ctPostPhaseL(x.ph))+'">'+esc(ctPostPhaseL(x.ph).split(' (')[0])+'</span><button type="button" class="ct-tag-x" aria-label="Usuń hasło" onclick="ctPostMyDel('+i+')">✕</button></div>';
+    });
+    h+='</div><p class="ct-post-note">Kliknij hasło, aby użyć go od razu. Wyszarzone hasła należą do innego etapu niż obecny.</p>';
+  }
+  h+='</details>';
+  // hashtagi
+  h+='<div class="ct-post-f"><span>Hashtagi'+(cfg.chan==='msg'?' — w komunikatorach są pomijane':' — kliknij, aby dodać lub usunąć')+'</span><div class="ct-tags'+(cfg.chan==='msg'?' dis':'')+'">';
+  var custom=ctPostCustomTags(),sug=ctPostSuggest(c),list=sug.map(function(s){return s.t});
+  custom.forEach(function(t){if(list.indexOf(t)===-1)list.push(t)});
+  P.tags.forEach(function(t){if(list.indexOf(t)===-1)list.push(t)});
+  list.forEach(function(t,i){
+    var on=P.tags.indexOf(t)!==-1,isC=custom.indexOf(t)!==-1;
+    h+='<span class="ct-tag'+(on?' on':'')+'"><button type="button" aria-pressed="'+(on?'true':'false')+'" onclick="ctPostTag('+i+')">'+esc(ctPostTagLabel(t,P.phase))+'</button>'+(isC?'<button type="button" class="ct-tag-x" aria-label="Usuń hashtag '+escAttr(t)+' z listy" onclick="ctPostTagDel('+i+')">✕</button>':'')+'</span>';
+  });
+  P._tagList=list;
+  h+='</div><div class="ct-post-add"><input id="ctp-tag" class="fi" maxlength="40" placeholder="Własny hashtag, np. #ZespółFURU" aria-label="Własny hashtag" onkeydown="if(event.key===\'Enter\'){event.preventDefault();ctPostTagAdd()}"><button type="button" class="btn btn-s" onclick="ctPostTagAdd()">+ Dodaj</button></div>';
+  h+='<p class="ct-post-note" style="margin:0">Grupa jest wewnętrzna, więc hashtagi służą do porządkowania postów — kliknięcie hashtagu w grupie pokaże wszystkie posty konkursu. Własne hashtagi zapamiętują się dla obiektu.</p></div>';
+  // akcje
+  h+='<div class="ct-post-acts"><button type="button" class="btn btn-p" onclick="ctPostCopyText()">📋 Kopiuj treść posta</button>'+(P.canShare?'<button type="button" class="btn btn-s" onclick="ctPostShare()">📤 Udostępnij</button>':'')+'</div>';
+  h+='<p class="ct-post-note" id="ctp-count"></p>';
+  h+='</section></div></div>';
+  var prevText=P.edited?document.getElementById('ctp-text')&&document.getElementById('ctp-text').value:null;
+  var myIn=document.getElementById('ctp-my-in');if(myIn)P.myDraft=myIn.value; // szkic nowych haseł przeżywa przerysowanie okna
+  document.getElementById('ct-post-body').innerHTML=h;
+  var ta=document.getElementById('ctp-text');
+  if(P.edited&&prevText!=null){ta.value=prevText;document.getElementById('ctp-regen').hidden=false;}
+  else ta.value=ctPostText(c,P,ctPostModel(c,P));
+  ctPostCount();
+  ctPostPreview();
+}
+function ctPostCount(){
+  var ta=document.getElementById('ctp-text'),el=document.getElementById('ctp-count');if(!ta||!el)return;
+  var n=Array.from(ta.value).length,P=S._ctPost;
+  el.textContent=n+' '+ctPl(n,'znak','znaki','znaków')+' · tekst możesz poprawić przed skopiowaniem.'+(P&&P.canShare?' „Udostępnij” wysyła grafikę do wybranej aplikacji i jednocześnie kopiuje treść posta — wystarczy ją wkleić.':' Na komputerze: skopiuj grafikę i tekst, a potem wklej je w poście na grupie (Ctrl+V).');
+}
+function ctPostPreview(){
+  var P=S._ctPost,c=P&&ctGet(P.id);if(!c)return;
+  clearTimeout(P._t);
+  P._t=setTimeout(function(){
+    ctPostFonts().then(function(){
+      var cv=document.getElementById('ctp-canvas');if(!cv||S._ctPost!==P)return;
+      ctPostDraw(cv,ctPostModel(c,P),{fmt:P.cfg.fmt,theme:P.cfg.theme,logo:P.cfg.show.logo?P.logo:null});
+      P.blob=null;
+      if(cv.toBlob)cv.toBlob(function(b){if(S._ctPost===P)P.blob=b},'image/png');
+    });
+  },60);
+}
+function ctPostSave(){ctPostCfgSave(S._ctPost.cfg)}
+function ctPostOpt(k,v){var P=S._ctPost;P.cfg[k]=v;ctPostSave();ctPostRender()}
+function ctPostSetFmt(v){ctPostOpt('fmt',v)}
+function ctPostSetTheme(v){ctPostOpt('theme',v)}
+function ctPostSetNames(v){ctPostOpt('names',v)}
+function ctPostSetChan(v){ctPostOpt('chan',v)}
+function ctPostSetLen(v){ctPostOpt('len',v)}
+function ctPostShow(k,on){var P=S._ctPost;P.cfg.show[k]=on;ctPostSave();ctPostRender()}
+function ctPostEdited(){var P=S._ctPost;if(!P)return;P.edited=true;var r=document.getElementById('ctp-regen');if(r)r.hidden=false;ctPostCount()}
+function ctPostRegen(){var P=S._ctPost;P.edited=false;ctPostRender()}
+function ctPostRefreshText(){
+  var P=S._ctPost,c=ctGet(P.id),ta=document.getElementById('ctp-text');if(!ta)return;
+  if(!P.edited){ta.value=ctPostText(c,P,ctPostModel(c,P));ctPostCount();}
+}
+function ctPostSlogan(v){var P=S._ctPost;P.slogan=v.trim()||P.pool[0];ctPostRefreshText();ctPostPreview()}
+function ctPostShuffle(){
+  var P=S._ctPost,pool=P.pool.filter(function(s){return s!==P.slogan});if(!pool.length)pool=P.pool;
+  P.slogan=pool[Math.floor(Math.random()*pool.length)];
+  var el=document.getElementById('ctp-slogan');if(el)el.value=P.slogan;
+  ctPostRefreshText();ctPostPreview();
+}
+function ctPostMyAdd(){
+  var P=S._ctPost,ta=document.getElementById('ctp-my-in'),ph=(document.getElementById('ctp-my-ph')||{}).value||'all';
+  var lines=String(ta&&ta.value||'').split(/\r?\n/),my=ctPostMySlogans().slice(),added=0,dup=0,tooLong=[],known={};
+  my.forEach(function(x){known[x.t.toLowerCase()]=1});
+  Object.keys(CT_POST_SLOGANS).forEach(function(k){CT_POST_SLOGANS[k].forEach(function(t){known[t.toLowerCase()]=1})});
+  lines.forEach(function(l){
+    var t=ctPostCleanSlogan(l);if(!t)return;
+    if(Array.from(t).length>CT_SLOGAN_MAX){tooLong.push(t);return}
+    if(known[t.toLowerCase()]){dup++;return}
+    known[t.toLowerCase()]=1;my.push({t:t,ph:ph});added++;
+  });
+  if(!added&&!tooLong.length&&!dup){toast('Wpisz co najmniej jedno hasło','er');return}
+  if(my.length>200)my=my.slice(-200);
+  if(added)ctPostMySave(my);
+  P.myDraft=tooLong.join('\n');if(ta)ta.value=P.myDraft;P.myPh=ph;P.myOpen=true;
+  P.pool=ctPostPool(P.phase,P.sit);
+  var msg=added?('Dodano '+added+' '+ctPl(added,'hasło','hasła','haseł')+(ph==='all'||ph===P.phase||(ph==='run'&&CT_POST_RUN.indexOf(P.phase)!==-1)?'':' — będą losowane na etapie: '+ctPostPhaseL(ph))):'Nie dodano nowych haseł';
+  if(dup)msg+=' · pominięto powtórzenia: '+dup;
+  if(tooLong.length)msg+=' · za długie ('+tooLong.length+') zostały w polu do skrócenia';
+  toast(msg,added?'ok':'in');
+  ctPostRender();
+}
+function ctPostMyDel(i){
+  var P=S._ctPost,my=ctPostMySlogans().slice(),x=my[i];if(!x)return;
+  my.splice(i,1);ctPostMySave(my);P.pool=ctPostPool(P.phase,P.sit);P.myOpen=true;
+  ctPostRender();
+  offerUndo('Usunięto hasło',function(){var a=ctPostMySlogans().slice();a.splice(Math.min(i,a.length),0,x);ctPostMySave(a);if(S._ctPost===P){P.pool=ctPostPool(P.phase,P.sit);ctPostRender();}});
+}
+function ctPostMyUse(i){
+  var P=S._ctPost,x=ctPostMySlogans()[i];if(!x)return;
+  P.slogan=x.t;var el=document.getElementById('ctp-slogan');if(el)el.value=x.t;
+  ctPostRefreshText();ctPostPreview();toast('Użyto hasła','ok');
+}
+function ctPostTag(i){var P=S._ctPost,t=P._tagList[i];if(!t)return;var k=P.tags.indexOf(t);if(k===-1)P.tags.push(t);else P.tags.splice(k,1);ctPostRender()}
+function ctPostTagAdd(){
+  var el=document.getElementById('ctp-tag'),t=ctPostTagNorm(el&&el.value);if(!t||t.length<3){toast('Wpisz hashtag, np. #ZespółFURU','er');return}
+  var P=S._ctPost,cu=ctPostCustomTags();
+  if(!cu.some(function(x){return x.toLowerCase()===t.toLowerCase()})){cu.push(t);if(cu.length>30)cu=cu.slice(-30);ctPostCustomSave(cu);}
+  if(!P.tags.some(function(x){return x.toLowerCase()===t.toLowerCase()}))P.tags.push(t);
+  ctPostRender();var n=document.getElementById('ctp-tag');if(n)n.focus();
+}
+function ctPostTagDel(i){
+  var P=S._ctPost,t=P._tagList[i];if(!t)return;
+  ctPostCustomSave(ctPostCustomTags().filter(function(x){return x!==t}));
+  P.tags=P.tags.filter(function(x){return x!==t});ctPostRender();
+}
+function ctPostClip(text,quiet){
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(text).then(function(){return true}).catch(function(){return ctPostClipOld(text)});
+  return Promise.resolve(ctPostClipOld(text));
+}
+function ctPostClipOld(text){
+  try{var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=document.execCommand('copy');document.body.removeChild(ta);return ok}catch(e){return false}
+}
+function ctPostTextVal(){var ta=document.getElementById('ctp-text');return ta?ta.value:''}
+function ctPostFileName(){var P=S._ctPost,c=ctGet(P.id);return 'Post_'+dePL(c.name||'konkurs').replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'')+'_'+(P.cfg.fmt==='story'?'story':P.cfg.fmt==='square'?'1x1':'4x5')+'.png'}
+function ctPostBlob(){
+  var P=S._ctPost;if(P.blob)return Promise.resolve(P.blob);
+  return new Promise(function(r){var cv=document.getElementById('ctp-canvas');cv.toBlob(function(b){P.blob=b;r(b)},'image/png')});
+}
+function ctPostCopyText(){
+  ctPostClip(ctPostTextVal()).then(function(ok){
+    if(ok===false){toast('Nie udało się skopiować — zaznacz tekst i skopiuj ręcznie','er');return}
+    ctPostMark();toast('Skopiowano treść posta — wklej ją na grupie','ok');
+  });
+}
+function ctPostCopyImg(){
+  if(!window.ClipboardItem||!navigator.clipboard||!navigator.clipboard.write){toast('Ta przeglądarka nie kopiuje obrazów — użyj „Pobierz grafikę”','er');return}
+  try{
+    navigator.clipboard.write([new ClipboardItem({'image/png':ctPostBlob()})]).then(function(){ctPostMark();toast('Skopiowano grafikę — wklej ją w poście (Ctrl+V)','ok')}).catch(function(){toast('Nie udało się skopiować grafiki — użyj „Pobierz grafikę”','er')});
+  }catch(e){toast('Nie udało się skopiować grafiki — użyj „Pobierz grafikę”','er')}
+}
+function ctPostDownload(){
+  ctPostBlob().then(function(b){
+    if(!b){toast('Grafika jeszcze się przygotowuje — spróbuj za chwilę','in');return}
+    var url=URL.createObjectURL(b),a=document.createElement('a');a.download=ctPostFileName();a.href=url;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url)},4000);
+    ctPostMark();toast('Zapisano grafikę posta','ok');
+  });
+}
+function ctPostShare(){
+  var P=S._ctPost,c=ctGet(P.id);
+  if(!P.blob){toast('Grafika jeszcze się przygotowuje — spróbuj za chwilę','in');ctPostBlob();return}
+  var text=ctPostTextVal(),file=new File([P.blob],ctPostFileName(),{type:'image/png'});
+  ctPostClip(text,true); // Facebook i Instagram nie przyjmują tekstu z innych aplikacji — będzie w schowku
+  navigator.share({files:[file],text:text,title:c.name}).then(function(){ctPostMark();toast('Treść posta jest w schowku — wklej ją pod grafiką','ok')}).catch(function(e){
+    if(e&&e.name==='AbortError')return;toast('Nie udało się udostępnić — użyj „Pobierz grafikę”','er');
+  });
+}
+// zapamiętuje stan rankingu i hashtagi przy publikacji (dla „awansów od ostatniego posta")
+function ctPostMark(){
+  var P=S._ctPost,c=P&&ctGet(P.id);if(!c||!canEdit())return;
+  var p=c.post?ctClone(c.post):{},changed=!p.cur||!ctPostSame(p.cur.rows,P.snap),tagsCh=JSON.stringify(p.tags||null)!==JSON.stringify(P.tags);
+  if(!changed&&!tagsCh)return;
+  if(changed){p.prev=p.cur||null;p.cur={at:Date.now(),by:ctWho(),date:P.res.dataMax||ctToday(),rows:P.snap};}
+  p.tags=P.tags.slice();c.post=p;
+  ctSave(c,{keepStamp:true});
+}
 
 // ── KARTA PRACOWNIKA: odznaki z konkursów ──
 function ctEmpBadgesHTML(name){
@@ -13699,7 +14657,7 @@ function clearPropTransientState(){
    '_monthlyHosposParsed','_dailyHosposParsed','_dailyHosposDateNote','_kpiPrev','_tableExpanded',
    '_empTab','_pgMonth','_patOutlet','_patMonths','_perfParsed','_perfMonth','_perfViewMonth',
    '_monthlyExcelPending','_msalesDraftInfo',
-   '_ctView','_ctOpen','_ctDraft','_ctEditId','_ctUnlocked','_ctCat','_ctTreeQ','_ctTreeOpen','_ctEmpQ','_ctFilter','_ctPasteMsgs','_ctDip','_ctRankAll','_ctPointList'
+   '_ctView','_ctOpen','_ctDraft','_ctEditId','_ctUnlocked','_ctCat','_ctTreeQ','_ctTreeOpen','_ctEmpQ','_ctFilter','_ctPasteMsgs','_ctDip','_ctRankAll','_ctPointList','_ctPost'
   ].forEach(function(k){S[k]=null});
   _mcPending=null;
   dChart('emp-trend-chart'); // wykres należy do poprzedniego obiektu
@@ -16275,6 +17233,7 @@ function renderSidePanel(){
   h+='<select class="s-input" id="sp-widget-sel" onchange="setSidePanelWidget(this.value)">';
   h+='<option value="heatmap"'+(widget==='heatmap'?' selected':'')+'>📅 Heatmapa</option>';
   h+='<option value="ranking"'+(widget==='ranking'?' selected':'')+'>🏆 Ranking outletów</option>';
+  h+='<option value="contest"'+(widget==='contest'?' selected':'')+'>🏅 Konkurs</option>';
   h+='</select>';
   h+='<button class="btn-icon" onclick="toggleSidePanel()" title="Schowaj panel">✕</button>';
   h+='</div><div id="sp-body"></div>';
@@ -16285,6 +17244,7 @@ function renderSidePanel(){
     body.innerHTML='<div class="empty" style="padding:20px 8px"><p style="font-size:.75rem">Wybierz obiekt, aby zobaczyć podgląd.</p></div>';
     return;
   }
+  if(widget==='contest'){ctSideWidget(body);return;}
   if(widget==='ranking'){
     var d=getMD(S.pid,S.month)||{};
     var M=calcM(S.outlets,d)||{_t:{}};
@@ -16293,7 +17253,102 @@ function renderSidePanel(){
     renderHeatmap(body,S.pid,S.month,true);
   }
 }
-function setSidePanelWidget(v){localStorage.setItem('hm-sidepanel-widget',v);renderSidePanel()}
+function setSidePanelWidget(v){localStorage.setItem('hm-sidepanel-widget',v);renderSidePanel();if(S.view==='employees'&&S._empTab==='contests')renderContests()}
+
+// ── PANEL BOCZNY: widżet konkursu ──
+// Przypięty konkurs zapamiętuje się na urządzeniu, osobno dla obiektu. „Automatycznie" wybiera
+// trwający konkurs (ten, który kończy się najwcześniej), potem świeżo rozstrzygnięty, potem najbliższą zapowiedź.
+function ctSpKey(){return uk('sp-contest-'+S.pid)}
+function ctSpPinned(){return lsGet(ctSpKey(),'auto')||'auto'}
+function ctSpAuto(){
+  var all=ctList(),t=ctToday();if(!all.length)return null;
+  var live=all.filter(function(c){var st=ctStatus(c);return st==='run'&&c.start<=t}).sort(function(a,b){return a.end.localeCompare(b.end)});
+  if(live.length)return live[0];
+  var done=all.filter(function(c){return ctStatus(c)==='done'&&c.frozen&&(Date.now()-c.frozen.at)<=30*86400000}).sort(function(a,b){return b.frozen.at-a.frozen.at});
+  if(done.length)return done[0];
+  var prep=all.filter(function(c){return c.start>t&&ctStatus(c)!=='undone'}).sort(function(a,b){return a.start.localeCompare(b.start)});
+  if(prep.length)return prep[0];
+  return all[0];
+}
+function ctSpContest(){var id=ctSpPinned(),c=id!=='auto'?ctGet(id):null;return c||ctSpAuto()}
+function ctIsPinned(id){return localStorage.getItem('hm-sidepanel')!=='off'&&localStorage.getItem('hm-sidepanel-widget')==='contest'&&ctSpPinned()===id}
+function ctSpPick(v){lsSet(ctSpKey(),v);renderSidePanel();if(S.view==='employees'&&S._empTab==='contests')renderContests()}
+function ctPinToggle(id){
+  if(ctIsPinned(id)){
+    lsSet(ctSpKey(),'auto');
+    localStorage.setItem('hm-sidepanel-widget',localStorage.getItem('hm-sidepanel-prev')||'heatmap');
+    toast('Odpięto konkurs z panelu','in');
+  } else {
+    var w=localStorage.getItem('hm-sidepanel-widget')||'heatmap';if(w!=='contest')localStorage.setItem('hm-sidepanel-prev',w);
+    lsSet(ctSpKey(),id);localStorage.setItem('hm-sidepanel-widget','contest');localStorage.setItem('hm-sidepanel','on');
+    toast(window.innerWidth>=1500?'📌 Przypięto konkurs w panelu po prawej':'📌 Przypięto — panel po prawej jest widoczny na ekranach od 1500 px szerokości','ok');
+  }
+  renderSidePanel();renderContests();
+}
+function ctSideWidget(body){
+  var all=ctList();
+  if(!all.length){body.innerHTML='<div class="ct-sp-empty"><p>Brak konkursów w tym obiekcie.</p><button type="button" class="btn btn-s btn-sm" onclick="goContests()">🏅 Utwórz konkurs</button></div>';return}
+  var pin=ctSpPinned(),c=ctSpContest(),auto=ctSpAuto();
+  if(pin!=='auto'&&!ctGet(pin))pin='auto';
+  var h='<select class="s-input ct-sp-sel" aria-label="Konkurs w panelu" onchange="ctSpPick(this.value)">';
+  h+='<option value="auto"'+(pin==='auto'?' selected':'')+'>⚡ Automatycznie'+(auto?' — '+esc(auto.name):'')+'</option>';
+  all.forEach(function(x){h+='<option value="'+x.id+'"'+(pin===x.id?' selected':'')+'>📌 '+esc(x.name)+' · '+CT_STATUS[ctStatus(x)].l.toLowerCase()+'</option>'});
+  h+='</select>';
+  var st=ctStatus(c),res=ctResult(c),t=ctToday(),days=ctDays(c.start,c.end);
+  h+='<div class="ct-sp"><div class="ct-sp-hd"><button type="button" class="ct-sp-t" onclick="goContests(\''+c.id+'\')" title="Otwórz konkurs">'+esc(c.name)+'</button>'+ctStatusPill(st,c)+'</div>';
+  h+='<div class="ct-sp-sub">'+ctPeriod(c)+' · '+esc(ctPostOutlets(c))+'</div>';
+  var rows=res.rows.filter(function(r){return r.score>0});
+  if(t<c.start&&st!=='done'){
+    var n=ctDays(t,c.start)-1,rl=ctPostRules(c),pz=ctPostPrizes(c);
+    h+='<div class="ct-sp-soon">'+(n<=1?'Start jutro':'Start za '+n+' dni')+' · '+ctFmt(c.start)+'</div>';
+    h+='<div class="ct-sp-sec">Zasady</div><div class="ct-sp-p">'+esc(rl.short)+(rl.min?' · '+esc(rl.min):'')+(c.thresholdOn?' · próg '+esc(ctFmtScore(c,+c.threshold||0)):'')+'</div>';
+    if(pz.length){h+='<div class="ct-sp-sec">Nagrody</div>';pz.forEach(function(p){h+='<div class="ct-sp-prize">🎁 '+esc(p.l)+'</div>'});}
+  } else {
+    if(st!=='done'&&st!=='undone'){
+      if(t<=c.end){var dx=Math.max(1,ctDays(c.start,t)),left=ctDays(t,c.end);
+        h+='<div class="ct-prog ct-sp-prog"><div class="ct-prog-l"><span>Dzień '+dx+' z '+days+'</span><span>'+(left>1?ctPostLeft(left):'dziś ostatni dzień')+'</span></div><div class="ct-prog-bar"><div style="width:'+Math.min(100,dx/days*100).toFixed(1)+'%"></div></div></div>';}
+      else h+='<div class="ct-sp-soon ct-sp-due">Konkurs zakończony '+ctFmt(c.end)+' — czeka na rozstrzygnięcie</div>';
+      var old=res.outlets.filter(function(o){return res.dataTo[o]!==res.dataMax});
+      h+='<div class="ct-sp-asof">'+(res.dataMax?'Stan na '+ctFmt(res.dataMax):'Brak danych — wgraj raport „Sprzedaż użytkowników”')+(old.length&&res.dataMax?' · <span class="ct-sp-warn">⚠ '+old.map(function(o){return esc(ctOutletName(o))+' '+(res.dataTo[o]?'do '+ctFmtS(res.dataTo[o]):'brak')}).join(', ')+'</span>':'')+(res.needBase&&res.needBase.length?' · <span class="ct-sp-warn">⚠ brak danych startowych</span>':'')+'</div>';
+    } else h+='<div class="ct-sp-soon'+(st==='done'?' ct-sp-won':'')+'">'+(st==='done'?'🏆 Wyniki ostateczne':'Konkurs nierozstrzygnięty')+'</div>';
+    if(!rows.length)h+='<p class="ct-sp-p">Na razie nikt nie ma wyniku.</p>';
+    var max=Math.max.apply(null,rows.map(function(r){return r.score}).concat([1])),show=rows.slice(0,6);
+    h+='<div class="ct-sp-rank">';
+    show.forEach(function(r,i){
+      h+='<div class="ct-sp-row'+(r.qual?'':' ct-out')+'"><span class="ct-place ct-place-'+Math.min(r.place||4,4)+'">'+(r.place||'—')+'</span><div class="ct-sp-n"><div class="ct-sp-nl"><span>'+esc(r.n)+'</span><b>'+esc(ctFmtScore(c,r.score))+'</b></div><div class="ct-sp-bar"><div style="width:'+(r.score/max*100).toFixed(1)+'%;background:'+(r.qual?ctColor(i):'var(--brd2)')+'"></div></div>'+(r.prize&&(st==='done'||r.place<=3)?'<small>🎁 '+esc(r.prize)+'</small>':'')+'</div></div>';
+    });
+    h+='</div>';
+    if(rows.length>show.length)h+='<button type="button" class="ct-sp-more" onclick="goContests(\''+c.id+'\')">+ '+(rows.length-show.length)+' '+ctPl(rows.length-show.length,'osoba','osoby','osób')+' w rankingu →</button>';
+    var tq=res.totals||{q:0,vb:0,vn:0},val=c.amount==='netto'?tq.vn:tq.vb,qn=rows.filter(function(r){return r.qual}).length;
+    h+='<div class="ct-sp-kpis"><div><b>'+ctPostNum(round2(tq.q))+' szt.</b><span>sprzedanych sztuk</span></div><div><b>'+esc(fmt(val))+'</b><span>wartość sprzedaży</span></div>';
+    h+=c.thresholdOn?'<div><b>'+qn+' z '+rows.length+'</b><span>powyżej progu '+esc(ctFmtScore(c,+c.threshold||0))+'</span></div>':'<div><b>'+rows.length+'</b><span>osób z wynikiem</span></div>';
+    h+=rows.length>1&&rows[0].score>rows[1].score?'<div><b>+'+esc(ctFmtScore(c,round2(rows[0].score-rows[1].score)))+'</b><span>przewaga lidera</span></div>':'<div><b>'+days+'</b><span>'+ctPl(days,'dzień','dni','dni')+' konkursu</span></div>';
+    h+='</div>';
+    if(res.timeline&&res.timeline.dates.length>=2&&rows.length)h+='<div class="ct-sp-sec">Wyścig — top 3</div><canvas id="ct-sp-chart" class="ct-sp-chart" role="img" aria-label="Wykres narastający top 3"></canvas>';
+  }
+  h+='<div class="ct-sp-acts"><button type="button" class="btn btn-s btn-sm" onclick="goContests(\''+c.id+'\')">Otwórz</button><button type="button" class="btn btn-s btn-sm" onclick="ctBoardOpen(\''+c.id+'\')">📺 Tablica</button><button type="button" class="btn btn-s btn-sm" onclick="ctPostOpen(\''+c.id+'\')">📣 Post</button></div>';
+  h+='</div>';
+  body.innerHTML=h;
+  var cv=document.getElementById('ct-sp-chart');if(cv)ctSpChart(cv,c,res,rows.slice(0,3));
+}
+// mały wykres narastający (bez Chart.js — panel odświeża się przy każdym widoku)
+function ctSpChart(cv,c,res,top){
+  var W=cv.clientWidth||320,H=130,dpr=window.devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  var x=cv.getContext('2d');x.scale(dpr,dpr);
+  var cs=getComputedStyle(document.body),mu=(cs.getPropertyValue('--tx3')||'#8b93a5').trim(),gr=(cs.getPropertyValue('--brd')||'#e3e6ee').trim();
+  var tl=res.timeline,n=tl.dates.length,max=0;
+  var ser=top.map(function(r){return (tl.series[r.n]||[]).map(function(v){return v||0})});
+  ser.forEach(function(s){s.forEach(function(v){if(v>max)max=v})});max=max||1;
+  var pl=34,pr=10,pt=8,pb=20,pw=W-pl-pr,ph=H-pt-pb;
+  x.font='500 10px Outfit, sans-serif';x.fillStyle=mu;x.strokeStyle=gr;x.lineWidth=1;x.textAlign='right';
+  [0,.5,1].forEach(function(f){var y=pt+ph-ph*f;x.beginPath();x.moveTo(pl,y);x.lineTo(pl+pw,y);x.stroke();x.fillText(Math.round(max*f).toLocaleString('pl-PL'),pl-5,y+3)});
+  x.textAlign='left';x.fillText(ctFmtS(tl.dates[0]),pl,H-5);x.textAlign='right';x.fillText(ctFmtS(tl.dates[n-1]),pl+pw,H-5);
+  ser.forEach(function(s,i){
+    if(!s.length)return;x.strokeStyle=ctColor(i);x.lineWidth=2.5;x.lineJoin='round';x.beginPath();
+    s.forEach(function(v,k){var X=pl+pw*k/(n-1),Y=pt+ph-ph*v/max;k?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke();
+    x.fillStyle=ctColor(i);x.beginPath();x.arc(pl+pw,pt+ph-ph*s[s.length-1]/max,3.5,0,Math.PI*2);x.fill();
+  });
+}
 function toggleSidePanel(){
   var on=localStorage.getItem('hm-sidepanel')!=='off';
   localStorage.setItem('hm-sidepanel',on?'off':'on');
