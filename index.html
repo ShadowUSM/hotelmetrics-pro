@@ -1277,7 +1277,17 @@ span.ct-tr-name{cursor:default;font-weight:400}
 .ct-dip-side{flex:1 1 320px;max-width:410px;min-width:0}
 .ct-dip-main{flex:999 1 520px;min-width:0}
 .ct-dip-list{max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;border:1px solid var(--brd);border-radius:12px;padding:6px;background:var(--sur2)}
-.ct-dip-row{display:grid;grid-template-columns:20px 30px minmax(0,1fr);gap:8px;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:.78rem}
+.ct-dip-row{display:grid;grid-template-columns:20px 30px minmax(0,1fr) 32px;gap:8px;align-items:center;padding:4px 4px 4px 8px;border-radius:8px;font-size:.78rem}
+.ct-dip-row label{cursor:pointer}
+.ct-dip-row.miss{background:rgba(245,158,11,.07)}
+.ct-dip-miss{display:block;font-style:normal;font-size:.64rem;color:var(--warn);margin-top:1px}
+.ct-dip-ed{border:none;background:transparent;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:.85rem;opacity:.75}
+.ct-dip-ed:hover,.ct-dip-ed:focus-visible{opacity:1;background:var(--sur)}
+.ct-dip-namebox{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;max-width:640px;margin:4px auto 0}
+.ct-dip-namebox[hidden]{display:none}
+.ct-dip-namebox .fg{margin:0}
+.ct-dip-namebox .fi,.ct-dip-namebox .btn{height:42px;min-height:0;box-sizing:border-box}
+.ct-dip-namenote{text-align:center;margin:6px 0 10px}
 .ct-dip-row:hover{background:var(--sur)}
 .ct-dip-pl{font-weight:700;text-align:center}
 .ct-dip-n small{display:block;color:var(--tx3);font-size:.68rem}
@@ -5009,7 +5019,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.13.0';
+var APP_VERSION='3.13.1';
 var APP_BUILD_DATE='2026-11-10';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -5018,6 +5028,10 @@ var APP_BUILD_DATE='2026-11-10';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.13.1',date:'2026-11-16',changes:[
+    'Dyplomy: ręczne wpisanie imienia i nazwiska (✏️ przy osobie albo pole pod podglądem) — nazwa zapamiętuje się dla tej osoby we wszystkich dyplomach obiektu; osoby bez nazwiska w systemie są oznaczone',
+    'Dyplomy: wybór szablonu od razu zmienia podgląd i zaznaczenie (wcześniej podgląd odświeżał się dopiero po przełączeniu osoby, a ramka zostawała na pierwszym szablonie); błąd zapisu ustawień w chmurze nie blokuje już podglądu'
+  ]},
   {v:'3.13.0',date:'2026-11-16',changes:[
     'Logo hotelu: po wgraniu aplikacja sama usuwa jednolite tło (np. białe w JPG), przycina marginesy i przygotowuje dwie wersje — ciemną na jasne tło i jasną na ciemne tło; logo wgrane wcześniej przetwarza się przy pierwszym użyciu',
     'Nowy, czwarty szablon dyplomu „Granatowa noc” (ciemne tło, złote ramki, jasne logo); w oknie dyplomów podgląd obu wersji logo',
@@ -9876,7 +9890,8 @@ var CT_DIP_DEFAULT={logo:null,hotel:'',signTitle:'Manager F&B',signName:'',showS
 function ctDipGet(){return Object.assign({},CT_DIP_DEFAULT,hvGet(uk('diploma-'+S.pid))||{})}
 function ctDipSave(s){
   hvSet(uk('diploma-'+S.pid),s);
-  if(S.uid)fsWrite(db.collection('properties/'+S.pid+'/contests').doc('_diploma'),{json:JSON.stringify(s),updatedAt:Date.now()});
+  try{if(S.uid)fsWrite(db.collection('properties/'+S.pid+'/contests').doc('_diploma'),{json:JSON.stringify(s),updatedAt:Date.now()});}
+  catch(e){console.warn('Dyplomy — zapis w chmurze nieudany:',e)}
 }
 // Pobranie z chmury (wołane z loadUserDataFromFirestore)
 function ctLoadFromCloud(pid,snap){
@@ -12224,13 +12239,17 @@ function ctDipFonts(sample){
   ]).catch(function(){});
   return Promise.race([all,new Promise(function(r){setTimeout(r,5000)})]);
 }
+// Imię i nazwisko wpisane ręcznie — zapamiętane dla obiektu (np. gdy w systemie jest tylko „Sasza .")
+function ctDipNames(){var m=ctDipGet().names;return (m&&typeof m==='object')?m:{}}
+function ctDipName(n){return ctDipNames()[n]||n}
+function ctDipNameMissing(n){return !ctDipNames()[n]&&ctPostParts(n).length<2}
 function ctDipEntry(c,res,r){
   var shared=r.place&&res.rows.filter(function(x){return x.place===r.place}).length>1;
   var line,seal,sealSub,medal;
   if(r.qual&&c.prizeType==='goal'&&c.prizesOn){line='za osiągnięcie celu sprzedażowego';seal='★';sealSub='CEL';medal='gold';}
   else if(r.qual&&r.place){line='za zajęcie '+(CT_ROMAN[r.place]||r.place)+' miejsca'+(shared?' ex aequo':'');seal=CT_ROMAN[r.place]||String(r.place);sealSub='MIEJSCE';medal=r.place===1?'gold':r.place===2?'silver':r.place===3?'bronze':'red';}
   else {line='za udział';seal='★';sealSub='UDZIAŁ';medal='red';}
-  return {name:r.n,line:line,seal:seal,sealSub:sealSub,medal:medal,score:r.score>0?ctFmtScore(c,r.score).replace(/ /g,' '):'',prize:r.prize||''};
+  return {name:ctDipName(r.n),line:line,seal:seal,sealSub:sealSub,medal:medal,score:r.score>0?ctFmtScore(c,r.score).replace(/ /g,' '):'',prize:r.prize||''};
 }
 var CT_MEDALS={gold:['#fbe7a6','#e3b94f','#a87a1f','#7a5512'],silver:['#f7f9fb','#c9d0d9','#8e98a5','#5d6672'],bronze:['#f6d2ad','#d39a63','#9c5f2c','#6b3c17'],red:['#f08a8a','#c43a3a','#8c1d1d','#5e0e0e']};
 // Szablony dyplomów — wspólny układ treści, różne tło, ramka, typografia i pieczęć.
@@ -12578,7 +12597,7 @@ function ctDipOpen(id){
   var res=ctResult(c),sel={};
   var winners=res.rows.filter(function(r){return r.prize});
   (winners.length?winners:res.rows.filter(function(r){return r.qual}).slice(0,3)).forEach(function(r){sel[r.n]=true});
-  S._ctDip={id:id,sel:sel,date:(c.frozen&&c.frozen.at)?ctISO(new Date(c.frozen.at)):(ctToday()>c.end?ctToday():c.end),idx:0};
+  S._ctDip={id:id,sel:sel,date:(c.frozen&&c.frozen.at)?ctISO(new Date(c.frozen.at)):(ctToday()>c.end?ctToday():c.end),idx:0,tpl:ctDipGet().tpl};
   ctDipRender();openM('m-ct-diploma');
   ctDipFonts().then(ctDipPreview);
   var s0=ctDipGet();if(s0.logo&&!s0.logoV)ctLogoPair().then(function(){if(S._ctDip&&S._ctDip.id===id)ctDipRender()});
@@ -12591,12 +12610,7 @@ function ctDipRender(){
   var h='<div class="ct-dip"><div class="ct-dip-side">';
   h+='<div class="fsect" style="margin-bottom:6px">Dla kogo</div><div class="ct-chips" style="margin-bottom:8px">';
   [['win','Laureaci'],['qual','W klasyfikacji'],['all','Wszyscy'],['none','Nikt']].forEach(function(b){h+='<button type="button" class="btn btn-s btn-sm" onclick="ctDipQuick(\''+b[0]+'\')">'+b[1]+'</button>'});
-  h+='</div><div class="ct-dip-list">';
-  rows.forEach(function(r,i){
-    h+='<label class="ct-dip-row"><input type="checkbox" '+(d.sel[r.n]?'checked':'')+' onchange="ctDipToggle('+i+',this.checked)"><span class="ct-dip-pl">'+(r.place||'—')+'</span><span class="ct-dip-n">'+esc(r.n)+'<small>'+ctFmtScore(c,r.score)+(r.prize?' · '+esc(r.prize):'')+'</small></span></label>';
-  });
-  if(!rows.length)h+='<p class="de-empty">Brak uczestników z wynikiem.</p>';
-  h+='</div>';
+  h+='</div><div class="ct-dip-list" id="ctd-list">'+ctDipListHTML()+'</div>';
   h+='<div class="fsect" style="margin:14px 0 6px">Treść i podpis</div>';
   h+='<div class="ct-dip-grid"><div class="fg"><label for="ctd-date">Data na dyplomie</label><input type="date" class="fi" id="ctd-date" value="'+d.date+'" onchange="S._ctDip.date=this.value;ctDipPreview()"></div>';
   h+='<div class="fg"><label for="ctd-hotel">Nazwa hotelu</label><input class="fi" id="ctd-hotel" value="'+escAttr(s.hotel||ctPropName())+'" oninput="ctDipSet(\'hotel\',this.value)"></div>';
@@ -12615,16 +12629,57 @@ function ctDipRender(){
   h+='<p class="hs-p" style="margin:6px 0 0">PNG, JPG lub SVG — jednolite tło (np. białe) zostanie usunięte. Logo i podpis zapamiętują się dla całego obiektu.</p>';
   h+='</div><div class="ct-dip-main"><div class="fsect" style="margin-bottom:6px">Szablon</div><div class="ct-dip-tpls">';
   Object.keys(CT_DIP_TPL).forEach(function(k){
-    var t=CT_DIP_TPL[k],on=(s.tpl||'classic')===k;
+    var t=CT_DIP_TPL[k],on=ctDipTplCur()===k;
     h+='<button type="button" class="ct-dip-tpl'+(on?' on':'')+'" data-tpl="'+k+'" aria-pressed="'+(on?'true':'false')+'" onclick="ctDipSetTpl(\''+k+'\')"><canvas id="ctd-th-'+k+'" width="320" height="226" aria-hidden="true"></canvas><strong>'+t.l+'</strong><span>'+t.d+'</span></button>';
   });
   h+='</div><div class="ct-dip-prev"><canvas id="ctd-canvas" width="2480" height="1754"></canvas></div>';
   h+='<div class="ct-dip-nav"><button class="btn btn-s btn-sm" onclick="ctDipNav(-1)" aria-label="Poprzedni dyplom">◀</button><span id="ctd-cap"></span><button class="btn btn-s btn-sm" onclick="ctDipNav(1)" aria-label="Następny dyplom">▶</button></div>';
+  h+='<div class="ct-dip-namebox" id="ctd-namebox"><div class="fg"><label for="ctd-name">Imię i nazwisko na tym dyplomie</label><input class="fi" id="ctd-name" maxlength="60" autocomplete="off" oninput="ctDipNameInput(this.value)"></div><button type="button" class="btn btn-s" id="ctd-name-reset" onclick="ctDipNameReset()">↺ Jak w systemie</button></div>';
+  h+='<p class="hs-p ct-dip-namenote"><b id="ctd-name-who"></b> Wpisana nazwa zapamiętuje się dla tej osoby we wszystkich dyplomach obiektu. Puste pole = nazwa z systemu.</p>';
   h+='<div class="fa"><button class="btn btn-p" onclick="ctDipMake(\'pdf\')"'+(selN?'':' disabled')+'>📄 Pobierz PDF ('+selN+')</button><button class="btn btn-s" onclick="ctDipMake(\'print\')"'+(selN?'':' disabled')+'>🖨️ Drukuj</button></div>';
   h+='</div></div>';
   document.getElementById('ct-dip-body').innerHTML=h;
   document.getElementById('ct-dip-title').textContent='🎓 Dyplomy — '+c.name;
   ctDipThumbs();
+}
+function ctDipListHTML(){
+  var d=S._ctDip,c=ctGet(d.id),rows=ctDipRows(),nm=ctDipNames(),h='';
+  rows.forEach(function(r,i){
+    var own=nm[r.n],miss=!own&&ctPostParts(r.n).length<2;
+    h+='<div class="ct-dip-row'+(miss?' miss':'')+'"><input type="checkbox" id="ctd-r'+i+'" '+(d.sel[r.n]?'checked':'')+' onchange="ctDipToggle('+i+',this.checked)"><label for="ctd-r'+i+'" class="ct-dip-pl">'+(r.place||'—')+'</label>';
+    h+='<label for="ctd-r'+i+'" class="ct-dip-n">'+(own?'<b>'+esc(own)+'</b>':esc(r.n))+'<small>'+ctFmtScore(c,r.score)+(r.prize?' · '+esc(r.prize):'')+(own?' · w systemie: '+esc(r.n):'')+'</small>'+(miss?'<em class="ct-dip-miss">⚠ brak nazwiska — kliknij ✏️</em>':'')+'</label>';
+    h+='<button type="button" class="ct-dip-ed" title="Wpisz imię i nazwisko na dyplom" aria-label="Wpisz imię i nazwisko na dyplom: '+escAttr(r.n)+'" onclick="ctDipEditName('+i+')">✏️</button></div>';
+  });
+  if(!rows.length)h+='<p class="de-empty">Brak uczestników z wynikiem.</p>';
+  return h;
+}
+// ✏️ przy osobie: zaznacza ją, pokazuje jej dyplom w podglądzie i ustawia kursor w polu imienia i nazwiska
+function ctDipEditName(i){
+  var d=S._ctDip,r=ctDipRows()[i];if(!r)return;
+  var was=!!d.sel[r.n];d.sel[r.n]=true;
+  var list=ctDipSelected();d.idx=Math.max(0,list.findIndex(function(x){return x.n===r.n}));
+  if(!was)ctDipRender();
+  ctDipPreview();
+  var el=document.getElementById('ctd-name');if(el){el.focus();el.select();el.scrollIntoView({block:'nearest'});}
+}
+function ctDipCur(){var list=ctDipSelected();if(!list.length)return null;return list[Math.min(S._ctDip.idx,list.length-1)]}
+function ctDipNameInput(v){
+  var r=ctDipCur();if(!r)return;
+  var s=ctDipGet(),m=Object.assign({},s.names||{}),t=String(v||'').replace(/\s+/g,' ').trim();
+  if(t&&t!==r.n)m[r.n]=t;else delete m[r.n];
+  s.names=m;hvSet(uk('diploma-'+S.pid),s); // od razu lokalnie, do chmury z opóźnieniem
+  clearTimeout(S._ctDipNT);S._ctDipNT=setTimeout(function(){ctDipSave(ctDipGet())},700);
+  var rb=document.getElementById('ctd-name-reset');if(rb)rb.disabled=!m[r.n];
+  var l=document.getElementById('ctd-list');if(l){var st=l.scrollTop;l.innerHTML=ctDipListHTML();l.scrollTop=st;}
+  clearTimeout(S._ctDipT);S._ctDipT=setTimeout(ctDipPreview,150);
+}
+function ctDipNameReset(){var el=document.getElementById('ctd-name');if(el)el.value='';ctDipNameInput('');ctDipFillName()}
+function ctDipFillName(){
+  var r=ctDipCur(),el=document.getElementById('ctd-name'),who=document.getElementById('ctd-name-who'),rb=document.getElementById('ctd-name-reset'),box=document.getElementById('ctd-namebox');
+  if(box)box.hidden=!r;if(!r||!el)return;
+  var own=ctDipNames()[r.n]||'';
+  if(document.activeElement!==el)el.value=own;
+  el.placeholder=r.n;if(who)who.textContent='W systemie: „'+r.n+'”.';if(rb)rb.disabled=!own;
 }
 function ctDipToggle(i,on){var r=ctDipRows()[i];if(!r)return;S._ctDip.sel[r.n]=on;if(!on)delete S._ctDip.sel[r.n];S._ctDip.idx=0;ctDipRender();ctDipPreview()}
 function ctDipQuick(k){
@@ -12730,12 +12785,15 @@ function ctDipLogo(input){
   };
   rd.readAsDataURL(f);
 }
-function ctDipOpts(tpl){var s=ctDipGet();return {tpl:tpl||s.tpl||'classic',hotel:s.hotel||ctPropName(),signTitle:s.signTitle,signName:s.signName,showScore:s.showScore,showPrize:s.showPrize,date:S._ctDip.date}}
+function ctDipTplCur(){var d=S._ctDip;if(d&&d.tpl&&CT_DIP_TPL[d.tpl])return d.tpl;var t=ctDipGet().tpl;return CT_DIP_TPL[t]?t:'classic'}
+function ctDipSyncTpl(){var k=ctDipTplCur();document.querySelectorAll('#m-ct-diploma .ct-dip-tpl').forEach(function(b){var on=b.getAttribute('data-tpl')===k;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
+function ctDipOpts(tpl){var s=ctDipGet();return {tpl:tpl||ctDipTplCur(),hotel:s.hotel||ctPropName(),signTitle:s.signTitle,signName:s.signName,showScore:s.showScore,showPrize:s.showPrize,date:S._ctDip.date}}
 function ctDipSetTpl(k){
-  if(!CT_DIP_TPL[k])return;
-  var s=ctDipGet();s.tpl=k;ctDipSave(s);
-  document.querySelectorAll('.ct-dip-tpl').forEach(function(b){var on=b.getAttribute('data-tpl')===k;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+  if(!CT_DIP_TPL[k]||!S._ctDip)return;
+  S._ctDip.tpl=k;      // najpierw ekran: ramka i podgląd
+  ctDipSyncTpl();
   ctDipPreview();
+  try{var s=ctDipGet();s.tpl=k;ctDipSave(s);}catch(e){console.warn(e)} // potem zapis (błąd zapisu nie blokuje podglądu)
 }
 // Miniatury szablonów — rysowane w pełnej rozdzielczości i zmniejszane, z bieżącymi danymi
 function ctDipThumbs(){
@@ -12743,7 +12801,7 @@ function ctDipThumbs(){
   var c=ctGet(S._ctDip.id);if(!c)return;
   var res=ctResult(c),list=ctDipSelected(),r=list[0]||res.rows[0];
   var e=r?ctDipEntry(c,res,r):{name:'Imię Nazwisko',line:'za zajęcie I miejsca',seal:'I',sealSub:'MIEJSCE',medal:'gold',score:'',prize:''};
-  ctLogoPair().then(function(logo){
+  ctLogoPair().catch(function(){return null}).then(function(logo){
     ctDipFonts(e.name+c.name).then(function(){
       Object.keys(CT_DIP_TPL).forEach(function(k){
         var t=document.getElementById('ctd-th-'+k);if(!t)return;
@@ -12756,18 +12814,23 @@ function ctDipThumbs(){
 function ctDipPreview(){
   var cv=document.getElementById('ctd-canvas'),cap=document.getElementById('ctd-cap');if(!cv||!S._ctDip)return;
   var c=ctGet(S._ctDip.id),res=ctResult(c),list=ctDipSelected();
-  if(!list.length){var x=cv.getContext('2d');x.fillStyle='#f5f1e6';x.fillRect(0,0,cv.width,cv.height);x.fillStyle='#8b7a55';x.font='60px Georgia, serif';x.textAlign='center';x.fillText('Zaznacz osoby, dla których przygotować dyplom',cv.width/2,cv.height/2);if(cap)cap.textContent='Brak wybranych osób';return;}
-  var i=Math.min(S._ctDip.idx,list.length-1),r=list[i];
-  ctLogoPair().then(function(logo){
-    ctDipFonts(r.n+c.name).then(function(){ctDipDraw(cv,c,ctDipEntry(c,res,r),ctDipOpts(),logo)});
+  if(!list.length){ctDipFillName();var x=cv.getContext('2d');x.fillStyle='#f5f1e6';x.fillRect(0,0,cv.width,cv.height);x.fillStyle='#8b7a55';x.font='60px Georgia, serif';x.textAlign='center';x.fillText('Zaznacz osoby, dla których przygotować dyplom',cv.width/2,cv.height/2);if(cap)cap.textContent='Brak wybranych osób';return;}
+  var i=Math.min(S._ctDip.idx,list.length-1),r=list[i],e=ctDipEntry(c,res,r),d=S._ctDip,tok=d.pv=(d.pv||0)+1;
+  ctDipSyncTpl();ctDipFillName();
+  ctLogoPair().catch(function(err){console.warn(err);return null}).then(function(logo){
+    return ctDipFonts(e.name+c.name).then(function(){
+      if(S._ctDip!==d||d.pv!==tok)return; // w międzyczasie zmieniono styl lub osobę — rysuje nowsze wywołanie
+      var cv2=document.getElementById('ctd-canvas');if(!cv2)return;
+      try{ctDipDraw(cv2,c,e,ctDipOpts(),logo)}catch(err){console.error(err)}
+    });
   });
-  if(cap)cap.textContent='Podgląd: '+r.n+' ('+(i+1)+' z '+list.length+')';
+  if(cap)cap.textContent='Podgląd: '+e.name+(e.name!==r.n?' ('+r.n+')':'')+' — '+(i+1)+' z '+list.length;
 }
 function ctDipMake(mode){
   var c=ctGet(S._ctDip.id),res=ctResult(c),list=ctDipSelected();if(!list.length)return;
   toast('Przygotowuję '+list.length+' dyplom(ów)…','in');
-  ctLogoPair().then(function(logo){
-    ctDipFonts(list.map(function(r){return r.n}).join(' ')+c.name).then(function(){
+  ctLogoPair().catch(function(){return null}).then(function(logo){
+    ctDipFonts(list.map(function(r){return ctDipName(r.n)}).join(' ')+c.name).then(function(){
       try{
         var urls=list.map(function(r){var cv=document.createElement('canvas');ctDipDraw(cv,c,ctDipEntry(c,res,r),ctDipOpts(),logo);return cv.toDataURL('image/jpeg',0.9)});
         if(mode==='print')ctPrintImages(urls,true);
