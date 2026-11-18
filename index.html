@@ -1089,6 +1089,16 @@ body.presentation-mode #presentation-exit{display:flex}
 .ct-empty{padding:12px 2px 2px}
 .ct-empty-t{font-weight:600;margin-bottom:8px;font-size:.86rem}
 .ct-howto{margin:0;padding-left:18px;font-size:.78rem;color:var(--tx2);line-height:1.55}
+.ct-src{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(var(--acc-rgb),.07);font-size:.76rem;color:var(--tx2);line-height:1.45}
+.ct-src span{flex:1 1 320px}
+.emp-ct-info{margin:0 0 12px;padding:10px 14px;border-radius:12px;background:rgba(var(--acc-rgb),.08);font-size:.78rem;color:var(--tx2);line-height:1.5}
+.emp-ct-info span{color:var(--tx3)}
+.emp-ct-link{border:none;background:none;padding:0;font:inherit;font-weight:600;color:var(--acc);cursor:pointer}
+.emp-plan{display:inline-block;margin-top:3px;font-size:.7rem;font-weight:600}
+.emp-plan-append,.emp-plan-prepend{color:var(--grn)}
+.emp-plan-older{color:var(--acc)}
+.emp-plan-replace{color:var(--tx2)}
+.emp-plan-conflict{color:var(--warn)}
 .ct-howto li{margin-bottom:6px}
 .ct-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:2px 0 12px}
 .ct-seg{display:inline-flex;flex-wrap:wrap;gap:3px;padding:3px;border-radius:11px;background:var(--sur2);border:1px solid var(--brd)}
@@ -5019,7 +5029,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.13.1';
+var APP_VERSION='3.14.0';
 var APP_BUILD_DATE='2026-11-10';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -5028,6 +5038,11 @@ var APP_BUILD_DATE='2026-11-10';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.14.0',date:'2026-11-18',changes:[
+    'Konkursy pobierają dane automatycznie z Wprowadź dane → Sprzedaż pracownika — także raporty wgrane na innym urządzeniu, przez innego managera albo zanim konkurs powstał; jedno miejsce wklejania raportów',
+    'Sprzedaż pracownika: raport dzienny lub tygodniowy, który styka się z zapisanymi danymi (np. 18.11 po 01–17.11), dopisuje się do nich zamiast je nadpisywać; starszy raport (np. punkt startowy konkursu) nie nadpisuje nowszych danych — trafia tylko do konkursów; przy każdym punkcie podgląd pokazuje, co się stanie',
+    'Karta konkursu: przycisk ➕ Wklej raport prowadzi do Sprzedaży pracownika; lista zapisanych danych, których konkurs nie może użyć, z powodem; usunięty punkt pomiaru nie wraca przy automatycznym pobieraniu'
+  ]},
   {v:'3.13.1',date:'2026-11-16',changes:[
     'Dyplomy: ręczne wpisanie imienia i nazwiska (✏️ przy osobie albo pole pod podglądem) — nazwa zapamiętuje się dla tej osoby we wszystkich dyplomach obiektu; osoby bez nazwiska w systemie są oznaczone',
     'Dyplomy: wybór szablonu od razu zmienia podgląd i zaznaczenie (wcześniej podgląd odświeżał się dopiero po przełączeniu osoby, a ramka zostawała na pierwszym szablonie); błąd zapisu ustawień w chmurze nie blokuje już podglądu'
@@ -7831,6 +7846,57 @@ function parseEmployeeSalesReportMulti(raw){
 /* ═══════════════════════════════════════════
    UI: SPRZEDAŻ PRACOWNIKA (Wprowadź dane → Sprzedaż pracownika)
 ═══════════════════════════════════════════ */
+// Jak nowy raport ma się połączyć z danymi już zapisanymi dla outletu i miesiąca:
+//  new      — brak danych, zapis;
+//  replace  — ten sam „Od", późniejsze „Do" (narastająco) albo szerszy zakres — zastępuje;
+//  append / prepend — raport styka się z zapisanymi danymi (np. dzienny 18.11 po 01–17.11) — sumowanie;
+//  older    — starszy lub węższy niż zapisane dane (np. punkt startowy konkursu) — dane zostają, raport idzie tylko do konkursów;
+//  conflict — luka albo częściowe nakładanie się — zastąpienie tylko po potwierdzeniu.
+function empPlan(ex,r){
+  if(!ex)return {mode:'new'};
+  var es=ex.sourceRange,ns=r.sourceRange;
+  var eF=es&&ctParseDMY(es.from),eT=es&&ctParseDMY(es.to),nF=ns&&ctParseDMY(ns.from),nT=ns&&ctParseDMY(ns.to);
+  if(!eF||!eT||!nF||!nT)return {mode:'replace',eF:eF,eT:eT};
+  var o={eF:eF,eT:eT,nF:nF,nT:nT};
+  if(nF===eF){o.mode=nT>=eT?'replace':'older';return o}
+  if(nF===ctAddDays(eT,1)){o.mode='append';o.F=eF;o.T=nT;return o}
+  if(ctAddDays(nT,1)===eF){o.mode='prepend';o.F=nF;o.T=eT;return o}
+  if(nF<=eF&&nT>=eT){o.mode='replace';return o}
+  if(nF>=eF&&nT<=eT){o.mode='older';return o}
+  o.mode='conflict';return o;
+}
+function empPlanText(pl){
+  var f=function(d){return ctFmtS(d)};
+  switch(pl.mode){
+    case 'new':return '🆕 nowe dane';
+    case 'replace':return pl.eT?'🔁 zastąpi zapisane '+f(pl.eF)+'–'+f(pl.eT):'🔁 zastąpi zapisane dane';
+    case 'append':case 'prepend':return '➕ dopisze się do zapisanych '+f(pl.eF)+'–'+f(pl.eT)+' → razem '+f(pl.F)+'–'+f(pl.T);
+    case 'older':return '⏪ starszy niż zapisane '+f(pl.eF)+'–'+f(pl.eT)+' — dane zostają, raport trafi tylko do konkursów';
+    case 'conflict':return '⚠️ nie łączy się z zapisanymi '+f(pl.eF)+'–'+f(pl.eT)+' — zapis je zastąpi';
+  }
+  return '';
+}
+// Suma dwóch raportów „Sprzedaż użytkowników" tego samego outletu (sąsiednie zakresy dat)
+function empMergeEmployees(a,b){
+  var map={},order=[];
+  function add(list){(list||[]).forEach(function(e){
+    var k=(e.id||'')+'|'+e.name;
+    var t=map[k];if(!t){t=map[k]={name:e.name,id:e.id,items:[],_ix:{},totalNetto:0,totalBrutto:0};order.push(k);}
+    (e.items||[]).forEach(function(it){
+      var ik=(it.outlet||'')+'|'+(it.category||'')+'|'+it.name,x=t._ix[ik];
+      if(!x){x=t._ix[ik]={outlet:it.outlet,category:it.category,name:it.name,qty:0,netto:0,brutto:0};t.items.push(x);}
+      x.qty=round2(x.qty+(+it.qty||0));x.netto=round2(x.netto+(+it.netto||0));x.brutto=round2(x.brutto+(+it.brutto||0));
+    });
+    t.totalNetto=round2(t.totalNetto+(+e.totalNetto||0));t.totalBrutto=round2(t.totalBrutto+(+e.totalBrutto||0));
+  })}
+  add(a);add(b);
+  return order.map(function(k){var t=map[k];delete t._ix;return t});
+}
+function empPlanFor(i){
+  var r=S._empParsedReports[i],m=S._empReportMeta[i];
+  if(!m||!m.outletId||m.outletId==='__skip__'||!m.month)return null;
+  return empPlan(getEmployeeSales(S.pid,m.outletId,m.month),r);
+}
 function empSalesParse(){
   var ta=document.getElementById('emp-input');if(!ta)return;
   var raw=ta.value;
@@ -7852,6 +7918,7 @@ function empSalesParse(){
 }
 function empReportMetaChange(idx,field,val){
   if(S._empReportMeta&&S._empReportMeta[idx])S._empReportMeta[idx][field]=val;
+  renderEmpPreview(false); // plan zapisu zależy od outletu i miesiąca
 }
 function renderEmpPreview(reveal){
   var reports=S._empParsedReports;
@@ -7867,7 +7934,7 @@ function renderEmpPreview(reveal){
   var sameRange=reports.every(function(p){return p.sourceRange&&reports[0].sourceRange&&p.sourceRange.from===reports[0].sourceRange.from&&p.sourceRange.to===reports[0].sourceRange.to});
   var h=deMeta((sameRange?deRangeText(reports[0].sourceRange):'📅 Raporty mają różne zakresy dat — widać je przy każdym punkcie')+' — outlet i miesiąc ustawiasz osobno dla każdego punktu poniżej.','');
   h+=deChips([['Punkty',reports.length],['Pracownicy',fmtN(totEmp)],['Suma netto',fmt(round2(totNetto),true)],['Suma brutto',fmt(round2(totBrutto),true)]]);
-  h+=deWarn('Raport nie zaczyna się od 1. dnia miesiąca — dane zapisują się zawsze jako „od 1. dnia do X":',notFirst,5);
+  h+=deWarn('Raport nie zaczyna się od 1. dnia miesiąca — jeśli styka się z zapisanymi danymi (np. dzienny raport po raporcie od 1. dnia), dopisze się do nich; inaczej zastąpi dane miesiąca:',notFirst,5);
   h+=deWarn('Rozbieżności między sumą pozycji a sumą „Razem" (zwykle brakujący wiersz w oryginalnym raporcie):',warnings,3);
 
   h+=deRowsOpen(['Punkt w raporcie','Netto','Outlet w aplikacji','Zapisz do miesiąca']);
@@ -7875,7 +7942,8 @@ function renderEmpPreview(reveal){
     var m=meta[idx];
     var n=0;parsed.employees.forEach(function(e){n+=e.totalNetto});
     var top=parsed.employees.slice().sort(function(a,b){return b.totalNetto-a.totalNetto})[0];
-    var sub=parsed.employees.length+' pracowników'+(top?' · najwyższa sprzedaż: '+esc(top.name):'')+((!sameRange&&parsed.sourceRange)?' · '+esc(parsed.sourceRange.from)+'–'+esc(parsed.sourceRange.to):'');
+    var pl=empPlanFor(idx);
+    var sub=parsed.employees.length+' pracowników'+(top?' · najwyższa sprzedaż: '+esc(top.name):'')+((!sameRange&&parsed.sourceRange)?' · '+esc(parsed.sourceRange.from)+'–'+esc(parsed.sourceRange.to):'')+(pl&&pl.mode!=='new'?'<br><span class="emp-plan emp-plan-'+pl.mode+'">'+esc(empPlanText(pl))+'</span>':'');
     h+=deRow(parsed.outletName||'—',sub,fmt(round2(n),true),
       deOutletSelect(m.outletId,'empReportMetaChange('+idx+',\'outletId\',this.value)')+
       '<input type="month" class="fi" value="'+esc(m.month||'')+'" onchange="empReportMetaChange('+idx+',\'month\',this.value)">',
@@ -7895,14 +7963,16 @@ function empSalesSaveAll(){
     toSave++;
   }
   if(!toSave){toast('Wszystkie punkty są oznaczone jako pominięte — nie ma czego zapisać','er');return;}
+  // zastąpienie zapisanych danych wymaga potwierdzenia; dopisanie i starszy raport — nie
   var conflicts=[];
   reports.forEach(function(r,i){
     if(meta[i].outletId==='__skip__')return;
-    var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId});
-    if(outlet&&getEmployeeSales(S.pid,meta[i].outletId,meta[i].month))conflicts.push(outlet.name+' — '+mLabelFull(meta[i].month));
+    var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId}),pl=empPlanFor(i);
+    if(outlet&&pl&&(pl.mode==='replace'||pl.mode==='conflict'))conflicts.push({n:outlet.name+' — '+mLabelFull(meta[i].month),t:empPlanText(pl),bad:pl.mode==='conflict'});
   });
   if(conflicts.length){
-    deConfirm('👤 Dane już istnieją','<p class="hs-p">Dla poniższych outletów i miesięcy dane już istnieją — nowy import je zastąpi:</p><ul style="margin:6px 0 0 18px;font-size:.8rem">'+conflicts.map(function(c){return '<li>'+esc(c)+'</li>'}).join('')+'</ul>','🔁 Nadpisz',empDoSaveAll);
+    var bad=conflicts.some(function(c){return c.bad});
+    deConfirm('👤 Dane już istnieją','<p class="hs-p">Dla poniższych outletów i miesięcy dane już istnieją:</p><ul style="margin:6px 0 0 18px;font-size:.8rem">'+conflicts.map(function(c){return '<li><strong>'+esc(c.n)+'</strong>: '+esc(c.t)+'</li>'}).join('')+'</ul>'+(bad?'<p class="hs-p">Raport, który nie łączy się z zapisanymi danymi (luka albo częściowe nakładanie się dat), zastąpi je w całości. Jeśli brakuje dni, wklej najpierw brakujący raport.</p>':''),'🔁 Zapisz',empDoSaveAll);
     return;
   }
   empDoSaveAll();
@@ -7910,13 +7980,23 @@ function empSalesSaveAll(){
 function empDoSaveAll(){
   var reports=S._empParsedReports,meta=S._empReportMeta;
   if(!reports)return;
-  var savedCount=0,failed=0,skipped=0,lastOutletId=null,lastMonth=null,ctMsgs=[];
+  var savedCount=0,failed=0,skipped=0,merged=0,ctOnly=0,lastOutletId=null,lastMonth=null,ctMsgs=[];
   reports.forEach(function(r,i){
     if(meta[i].outletId==='__skip__')return; // świadomie pominięty przez użytkownika
     var outlet=S.outlets.find(function(o){return o.id===meta[i].outletId});
     if(!outlet){skipped++;return;}
-    var ok=saveEmployeeSales(S.pid,meta[i].outletId,meta[i].month,{outletName:outlet.name,sourceRange:r.sourceRange,employees:r.employees});
-    if(ok){savedCount++;lastOutletId=meta[i].outletId;lastMonth=meta[i].month;ctMsgs=ctMsgs.concat(ctIngestFromImport(meta[i].outletId,r));}else{failed++;}
+    var oid=meta[i].outletId,mon=meta[i].month,ex=getEmployeeSales(S.pid,oid,mon),pl=empPlan(ex,r);
+    if(pl.mode==='older'){ // nowsze dane zostają — raport (np. punkt startowy) tylko do konkursów
+      ctOnly++;ctMsgs=ctMsgs.concat(ctIngestFromImport(oid,r));return;
+    }
+    var d={outletName:outlet.name,sourceRange:r.sourceRange,employees:r.employees};
+    if(pl.mode==='append'||pl.mode==='prepend'){
+      d={outletName:outlet.name,sourceRange:{from:ctDMY(pl.F),to:ctDMY(pl.T)},employees:pl.mode==='append'?empMergeEmployees(ex.employees,r.employees):empMergeEmployees(r.employees,ex.employees),merged:(ex.merged||1)+1};
+      merged++;
+    }
+    var ok=saveEmployeeSales(S.pid,oid,mon,d);
+    // do konkursów trafia stan narastający (po dopisaniu — suma), tak jak w zapisanych danych
+    if(ok){savedCount++;lastOutletId=oid;lastMonth=mon;ctMsgs=ctMsgs.concat(ctIngestFromImport(oid,d));}else{failed++;}
   });
   S._empParsedReports=null;S._empReportMeta=null;
   S._empAllItemNamesCache=null; // unieważnij cache podpowiedzi — mogły dojść nowe pozycje
@@ -7926,7 +8006,7 @@ function empDoSaveAll(){
   renderEmpSales();
   if(failed)toast('Zapisano '+savedCount+', NIE zapisano '+failed+' — brak miejsca w pamięci przeglądarki','er');
   else if(skipped)toast('Zapisano '+savedCount+', pominięto '+skipped+' (outlet nie istnieje w tym obiekcie)','er');
-  else toast('Zapisano dane dla '+savedCount+' outlet(ów)','ok');
+  else toast((savedCount?'Zapisano dane dla '+savedCount+' outlet(ów)'+(merged?' (dopisano do zapisanych: '+merged+')':''):'')+(ctOnly?(savedCount?' · ':'')+ctOnly+' starszy raport — tylko do konkursów, zapisane dane bez zmian':''),'ok');
   if(ctMsgs.length){
     var uq={};ctMsgs.forEach(function(m){uq[m]=(uq[m]||0)+1});
     var lst=Object.keys(uq).map(function(m){return m+(uq[m]>1?' ('+uq[m]+' outlety)':'')});
@@ -8301,6 +8381,8 @@ function renderEmpSales(){
   if(!S._empViewOutlet)S._empViewOutlet=S.outlets[0].id;
 
   var h=deHead('👤','Sprzedaż pracownika','Raport HosPOS „Sprzedaż użytkowników" — co i w jakiej ilości sprzedał każdy pracownik. Raport może dotyczyć jednego punktu albo kilku naraz; dane zapisują się per outlet i miesiąc.');
+  var liveCt=ctList().filter(function(c){var st=ctStatus(c);return st!=='done'&&st!=='undone'&&ctToday()<=ctAddDays(c.end,31)});
+  if(liveCt.length)h+='<div class="emp-ct-info">🏅 Zapisane raporty trafiają automatycznie do konkursów: '+liveCt.map(function(c){return '<button type="button" class="emp-ct-link" onclick="goContests(\''+c.id+'\')">'+esc(c.name)+'</button> <span>('+ctPeriod(c)+')</span>'}).join(', ')+'</div>';
 
   h+=deCardOpen(1,'Źródło — raport HosPOS');
   h+=deSource({id:'emp',ro:ro,onParse:'empSalesParse()',
@@ -9847,6 +9929,7 @@ function ctFmt(iso){if(!iso)return '—';var p=iso.split('-');return p[2]+'.'+p[
 function ctFmtS(iso){if(!iso)return '—';var p=iso.split('-');return p[2]+'.'+p[1]}
 function ctPeriod(c){return c.start===c.end?ctFmt(c.start):(ctMonthOf(c.start).slice(0,4)===ctMonthOf(c.end).slice(0,4)?ctFmtS(c.start):ctFmt(c.start))+' – '+ctFmt(c.end)}
 // „01.11.26" / „01.11.2026" → „2026-11-01"
+function ctDMY(iso){var p=String(iso||'').split('-');return p.length===3?p[2]+'.'+p[1]+'.'+p[0].slice(2):''}
 function ctParseDMY(s){
   var m=String(s||'').match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/);
   if(!m)return null;
@@ -10049,13 +10132,58 @@ function ctReingest(c){
   });
   return n;
 }
+// Czy konkurs ma już pomiar o tym zakresie dat z tego outletu?
+function ctHasRec(c,o,F,T){
+  var mm=c.meas&&c.meas[o]&&c.meas[o][ctMonthOf(T)];
+  return !!(mm&&mm.recs&&mm.recs.some(function(r){return r.f===F&&r.t===T}));
+}
+// Automatyczne pobieranie: każdy trwający (nierozstrzygnięty) konkurs dostaje to, co jest zapisane
+// w „Wprowadź dane → Sprzedaż pracownika" — także dane wgrane na innym urządzeniu, przez innego
+// managera albo zanim konkurs powstał. Wołane przy wyświetlaniu konkursów, Dashboardu i panelu;
+// podpis danych sprawia, że przy braku zmian nic się nie dzieje.
+function ctSyncSaved(force){
+  if(!S.pid||!canEdit())return 0;
+  var all=ctList();if(!all.length)return 0;
+  var keys=getAllEmployeeSalesKeys(S.pid);
+  var sig=S.pid+'#'+keys.map(function(k){var d=getEmployeeSales(S.pid,k.outletId,k.month);return k.outletId+':'+k.month+':'+(d&&d.ts||0)}).join('|')+'#'+all.map(function(c){return c.id+':'+c.status+':'+JSON.stringify(c.skip||{}).length+':'+ctRulesSig(c).length+':'+c.start+':'+c.end}).join(',');
+  if(!force&&S._ctSyncSig===sig)return 0;
+  S._ctSyncSig=sig;
+  var n=0;
+  all.forEach(function(c){
+    if(c.status==='done')return;
+    var months=ctMonthsBetween(c.start,c.end),ch=false;
+    keys.forEach(function(k){
+      if(months.indexOf(k.month)===-1||!ctOutletIn(c,k.outletId))return;
+      var d=getEmployeeSales(S.pid,k.outletId,k.month);if(!d||!d.employees||!d.sourceRange)return;
+      var F=ctParseDMY(d.sourceRange.from),T=ctParseDMY(d.sourceRange.to);if(!F||!T)return;
+      if((c.skip||{})[k.outletId+'|'+F+'|'+T]||ctHasRec(c,k.outletId,F,T))return;
+      var r=ctIngest(c,k.outletId,d,'Wprowadź dane → Sprzedaż pracownika');
+      if(r.ok){ch=true;n++;}
+    });
+    if(ch)ctSave(c,{keepStamp:true});
+  });
+  return n;
+}
+// Zapisane dane, których konkurs nie może użyć — z powodem (np. raport dłuższy niż konkurs)
+function ctSavedIssues(c){
+  var out=[],months=ctMonthsBetween(c.start,c.end);
+  getAllEmployeeSalesKeys(S.pid).forEach(function(k){
+    if(months.indexOf(k.month)===-1||!ctOutletIn(c,k.outletId))return;
+    var d=getEmployeeSales(S.pid,k.outletId,k.month);if(!d||!d.sourceRange)return;
+    var F=ctParseDMY(d.sourceRange.from),T=ctParseDMY(d.sourceRange.to);if(!F||!T||ctHasRec(c,k.outletId,F,T))return;
+    var a=ctAccept(c,k.outletId,F,T);
+    if(!a.ok&&!a.silent)out.push({o:k.outletId,F:F,T:T,msg:a.reason});
+  });
+  return out;
+}
 // Hak wołany po zapisie raportu w „Wprowadź dane → Sprzedaż pracownika".
 function ctIngestFromImport(outletId,report){
   if(!S.pid)return [];
-  var msgs=[];
+  var msgs=[],sr=report&&report.sourceRange,F=sr&&ctParseDMY(sr.from),T=sr&&ctParseDMY(sr.to);
   ctList().forEach(function(c){
     if(c.status==='done')return;
-    var r=ctIngest(c,outletId,report,'Import: Sprzedaż pracownika');
+    if(c.skip&&F&&T)delete c.skip[outletId+'|'+F+'|'+T]; // świadomy ponowny import przywraca usunięty pomiar
+    var r=ctIngest(c,outletId,report,'Wprowadź dane → Sprzedaż pracownika');
     if(r.ok){ctSave(c,{keepStamp:true});msgs.push('„'+c.name+'": '+(r.kind==='baseline'?'punkt startowy':'pomiar')+' '+ctFmtS(r.t));}
     else if(!r.silent)msgs.push('„'+c.name+'": '+r.reason);
   });
@@ -10341,6 +10469,7 @@ function ctDuplicate(id){
 function renderContests(){
   var el=document.getElementById('emp-contests');if(!el)return;
   ctAutoAdvance();
+  ctSyncSaved();
   var v=S._ctView||'list';
   if(v==='form'&&S._ctDraft){ctRenderForm();return;}
   if(v==='detail'&&S._ctOpen&&ctGet(S._ctOpen)){ctRenderDetail();return;}
@@ -10368,8 +10497,8 @@ function ctRenderList(){
   h+='</div>';
   if(!all.length){
     h+='<div class="ct-empty"><div class="ct-empty-t">Nie ma jeszcze żadnego konkursu</div>';
-    h+='<ul class="ct-howto"><li><strong>Konkurs od 1. dnia miesiąca</strong> liczy się sam — każdy import w „Wprowadź dane → Sprzedaż pracownika" dopisuje punkt pomiaru i przesuwa wykres.</li>';
-    h+='<li><strong>Konkurs od środka miesiąca</strong> potrzebuje punktu startowego: raportu od 1. dnia do dnia przed startem. Aplikacja podpowie, który raport wkleić.</li>';
+    h+='<ul class="ct-howto"><li><strong>Raporty wklejasz tylko w „Wprowadź dane → Sprzedaż pracownika”</strong> — konkursy pobierają je same (także dane wgrane wcześniej albo na innym urządzeniu). Każdy raport to punkt pomiaru na wykresie; raport dzienny dopisuje się do danych od 1. dnia.</li>';
+    h+='<li><strong>Konkurs od środka miesiąca</strong> potrzebuje punktu startowego: raportu od 1. dnia do dnia przed startem. Aplikacja podpowie, który raport wkleić — starszy raport nie nadpisze nowszych danych.</li>';
     h+='<li><strong>Rozstrzygnięcie</strong> wymaga raportu kończącego się w dniu końca konkursu. Po zatwierdzeniu wyniki zostają zamrożone, a na Dashboardzie pojawia się baner ze zwycięzcami.</li></ul></div>';
     h+='</div>';el.innerHTML=h;return;
   }
@@ -10732,7 +10861,7 @@ function ctSaveDraft(force){
   var orig=S._ctEditId?ctGet(S._ctEditId):null;
   var reingest=!orig||S._ctUnlocked||ctRulesSig(orig)!==ctRulesSig(d);
   var n=0;
-  if(reingest){d.meas={};d.frozen=null;n=ctReingest(d);}
+  if(reingest){d.meas={};d.skip={};d.frozen=null;n=ctReingest(d);}
   if(!orig&&d.status==='prep'&&ctToday()>=d.start)d.status='run';
   if(d.status==='done'&&!d.frozen){d.frozen={at:Date.now(),by:ctWho(),res:ctCompute(d)};}
   if(d.status!=='done')d.frozen=null;
@@ -10775,7 +10904,7 @@ function ctRenderDetail(){
   h+='<div class="card ct-card-head"><div class="ct-title-row"><div style="flex:1 1 360px;min-width:0"><div class="ct-title">'+esc(c.name)+' '+ctStatusPill(st,c)+'</div>';
   h+='<div class="hs-p" style="margin:4px 0 0">'+ctPeriod(c)+(c.desc?' · „'+esc(c.desc)+'"':'')+'</div></div>';
   h+='<div class="ct-actions">';
-  if(ed&&st!=='done')h+='<button class="btn btn-p btn-sm" onclick="ctFocusPaste()">➕ Dodaj wyniki</button>';
+  if(ed&&st!=='done')h+='<button class="btn btn-p btn-sm" onclick="deGoTab(\'empsales\')" title="Raporty „Sprzedaż użytkowników” wklejasz w Wprowadź dane → Sprzedaż pracownika — konkurs pobiera je sam">➕ Wklej raport</button>';
   h+='<button class="btn btn-s btn-sm" onclick="ctProtocol(\''+c.id+'\',\'pdf\')">📄 PDF</button>';
   h+='<button class="btn btn-s btn-sm" onclick="ctProtocol(\''+c.id+'\',\'print\')">🖨️ Drukuj</button>';
   h+='<button class="btn btn-s btn-sm" onclick="ctDipOpen(\''+c.id+'\')">🎓 Dyplomy</button>';
@@ -10807,13 +10936,17 @@ function ctRenderDetail(){
   }
   if(res.needBase&&res.needBase.length&&st!=='done'){
     var m0=ctMonthOf(c.start);
-    h+='<div class="hs-warn" style="margin:10px 0 0">Konkurs startuje '+ctFmt(c.start)+', a raporty z „Sprzedaży pracownika" liczą się od 1. dnia miesiąca. Brakuje punktu startowego dla: <strong>'+res.needBase.map(ctOutletName).map(esc).join(', ')+'</strong>. Wklej niżej raport „Sprzedaż użytkowników" za <strong>'+ctFmtS(ctFirstOf(m0))+'–'+ctFmtS(ctAddDays(c.start,-1))+'</strong> — aplikacja odejmie go od kolejnych raportów.</div>';
+    h+='<div class="hs-warn" style="margin:10px 0 0">Konkurs startuje '+ctFmt(c.start)+', a raporty z „Sprzedaży pracownika" liczą się od 1. dnia miesiąca. Brakuje punktu startowego dla: <strong>'+res.needBase.map(ctOutletName).map(esc).join(', ')+'</strong>. Wklej w <a href="#" onclick="deGoTab(\'empsales\');return false">Wprowadź dane → Sprzedaż pracownika</a> raport „Sprzedaż użytkowników" za <strong>'+ctFmtS(ctFirstOf(m0))+'–'+ctFmtS(ctAddDays(c.start,-1))+'</strong> — nie nadpisze nowszych danych, trafi tylko do konkursu, a aplikacja odejmie go od kolejnych raportów.</div>';
+  }
+  if(st!=='done'){
+    var iss=ctSavedIssues(c);
+    if(iss.length)h+='<div class="hs-warn" style="margin:10px 0 0">Zapisanych danych nie da się użyć w konkursie:<ul class="de-confirm-list">'+iss.map(function(x){return '<li><strong>'+esc(ctOutletName(x.o))+'</strong> ('+ctFmtS(x.F)+'–'+ctFmtS(x.T)+'): '+esc(x.msg)+'</li>'}).join('')+'</ul>Wklej taki raport w <a href="#" onclick="deGoTab(\'empsales\');return false">Wprowadź dane → Sprzedaż pracownika</a> — starszy raport nie nadpisze zapisanych danych.</div>';
   }
   h+='</div>';
 
   var qual=res.rows.filter(function(r){return r.qual});
   if(!Object.keys(res.per).length){
-    h+='<div class="card"><p class="de-empty">'+(st==='prep'?'Konkurs jeszcze się nie zaczął. Wyniki pojawią się po pierwszym imporcie „Sprzedaży pracownika" od '+ctFmt(c.start)+'.':'Brak jeszcze pomiarów. Wczytaj raport „Sprzedaż użytkowników" w „Wprowadź dane → Sprzedaż pracownika" albo wklej go niżej.')+'</p></div>';
+    h+='<div class="card"><p class="de-empty">'+(st==='prep'?'Konkurs jeszcze się nie zaczął. Wyniki pojawią się po pierwszym imporcie „Sprzedaży pracownika" od '+ctFmt(c.start)+'.':'Brak jeszcze pomiarów. Wklej raport „Sprzedaż użytkowników" w <a href="#" onclick="deGoTab(\'empsales\');return false">Wprowadź dane → Sprzedaż pracownika</a> — konkurs pobierze go sam.')+'</p></div>';
   } else {
     // KPI
     var eff=ctEffect(c,res);
@@ -10939,16 +11072,11 @@ function ctPointsHTML(c,st,ed){
     h+='</div>';
   }
   if(ed&&st!=='done'){
-    var draft=deDraftLoad('ct-'+c.id);
-    h+='<div class="ct-paste" id="ct-paste"><p class="hs-p" style="margin:0 0 8px">Nowe raporty z „Wprowadź dane → Sprzedaż pracownika" dopisują się tu same. Możesz też wkleić raport bezpośrednio — wygenerowany od <strong>'+ctFmt(c.start)+'</strong> (start konkursu) albo od 1. dnia miesiąca do wybranego dnia'+(c.start!==ctFirstOf(ctMonthOf(c.start))?', a także punkt startowy za '+ctFmtS(ctFirstOf(ctMonthOf(c.start)))+'–'+ctFmtS(ctAddDays(c.start,-1)):'')+'. Taki raport trafia tylko do konkursu.</p>';
-    h+='<textarea class="fi" id="ct-paste-input" rows="4" placeholder="Wklej tutaj raport „Sprzedaż użytkowników”…" oninput="deDraftSave(\'ct-'+c.id+'\',this.value)">'+(draft?esc(draft.t):'')+'</textarea>';
-    h+='<div class="fa"><button class="btn btn-p" onclick="ctPasteParse(\''+c.id+'\')">🔍 Wczytaj do konkursu</button></div>';
-    if(S._ctPasteMsgs&&S._ctPasteMsgs.id===c.id)h+='<div class="ct-paste-msgs">'+S._ctPasteMsgs.msgs.map(function(m){return '<div>'+esc(m)+'</div>'}).join('')+'</div>';
-    h+='</div>';
+    h+='<div class="ct-src"><span>📥 Dane pobierają się automatycznie z <strong>Wprowadź dane → Sprzedaż pracownika</strong> — każdy zapisany raport dopisuje punkt pomiaru (także raporty wgrane na innym urządzeniu). Raport dzienny lub tygodniowy, który styka się z zapisanymi danymi, sumuje się z nimi; starszy raport (np. punkt startowy) nie nadpisze nowszych danych.</span><button class="btn btn-s btn-sm" onclick="deGoTab(\'empsales\')">➕ Wklej raport</button></div>';
   }
   return h+'</div>';
 }
-function ctFocusPaste(){var t=document.getElementById('ct-paste-input');if(t){try{t.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}setTimeout(function(){t.focus()},300)}}
+function ctFocusPaste(){deGoTab('empsales')}
 function ctPasteParse(id){
   var c=ctGet(id),ta=document.getElementById('ct-paste-input');if(!c||!ta)return;
   var raw=ta.value;if(!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
@@ -10971,8 +11099,9 @@ function ctPasteParse(id){
 function ctDelPoint(id,i){
   var c=ctGet(id),g=S._ctPointList&&S._ctPointList[i];if(!c||!g)return;
   deConfirm('Usunąć punkt pomiaru?','<p class="hs-p">Pomiar '+ctFmtS(g.f)+'–'+ctFmtS(g.t)+' ('+g.outs.map(function(x){return esc(ctOutletName(x.o))}).join(', ')+') zniknie z konkursu. Dane w „Sprzedaży pracownika" zostają bez zmian.</p>','🗑️ Usuń',function(){
-    g.outs.forEach(function(x){var mm=c.meas[x.o]&&c.meas[x.o][x.m];if(mm)mm.recs=mm.recs.filter(function(r){return !(r.f===g.f&&r.t===g.t)})});
-    ctSave(c,{keepStamp:true});renderContests();toast('Usunięto punkt pomiaru','ok');
+    c.skip=c.skip||{};
+    g.outs.forEach(function(x){var mm=c.meas[x.o]&&c.meas[x.o][x.m];if(mm)mm.recs=mm.recs.filter(function(r){return !(r.f===g.f&&r.t===g.t)});c.skip[x.o+'|'+g.f+'|'+g.t]=1});
+    ctSave(c,{keepStamp:true});renderContests();toast('Usunięto punkt pomiaru — nie wróci przy automatycznym pobieraniu (chyba że wkleisz ten raport ponownie)','ok');
   });
 }
 function ctSetStatus(id,val){
@@ -11933,6 +12062,7 @@ function ctHidden(){return lsGet(uk('ct-hide-'+S.pid),[])}
 function ctHide(key){var a=ctHidden();if(a.indexOf(key)===-1)a.push(key);if(a.length>100)a=a.slice(-100);lsSet(uk('ct-hide-'+S.pid),a);renderCur()}
 function ctDashboardHTML(){
   if(!S.pid)return '';
+  ctSyncSaved();
   var all=ctList();if(!all.length)return '';
   var hid=ctHidden(),h='',big=null,small=[],strips=[];
   all.forEach(function(c){
@@ -11991,6 +12121,7 @@ function ctAfterDashboard(){
 }
 function alertsContests(al){
   if(!S.pid)return;
+  ctSyncSaved();
   var today=ctToday();
   ctList().forEach(function(c){
     var st=ctStatus(c),ph=ctPhase(c);
@@ -17487,6 +17618,7 @@ function ctPinToggle(id){
   renderSidePanel();renderContests();
 }
 function ctSideWidget(body){
+  ctSyncSaved();
   var all=ctList();
   if(!all.length){body.innerHTML='<div class="ct-sp-empty"><p>Brak konkursów w tym obiekcie.</p><button type="button" class="btn btn-s btn-sm" onclick="goContests()">🏅 Utwórz konkurs</button></div>';return}
   var pin=ctSpPinned(),c=ctSpContest(),auto=ctSpAuto();
