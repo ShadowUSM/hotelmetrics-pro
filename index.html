@@ -1221,6 +1221,38 @@ span.ct-tr-name{cursor:default;font-weight:400}
 .ct-pod-empty{visibility:hidden}
 .ct-chart-wrap{position:relative}
 .ct-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px}
+.ct-sold-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ct-sold-tools{display:grid;grid-template-columns:minmax(0,420px) max-content;justify-content:start;gap:10px;align-items:end;margin-bottom:10px}
+.ct-sold-tools .fg{margin:0}
+.ct-sold-tools .fi,.ct-sold-tools .btn{height:40px;box-sizing:border-box}
+.ct-sold-wrap{max-height:560px;overflow:auto}
+.ct-sold-sum{font-size:.78rem;margin:0 0 8px;color:var(--tx2)}
+.ct-sold-tbl{width:100%;table-layout:auto}
+.ct-sold-tbl th.num,.ct-sold-tbl td.num{text-align:right;white-space:nowrap}
+.ct-sold-p td{background:var(--sur2);border-top:1px solid var(--brd)}
+.ct-sold-tg{display:flex;align-items:center;gap:8px;border:none;background:none;padding:2px 0;font:inherit;color:var(--tx);cursor:pointer;text-align:left;width:100%;min-height:32px}
+.ct-sold-tg small{color:var(--tx3);font-size:.7rem;margin-left:4px}
+.ct-sold-tg .ct-place{width:24px;height:24px;font-size:.66rem;flex:0 0 auto}
+.ct-sold-ch{width:12px;color:var(--tx3);flex:0 0 auto}
+.ct-sold-in{padding-left:52px!important}
+.ct-sold-g{color:var(--tx3);font-size:.74rem}
+.ct-sold-items[hidden]{display:none}
+.ct-sold-gm{display:none}
+.ct-sold-grp.ct-out{opacity:.65}
+.ct-sold-pbtn{border:none;background:none;padding:0;font:inherit;color:var(--acc);cursor:pointer;text-align:left;font-weight:600}
+.ct-sold-pbtn:hover{text-decoration:underline}
+@media(max-width:640px){
+  .ct-sold-tools{grid-template-columns:1fr}
+  .ct-sold-tbl{table-layout:fixed;min-width:0!important}
+  .ct-sold-tbl th,.ct-sold-tbl td{padding:7px 6px!important;font-size:.72rem}
+  .ct-sold-tbl th:first-child{width:auto}
+  .ct-sold-tbl th.num{width:62px}
+  .ct-sold-tbl th:nth-child(2),.ct-sold-g{display:none}
+  .ct-sold-in{padding-left:12px!important;white-space:normal!important;word-break:break-word}
+  .ct-sold-gm{display:block;font-size:.64rem;color:var(--tx3);margin-top:1px}
+  .ct-sold-tg{flex-wrap:wrap;white-space:normal}
+  .ct-sold-tg small{flex-basis:100%;margin-left:42px}
+}
 .ct-bar-row{display:grid;grid-template-columns:minmax(90px,150px) minmax(0,1fr) 92px;gap:10px;align-items:center;margin-bottom:8px}
 .ct-bar-n{font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ct-bar-track{position:relative;height:12px;border-radius:6px;background:var(--sur2);border:1px solid var(--brd)}
@@ -5029,7 +5061,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.14.0';
+var APP_VERSION='3.14.1';
 var APP_BUILD_DATE='2026-11-10';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -5038,6 +5070,9 @@ var APP_BUILD_DATE='2026-11-10';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.14.1',date:'2026-11-19',changes:[
+    'Konkursy → „Co sprzedali”: przełącznik Grupy towarowe / Produkty — przy każdym uczestniku rozwijana lista dokładnych produktów (ilość, wartość, punkty), wyszukiwarka produktu („kto sprzedał Kozel?” z podsumowaniem), kliknięcie osoby w tabeli grup pokazuje jej produkty; tabela grup pokazuje wszystkie grupy i opcjonalnie wszystkich uczestników'
+  ]},
   {v:'3.14.0',date:'2026-11-18',changes:[
     'Konkursy pobierają dane automatycznie z Wprowadź dane → Sprzedaż pracownika — także raporty wgrane na innym urządzeniu, przez innego managera albo zanim konkurs powstał; jedno miejsce wklejania raportów',
     'Sprzedaż pracownika: raport dzienny lub tygodniowy, który styka się z zapisanymi danymi (np. 18.11 po 01–17.11), dopisuje się do nich zamiast je nadpisywać; starszy raport (np. punkt startowy konkursu) nie nadpisuje nowszych danych — trafia tylko do konkursów; przy każdym punkcie podgląd pokazuje, co się stanie',
@@ -10344,8 +10379,8 @@ function ctCompute(c){
 }
 // Kolumny macierzy „co sprzedali": wybrane grupy i pozycje (do 8), a przy „wszystkie
 // pozycje" — 6 najczęściej sprzedawanych grup.
-function ctMatrix(c,items,rows){
-  var cols=[];
+function ctMatrix(c,items,rows,opt){
+  opt=opt||{};var maxC=opt.cols||6,maxR=opt.rows||15,cols=[];
   if(c.itemsMode==='sel'){
     Object.keys(c.groups||{}).forEach(function(k){cols.push({key:'g:'+k,l:c.groups[k].n})});
     Object.keys(c.items||{}).forEach(function(k){
@@ -10359,9 +10394,9 @@ function ctMatrix(c,items,rows){
   if(c.itemsMode!=='sel'||cols.length>8){
     var byG={};
     Object.keys(items).forEach(function(n){Object.keys(items[n]).forEach(function(k){var x=items[n][k],g=srNorm(x.g);byG[g]=byG[g]||{l:x.g,q:0};byG[g].q+=x.q})});
-    cols=Object.keys(byG).sort(function(a,b){return byG[b].q-byG[a].q}).slice(0,6).map(function(g){return {key:'g:'+g,l:byG[g].l}});
+    cols=Object.keys(byG).sort(function(a,b){return byG[b].q-byG[a].q}).slice(0,maxC).map(function(g){return {key:'g:'+g,l:byG[g].l}});
   }
-  var out=rows.filter(function(r){return r.q>0}).slice(0,15).map(function(r){
+  var out=rows.filter(function(r){return r.q>0}).slice(0,maxR).map(function(r){
     var ie=items[r.n]||{},vals=cols.map(function(){return 0});
     Object.keys(ie).forEach(function(k){
       var x=ie[k],g=srNorm(x.g);
@@ -10371,6 +10406,102 @@ function ctMatrix(c,items,rows){
   });
   return {cols:cols,rows:out};
 }
+// ── „CO SPRZEDALI": grupy (macierz) albo produkty każdego uczestnika ──
+function ctSoldState(id){var s=S._ctSold;if(!s||s.id!==id)s=S._ctSold={id:id,mode:'groups',q:'',open:{},allRows:false};return s}
+function ctSoldHTML(c,res){
+  var st=ctSoldState(c.id),items=res.items||{},has=Object.keys(items).some(function(n){return Object.keys(items[n]||{}).length});
+  var h='<div class="ct-sold-head"><div class="fsect" style="margin:0">Co sprzedali — pozycje konkursowe</div>';
+  if(has)h+=ctSeg([['groups','Grupy towarowe'],['items','Produkty']],st.mode,'ctSoldMode');
+  h+='</div>';
+  if(!has){
+    var mx0=res.matrix;
+    if(!mx0||!mx0.rows.length||!mx0.cols.length)return h+'<p class="de-empty">Szczegóły pozycji pojawią się po kolejnym pomiarze.</p>';
+    return h+ctSoldMatrixHTML(mx0,false);
+  }
+  if(st.mode==='items'){
+    h+='<div class="ct-sold-tools"><div class="fg"><label for="ct-sold-q">Szukaj produktu lub grupy</label><input class="fi" id="ct-sold-q" type="search" placeholder="np. Kozel, Prosecco, Wino białe" value="'+escAttr(st.q)+'" oninput="ctSoldSearch(this.value)" autocomplete="off"></div>';
+    h+='<button type="button" class="btn btn-s" onclick="ctSoldAll()">'+(ctSoldAllOpen(c,res)?'▴ Zwiń wszystkich':'▾ Rozwiń wszystkich')+'</button></div>';
+    h+='<div id="ct-sold-body">'+ctSoldItemsHTML(c,res)+'</div>';
+    return h;
+  }
+  var mx=ctMatrix(c,items,res.rows,{cols:99,rows:st.allRows?9999:15});
+  if(!mx.rows.length||!mx.cols.length)return h+'<p class="de-empty">Szczegóły pozycji pojawią się po kolejnym pomiarze.</p>';
+  h+=ctSoldMatrixHTML(mx,true);
+  var nq=res.rows.filter(function(r){return r.q>0}).length;
+  if(nq>15)h+='<button class="btn btn-s btn-sm" style="margin-top:8px" onclick="ctSoldRows()">'+(st.allRows?'Pokaż mniej':'Pokaż wszystkich ('+nq+')')+'</button>';
+  h+='<p class="hs-p" style="margin:8px 0 0">Kliknij osobę, aby zobaczyć, jakie dokładnie produkty sprzedała.</p>';
+  return h;
+}
+function ctSoldMatrixHTML(mx,clickable){
+  var h='<div class="tbl-wrap ct-sold-wrap"><table class="msales-table matrix-table ct-matrix"><thead><tr><th>Pracownik</th>'+mx.cols.map(function(col){return '<th>'+esc(col.l)+'</th>'}).join('')+'<th>Razem szt.</th></tr></thead><tbody>';
+  mx.rows.forEach(function(r){
+    var nm=clickable?'<button type="button" class="ct-sold-pbtn" data-n="'+escAttr(r.n)+'" onclick="ctSoldPerson(this.dataset.n)" title="Pokaż produkty">'+esc(r.n)+' <span aria-hidden="true">›</span></button>':esc(r.n);
+    h+='<tr><td>'+nm+'</td>'+r.vals.map(function(v){return '<td>'+(v?fmtN(v):'—')+'</td>'}).join('')+'<td><strong>'+fmtN(r.tot)+'</strong></td></tr>';
+  });
+  return h+'</tbody></table></div>';
+}
+function ctSoldNorm(t){return dePL(String(t||'').toLowerCase())}
+function ctSoldPeople(c,res){
+  var st=ctSoldState(c.id),items=res.items||{},q=ctSoldNorm(st.q).trim(),amt=c.amount==='netto'?'vn':'vb';
+  var out=[];
+  res.rows.forEach(function(r){
+    var ie=items[r.n]||{},list=[];
+    Object.keys(ie).forEach(function(k){
+      var x=ie[k];if(!(x.q>0||x.vb>0||x.p>0))return;
+      if(q&&ctSoldNorm(x.n).indexOf(q)===-1&&ctSoldNorm(x.g).indexOf(q)===-1)return;
+      list.push({n:x.n,g:x.g,q:round2(x.q),v:round2(x[amt]||0),p:round2(x.p||0)});
+    });
+    if(!list.length)return;
+    list.sort(function(a,b){return b.q-a.q||b.v-a.v||a.n.localeCompare(b.n,'pl')});
+    var t={q:0,v:0,p:0};list.forEach(function(x){t.q+=x.q;t.v+=x.v;t.p+=x.p});
+    out.push({r:r,list:list,t:{q:round2(t.q),v:round2(t.v),p:round2(t.p)}});
+  });
+  return out;
+}
+function ctSoldAllOpen(c,res){var st=ctSoldState(c.id),p=ctSoldPeople(c,res);return p.length>0&&p.every(function(x){return st.open[x.r.n]})}
+function ctSoldItemsHTML(c,res){
+  var st=ctSoldState(c.id),pts=c.metric==='points',people=ctSoldPeople(c,res),q=st.q.trim();
+  if(!people.length)return '<p class="de-empty">'+(q?'Nikt nie sprzedał produktu pasującego do „'+esc(q)+'”.':'Brak sprzedanych pozycji konkursowych.')+'</p>';
+  var h='';
+  if(q){
+    var tq=0,tv=0,names={};people.forEach(function(x){tq+=x.t.q;tv+=x.t.v;x.list.forEach(function(i){names[i.n]=1})});
+    h+='<p class="ct-sold-sum">„'+esc(q)+'”: <strong>'+fmtN(round2(tq))+' szt.</strong> · '+fmt(round2(tv))+' · '+people.length+' '+ctPl(people.length,'osoba','osoby','osób')+' · '+Object.keys(names).length+' '+ctPl(Object.keys(names).length,'produkt','produkty','produktów')+'</p>';
+  }
+  h+='<div class="tbl-wrap ct-sold-wrap"><table class="msales-table ct-sold-tbl"><thead><tr><th>Pracownik / produkt</th><th>Grupa</th><th class="num">Szt.</th><th class="num">Wartość '+(c.amount==='netto'?'netto':'brutto')+'</th>'+(pts?'<th class="num">Punkty</th>':'')+'</tr></thead>';
+  people.forEach(function(x){
+    var open=!!(q||st.open[x.r.n]),id='ct-sold-'+ctPostHash(x.r.n);
+    h+='<tbody class="ct-sold-grp'+(x.r.qual?'':' ct-out')+'"><tr class="ct-sold-p"><td><button type="button" class="ct-sold-tg" aria-expanded="'+(open?'true':'false')+'" aria-controls="'+id+'" data-n="'+escAttr(x.r.n)+'" onclick="ctSoldToggle(this.dataset.n)"><span class="ct-sold-ch" aria-hidden="true">'+(open?'▾':'▸')+'</span><span class="ct-place ct-place-'+Math.min(x.r.place||4,4)+'">'+(x.r.place||'—')+'</span><strong>'+esc(x.r.n)+'</strong><small>'+x.list.length+' '+ctPl(x.list.length,'produkt','produkty','produktów')+'</small></button></td><td class="ct-sold-g"></td>';
+    h+='<td class="num"><strong>'+fmtN(x.t.q)+'</strong></td><td class="num"><strong>'+fmt(x.t.v)+'</strong></td>'+(pts?'<td class="num"><strong>'+fmtN(x.t.p)+'</strong></td>':'')+'</tr></tbody>';
+    h+='<tbody id="'+id+'" class="ct-sold-items"'+(open?'':' hidden')+'>';
+    x.list.forEach(function(i){h+='<tr><td class="ct-sold-in">'+esc(i.n)+'<span class="ct-sold-gm">'+esc(i.g||'')+'</span></td><td class="ct-sold-g">'+esc(i.g||'—')+'</td><td class="num">'+fmtN(i.q)+'</td><td class="num">'+fmt(i.v)+'</td>'+(pts?'<td class="num">'+fmtN(i.p)+'</td>':'')+'</tr>'});
+    h+='</tbody>';
+  });
+  return h+'</table></div>';
+}
+function ctSoldCtx(){var st=S._ctSold,c=st&&ctGet(st.id);if(!c)return null;var res=(S._ctSoldRes&&S._ctSoldRes.id===c.id)?S._ctSoldRes.res:ctResult(c);S._ctSoldRes={id:c.id,res:res};return {c:c,res:res,st:st}}
+function ctSoldRender(){var x=ctSoldCtx(),el=document.getElementById('ct-sold');if(x&&el)el.innerHTML=ctSoldHTML(x.c,x.res)}
+function ctSoldMode(m){var x=ctSoldCtx();if(!x)return;x.st.mode=m;ctSoldRender()}
+function ctSoldRows(){var x=ctSoldCtx();if(!x)return;x.st.allRows=!x.st.allRows;ctSoldRender()}
+function ctSoldPerson(n){
+  var x=ctSoldCtx();if(!x)return;x.st.mode='items';x.st.q='';x.st.open={};x.st.open[n]=true;ctSoldRender();
+  var b=document.getElementById('ct-sold-'+ctPostHash(n));if(b&&b.previousElementSibling){try{b.previousElementSibling.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}}
+}
+function ctSoldToggle(n){
+  var x=ctSoldCtx();if(!x)return;
+  var el=document.getElementById('ct-sold-'+ctPostHash(n));
+  if(x.st.q.trim()){x.st.q='';var i=document.getElementById('ct-sold-q');if(i)i.value='';x.st.open={};x.st.open[n]=true;ctSoldBody();return;}
+  x.st.open[n]=!x.st.open[n];
+  if(el){el.hidden=!x.st.open[n];var btn=el.previousElementSibling&&el.previousElementSibling.querySelector('.ct-sold-tg');if(btn){btn.setAttribute('aria-expanded',x.st.open[n]?'true':'false');btn.querySelector('.ct-sold-ch').textContent=x.st.open[n]?'▾':'▸';}}
+  ctSoldAllLabel();
+}
+function ctSoldAll(){
+  var x=ctSoldCtx();if(!x)return;var all=ctSoldAllOpen(x.c,x.res);
+  x.st.open={};if(!all)ctSoldPeople(x.c,x.res).forEach(function(p){x.st.open[p.r.n]=true});
+  ctSoldBody();
+}
+function ctSoldAllLabel(){var x=ctSoldCtx(),b=document.querySelector('#ct-sold .ct-sold-tools .btn');if(x&&b)b.textContent=ctSoldAllOpen(x.c,x.res)?'▴ Zwiń wszystkich':'▾ Rozwiń wszystkich'}
+function ctSoldBody(){var x=ctSoldCtx(),el=document.getElementById('ct-sold-body');if(x&&el){el.innerHTML=ctSoldItemsHTML(x.c,x.res);ctSoldAllLabel();}}
+function ctSoldSearch(v){var x=ctSoldCtx();if(!x)return;x.st.q=v;clearTimeout(S._ctSoldT);S._ctSoldT=setTimeout(ctSoldBody,120)}
 function ctResult(c){return (c.status==='done'&&c.frozen&&c.frozen.res)?c.frozen.res:ctCompute(c)}
 
 // ── EFEKT KONKURSU: tempo sprzedaży pozycji konkursowych vs okres odniesienia ──
@@ -10982,15 +11113,9 @@ function ctRenderDetail(){
     });
     if(res.rows.length>15)h+='<p class="hs-p">… i '+(res.rows.length-15)+' kolejnych osób (pełna lista w rankingu).</p>';
     if(c.thresholdOn)h+='<p class="hs-p" style="margin:6px 0 0">Czerwona linia — próg '+ctFmtScore(c,+c.threshold)+'. Szare paski: poza klasyfikacją.</p>';
-    h+='</div><div class="card"><div class="fsect">Co sprzedali — pozycje konkursowe</div>';
-    var mx=res.matrix;
-    if(!mx.rows.length||!mx.cols.length)h+='<p class="de-empty">Szczegóły pozycji pojawią się po kolejnym pomiarze.</p>';
-    else{
-      h+='<div class="tbl-wrap"><table class="msales-table matrix-table ct-matrix"><thead><tr><th>Pracownik</th>'+mx.cols.map(function(col){return '<th>'+esc(col.l)+'</th>'}).join('')+'<th>Razem szt.</th></tr></thead><tbody>';
-      mx.rows.forEach(function(r){h+='<tr><td>'+esc(r.n)+'</td>'+r.vals.map(function(v){return '<td>'+(v?fmtN(v):'—')+'</td>'}).join('')+'<td><strong>'+fmtN(r.tot)+'</strong></td></tr>'});
-      h+='</tbody></table></div>';
-    }
     h+='</div></div>';
+    S._ctSoldRes={id:c.id,res:res};
+    h+='<div class="card" id="ct-sold">'+ctSoldHTML(c,res)+'</div>';
     // ranking
     h+='<div class="card"><div class="ct-sec-head"><div class="fsect" style="margin:0">🏆 Ranking</div><span class="hs-p" style="margin:0">'+res.rows.length+' uczestników · '+qual.length+' w klasyfikacji</span></div>';
     h+='<div class="tbl-wrap"><table class="msales-table matrix-table ct-rank"><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wynik</th><th>Szt.</th><th>Wartość</th><th>Do lidera</th>'+(c.thresholdOn?'<th>Próg</th>':'')+(c.prizesOn?'<th>Nagroda</th>':'')+'</tr></thead><tbody>';
