@@ -1315,6 +1315,39 @@ span.ct-tr-name{cursor:default;font-weight:400}
 .ct-strip-t{flex:1 1 300px}
 .ct-strip-x{width:28px;height:28px;border-radius:50%;border:1px solid var(--brd);background:var(--sur);color:var(--tx3);cursor:pointer;font:inherit;font-size:.7rem}
 #m-ct-diploma .modal{max-width:1200px;width:96vw}
+#m-ct-base .modal{max-width:820px;width:96vw}
+.ct-base-intro{margin:0 0 12px}
+.ct-base-pers{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.ct-base-per{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:150px;padding:8px 12px;border-radius:10px;border:1px solid var(--brd);background:var(--sur2);color:var(--tx);font:inherit;cursor:pointer;text-align:left}
+.ct-base-per strong{font-size:.82rem}.ct-base-per span{font-size:.68rem;color:var(--tx3)}
+.ct-base-per.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.ct-base-card{padding:14px;border-radius:12px;border:1px solid var(--brd);background:var(--sur)}
+.ct-base-hd{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.ct-base-range{font-size:1.05rem;font-weight:700}
+.ct-base-pill{font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:8px;white-space:nowrap}
+.ct-base-pill.ok{background:rgba(34,197,94,.14);color:var(--grn)}.ct-base-pill.no{background:rgba(245,158,11,.16);color:var(--warn)}
+.ct-base-list{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+.ct-base-row{display:grid;grid-template-columns:minmax(0,1fr) 104px minmax(0,1.6fr) 36px;gap:10px;align-items:center;min-height:44px;padding:6px 10px;border-radius:10px;background:var(--sur2);border:1px solid var(--brd);font-size:.78rem}
+.ct-base-row .btn{padding:4px 0;width:32px;justify-content:center}
+.ct-base-o{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-base-st{font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:7px;text-align:center;white-space:nowrap}
+.ct-base-st.ok{background:rgba(34,197,94,.14);color:var(--grn)}.ct-base-st.no{background:rgba(239,68,68,.12);color:var(--red)}.ct-base-st.part{background:rgba(245,158,11,.16);color:var(--warn)}
+.ct-base-meta{color:var(--tx3);font-size:.72rem;line-height:1.35}
+.ct-base-paste{margin:12px 0 0}.ct-base-paste textarea{min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.72rem}
+.ct-base-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ct-base-msgs{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:.76rem}
+.ct-base-msgs li.ok{color:var(--grn)}.ct-base-msgs li.er{color:var(--red)}
+.ct-base-ok{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22);font-size:.76rem;color:var(--tx2);line-height:1.45}
+.ct-base-ok span{flex:1 1 320px}
+.ct-base-need{margin:12px 0 0;display:flex;gap:10px;align-items:flex-start}.ct-base-need-b{flex:1;min-width:0}
+.ct-base-need-t{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.ct-point-base{background:rgba(var(--acc-rgb),.06)}
+.ct-head-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-warn{background:rgba(245,158,11,.14);color:var(--warn);border:1px solid rgba(245,158,11,.35)}
+.ct-badge-n{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--warn);color:#fff;font-size:.66rem;font-weight:800;margin-left:4px}
+.ct-ldata-warn{color:var(--warn);font-weight:700}
+.ct-strip-warn{color:var(--warn);font-weight:700}
+@media(max-width:640px){.ct-base-row{grid-template-columns:minmax(0,1fr) auto 36px}.ct-base-meta{grid-column:1/3;grid-row:2}.ct-base-row .btn,.ct-base-row>span:last-child{grid-column:3;grid-row:1/3}}
 .ct-dip{display:flex;flex-wrap:wrap;gap:18px}
 .ct-dip-side{flex:1 1 320px;max-width:410px;min-width:0}
 .ct-dip-main{flex:999 1 520px;min-width:0}
@@ -2348,6 +2381,15 @@ span.ct-tr-name{cursor:default;font-weight:400}
   <div class="mtitle" id="ct-post-title">📣 Post — Social Media</div>
   <button class="mclose" onclick="closeM('m-ct-post')">✕</button>
   <div id="ct-post-body"></div>
+</div></div>
+
+<!-- KONKURSY: RAPORT POCZĄTKOWY -->
+<div class="moverlay" id="m-ct-base">
+<div class="modal">
+  <div class="mtitle">📥 Raport początkowy</div>
+  <button class="mclose" onclick="closeM('m-ct-base')">✕</button>
+  <div id="ct-base-body"></div>
+  <div class="fa"><button class="btn btn-s" onclick="closeM('m-ct-base')">Zamknij</button></div>
 </div></div>
 
 <!-- KONKURSY: DYPLOMY -->
@@ -5061,7 +5103,7 @@ function fsWrite(ref,data){
 /* ═══════════════════════════════════════════
    WERSJA APLIKACJI I CHANGELOG
 ═══════════════════════════════════════════ */
-var APP_VERSION='3.14.1';
+var APP_VERSION='3.15.0';
 var APP_BUILD_DATE='2026-11-10';
 
 // Numeracja wersji (semver uproszczony): MAJOR.MINOR.PATCH
@@ -5070,6 +5112,12 @@ var APP_BUILD_DATE='2026-11-10';
 // Najnowsza wersja na górze. Każda kolejna aktualizacja aplikacji
 // powinna dopisać tu nowy wpis oraz podnieść APP_VERSION powyżej.
 var CHANGELOG=[
+  {v:'3.15.0',date:'2026-11-21',changes:[
+    'Konkursy → okno „📥 Raport początkowy”: raport „Sprzedaż użytkowników” od 1. dnia miesiąca do dnia przed startem konkursu, wymagany dla każdego konkursu od środka miesiąca — konkursy z tą samą datą startu mają jeden wspólny raport; okno pokazuje stan każdego outletu, sprawdza daty raportu i podpowiada zapisane dane za ten okres',
+    'Kolejne dane konkursy pobierają same z Wprowadź dane → Sprzedaż pracownika; raport wklejony tam dokładnie za okres Raportu początkowego zapisuje się jako Raport początkowy',
+    'Raporty konkursów są zapamiętane w surowej postaci (lokalnie i w chmurze) — zmiana punktacji, pozycji albo sposobu liczenia przelicza wyniki automatycznie, także w trakcie konkursu, bez ponownego wklejania Raportu początkowego i bieżących raportów; zablokowane po starcie zostają tylko data startu i outlety',
+    'Karta konkursu, lista, Dashboard i alerty przypominają o brakującym Raporcie początkowym; po utworzeniu konkursu od środka miesiąca okno otwiera się samo'
+  ]},
   {v:'3.14.1',date:'2026-11-19',changes:[
     'Konkursy → „Co sprzedali”: przełącznik Grupy towarowe / Produkty — przy każdym uczestniku rozwijana lista dokładnych produktów (ilość, wartość, punkty), wyszukiwarka produktu („kto sprzedał Kozel?” z podsumowaniem), kliknięcie osoby w tabeli grup pokazuje jej produkty; tabela grup pokazuje wszystkie grupy i opcjonalnie wszystkich uczestników'
   ]},
@@ -5586,7 +5634,7 @@ function getMenuEngMonthsForOutlet(pid,outletId){
 // i tyleż JSON.parse przy każdym kliknięciu "Pokaż". Cache trzymany tylko w pamięci sesji,
 // unieważniany przy każdym zapisie/usunięciu i przy zmianie obiektu.
 var _empCache={};
-function empCacheClear(){_empCache={}}
+function empCacheClear(){_empCache={};if(typeof S!=="undefined"&&S)S._ctDataVer=(S._ctDataVer||0)+1}
 function getEmployeeSales(pid,outletId,month){
   var ck=pid+'|'+outletId+'|'+month;
   if(Object.prototype.hasOwnProperty.call(_empCache,ck))return _empCache[ck];
@@ -8417,7 +8465,7 @@ function renderEmpSales(){
 
   var h=deHead('👤','Sprzedaż pracownika','Raport HosPOS „Sprzedaż użytkowników" — co i w jakiej ilości sprzedał każdy pracownik. Raport może dotyczyć jednego punktu albo kilku naraz; dane zapisują się per outlet i miesiąc.');
   var liveCt=ctList().filter(function(c){var st=ctStatus(c);return st!=='done'&&st!=='undone'&&ctToday()<=ctAddDays(c.end,31)});
-  if(liveCt.length)h+='<div class="emp-ct-info">🏅 Zapisane raporty trafiają automatycznie do konkursów: '+liveCt.map(function(c){return '<button type="button" class="emp-ct-link" onclick="goContests(\''+c.id+'\')">'+esc(c.name)+'</button> <span>('+ctPeriod(c)+')</span>'}).join(', ')+'</div>';
+  if(liveCt.length)h+='<div class="emp-ct-info">🏅 Zapisane raporty trafiają automatycznie do konkursów: '+liveCt.map(function(c){return '<button type="button" class="emp-ct-link" onclick="goContests(\''+c.id+'\')">'+esc(c.name)+'</button> <span>('+ctPeriod(c)+')</span>'}).join(', ')+(function(){var bm=ctBasePeriods().filter(function(p){return !p.ok&&ctToday()>ctAddDays(p.start,-1)});return bm.length?'<br>📥 Brakuje Raportu początkowego ('+bm.map(function(p){var r=ctBaseRange(p.start);return ctFmtS(r.f)+'–'+ctFmtS(r.t)}).join(', ')+') — wprowadź go w oknie <button type="button" class="emp-ct-link" onclick="ctBaseOpen()">📥 Raport początkowy</button> albo wklej tutaj raport dokładnie za ten okres.':''})()+'</div>';
 
   h+=deCardOpen(1,'Źródło — raport HosPOS');
   h+=deSource({id:'emp',ro:ro,onParse:'empSalesParse()',
@@ -9928,9 +9976,9 @@ function empMonthsAvailable(pid){
    KONKURSY SPRZEDAŻOWE (Pracownicy → Konkursy)
    Źródło danych: raport HosPOS „Sprzedaż użytkowników". Raport NIE ma podziału na dni —
    to suma za zakres Od–Do. Dlatego konkurs zbiera „punkty pomiaru": każdy pasujący raport
-   zapisuje w konkursie stan na dzień „Do" (per pracownik, już przeliczony wg zasad konkursu).
-   Z kolejnych pomiarów powstaje wykres narastający, a konkurs od środka miesiąca odejmuje
-   „punkt startowy" (raport od 1. dnia do dnia przed startem).
+   to stan na dzień „Do". Od v3.15 zapamiętywane są SUROWE raporty (pomiary i Raport początkowy),
+   a wyniki liczą się z nich zawsze wg bieżących zasad — zmiana punktacji przelicza konkurs sama.
+   Konkurs od środka miesiąca odejmuje Raport początkowy (od 1. dnia do dnia przed startem).
    Zapis: IndexedDB (hv) + Firestore properties/{pid}/contests/{id} jako JEDEN spakowany
    JSON — nazwy pozycji i pracowników bywają kluczami map, a Firestore nie lubi kropek
    w kluczach (np. „Olga .", „KOZEL 0.5L") i ma limit pól indeksowanych na dokument.
@@ -10011,17 +10059,22 @@ function ctDipSave(s){
   try{if(S.uid)fsWrite(db.collection('properties/'+S.pid+'/contests').doc('_diploma'),{json:JSON.stringify(s),updatedAt:Date.now()});}
   catch(e){console.warn('Dyplomy — zapis w chmurze nieudany:',e)}
 }
-// Pobranie z chmury (wołane z loadUserDataFromFirestore)
+// Pobranie z chmury (wołane z loadUserDataFromFirestore). W tej samej kolekcji: ustawienia
+// dyplomów („_diploma"), Raporty początkowe („_base_…") i pomiary („_snap_…") — scalane z lokalnymi.
 function ctLoadFromCloud(pid,snap){
   var map={};
   snap.docs.forEach(function(d){
     var raw=d.data()||{};
     var v=null;try{v=JSON.parse(raw.json||'null')}catch(e){v=null}
     if(!v)return;
-    if(d.id==='_diploma')hvSet(uk('diploma-'+pid),v);
-    else map[d.id]=v;
+    var id=d.id;
+    if(id==='_diploma')hvSet(uk('diploma-'+pid),v);
+    else if(id.indexOf('_base_')===0){var k=uk('ctbase-'+pid+'-'+id.slice(6));hvSet(k,ctBaseMerge(hvGet(k),v));}
+    else if(id.indexOf('_snap_')===0){var rest=id.slice(6),m=rest.slice(-7),o=rest.slice(0,rest.length-8),k2=uk('ctsnap-'+pid+'-'+o+'-'+m);hvSet(k2,ctSnapMerge(hvGet(k2),v));}
+    else if(id.charAt(0)!=='_')map[id]=v;
   });
   hvSet(uk('contests-'+pid),map);
+  ctDataBump();
 }
 
 // ── STATUS / FAZA ──
@@ -10130,73 +10183,197 @@ function ctAccept(c,outletId,F,T){
   if(F===ctFirstOf(m))return {ok:true,kind:'month'};
   return {ok:false,reason:'Raport zaczyna się '+ctFmt(F)+'. Konkurs przyjmuje raporty od '+ctFmt(ws)+' albo od 1. dnia miesiąca — wygeneruj raport z taką datą „Od".'};
 }
-// Dopisuje raport do konkursu (bez zapisu — zapisuje wołający).
-function ctIngest(c,outletId,report,src){
-  var sr=report&&report.sourceRange;
-  var F=sr&&ctParseDMY(sr.from),T=sr&&ctParseDMY(sr.to);
-  if(!F||!T)return {ok:false,reason:'Raport nie ma zakresu dat „Od: … do: …".'};
-  if(c.status==='done')return {ok:false,silent:true,reason:'Konkurs jest rozstrzygnięty — wyniki zamrożone.'};
-  var acc=ctAccept(c,outletId,F,T);
-  if(!acc.ok)return acc;
-  var built=ctBuildRecord(c,report.employees);
-  var rec={f:F,t:T,kind:acc.kind,src:src||'',ts:Date.now(),per:built.per,items:built.items};
-  if(!c.meas)c.meas={};
-  var mo=c.meas[outletId]||(c.meas[outletId]={});
-  var m=ctMonthOf(T);
-  var mm=mo[m]||(mo[m]={recs:[]});
-  mm.recs=mm.recs.filter(function(r){return !(r.f===F&&r.t===T)}); // korekta zastępuje pomiar
-  mm.recs.push(rec);
-  mm.recs.sort(function(a,b){return a.t<b.t?-1:a.t>b.t?1:0});
-  // Szczegóły pozycji trzymamy tylko w najnowszym pomiarze z danym „Od" (i w punkcie
-  // startowym) — reszta to same sumy, żeby dokument nie puchł z każdym importem.
-  var latestByF={};
-  mm.recs.forEach(function(r){if(!latestByF[r.f]||r.t>latestByF[r.f])latestByF[r.f]=r.t});
-  mm.recs.forEach(function(r){if(r.items&&r.kind!=='baseline'&&r.t!==latestByF[r.f])delete r.items});
-  return {ok:true,kind:acc.kind,t:T};
-}
-// Wczytuje do konkursu wszystko, co już jest zapisane w „Sprzedaży pracownika" (ostatni
-// import każdego outletu/miesiąca). Używane przy tworzeniu konkursu i po odblokowaniu zasad.
-function ctReingest(c){
-  var months=ctMonthsBetween(c.start,c.end),n=0;
-  getAllEmployeeSalesKeys(S.pid).forEach(function(k){
-    if(months.indexOf(k.month)===-1||!ctOutletIn(c,k.outletId))return;
-    var d=getEmployeeSales(S.pid,k.outletId,k.month);
-    if(!d||!d.employees)return;
-    var r=ctIngest(c,k.outletId,d,'Zapisane dane');
-    if(r.ok)n++;
+// ── SUROWE RAPORTY KONKURSÓW (od v3.15) ──
+// Konkurs nie przechowuje przeliczonych wyników, tylko surowe raporty „Sprzedaż użytkowników",
+// a wyniki liczy zawsze z BIEŻĄCYCH zasad — zmiana punktacji, pozycji albo sposobu liczenia
+// przelicza konkurs sama, bez ponownego wklejania raportów.
+//  • Raport początkowy: od 1. dnia miesiąca do dnia przed startem. Jeden na datę startu, więc
+//    konkursy startujące tego samego dnia mają wspólny. Klucz uk('ctbase-'+pid+'-'+start).
+//  • Pomiary: stany narastające z „Wprowadź dane → Sprzedaż pracownika", per outlet i miesiąc
+//    (z nich jest oś czasu wykresu). Klucz uk('ctsnap-'+pid+'-'+outlet+'-'+miesiąc).
+// W chmurze to dokumenty „_base_<start>" i „_snap_<outlet>_<miesiąc>" w kolekcji konkursów
+// (te same reguły Firestore co konkursy). Zapis zwięzły: słowniki grup (c) i nazw pozycji (n),
+// pozycja osoby = [grupa, nazwa, ilość, netto, brutto].
+function ctEncInto(dict,employees){
+  var ci={},ni={};
+  dict.c.forEach(function(v,i){ci[v]=i});dict.n.forEach(function(v,i){ni[v]=i});
+  return (employees||[]).map(function(emp){
+    return {n:String(emp.name||''),d:emp.id!=null?String(emp.id):'',i:(emp.items||[]).map(function(x){
+      var g=String(x.category||''),nm=String(x.name||''),a=ci[g],b=ni[nm];
+      if(a==null){a=ci[g]=dict.c.length;dict.c.push(g)}
+      if(b==null){b=ni[nm]=dict.n.length;dict.n.push(nm)}
+      return [a,b,+x.qty||0,+x.netto||0,+x.brutto||0];
+    })};
   });
-  return n;
 }
-// Czy konkurs ma już pomiar o tym zakresie dat z tego outletu?
-function ctHasRec(c,o,F,T){
-  var mm=c.meas&&c.meas[o]&&c.meas[o][ctMonthOf(T)];
-  return !!(mm&&mm.recs&&mm.recs.some(function(r){return r.f===F&&r.t===T}));
+function ctEnc(employees){var d={c:[],n:[]};d.e=ctEncInto(d,employees);return d}
+function ctDec(dict,e){
+  return (e||[]).map(function(x){return {name:x.n,id:x.d,items:(x.i||[]).map(function(r){return {category:dict.c[r[0]],name:dict.n[r[1]],qty:r[2],netto:r[3],brutto:r[4]}})}});
 }
-// Automatyczne pobieranie: każdy trwający (nierozstrzygnięty) konkurs dostaje to, co jest zapisane
-// w „Wprowadź dane → Sprzedaż pracownika" — także dane wgrane na innym urządzeniu, przez innego
-// managera albo zanim konkurs powstał. Wołane przy wyświetlaniu konkursów, Dashboardu i panelu;
-// podpis danych sprawia, że przy braku zmian nic się nie dzieje.
+function ctDataBump(){S._ctDataVer=(S._ctDataVer||0)+1}
+function ctBaseKey(start,pid){return uk('ctbase-'+(pid||S.pid)+'-'+start)}
+function ctBaseGet(start){return start?(hvGet(ctBaseKey(start))||null):null}
+function ctBaseOut(start,oid){var b=ctBaseGet(start),o=b&&b.outlets&&b.outlets[oid];return (o&&!o.del)?o:null}
+function ctBaseRange(start){return {f:ctFirstOf(ctMonthOf(start)),t:ctAddDays(start,-1)}}
+function ctBaseNew(start){var r=ctBaseRange(start);return {start:start,f:r.f,t:r.t,outlets:{},updatedAt:Date.now()}}
+function ctSnapKey(oid,m,pid){return uk('ctsnap-'+(pid||S.pid)+'-'+oid+'-'+m)}
+function ctSnapGet(oid,m){return hvGet(ctSnapKey(oid,m))||null}
+// Scalanie z wersją z chmury (inne urządzenie lub inny manager): wygrywa nowszy wpis (ts),
+// usunięcie zapisuje się jako {del:true}, żeby stara kopia go nie przywróciła.
+function ctBaseMerge(a,b){
+  if(!a)return b;if(!b)return a;
+  var o=ctClone(a);o.outlets=o.outlets||{};
+  Object.keys(b.outlets||{}).forEach(function(k){var x=b.outlets[k],y=o.outlets[k];if(!y||(x.ts||0)>(y.ts||0))o.outlets[k]=x});
+  o.updatedAt=Math.max(a.updatedAt||0,b.updatedAt||0);
+  return o;
+}
+function ctSnapMerge(a,b){
+  if(!a)return b;if(!b)return a;
+  var o=ctClone(a),add=false;o.s=o.s||{};
+  Object.keys(b.s||{}).forEach(function(k){
+    var x=b.s[k],y=o.s[k];
+    if(y&&(y.ts||0)>=(x.ts||0))return;
+    o.s[k]=Object.assign({},x,{e:ctEncInto(o,ctDec(b,x.e))});add=true;
+  });
+  return add?ctSnapThin(o):o;
+}
+// Limit dokumentu: do 40 pomiarów i ~700 KB. Nadmiar usuwa pomiary pośrednie najbliższe
+// sąsiednim (wykres zachowuje rozpiętość); ostatni pomiar z każdym „Od" zostaje zawsze.
+var CT_SNAP_MAX=40,CT_SNAP_BYTES=700000;
+function ctSnapThin(en){
+  var keys=Object.keys(en.s||{});
+  if(keys.length<=CT_SNAP_MAX&&(keys.length<6||JSON.stringify(en).length<=CT_SNAP_BYTES))return en;
+  var cut=false;
+  for(var guard=0;guard<400;guard++){
+    keys=Object.keys(en.s);
+    if(keys.length<=CT_SNAP_MAX&&JSON.stringify(en).length<=CT_SNAP_BYTES)break;
+    var latest={};keys.forEach(function(k){var s=en.s[k];if(!latest[s.f]||s.t>latest[s.f])latest[s.f]=s.t});
+    var ts=keys.map(function(k){return en.s[k].t}).sort();
+    var pick=null,gap=1e9;
+    keys.forEach(function(k){
+      var s=en.s[k];if(latest[s.f]===s.t)return;
+      var i=ts.indexOf(s.t),prev=i>0?ts[i-1]:null,g=prev?ctDays(prev,s.t):500;
+      if(g<gap||(g===gap&&pick&&s.t<en.s[pick].t)){gap=g;pick=k}
+    });
+    if(!pick)break;
+    delete en.s[pick];cut=true;
+  }
+  if(cut){ // przebudowa słowników bez nieużywanych nazw
+    var d={c:[],n:[]},s={};
+    Object.keys(en.s).forEach(function(k){var x=en.s[k];s[k]=Object.assign({},x,{e:ctEncInto(d,ctDec(en,x.e))})});
+    en.c=d.c;en.n=d.n;en.s=s;
+  }
+  return en;
+}
+// Zapis lokalny + w chmurze; z „merge" najpierw scala z dokumentem w chmurze, żeby nie
+// zgubić pomiarów dopisanych na innym urządzeniu od ostatniego logowania.
+function ctRawPut(docId,key,val,merge){
+  hvSet(key,val);ctDataBump();
+  if(!S.uid||typeof db==='undefined'||!db)return;
+  var ref=db.collection('properties/'+S.pid+'/contests').doc(docId);
+  function put(v){
+    var js=JSON.stringify(v);
+    if(js.length>950000){console.warn('Konkursy — dokument '+docId+' za duży do chmury ('+js.length+' B)');return;}
+    fsWrite(ref,{json:js,updatedAt:Date.now()});
+  }
+  if(!merge){put(val);return;}
+  try{
+    ref.get().then(function(d){
+      var r=null;try{r=(d&&d.exists)?JSON.parse((d.data()||{}).json||'null'):null}catch(e){r=null}
+      var cur=hvGet(key)||val,v=r?merge(cur,r):cur;
+      if(r&&v!==cur){hvSet(key,v);ctDataBump();}
+      put(v);
+    }).catch(function(){put(hvGet(key)||val)});
+  }catch(e){put(val)}
+}
+function ctRawDel(docId,key){
+  hvDel(key);ctDataBump();
+  if(!S.uid||typeof db==='undefined'||!db)return;
+  connBeginWrite();
+  db.collection('properties/'+S.pid+'/contests').doc(docId).delete().then(function(){connEndWrite(true)}).catch(function(){connEndWrite(false)});
+}
+// Czy zapamiętywać pomiary outletu z miesiąca m? Gdy jest konkurs w tym miesiącu — oraz
+// w bieżącym miesiącu (konkurs może jeszcze powstać z datą wstecz).
+function ctSnapNeeded(oid,m){
+  var all=ctList();if(!all.length)return false;
+  if(m===ctMonthOf(ctToday()))return true;
+  return all.some(function(c){return ctOutletIn(c,oid)&&m>=ctMonthOf(c.start)&&m<=ctMonthOf(c.end)});
+}
+function ctSnapAdd(oid,report,src){
+  var sr=report&&report.sourceRange,F=sr&&ctParseDMY(sr.from),T=sr&&ctParseDMY(sr.to);
+  if(!F||!T||ctMonthOf(F)!==ctMonthOf(T)||!report.employees)return false;
+  var m=ctMonthOf(T),cur=ctSnapGet(oid,m),en=cur?ctClone(cur):{c:[],n:[],s:{}};
+  en.s=en.s||{};en.c=en.c||[];en.n=en.n||[];
+  en.s[F+'|'+T]={f:F,t:T,ts:report.ts||Date.now(),src:src||'',e:ctEncInto(en,report.employees)};
+  ctSnapThin(en);
+  ctRawPut('_snap_'+oid+'_'+m,ctSnapKey(oid,m),en,ctSnapMerge);
+  return true;
+}
+function ctBaseSetOutlet(start,oid,employees,src){
+  var cur=ctBaseGet(start),en=cur?ctClone(cur):ctBaseNew(start);
+  var x=ctEnc(employees);x.ts=Date.now();x.by=ctWho();x.src=src||'';
+  en.outlets=en.outlets||{};en.outlets[oid]=x;en.updatedAt=x.ts;
+  ctRawPut('_base_'+start,ctBaseKey(start),en,ctBaseMerge);
+}
+function ctBaseDelOutlet(start,oid){
+  var cur=ctBaseGet(start),prev=cur&&cur.outlets&&cur.outlets[oid];
+  if(!prev||prev.del)return null;
+  var en=ctClone(cur);en.outlets[oid]={ts:Date.now(),del:true};en.updatedAt=Date.now();
+  ctRawPut('_base_'+start,ctBaseKey(start),en,ctBaseMerge);
+  return prev;
+}
+function ctBaseRestore(start,oid,prev){
+  var cur=ctBaseGet(start)||ctBaseNew(start),en=ctClone(cur);
+  en.outlets=en.outlets||{};en.outlets[oid]=Object.assign({},prev,{ts:Date.now()});en.updatedAt=Date.now();
+  ctRawPut('_base_'+start,ctBaseKey(start),en,ctBaseMerge);
+}
+// Porządki: pomiary miesięcy bez konkursu (starsze niż poprzedni miesiąc) znikają, a w miesiącach,
+// w których wszystkie konkursy są już rozstrzygnięte, zostają tylko stany końcowe.
+function ctRawPrune(){
+  if(!S.pid||!canEdit())return;
+  var all=ctList(),prevM=ctAddMonths(ctMonthOf(ctToday()),-1),pre=uk('ctsnap-'+S.pid+'-');
+  hvKeysWithPrefix(pre).forEach(function(k){
+    var rest=k.slice(pre.length),m=rest.slice(-7),oid=rest.slice(0,rest.length-8),en=hvGet(k);
+    if(!/^\d{4}-\d{2}$/.test(m)||!en||!en.s)return;
+    var cov=all.filter(function(c){return ctOutletIn(c,oid)&&m>=ctMonthOf(c.start)&&m<=ctMonthOf(c.end)});
+    if(!cov.length){if(m<prevM)ctRawDel('_snap_'+oid+'_'+m,k);return;}
+    if(m>=prevM||!cov.every(function(c){return c.status==='done'}))return;
+    var keep={},latest={};
+    Object.keys(en.s).forEach(function(x){var s=en.s[x];if(!latest[s.f]||s.t>latest[s.f])latest[s.f]=s.t});
+    Object.keys(en.s).forEach(function(x){var s=en.s[x];if(latest[s.f]===s.t||cov.some(function(c){return c.end===s.t}))keep[x]=1});
+    if(Object.keys(keep).length===Object.keys(en.s).length)return;
+    var d={c:[],n:[],s:{}};
+    Object.keys(keep).forEach(function(x){var s=en.s[x];d.s[x]=Object.assign({},s,{e:ctEncInto(d,ctDec(en,s.e))})});
+    ctRawPut('_snap_'+oid+'_'+m,k,d,null);
+  });
+  var bpre=uk('ctbase-'+S.pid+'-');
+  hvKeysWithPrefix(bpre).forEach(function(k){
+    var st=k.slice(bpre.length);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(st)||ctMonthOf(st)>=prevM)return;
+    if(!all.some(function(c){return c.start===st}))ctRawDel('_base_'+st,k);
+  });
+}
+
+// Automatyczne pobieranie: raporty zapisane w „Wprowadź dane → Sprzedaż pracownika" (także wgrane
+// na innym urządzeniu albo zanim konkurs powstał) trafiają do pomiarów konkursów — dzięki temu oś
+// czasu przetrwa, gdy kolejny import zastąpi zapisane dane. Wyniki liczą się z nich zawsze wg
+// bieżących zasad. Podpis danych sprawia, że przy braku zmian nic się nie dzieje.
 function ctSyncSaved(force){
   if(!S.pid||!canEdit())return 0;
   var all=ctList();if(!all.length)return 0;
   var keys=getAllEmployeeSalesKeys(S.pid);
-  var sig=S.pid+'#'+keys.map(function(k){var d=getEmployeeSales(S.pid,k.outletId,k.month);return k.outletId+':'+k.month+':'+(d&&d.ts||0)}).join('|')+'#'+all.map(function(c){return c.id+':'+c.status+':'+JSON.stringify(c.skip||{}).length+':'+ctRulesSig(c).length+':'+c.start+':'+c.end}).join(',');
+  var sig=S.pid+'#'+keys.map(function(k){var d=getEmployeeSales(S.pid,k.outletId,k.month);return k.outletId+':'+k.month+':'+(d&&d.ts||0)}).join('|')+'#'+all.map(function(c){return c.id+':'+c.status+':'+c.start+':'+c.end+':'+c.outletsMode+':'+(c.outlets||[]).join(',')}).join(',');
   if(!force&&S._ctSyncSig===sig)return 0;
   S._ctSyncSig=sig;
   var n=0;
-  all.forEach(function(c){
-    if(c.status==='done')return;
-    var months=ctMonthsBetween(c.start,c.end),ch=false;
-    keys.forEach(function(k){
-      if(months.indexOf(k.month)===-1||!ctOutletIn(c,k.outletId))return;
-      var d=getEmployeeSales(S.pid,k.outletId,k.month);if(!d||!d.employees||!d.sourceRange)return;
-      var F=ctParseDMY(d.sourceRange.from),T=ctParseDMY(d.sourceRange.to);if(!F||!T)return;
-      if((c.skip||{})[k.outletId+'|'+F+'|'+T]||ctHasRec(c,k.outletId,F,T))return;
-      var r=ctIngest(c,k.outletId,d,'Wprowadź dane → Sprzedaż pracownika');
-      if(r.ok){ch=true;n++;}
-    });
-    if(ch)ctSave(c,{keepStamp:true});
+  keys.forEach(function(k){
+    var d=getEmployeeSales(S.pid,k.outletId,k.month);if(!d||!d.employees||!d.sourceRange)return;
+    var F=ctParseDMY(d.sourceRange.from),T=ctParseDMY(d.sourceRange.to);if(!F||!T)return;
+    var sn=ctSnapGet(k.outletId,k.month);if(sn&&sn.s&&sn.s[F+'|'+T]&&(sn.s[F+'|'+T].ts||0)>=(d.ts||0))return;
+    var use=all.some(function(c){if(c.status==='done')return false;var a=ctAccept(c,k.outletId,F,T);return a.ok&&a.kind!=='baseline'});
+    if(use&&ctSnapAdd(k.outletId,d,'Wprowadź dane → Sprzedaż pracownika'))n++;
   });
+  try{ctRawPrune()}catch(e){console.warn('Konkursy — porządki danych:',e)}
   return n;
 }
 // Zapisane dane, których konkurs nie może użyć — z powodem (np. raport dłuższy niż konkurs)
@@ -10205,24 +10382,99 @@ function ctSavedIssues(c){
   getAllEmployeeSalesKeys(S.pid).forEach(function(k){
     if(months.indexOf(k.month)===-1||!ctOutletIn(c,k.outletId))return;
     var d=getEmployeeSales(S.pid,k.outletId,k.month);if(!d||!d.sourceRange)return;
-    var F=ctParseDMY(d.sourceRange.from),T=ctParseDMY(d.sourceRange.to);if(!F||!T||ctHasRec(c,k.outletId,F,T))return;
+    var F=ctParseDMY(d.sourceRange.from),T=ctParseDMY(d.sourceRange.to);if(!F||!T)return;
     var a=ctAccept(c,k.outletId,F,T);
     if(!a.ok&&!a.silent)out.push({o:k.outletId,F:F,T:T,msg:a.reason});
   });
   return out;
 }
-// Hak wołany po zapisie raportu w „Wprowadź dane → Sprzedaż pracownika".
+// Hak wołany po zapisie raportu w „Wprowadź dane → Sprzedaż pracownika": zapamiętuje surowy raport
+// jako pomiar konkursów, a raport dokładnie za okres „1. dzień miesiąca – dzień przed startem"
+// zapisuje jako Raport początkowy konkursów z tą datą startu.
 function ctIngestFromImport(outletId,report){
-  if(!S.pid)return [];
-  var msgs=[],sr=report&&report.sourceRange,F=sr&&ctParseDMY(sr.from),T=sr&&ctParseDMY(sr.to);
+  if(!S.pid||!report)return [];
+  var sr=report.sourceRange,F=sr&&ctParseDMY(sr.from),T=sr&&ctParseDMY(sr.to);
+  if(!F||!T)return [];
+  var msgs=[],snap=false,bases={};
   ctList().forEach(function(c){
-    if(c.status==='done')return;
-    if(c.skip&&F&&T)delete c.skip[outletId+'|'+F+'|'+T]; // świadomy ponowny import przywraca usunięty pomiar
-    var r=ctIngest(c,outletId,report,'Wprowadź dane → Sprzedaż pracownika');
-    if(r.ok){ctSave(c,{keepStamp:true});msgs.push('„'+c.name+'": '+(r.kind==='baseline'?'punkt startowy':'pomiar')+' '+ctFmtS(r.t));}
-    else if(!r.silent)msgs.push('„'+c.name+'": '+r.reason);
+    if(c.status==='done'||!ctOutletIn(c,outletId))return;
+    var a=ctAccept(c,outletId,F,T);
+    if(!a.ok){if(!a.silent)msgs.push('„'+c.name+'": '+a.reason);return;}
+    if(a.kind==='baseline'){(bases[c.start]=bases[c.start]||[]).push(c);return;}
+    snap=true;
+    var sk=outletId+'|'+F+'|'+T;
+    if(c.skip&&c.skip[sk]){delete c.skip[sk];ctSave(c,{keepStamp:true});} // świadomy ponowny import przywraca usunięty pomiar
+    msgs.push('„'+c.name+'": pomiar '+ctFmtS(T));
   });
+  Object.keys(bases).forEach(function(st){
+    ctBaseSetOutlet(st,outletId,report.employees,'Wprowadź dane → Sprzedaż pracownika');
+    bases[st].forEach(function(c){msgs.push('„'+c.name+'": Raport początkowy '+ctFmtS(F)+'–'+ctFmtS(T))});
+  });
+  if(snap||ctSnapNeeded(outletId,ctMonthOf(T)))ctSnapAdd(outletId,report,'Wprowadź dane → Sprzedaż pracownika');
   return msgs;
+}
+
+// ── POMIARY KONKURSU (z surowych raportów, wg bieżących zasad) ──
+// Sygnatura zasad, od których zależy przeliczenie raportu
+function ctBuildSig(c){return JSON.stringify([c.metric,!!c.minPriceOn,c.minPriceOn?+c.minPrice:0,c.itemsMode,c.groups||{},c.items||{},+c.allPts||0])}
+var _ctBuildMemo={},_ctBuildN=0;
+function ctBuildCached(c,sig,id,ts,getEmps){
+  var k=sig+'#'+id+'#'+ts,v=_ctBuildMemo[k];
+  if(v)return v;
+  if(++_ctBuildN>800){_ctBuildMemo={};_ctBuildN=1}
+  return (_ctBuildMemo[k]=ctBuildRecord(c,getEmps()));
+}
+// Pomiary outletu w miesiącu: Raport początkowy, zapamiętane pomiary, ostatnie zapisane dane
+// i — tylko gdy brak surowych — pomiary z wersji przed 3.15 (przeliczone wtedy obowiązującymi zasadami).
+function ctRecsOM(c,oid,m,sig){
+  sig=sig||ctBuildSig(c);
+  var out=[],at={},first=ctFirstOf(m),skip=c.skip||{},pid=S.pid;
+  if(c.start!==first&&m===ctMonthOf(c.start)){
+    var bo=ctBaseOut(c.start,oid);
+    if(bo){
+      var bb=ctBuildCached(c,sig,pid+':b:'+c.start+':'+oid,bo.ts,function(){return ctDec(bo,bo.e)});
+      var bt=ctAddDays(c.start,-1);at[first+'|'+bt]=0;
+      out.push({f:first,t:bt,kind:'baseline',src:'Raport początkowy',ts:bo.ts,by:bo.by,per:bb.per,items:bb.items});
+    }
+  }
+  function raw(F,T,ts,src,id,get){
+    if(skip[oid+'|'+F+'|'+T])return;
+    var a=ctAccept(c,oid,F,T);if(!a.ok||a.kind==='baseline')return;
+    var k=F+'|'+T,i=at[k];if(i!=null&&(out[i].ts||0)>=(ts||0))return;
+    var b=ctBuildCached(c,sig,id,ts,get),r={f:F,t:T,kind:a.kind,src:src,ts:ts,per:b.per,items:b.items};
+    if(i==null){at[k]=out.length;out.push(r)}else out[i]=r;
+  }
+  var sn=ctSnapGet(oid,m);
+  if(sn&&sn.s)Object.keys(sn.s).forEach(function(k){var s=sn.s[k];raw(s.f,s.t,s.ts||0,s.src||'Wprowadź dane → Sprzedaż pracownika',pid+':s:'+oid+':'+k,function(){return ctDec(sn,s.e)})});
+  var d=getEmployeeSales(pid,oid,m),sr=d&&d.sourceRange;
+  if(d&&d.employees&&sr){var F=ctParseDMY(sr.from),T=ctParseDMY(sr.to);if(F&&T)raw(F,T,d.ts||0,'Wprowadź dane → Sprzedaż pracownika',pid+':e:'+oid+':'+m,function(){return d.employees})}
+  var lg=c.meas&&c.meas[oid]&&c.meas[oid][m];
+  if(lg&&lg.recs)lg.recs.forEach(function(r){
+    var k=r.f+'|'+r.t;if(at[k]!=null)return;
+    if(r.kind!=='baseline'&&skip[oid+'|'+k])return;
+    var a=ctAccept(c,oid,r.f,r.t);if(!a.ok||(a.kind==='baseline')!==(r.kind==='baseline'))return;
+    if(a.kind==='baseline'){var b0=ctBaseGet(c.start);if(b0&&b0.outlets&&b0.outlets[oid])return;} // zastąpiony lub usunięty w oknie Raport początkowy
+    at[k]=out.length;out.push(Object.assign({},r,{kind:a.kind,legacy:true}));
+  });
+  out.sort(function(x,y){return x.t<y.t?-1:x.t>y.t?1:(x.kind==='baseline'?-1:0)});
+  return out;
+}
+// Wszystkie pomiary konkursu: {outs:[outlety z danymi], recs:{outlet:{miesiąc:[…]}}}
+function ctCtx(c){
+  var sig=ctBuildSig(c),months=ctMonthsBetween(c.start,c.end),ids=ctOutletIds(c).slice(),recs={},outs=[];
+  Object.keys(c.meas||{}).forEach(function(o){if(ids.indexOf(o)===-1&&ctOutletIn(c,o))ids.push(o)});
+  ids.forEach(function(o){
+    var any=false,mo={};
+    months.forEach(function(m){var r=ctRecsOM(c,o,m,sig);if(r.length){mo[m]=r;any=true}});
+    if(any){recs[o]=mo;outs.push(o)}
+  });
+  return {outs:outs,recs:recs};
+}
+// Liczba punktów pomiaru (bez Raportu początkowego) — do protokołu
+function ctMeasCount(c){
+  var ctx=ctFull(c).ctx,u={};
+  ctx.outs.forEach(function(o){Object.keys(ctx.recs[o]).forEach(function(m){ctx.recs[o][m].forEach(function(r){if(r.kind!=='baseline')u[r.f+'|'+r.t]=1})})});
+  return Object.keys(u).length;
 }
 
 function ctSubPer(a,b){
@@ -10246,16 +10498,15 @@ function ctSubItems(a,b){
   return out;
 }
 // Wkład jednego outletu w jednym miesiącu na dzień D: najnowszy użyteczny pomiar ≤ D
-// (minus punkt startowy, jeśli trzeba).
-function ctMonthContrib(c,outletId,m,D){
-  var mm=c.meas&&c.meas[outletId]&&c.meas[outletId][m];
-  if(!mm||!mm.recs||!mm.recs.length)return null;
+// (minus Raport początkowy, jeśli pomiar liczy się od 1. dnia miesiąca).
+function ctMonthContrib(c,outletId,m,D,recs){
+  if(!recs||!recs.length)return null;
   var first=ctFirstOf(m),ws=ctMaxD(c.start,first),we=ctMinD(c.end,ctLastOf(m)),lim=ctMinD(D,we);
   var base=null;
-  mm.recs.forEach(function(r){if(r.f===first&&r.t===ctAddDays(ws,-1))base=r});
+  recs.forEach(function(r){if(r.kind==='baseline'&&r.f===first&&r.t===ctAddDays(ws,-1))base=r});
   var best=null,needBase=false;
-  mm.recs.forEach(function(r){
-    if(r.t<ws||r.t>lim)return;
+  recs.forEach(function(r){
+    if(r.kind==='baseline'||r.t<ws||r.t>lim)return;
     var usable=r.f===ws||(r.f===first&&(ws===first||base));
     if(!usable){if(r.f===first)needBase=true;return;}
     if(!best||r.t>best.t||(r.t===best.t&&r.f===ws))best=r;
@@ -10271,14 +10522,14 @@ function ctAddPer(tot,per){
   });
 }
 // Stan konkursu na dzień D: suma wkładów wszystkich outletów i miesięcy.
-function ctStateAt(c,D){
+function ctStateAt(c,D,ctx){
+  ctx=ctx||ctCtx(c);
   var tot={},items={},dataTo={},needBase=[];
   var months=ctMonthsBetween(c.start,ctMinD(D,c.end));
-  Object.keys(c.meas||{}).forEach(function(o){
-    if(!ctOutletIn(c,o))return;
+  ctx.outs.forEach(function(o){
     var cov=null,broken=false;
     months.forEach(function(m){
-      var r=ctMonthContrib(c,o,m,D);
+      var r=ctMonthContrib(c,o,m,D,ctx.recs[o]&&ctx.recs[o][m]);
       if(r&&r.needBase&&needBase.indexOf(o)===-1)needBase.push(o);
       if(!r||!r.to){broken=true;return;} // luka w danych — „dane do" zatrzymują się przed nią
       ctAddPer(tot,r.per);
@@ -10349,20 +10600,29 @@ function ctRank(c,per){
   return rows;
 }
 // Pełny wynik konkursu (ranking, oś czasu do wykresu, kompletność danych, macierz pozycji).
-function ctCompute(c){
-  var st=ctStateAt(c,c.end);
+// Liczony z surowych raportów wg bieżących zasad i zapamiętywany, dopóki nie zmienią się
+// zasady konkursu ani dane (S._ctDataVer rośnie przy każdym zapisie raportu).
+function ctComputeSig(c){return S.pid+'|'+(S._ctDataVer||0)+'|'+JSON.stringify(c,function(k,v){return (k==='frozen'||k==='post'||k==='updatedAt'||k==='updatedBy')?undefined:v})}
+function ctFull(c){
+  var memo=S._ctMemo||(S._ctMemo={}),sig=ctComputeSig(c),hit=memo[c.id];
+  if(hit&&hit.sig===sig)return hit;
+  var ctx=ctCtx(c);
+  return (memo[c.id]={sig:sig,ctx:ctx,res:ctComputeRaw(c,ctx)});
+}
+function ctCompute(c){return ctFull(c).res}
+function ctComputeRaw(c,ctx){
+  var st=ctStateAt(c,c.end,ctx);
   var rows=ctRank(c,st.per);
   // oś czasu: każdy użyteczny pomiar to punkt; każdy outlet „trzyma" ostatni znany stan
   var dates={};
-  Object.keys(c.meas||{}).forEach(function(o){
-    if(!ctOutletIn(c,o))return;
-    Object.keys(c.meas[o]).forEach(function(m){(c.meas[o][m].recs||[]).forEach(function(r){if(r.kind!=='baseline'&&r.t>=c.start&&r.t<=c.end)dates[r.t]=1})});
+  ctx.outs.forEach(function(o){
+    Object.keys(ctx.recs[o]).forEach(function(m){ctx.recs[o][m].forEach(function(r){if(r.kind!=='baseline'&&r.t>=c.start&&r.t<=c.end)dates[r.t]=1})});
   });
   var dl=Object.keys(dates).sort();
   var series={};rows.forEach(function(r){series[r.n]=[]});
   var tl=[];
   dl.forEach(function(d){
-    var s=ctStateAt(c,d);
+    var s=ctStateAt(c,d,ctx);
     tl.push(d);
     rows.forEach(function(r){series[r.n].push(ctScore(c,s.per[r.n]))});
   });
@@ -10591,9 +10851,185 @@ function ctDuplicate(id){
     var len=ctDays(src.start,src.end);
     c.start=ctAddDays(src.end,1);c.end=ctAddDays(c.start,len-1);
   }
-  c.name=src.name+' (kopia)';c.status='prep';c.meas={};c.frozen=null;
+  c.name=src.name+' (kopia)';c.status='prep';c.meas={};c.skip={};c.frozen=null;delete c.post;
   c.createdAt=Date.now();c.createdBy=ctWho();
   return c;
+}
+
+// ── RAPORT POCZĄTKOWY ──
+// Wymagany, gdy konkurs startuje w środku miesiąca: „Sprzedaż użytkowników" od 1. dnia miesiąca
+// do dnia przed startem. Wspólny dla konkursów z tą samą datą startu.
+function ctBaseNeed(c){return !!(c&&c.start&&c.start!==ctFirstOf(ctMonthOf(c.start)))}
+// Outlety, które potrzebują raportu: wybrane outlety konkursu, a przy „wszystkie" — te, które mają
+// sprzedaż pracowników w miesiącu startu (albo już wczytany raport).
+function ctBaseOutlets(c){
+  if(c.outletsMode==='sel')return (c.outlets||[]).slice();
+  var m=ctMonthOf(c.start),b=ctBaseGet(c.start),out=[];
+  S.outlets.forEach(function(o){
+    var id=o.id,bo=b&&b.outlets&&b.outlets[id];
+    if((bo&&!bo.del)||getEmployeeSales(S.pid,id,m)||ctSnapGet(id,m)||(c.meas&&c.meas[id]&&c.meas[id][m]))out.push(id);
+  });
+  return out;
+}
+// Surowy raport za dokładnie ten okres w zapisanych danych (do przycisku „Użyj zapisanych danych")
+function ctBaseAvail(start,oid,peek){
+  var r=ctBaseRange(start),m=ctMonthOf(start),sn=ctSnapGet(oid,m),s=sn&&sn.s&&sn.s[r.f+'|'+r.t];
+  if(s)return peek?true:{employees:ctDec(sn,s.e),ts:s.ts};
+  var d=getEmployeeSales(S.pid,oid,m),sr=d&&d.sourceRange;
+  if(d&&d.employees&&sr&&ctParseDMY(sr.from)===r.f&&ctParseDMY(sr.to)===r.t)return peek?true:{employees:d.employees,ts:d.ts};
+  return peek?false:null;
+}
+function ctBaseLegacy(c,oid){
+  var r=ctBaseRange(c.start),mm=c.meas&&c.meas[oid]&&c.meas[oid][ctMonthOf(c.start)],out=null;
+  if(mm&&mm.recs)mm.recs.forEach(function(x){if(x.kind==='baseline'&&x.f===r.f&&x.t===r.t)out=x});
+  return out;
+}
+function ctBaseStatus(c){
+  if(!ctBaseNeed(c))return {need:false,ok:true};
+  var r=ctBaseRange(c.start),ids=ctBaseOutlets(c),b=ctBaseGet(c.start);
+  var outs=ids.map(function(o){
+    var bo=ctBaseOut(c.start,o),lg=(!bo&&!(b&&b.outlets&&b.outlets[o]))?ctBaseLegacy(c,o):null;
+    return {o:o,ok:!!(bo||lg),legacy:!bo&&!!lg,ts:bo?bo.ts:(lg?lg.ts:0),by:bo?bo.by:'',src:bo?bo.src:(lg?lg.src:''),avail:!bo&&ctBaseAvail(c.start,o,true)};
+  });
+  var missing=outs.filter(function(x){return !x.ok}).map(function(x){return x.o});
+  var shared=ctList().filter(function(x){return x.id!==c.id&&x.start===c.start}).map(function(x){return x.name});
+  return {need:true,start:c.start,f:r.f,t:r.t,outs:outs,missing:missing,unknown:!ids.length,ok:ids.length>0&&!missing.length,legacy:outs.some(function(x){return x.legacy}),shared:shared,ready:ctToday()>r.t};
+}
+// Okresy wymagające raportu (konkursy nierozstrzygnięte) — brakujące najpierw
+function ctBasePeriods(){
+  var by={};
+  ctList().forEach(function(c){
+    if(c.status==='done'||!ctBaseNeed(c))return;
+    var p=by[c.start]||(by[c.start]={start:c.start,contests:[],ok:true,miss:0});
+    p.contests.push(c);
+  });
+  return Object.keys(by).map(function(k){var p=by[k],i=ctBasePeriodInfo(k);p.ok=i.ok;p.miss=i.missing;p.unknown=i.unknown;return p}).sort(function(a,b){return (a.ok===b.ok?0:a.ok?1:-1)||(b.start<a.start?-1:b.start>a.start?1:0)});
+}
+// Stan okresu dla wszystkich konkursów z daną datą startu (outlety łącznie)
+function ctBasePeriodInfo(start){
+  var cs=ctList().filter(function(c){return c.start===start&&c.status!=='done'});
+  if(!cs.length)cs=ctList().filter(function(c){return c.start===start});
+  var r=ctBaseRange(start),map={},order=[];
+  cs.forEach(function(c){ctBaseStatus(c).outs.forEach(function(x){
+    var y=map[x.o];if(!y){y=map[x.o]=Object.assign({},x);order.push(x.o);return;}
+    if(!y.ok&&x.ok)map[x.o]=Object.assign({},x);
+  })});
+  var outs=order.map(function(o){return map[o]}).sort(function(a,b){return ctOutletName(a.o).localeCompare(ctOutletName(b.o),'pl')});
+  var missing=outs.filter(function(x){return !x.ok}).length;
+  return {start:start,f:r.f,t:r.t,contests:cs,outs:outs,missing:missing,unknown:!outs.length,ok:outs.length>0&&!missing,ready:ctToday()>r.t};
+}
+function ctBaseOpen(start){
+  if(!S.pid)return;
+  var ps=ctBasePeriods();
+  if(!start){var miss=ps.filter(function(p){return !p.ok})[0];start=(miss||ps[0]||{}).start;}
+  if(!start){toast('Żaden trwający konkurs nie potrzebuje Raportu początkowego — konkursy od 1. dnia miesiąca liczą się wprost z raportów','in');return;}
+  S._ctBase={start:start,msgs:null,raw:''};
+  ctBaseRender();openM('m-ct-base');
+}
+function ctBasePick(start){var P=S._ctBase;if(!P)return;var ta=document.getElementById('ct-base-input');P.start=start;P.msgs=null;P.raw=ta?ta.value:'';ctBaseRender()}
+function ctBaseRender(){
+  var P=S._ctBase,el=document.getElementById('ct-base-body');if(!P||!el)return;
+  var info=ctBasePeriodInfo(P.start),ps=ctBasePeriods(),ed=canEdit(),rng=ctFmtS(info.f)+'–'+ctFmtS(info.t);
+  var h='<p class="hs-p ct-base-intro">Raport „Sprzedaż użytkowników" z HosPOS <strong>od 1. dnia miesiąca do dnia przed startem konkursu</strong>. Aplikacja odejmuje go od kolejnych raportów z <strong>Wprowadź dane → Sprzedaż pracownika</strong>, więc w konkursie liczy się tylko sprzedaż od startu. Konkursy, które startują tego samego dnia, mają jeden wspólny raport.</p>';
+  if(ps.length>1||(ps.length===1&&ps[0].start!==P.start)){
+    h+='<div class="ct-base-pers">';
+    ps.forEach(function(p){
+      var r=ctBaseRange(p.start);
+      h+='<button type="button" class="ct-base-per'+(p.start===P.start?' on':'')+'" aria-pressed="'+(p.start===P.start)+'" onclick="ctBasePick(\''+p.start+'\')"><strong>'+ctFmtS(r.f)+'–'+ctFmtS(r.t)+'</strong><span>'+p.contests.length+' '+ctPl(p.contests.length,'konkurs','konkursy','konkursów')+' · '+(p.ok?'✓ komplet':(p.unknown?'⚠ brak raportu':'⚠ brak: '+p.miss))+'</span></button>';
+    });
+    h+='</div>';
+  }
+  h+='<div class="ct-base-card">';
+  h+='<div class="ct-base-hd"><div style="min-width:0"><div class="ct-base-range">'+ctFmt(info.f)+' – '+ctFmt(info.t)+'</div><div class="hs-p" style="margin:2px 0 0">Start '+ctFmt(info.start)+' · '+(info.contests.length===1?'konkurs':'konkursy')+': '+info.contests.map(function(c){return '<strong>'+esc(c.name)+'</strong>'}).join(', ')+'</div></div>';
+  h+='<span class="ct-base-pill '+(info.ok?'ok':'no')+'">'+(info.ok?'✓ Raport wczytany':'⚠ Wymagany')+'</span></div>';
+  if(!info.ready)h+='<div class="hs-warn" style="margin:10px 0 0">Okres kończy się '+ctFmt(info.t)+' — raport wygeneruj w HosPOS po zamknięciu tego dnia (od '+ctFmt(info.start)+').</div>';
+  h+='<div class="ct-base-list">';
+  if(!info.outs.length)h+='<p class="de-empty" style="margin:0">Outlety pojawią się po wczytaniu raportu — wklej raporty wszystkich outletów biorących udział w konkursie.</p>';
+  info.outs.forEach(function(x){
+    var nm=ctOutletName(x.o),meta='';
+    if(x.ok&&!x.legacy)meta=(x.ts?ctFmtS(ctISO(new Date(x.ts)))+' '+new Date(x.ts).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}):'')+(x.src?' · '+(/Wprowadź/.test(x.src)?'z Wprowadź dane':/Zapisane/.test(x.src)?'z zapisanych danych':'wklejony tutaj'):'')+(x.by?' · '+esc(x.by):'');
+    else if(x.legacy)meta='z wcześniejszej wersji — wklej ponownie, żeby zmiany punktacji przeliczały go poprawnie';
+    else meta=x.avail?'jest w zapisanych danych':'wklej raport tego outletu';
+    h+='<div class="ct-base-row"><span class="ct-base-o">'+esc(nm)+'</span><span class="ct-base-st '+(x.ok?(x.legacy?'part':'ok'):'no')+'">'+(x.ok?(x.legacy?'⚠ starszy':'✓ wczytany'):'✗ brak')+'</span><span class="ct-base-meta">'+meta+'</span>';
+    h+=(ed&&x.ok)?'<button class="btn btn-s btn-sm" onclick="ctBaseDel(\''+x.o+'\')" aria-label="Usuń Raport początkowy: '+escAttr(nm)+'" title="Usuń">🗑️</button>':'<span></span>';
+    h+='</div>';
+  });
+  h+='</div>';
+  if(ed){
+    var av=info.outs.filter(function(x){return (!x.ok||x.legacy)&&ctBaseAvail(info.start,x.o,true)});
+    if(av.length)h+='<div class="ct-src"><span>W zapisanych danych (Wprowadź dane → Sprzedaż pracownika) jest raport za dokładnie ten okres dla: <strong>'+av.map(function(x){return esc(ctOutletName(x.o))}).join(', ')+'</strong>.</span><button class="btn btn-p btn-sm" onclick="ctBaseUseSaved()">Użyj zapisanych danych</button></div>';
+    h+='<div class="fg ct-base-paste"><label for="ct-base-input">Wklej raport „Sprzedaż użytkowników" za '+rng+' — możesz wkleić raporty kilku outletów naraz</label><textarea class="fi" id="ct-base-input" rows="6" placeholder="Wklej tutaj cały tekst raportu z HosPOS (Od: '+ctDMY(info.f)+' do: '+ctDMY(info.t)+')">'+esc(P.raw||'')+'</textarea></div>';
+    h+='<div class="ct-base-act"><button class="btn btn-p" onclick="ctBaseParse()">📥 Wczytaj Raport początkowy</button>'+(P.raw?'<button class="btn btn-s" onclick="S._ctBase.raw=\'\';S._ctBase.msgs=null;ctBaseRender()">Wyczyść</button>':'')+'</div>';
+  } else if(!info.ok)h+='<p class="hs-p" style="margin:10px 0 0">Raport początkowy wprowadza manager.</p>';
+  if(P.msgs&&P.msgs.length)h+='<ul class="ct-base-msgs">'+P.msgs.map(function(m){return '<li class="'+(m.er?'er':'ok')+'">'+(m.er?'✗ ':'✓ ')+esc(m.t)+'</li>'}).join('')+'</ul>';
+  h+='</div>';
+  h+='<p class="hs-p" style="margin:12px 0 0">Kolejne dane konkurs pobiera sam z Wprowadź dane → Sprzedaż pracownika. Raporty są zapamiętane — po zmianie punktacji lub pozycji wyniki przeliczą się automatycznie, bez ponownego wklejania.</p>';
+  el.innerHTML=h;
+}
+function ctBaseAfter(){try{if(document.getElementById('emp-contests'))renderContests()}catch(e){}}
+function ctBaseParse(){
+  var P=S._ctBase,ta=document.getElementById('ct-base-input');if(!P||!ta)return;
+  if(!canEdit()){toast('Brak uprawnień do edycji','er');return;}
+  var raw=ta.value;if(!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
+  var reps=parseEmployeeSalesReportMulti(raw).filter(function(r){return !r.error&&r.employees&&r.employees.length});
+  if(!reps.length){toast('Nie rozpoznano raportu „Sprzedaż użytkowników"','er');P.raw=raw;P.msgs=[{er:1,t:'Nie rozpoznano raportu — skopiuj z HosPOS cały raport „Sprzedaż użytkowników" razem z nagłówkiem i zakresem dat.'}];ctBaseRender();return;}
+  var info=ctBasePeriodInfo(P.start),msgs=[],ok=0,bad=0;
+  reps.forEach(function(r){
+    var oid=r.outletName?msalesGuessOutlet(r.outletName):null,nm=oid?ctOutletName(oid):(r.outletName||'?');
+    if(!oid){bad++;msgs.push({er:1,t:'Nie rozpoznano outletu „'+(r.outletName||'?')+'" — dodaj go w Obiektach albo popraw nazwę.'});return;}
+    var sr=r.sourceRange,F=sr&&ctParseDMY(sr.from),T=sr&&ctParseDMY(sr.to);
+    if(!F||!T){bad++;msgs.push({er:1,t:nm+': raport nie ma zakresu dat „Od … do …".'});return;}
+    if(F!==info.f||T!==info.t){bad++;msgs.push({er:1,t:nm+': raport obejmuje '+ctFmt(F)+' – '+ctFmt(T)+', a Raport początkowy musi obejmować '+ctFmt(info.f)+' – '+ctFmt(info.t)+'. Wygeneruj w HosPOS raport z tymi datami „Od" i „Do".'});return;}
+    if(!info.contests.some(function(c){return ctOutletIn(c,oid)})){bad++;msgs.push({er:1,t:nm+': outlet nie bierze udziału w '+(info.contests.length>1?'konkursach':'konkursie')+' z tym startem — pominięty.'});return;}
+    ctBaseSetOutlet(P.start,oid,r.employees,'Wklejony w oknie Raport początkowy');ok++;
+    msgs.push({t:nm+': wczytano ('+r.employees.length+' '+ctPl(r.employees.length,'osoba','osoby','osób')+')'});
+  });
+  P.msgs=msgs;P.raw=bad?raw:'';
+  ctBaseRender();ctBaseAfter();
+  toast(ok?'Zapisano Raport początkowy — '+ok+' '+ctPl(ok,'outlet','outlety','outletów'):'Raport nie pasuje do okresu '+ctFmtS(info.f)+'–'+ctFmtS(info.t),ok?'ok':'er');
+}
+function ctBaseUseSaved(){
+  var P=S._ctBase;if(!P||!canEdit())return;
+  var info=ctBasePeriodInfo(P.start),names=[];
+  info.outs.forEach(function(x){
+    if(x.ok&&!x.legacy)return;
+    var a=ctBaseAvail(P.start,x.o);if(!a)return;
+    ctBaseSetOutlet(P.start,x.o,a.employees,'Zapisane dane (Wprowadź dane)');names.push(ctOutletName(x.o));
+  });
+  P.msgs=names.length?[{t:'Użyto zapisanych danych: '+names.join(', ')}]:[{er:1,t:'Brak zapisanych danych za ten okres'}];
+  ctBaseRender();ctBaseAfter();
+  if(names.length)toast('Zapisano Raport początkowy z zapisanych danych','ok');
+}
+function ctBaseDel(oid){
+  var P=S._ctBase;if(!P||!canEdit())return;
+  var start=P.start,info=ctBasePeriodInfo(start),m=ctMonthOf(start);
+  var prev=ctBaseDelOutlet(start,oid),gone=[];
+  info.contests.forEach(function(c){ // punkt startowy z wersji przed 3.15
+    var mm=c.meas&&c.meas[oid]&&c.meas[oid][m];if(!mm||!mm.recs)return;
+    var keep=[],out=[];mm.recs.forEach(function(r){(r.kind==='baseline'&&r.f===info.f&&r.t===info.t?out:keep).push(r)});
+    if(out.length){mm.recs=keep;ctSave(c,{keepStamp:true});gone.push({id:c.id,recs:out});}
+  });
+  if(!prev&&!gone.length)return;
+  P.msgs=null;ctBaseRender();ctBaseAfter();
+  offerUndo('Usunięto Raport początkowy: '+ctOutletName(oid),function(){
+    if(prev)ctBaseRestore(start,oid,prev);
+    gone.forEach(function(g){var c=ctGet(g.id);if(!c)return;c.meas=c.meas||{};var mo=c.meas[oid]||(c.meas[oid]={}),mm=mo[m]||(mo[m]={recs:[]});mm.recs=mm.recs.concat(g.recs);ctSave(c,{keepStamp:true})});
+    if(S._ctBase)ctBaseRender();ctBaseAfter();
+  });
+}
+// Blok „Raport początkowy" na karcie konkursu
+function ctBaseBlockHTML(c,ed){
+  var b=ctBaseStatus(c);if(!b.need)return '';
+  var st=ctStatus(c),rng=ctFmtS(b.f)+'–'+ctFmtS(b.t);
+  var btn='<button class="btn '+(b.ok?'btn-s':'btn-p')+' btn-sm" onclick="ctBaseOpen(\''+c.start+'\')">📥 '+(b.ok?'Raport początkowy':(ed?'Wprowadź Raport początkowy':'Raport początkowy'))+'</button>';
+  var sh=b.shared.length?' Wspólny z: '+b.shared.map(function(n){return '„'+esc(n)+'"'}).join(', ')+'.':'';
+  if(b.ok)return '<div class="ct-base-ok"><span>✓ <strong>Raport początkowy</strong> '+rng+' — '+b.outs.length+' '+ctPl(b.outs.length,'outlet','outlety','outletów')+'.'+(b.legacy?' Część pochodzi z wcześniejszej wersji aplikacji — wklej go ponownie, żeby zmiany punktacji przeliczały się poprawnie.':' Zmiana punktacji przelicza wyniki automatycznie.')+sh+'</span>'+btn+'</div>';
+  var h='<div class="hs-warn ct-base-need"><div class="ct-base-need-b"><div class="ct-base-need-t"><strong>📥 Wymagany Raport początkowy: '+rng+'</strong>'+btn+'</div>';
+  h+='<div>Konkurs startuje '+ctFmt(c.start)+', a raporty „Sprzedaż użytkowników" liczą się od 1. dnia miesiąca — aplikacja odejmie od nich Raport początkowy, żeby liczyła się tylko sprzedaż od startu. '+(b.unknown?'Raport nie jest jeszcze wczytany.':'Brakuje dla: <strong>'+b.missing.map(function(o){return esc(ctOutletName(o))}).join(', ')+'</strong>.');
+  if(!b.ready)h+=' Raport wygenerujesz w HosPOS od '+ctFmt(c.start)+' (po zamknięciu dnia '+ctFmtS(b.t)+').';
+  else if(st!=='prep'&&st!=='done')h+=' Do tego czasu raporty od 1. dnia miesiąca nie są liczone, więc wyniki są niepełne.';
+  h+=sh+'</div></div></div>';
+  return h;
 }
 
 // ═══ KONKURSY — INTERFEJS ═══
@@ -10624,12 +11060,17 @@ function ctRenderList(){
   all.forEach(function(c){var st=ctStatus(c);if(st==='run')cnt.run++;else if(st==='prep')cnt.prep++;else cnt.ended++;});
   var h='<div class="card"><div class="ct-head"><div style="flex:1;min-width:240px"><div class="fsect" style="margin-bottom:4px">🏅 Konkursy sprzedażowe</div>';
   h+='<p class="hs-p" style="margin:0">Twórz konkursy dla zespołu, śledź wyniki na bieżąco i rozstrzygaj je jednym kliknięciem. Wyniki liczą się z raportów „Sprzedaż użytkowników" z HosPOS.</p></div>';
-  if(canEdit())h+='<button class="btn btn-p" onclick="ctNew()">➕ Nowy konkurs</button>';
+  if(canEdit()){
+    var bps=ctBasePeriods(),bMiss=bps.filter(function(p){return !p.ok}).length;
+    h+='<div class="ct-head-act">';
+    if(bps.length)h+='<button class="btn '+(bMiss?'btn-warn':'btn-s')+'" onclick="ctBaseOpen()" title="Raport „Sprzedaż użytkowników” od 1. dnia miesiąca do dnia przed startem konkursu">📥 Raport początkowy'+(bMiss?' <span class="ct-badge-n">'+bMiss+'</span>':' ✓')+'</button>';
+    h+='<button class="btn btn-p" onclick="ctNew()">➕ Nowy konkurs</button></div>';
+  }
   h+='</div>';
   if(!all.length){
     h+='<div class="ct-empty"><div class="ct-empty-t">Nie ma jeszcze żadnego konkursu</div>';
     h+='<ul class="ct-howto"><li><strong>Raporty wklejasz tylko w „Wprowadź dane → Sprzedaż pracownika”</strong> — konkursy pobierają je same (także dane wgrane wcześniej albo na innym urządzeniu). Każdy raport to punkt pomiaru na wykresie; raport dzienny dopisuje się do danych od 1. dnia.</li>';
-    h+='<li><strong>Konkurs od środka miesiąca</strong> potrzebuje punktu startowego: raportu od 1. dnia do dnia przed startem. Aplikacja podpowie, który raport wkleić — starszy raport nie nadpisze nowszych danych.</li>';
+    h+='<li><strong>Konkurs od środka miesiąca</strong> wymaga Raportu początkowego: „Sprzedaż użytkowników” od 1. dnia do dnia przed startem, wprowadzanego w oknie 📥 Raport początkowy (konkursy z tym samym startem mają wspólny). Raporty są zapamiętane, więc zmiana punktacji przelicza wyniki sama — starszy raport nie nadpisze nowszych danych.</li>';
     h+='<li><strong>Rozstrzygnięcie</strong> wymaga raportu kończącego się w dniu końca konkursu. Po zatwierdzeniu wyniki zostają zamrożone, a na Dashboardzie pojawia się baner ze zwycięzcami.</li></ul></div>';
     h+='</div>';el.innerHTML=h;return;
   }
@@ -10646,11 +11087,12 @@ function ctRenderList(){
     list.forEach(function(c){
       var st=ctStatus(c),res=ctResult(c),top=res.rows.filter(function(r){return r.qual})[0];
       var lead='—',data='—';
-      if(st==='prep'){var dd=ctDays(ctToday(),c.start)-1;lead='—';data=dd>0?'start za '+dd+' dni':'start dziś';}
+      if(st==='prep'){var dd=ctDays(ctToday(),c.start)-1;lead='—';data=dd>0?'start za '+dd+' dni':'start dziś';var pbs=ctBaseStatus(c);if(pbs.need&&!pbs.ok&&pbs.ready)data+='<br><span class="ct-ldata-warn">⚠ Raport początkowy</span>';}
       else{
         lead=top?esc(top.n)+' — '+ctFmtScore(c,top.score):'brak wyników';
         if(st==='done')data='zamrożone '+ctFmt(ctISO(new Date(c.frozen&&c.frozen.at||Date.now())));
         else data=res.dataMax?('do '+ctFmtS(res.dataMax)+(res.complete?' — komplet':'')):'brak danych';
+        var lbs=ctBaseStatus(c);if(lbs.need&&!lbs.ok)data='<span class="ct-ldata-warn">⚠ Raport początkowy</span>'+(res.dataMax?'<br>do '+ctFmtS(res.dataMax):'');
       }
       h+='<div class="ct-lrow" onclick="ctOpen(\''+c.id+'\')"><div class="ct-lname"><strong>'+esc(c.name)+'</strong><span>'+ctPeriod(c)+' · '+CT_METRICS[c.metric].l.toLowerCase()+'</span></div>';
       h+='<div class="ct-lst">'+ctStatusPill(st,c)+'</div><div class="ct-llead">'+lead+'</div><div class="ct-ldata">'+data+'</div>';
@@ -10783,7 +11225,7 @@ function ctCheckHTML(state,label,onclick,disabled){
   return '<button type="button" class="ct-cb ct-cb-'+state+'" role="checkbox" aria-checked="'+(state==='full'?'true':state==='part'?'mixed':'false')+'" aria-label="'+escAttr(label)+'" onclick="'+onclick+'"'+(disabled?' disabled':'')+'></button>';
 }
 function ctTreeBodyHTML(){
-  var d=S._ctDraft,locked=ctFormLocked(),pts=d.metric==='points';
+  var d=S._ctDraft,locked=false,pts=d.metric==='points'; // pozycje i punkty można zmieniać także w trakcie konkursu
   var cat=S._ctCat||(S._ctCat=ctCatalog(d));
   var q=srNorm(S._ctTreeQ||'');
   S._ctTreeVisible=[];
@@ -10864,7 +11306,8 @@ function ctRenderForm(){
   var unit=ctUnit(d);
   var h='<div class="card ct-form">';
   h+='<div class="ct-head"><button class="btn btn-s btn-sm" onclick="ctGoList()">← Wszystkie konkursy</button><div class="fsect" style="margin:0;flex:1">'+(isEdit?'✏️ Edycja konkursu':'➕ Nowy konkurs')+'</div><span class="hs-p" style="margin:0">Pola z przełącznikiem są opcjonalne — wyłączony = „wszystko"</span></div>';
-  if(locked)h+='<div class="hs-warn" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:220px">Konkurs już trwa, więc zasady liczenia (start, outlety, sposób liczenia, pozycje i punktacja) są zablokowane — uczciwie wobec uczestników i spójnie dla wykresu. Nazwę, nagrody, próg, uczestników i datę końca możesz zmieniać.</span><button class="btn btn-s btn-sm" onclick="ctUnlockRules()">🔓 Odblokuj zasady</button></div>';
+  if(locked)h+='<div class="hs-warn" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:220px">Konkurs już trwa, więc start i outlety są zablokowane — od nich zależy Raport początkowy i zakres danych. Punktację, pozycje i sposób liczenia możesz zmieniać: po zapisie wyniki przeliczą się automatycznie z zapamiętanych raportów, bez ponownego wklejania.</span><button class="btn btn-s btn-sm" onclick="ctUnlockRules()">🔓 Odblokuj start i outlety</button></div>';
+  else if(isEdit&&orig&&ctLocked(orig))h+='<div class="ct-base-ok" style="margin:0 0 12px"><span>♻️ Zmiana punktacji, pozycji albo sposobu liczenia przeliczy wyniki od startu konkursu z zapamiętanych raportów (Raport początkowy i pomiary zostają).'+(orig.status==='done'?' Konkurs jest rozstrzygnięty — po zapisie wyniki zostaną zamrożone ponownie.':'')+'</span></div>';
 
   h+='<div class="ct-row2"><div class="fg"><label for="ct-name">Nazwa konkursu</label><input class="fi" id="ct-name" value="'+escAttr(d.name)+'" placeholder="np. Listopadowe piwo — Kozel i Peroni" oninput="ctD(\'name\',this.value)"></div>';
   h+='<div class="fg"><label for="ct-desc">Opis dla zespołu (opcjonalnie)</label><input class="fi" id="ct-desc" value="'+escAttr(d.desc||'')+'" placeholder="np. Polecaj piwo do dań z grilla" oninput="ctD(\'desc\',this.value)"></div></div>';
@@ -10875,7 +11318,10 @@ function ctRenderForm(){
   body+='<div class="ct-fields"><div class="fg"><label for="ct-start">'+(d.single?'Dzień':'Od')+'</label><input type="date" class="fi" id="ct-start" value="'+d.start+'" onchange="ctD(\'start\',this.value,true)"'+(locked?' disabled':'')+'></div>';
   if(!d.single)body+='<div class="fg"><label for="ct-end">Do</label><input type="date" class="fi" id="ct-end" value="'+d.end+'" onchange="ctD(\'end\',this.value,true)"></div>';
   body+='<div class="fg"><label>&nbsp;</label><span class="ct-info">'+(days>0?days+' '+(days===1?'dzień':'dni'):'sprawdź daty')+' · '+(toStart>0?'start za '+toStart+' dni':(ctToday()>d.end?'zakończony':'trwa'))+'</span></div></div>';
-  if(d.start!==ctFirstOf(ctMonthOf(d.start)))body+='<p class="hs-p" style="margin:0">Start w środku miesiąca: do liczenia potrzebny będzie punkt startowy — raport „Sprzedaż użytkowników" za '+ctFmtS(ctFirstOf(ctMonthOf(d.start)))+'–'+ctFmtS(ctAddDays(d.start,-1))+' (albo raporty generowane od '+ctFmtS(d.start)+').</p>';
+  if(d.start!==ctFirstOf(ctMonthOf(d.start))){
+    var shr=ctList().filter(function(x){return x.start===d.start&&x.id!==d.id});
+    body+='<p class="hs-p" style="margin:0">Start w środku miesiąca: konkurs wymaga <strong>Raportu początkowego</strong> — „Sprzedaż użytkowników" za '+ctFmtS(ctFirstOf(ctMonthOf(d.start)))+'–'+ctFmtS(ctAddDays(d.start,-1))+', który wprowadzisz w oknie 📥 Raport początkowy. Kolejne dane konkurs pobierze sam z Wprowadź dane → Sprzedaż pracownika.'+(shr.length?' Ten sam start ma '+shr.map(function(x){return '„'+esc(x.name)+'"'}).join(', ')+' — raport będzie wspólny.':'')+'</p>';
+  }
   else body+='<p class="hs-p" style="margin:0">Start 1. dnia miesiąca: wyniki liczą się same z każdego importu w „Wprowadź dane → Sprzedaż pracownika".</p>';
   h+=ctOpt({icon:'📅',title:'Okres konkursu',hint:'Wymagany — od niego zależy, które raporty się liczą i kiedy pokazać baner z wynikami.',body:body,locked:locked});
 
@@ -10901,26 +11347,26 @@ function ctRenderForm(){
 
   // Sposób liczenia
   body='<div class="ct-metrics">';
-  Object.keys(CT_METRICS).forEach(function(k){var m=CT_METRICS[k];body+='<button type="button" class="ct-metric'+(d.metric===k?' on':'')+'" aria-pressed="'+(d.metric===k)+'" onclick="ctSetMetric(\''+k+'\')"'+(locked?' disabled':'')+'><strong>'+m.l+'</strong><span>'+m.d+'</span></button>'});
+  Object.keys(CT_METRICS).forEach(function(k){var m=CT_METRICS[k];body+='<button type="button" class="ct-metric'+(d.metric===k?' on':'')+'" aria-pressed="'+(d.metric===k)+'" onclick="ctSetMetric(\''+k+'\')"><strong>'+m.l+'</strong><span>'+m.d+'</span></button>'});
   body+='</div><div class="ct-fields" style="align-items:center">';
-  body+='<div class="ct-inline">'+ctSwitch(d.minPriceOn,"ctToggle('minPriceOn')",'Licz tylko pozycje od ceny',locked)+'<span>Licz tylko pozycje od ceny</span><input class="fi ct-num" type="number" min="0" step="1" value="'+(d.minPrice||0)+'" aria-label="Minimalna cena pozycji w zł brutto" oninput="ctD(\'minPrice\',+this.value)"'+(locked||!d.minPriceOn?' disabled':'')+'><span>zł brutto / szt.</span></div>';
+  body+='<div class="ct-inline">'+ctSwitch(d.minPriceOn,"ctToggle('minPriceOn')",'Licz tylko pozycje od ceny',false)+'<span>Licz tylko pozycje od ceny</span><input class="fi ct-num" type="number" min="0" step="1" value="'+(d.minPrice||0)+'" aria-label="Minimalna cena pozycji w zł brutto" oninput="ctD(\'minPrice\',+this.value)"'+(!d.minPriceOn?' disabled':'')+'><span>zł brutto / szt.</span></div>';
   if(d.metric==='value'||d.metric==='share')body+='<div class="ct-inline"><span>Kwoty</span>'+ctSeg([['netto','netto'],['brutto','brutto']],d.amount,'ctSetAmount')+'</div>';
   body+='</div>';
   if(d.metric==='share')body+='<div class="ct-inline"><span>Minimalny obrót osoby</span><input class="fi ct-num" type="number" min="0" step="50" value="'+(d.minTurnover||0)+'" aria-label="Minimalny obrót w zł" oninput="ctD(\'minTurnover\',+this.value)"><span>zł — żeby jedna sprzedaż nie dawała 100%</span></div>';
-  h+=ctOpt({icon:'📊',title:'Wynik liczony jako',hint:'Jedna zasada wyłania zwycięzcę. Punktacja jest jedną z opcji, więc nie da się ustawić dwóch sprzecznych reguł naraz.',body:body,locked:locked});
+  h+=ctOpt({icon:'📊',title:'Wynik liczony jako',hint:'Jedna zasada wyłania zwycięzcę. Punktacja jest jedną z opcji, więc nie da się ustawić dwóch sprzecznych reguł naraz.',body:body});
 
   // Pozycje
   if(d.itemsMode==='sel'){
     body='<div class="ct-tree"><div class="ct-tree-bar"><input class="fi" style="flex:1 1 220px" placeholder="Szukaj pozycji lub grupy, np. „wino”" aria-label="Szukaj pozycji lub grupy" value="'+escAttr(S._ctTreeQ||'')+'" oninput="ctTreeQuery(this.value)">';
-    body+='<button class="btn btn-s btn-sm" onclick="ctTreeSelectVisible()"'+(locked?' disabled':'')+'>Zaznacz widoczne</button><button class="btn btn-s btn-sm" onclick="ctTreeClear()"'+(locked?' disabled':'')+'>Wyczyść</button><span class="ct-tree-count" id="ct-tree-count">'+ctTreeCount()+'</span></div>';
+    body+='<button class="btn btn-s btn-sm" onclick="ctTreeSelectVisible()">Zaznacz widoczne</button><button class="btn btn-s btn-sm" onclick="ctTreeClear()">Wyczyść</button><span class="ct-tree-count" id="ct-tree-count">'+ctTreeCount()+'</span></div>';
     body+='<div class="ct-tr ct-tr-hd"><span></span><span>Grupa / pozycja</span><span>Sprzedaż 6 mies.</span><span>'+(d.metric==='points'?'Punkty za szt.':'')+'</span></div>';
     body+='<div id="ct-tree-body">'+ctTreeBodyHTML()+'</div></div>';
     body+='<p class="hs-p" style="margin:0">Lista pochodzi z zapisanych raportów sprzedaży outletów konkursu. Pozycje za 0 zł (INFO, numer pagera) są pomijane. Ta sama nazwa w dwóch grupach to jedna pozycja.'+(d.metric==='points'?' Pole punktów przy pozycji jest ważniejsze niż przy grupie.':'')+'</p>';
   } else {
     body='<span class="ct-info-txt">Wszystkie sprzedane pozycje — bez pozycji za 0 zł i bez grupy INFO (posiłki w pakiecie, liczniki gości).</span>';
-    if(d.metric==='points')body+='<div class="ct-inline"><span>Punkty za każdą sztukę</span><input class="fi ct-num" type="number" step="0.5" min="0" value="'+(d.allPts||0)+'" aria-label="Punkty za każdą sztukę" oninput="ctD(\'allPts\',+this.value)"'+(locked?' disabled':'')+'><span>pkt</span></div>';
+    if(d.metric==='points')body+='<div class="ct-inline"><span>Punkty za każdą sztukę</span><input class="fi ct-num" type="number" step="0.5" min="0" value="'+(d.allPts||0)+'" aria-label="Punkty za każdą sztukę" oninput="ctD(\'allPts\',+this.value)"><span>pkt</span></div>';
   }
-  h+=ctOpt({sw:"ctToggle('itemsMode')",on:d.itemsMode==='sel',title:'Tylko wybrane pozycje',hint:'Cała zaznaczona grupa obejmuje też pozycje dodane do karty w trakcie konkursu.',body:body,locked:locked});
+  h+=ctOpt({sw:"ctToggle('itemsMode')",on:d.itemsMode==='sel',title:'Tylko wybrane pozycje',hint:'Cała zaznaczona grupa obejmuje też pozycje dodane do karty w trakcie konkursu.',body:body});
 
   // Nagrody
   body='';
@@ -10953,12 +11399,12 @@ function ctRenderForm(){
   }
 
   h+='<div class="ct-foot"><button class="btn btn-p" onclick="ctSaveDraft()">💾 '+(isEdit?'Zapisz zmiany':'Utwórz konkurs')+'</button><button class="btn btn-s" onclick="'+(isEdit?'ctOpen(\''+S._ctEditId+'\')':'ctGoList()')+'">Anuluj</button>';
-  h+='<span class="hs-p" style="margin:0;flex:1 1 300px">🔒 Po starcie konkursu zasady liczenia zostają zablokowane.</span></div>';
+  h+='<span class="hs-p" style="margin:0;flex:1 1 300px">🔒 Po starcie konkursu blokują się data startu i outlety. Punktację i pozycje możesz zmieniać — wyniki przeliczą się same.</span></div>';
   h+='</div>';
   el.innerHTML=h;
 }
 function ctUnlockRules(){
-  deConfirm('🔓 Odblokować zasady?','<p class="hs-p">Po zmianie zasad konkurs przeliczę od nowa z danych zapisanych w „Sprzedaży pracownika" (ostatni import każdego outletu i miesiąca). Pomiary pośrednie i raporty wklejone bezpośrednio w konkursie znikną, więc wykres przebiegu może się skrócić.</p>','🔓 Odblokuj',function(){S._ctUnlocked=true;ctRenderForm()});
+  deConfirm('🔓 Odblokować start i outlety?','<p class="hs-p">Zapisane raporty zostają, a wyniki przeliczą się same. Jeśli nowa data startu wypadnie w środku miesiąca, konkurs będzie potrzebował Raportu początkowego dla tej daty (od 1. dnia miesiąca do dnia przed startem).</p>','🔓 Odblokuj',function(){S._ctUnlocked=true;ctRenderForm()});
 }
 function ctRulesSig(c){
   return JSON.stringify([c.start,c.outletsMode,(c.outlets||[]).slice().sort(),c.metric,!!c.minPriceOn,c.minPriceOn?+c.minPrice:0,c.itemsMode,c.groups,c.items,c.itemsMode==='sel'?0:+c.allPts]);
@@ -10990,16 +11436,25 @@ function ctSaveDraft(force){
   }
   d.places=Math.max(1,+d.places||1);d.prizes=(d.prizes||[]).slice(0,d.places);while(d.prizes.length<d.places)d.prizes.push('');
   var orig=S._ctEditId?ctGet(S._ctEditId):null;
-  var reingest=!orig||S._ctUnlocked||ctRulesSig(orig)!==ctRulesSig(d);
-  var n=0;
-  if(reingest){d.meas={};d.skip={};d.frozen=null;n=ctReingest(d);}
+  // Wyniki liczą się z zapamiętanych surowych raportów wg bieżących zasad, więc zmiana punktacji
+  // czy pozycji niczego nie kasuje — konkurs przelicza się sam.
+  var rulesCh=!!orig&&ctRulesSig(orig)!==ctRulesSig(d);
+  if(!orig){d.meas={};d.skip={};}
   if(!orig&&d.status==='prep'&&ctToday()>=d.start)d.status='run';
-  if(d.status==='done'&&!d.frozen){d.frozen={at:Date.now(),by:ctWho(),res:ctCompute(d)};}
+  if(d.status==='done'&&(!d.frozen||rulesCh)){d.frozen={at:Date.now(),by:ctWho(),res:ctClone(ctCompute(d))};}
   if(d.status!=='done')d.frozen=null;
-  ctSave(d,{audit:(orig?'Zmieniono':'Utworzono')+' konkurs: '+d.name});
+  ctSave(d,{audit:(orig?'Zmieniono':'Utworzono')+' konkurs: '+d.name+(rulesCh?' (zmiana zasad — wyniki przeliczone)':'')});
   S._ctOpen=d.id;S._ctView='detail';S._ctDraft=null;S._ctEditId=null;S._ctUnlocked=false;S._ctCat=null;
-  toast((orig?'Zapisano zmiany':'Utworzono konkurs')+(reingest?(n?' — wczytano '+n+' raport(ów) z zapisanych danych':' — brak pasujących zapisanych raportów'):''),'ok');
+  toast((orig?'Zapisano zmiany':'Utworzono konkurs')+(rulesCh?' — wyniki przeliczone z zapisanych raportów':''),'ok');
   renderContests();ctScrollTop();
+  // nowy konkurs od środka miesiąca (albo nowa data startu) — od razu Raport początkowy
+  if((!orig||orig.start!==d.start)&&ctBaseNeed(d)&&d.status!=='done'){
+    var b=ctBaseStatus(d),rng=ctFmtS(b.f)+'–'+ctFmtS(b.t);
+    if(!b.ok){
+      if(b.ready)setTimeout(function(){if(S._ctOpen===d.id)ctBaseOpen(d.start)},250);
+      else setTimeout(function(){toast('📥 Konkurs startuje '+ctFmtS(d.start)+' — wtedy wprowadź Raport początkowy za '+rng+' (przycisk na karcie konkursu)','in')},1400);
+    }
+  }
 }
 // czy pozycja należy do grupy zaznaczonej w całości z punktami
 function ctItemGroupPts(d,itemKey){
@@ -11023,7 +11478,7 @@ function ctRulesChips(c){
   if(c.metric==='share')ch.push(['Min. obrót',fmt(c.minTurnover||0)]);
   if(c.thresholdOn)ch.push(['Próg',ctFmtScore(c,+c.threshold)]);
   if(c.prizesOn)ch.push(['Nagrody',c.prizeType==='goal'?'każdy powyżej progu':c.places+' '+(c.places===1?'miejsce':'miejsca')]);
-  return '<div class="ct-chips">'+ch.map(function(x){return '<span class="ct-rule"><span>'+x[0]+':</span> '+esc(String(x[1]))+'</span>'}).join('')+(ctLocked(c)?'<span class="ct-rule ct-rule-lock">🔒 zasady zablokowane</span>':'')+'</div>';
+  return '<div class="ct-chips">'+ch.map(function(x){return '<span class="ct-rule"><span>'+x[0]+':</span> '+esc(String(x[1]))+'</span>'}).join('')+(ctLocked(c)&&c.status!=='done'?'<span class="ct-rule ct-rule-lock">🔒 start i outlety zablokowane</span>':'')+'</div>';
 }
 function ctOutletName(id){var o=S.outlets.find(function(x){return x.id===id});return o?o.name:'(usunięty outlet)'}
 function ctRenderDetail(){
@@ -11054,7 +11509,8 @@ function ctRenderDetail(){
   h+='<div class="ct-prog"><div class="ct-prog-l"><span>'+(ph==='before'?'Start za '+(ctDays(ctToday(),c.start)-1)+' dni':ph==='after'?'Zakończony '+ctFmt(c.end):'Dzień '+dayN+' z '+tot)+'</span><span>'+(ph==='during'?'zostało '+(tot-dayN)+' dni':tot+' dni')+'</span></div><div class="ct-prog-bar"><div style="width:'+Math.round(dayN/tot*100)+'%"></div></div></div>';
   h+=ctRulesChips(c);
   // dane do
-  if(st!=='prep'||Object.keys(c.meas||{}).length){
+  h+=ctBaseBlockHTML(c,ed);
+  if(st!=='prep'||res.outlets.length){
     var expect=ctMinD(c.end,ctAddDays(ctToday(),-1));
     h+='<div class="ct-datato"><span class="ct-mini-l">Dane do</span>';
     if(!res.outlets.length)h+='<span class="ct-dt ct-dt-no">brak pomiarów</span>';
@@ -11064,10 +11520,6 @@ function ctRenderDetail(){
     else if(res.complete)msg='Dane kompletne'+(ph==='after'?' — można rozstrzygnąć konkurs.':'.');
     else msg='Do rozstrzygnięcia potrzebny jest raport kończący się <strong>'+ctFmt(c.end)+'</strong>.';
     h+='<span class="ct-dt-msg">'+msg+'</span></div>';
-  }
-  if(res.needBase&&res.needBase.length&&st!=='done'){
-    var m0=ctMonthOf(c.start);
-    h+='<div class="hs-warn" style="margin:10px 0 0">Konkurs startuje '+ctFmt(c.start)+', a raporty z „Sprzedaży pracownika" liczą się od 1. dnia miesiąca. Brakuje punktu startowego dla: <strong>'+res.needBase.map(ctOutletName).map(esc).join(', ')+'</strong>. Wklej w <a href="#" onclick="deGoTab(\'empsales\');return false">Wprowadź dane → Sprzedaż pracownika</a> raport „Sprzedaż użytkowników" za <strong>'+ctFmtS(ctFirstOf(m0))+'–'+ctFmtS(ctAddDays(c.start,-1))+'</strong> — nie nadpisze nowszych danych, trafi tylko do konkursu, a aplikacja odejmie go od kolejnych raportów.</div>';
   }
   if(st!=='done'){
     var iss=ctSavedIssues(c);
@@ -11178,54 +11630,37 @@ function ctEffectHTML(c,eff){
   return h+'</div>';
 }
 function ctPointsHTML(c,st,ed){
-  var groups={};
-  Object.keys(c.meas||{}).forEach(function(o){Object.keys(c.meas[o]).forEach(function(m){(c.meas[o][m].recs||[]).forEach(function(r){
-    var k=r.f+'|'+r.t+'|'+r.kind;var g=groups[k]||(groups[k]={f:r.f,t:r.t,kind:r.kind,src:r.src,outs:[]});
-    g.outs.push({o:o,m:m});if(r.src&&g.src.indexOf(r.src)===-1&&g.src!==r.src)g.src=r.src;
+  var ctx=ctFull(c).ctx,groups={};
+  ctx.outs.forEach(function(o){Object.keys(ctx.recs[o]).forEach(function(m){ctx.recs[o][m].forEach(function(r){
+    var k=r.f+'|'+r.t+'|'+r.kind;var g=groups[k]||(groups[k]={f:r.f,t:r.t,kind:r.kind,src:r.src,legacy:false,outs:[]});
+    g.outs.push({o:o,m:m});if(r.legacy)g.legacy=true;
   })})});
-  var list=Object.keys(groups).map(function(k){return groups[k]}).sort(function(a,b){return a.t<b.t?1:a.t>b.t?-1:0});
+  var list=Object.keys(groups).map(function(k){return groups[k]}).sort(function(a,b){return a.t<b.t?1:a.t>b.t?-1:(a.kind==='baseline'?1:-1)});
   S._ctPointList=list;
   var h='<div class="card" id="ct-points"><div class="ct-sec-head"><div class="fsect" style="margin:0">📍 Punkty pomiaru</div><span class="hs-p" style="margin:0">Każdy wczytany raport „Sprzedaż użytkowników" to jeden punkt na wykresie</span></div>';
   if(!list.length)h+='<p class="de-empty">Brak pomiarów.</p>';
   else{
     h+='<div class="ct-points">';
     list.forEach(function(g,i){
-      h+='<div class="ct-point"><strong>'+ctFmtS(g.t)+'</strong><span>'+(g.kind==='baseline'?'Punkt startowy ':'')+esc(g.src||'Pomiar')+' · '+ctFmtS(g.f)+'–'+ctFmtS(g.t)+'</span><span class="ct-point-o">'+g.outs.map(function(x){return esc(ctOutletName(x.o))}).join(', ')+'</span>';
-      h+=(ed&&st!=='done')?'<button class="btn btn-s btn-sm" aria-label="Usuń punkt pomiaru '+ctFmtS(g.t)+'" onclick="ctDelPoint(\''+c.id+'\','+i+')">×</button>':'<span></span>';
+      var isB=g.kind==='baseline';
+      h+='<div class="ct-point'+(isB?' ct-point-base':'')+'"><strong>'+ctFmtS(g.t)+'</strong><span>'+(isB?'📥 Raport początkowy':esc(g.src||'Pomiar'))+' · '+ctFmtS(g.f)+'–'+ctFmtS(g.t)+(g.legacy?' · <em title="Zapisany przed wersją 3.15 — przeliczony ówczesnymi zasadami">starszy zapis</em>':'')+'</span><span class="ct-point-o">'+g.outs.map(function(x){return esc(ctOutletName(x.o))}).join(', ')+'</span>';
+      if(isB)h+='<button class="btn btn-s btn-sm" aria-label="Raport początkowy" title="Raport początkowy" onclick="ctBaseOpen(\''+c.start+'\')">📥</button>';
+      else h+=(ed&&st!=='done')?'<button class="btn btn-s btn-sm" aria-label="Usuń punkt pomiaru '+ctFmtS(g.t)+'" onclick="ctDelPoint(\''+c.id+'\','+i+')">×</button>':'<span></span>';
       h+='</div>';
     });
     h+='</div>';
   }
   if(ed&&st!=='done'){
-    h+='<div class="ct-src"><span>📥 Dane pobierają się automatycznie z <strong>Wprowadź dane → Sprzedaż pracownika</strong> — każdy zapisany raport dopisuje punkt pomiaru (także raporty wgrane na innym urządzeniu). Raport dzienny lub tygodniowy, który styka się z zapisanymi danymi, sumuje się z nimi; starszy raport (np. punkt startowy) nie nadpisze nowszych danych.</span><button class="btn btn-s btn-sm" onclick="deGoTab(\'empsales\')">➕ Wklej raport</button></div>';
+    h+='<div class="ct-src"><span>📥 Dane pobierają się automatycznie z <strong>Wprowadź dane → Sprzedaż pracownika</strong> — każdy zapisany raport dopisuje punkt pomiaru (także raporty wgrane na innym urządzeniu). Raporty są zapamiętane w surowej postaci, więc zmiana punktacji lub pozycji przelicza wyniki sama.</span><button class="btn btn-s btn-sm" onclick="deGoTab(\'empsales\')">➕ Wklej raport</button></div>';
   }
   return h+'</div>';
 }
 function ctFocusPaste(){deGoTab('empsales')}
-function ctPasteParse(id){
-  var c=ctGet(id),ta=document.getElementById('ct-paste-input');if(!c||!ta)return;
-  var raw=ta.value;if(!raw.trim()){toast('Wklej najpierw treść raportu','er');return;}
-  var reps=parseEmployeeSalesReportMulti(raw).filter(function(r){return !r.error});
-  if(!reps.length){toast('Nie rozpoznano raportu „Sprzedaż użytkowników"','er');return;}
-  var msgs=[],ok=0;
-  reps.forEach(function(r){
-    var oid=r.outletName?msalesGuessOutlet(r.outletName):null;
-    if(!oid){msgs.push('✗ Nie rozpoznano outletu „'+(r.outletName||'?')+'" — dodaj go w Obiektach albo popraw nazwę.');return;}
-    var x=ctIngest(c,oid,r,'Raport wklejony w konkursie');
-    if(x.ok){ok++;msgs.push('✓ '+ctOutletName(oid)+': '+(x.kind==='baseline'?'punkt startowy':'pomiar')+' '+ctFmtS(x.t));}
-    else msgs.push('✗ '+ctOutletName(oid)+': '+x.reason);
-  });
-  if(ok){ctSave(c,{keepStamp:true});deDraftClear('ct-'+id);}
-  S._ctPasteMsgs={id:id,msgs:msgs};
-  toast(ok?'Dopisano '+ok+' pomiar(y)':'Żaden raport nie pasuje do konkursu',ok?'ok':'er');
-  renderContests();
-  if(ok)setTimeout(function(){var p=document.getElementById('ct-points');if(p)try{p.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}},50);
-}
 function ctDelPoint(id,i){
   var c=ctGet(id),g=S._ctPointList&&S._ctPointList[i];if(!c||!g)return;
   deConfirm('Usunąć punkt pomiaru?','<p class="hs-p">Pomiar '+ctFmtS(g.f)+'–'+ctFmtS(g.t)+' ('+g.outs.map(function(x){return esc(ctOutletName(x.o))}).join(', ')+') zniknie z konkursu. Dane w „Sprzedaży pracownika" zostają bez zmian.</p>','🗑️ Usuń',function(){
     c.skip=c.skip||{};
-    g.outs.forEach(function(x){var mm=c.meas[x.o]&&c.meas[x.o][x.m];if(mm)mm.recs=mm.recs.filter(function(r){return !(r.f===g.f&&r.t===g.t)});c.skip[x.o+'|'+g.f+'|'+g.t]=1});
+    g.outs.forEach(function(x){var mm=c.meas&&c.meas[x.o]&&c.meas[x.o][x.m];if(mm&&mm.recs)mm.recs=mm.recs.filter(function(r){return !(r.f===g.f&&r.t===g.t)});c.skip[x.o+'|'+g.f+'|'+g.t]=1});
     ctSave(c,{keepStamp:true});renderContests();toast('Usunięto punkt pomiaru — nie wróci przy automatycznym pobieraniu (chyba że wkleisz ten raport ponownie)','ok');
   });
 }
@@ -11233,7 +11668,7 @@ function ctSetStatus(id,val){
   var c=ctGet(id);if(!c||!canEdit())return;
   var cur=ctStatus(c);if(val===cur)return;
   function apply(){
-    if(val==='done'){c.frozen={at:Date.now(),by:ctWho(),res:ctCompute(c)};}
+    if(val==='done'){c.frozen={at:Date.now(),by:ctWho(),res:ctClone(ctCompute(c))};}
     else c.frozen=null;
     c.status=val;
     ctSave(c,{audit:'Konkurs „'+c.name+'": status '+CT_STATUS[val].l});
@@ -12231,8 +12666,8 @@ function ctDashboardHTML(){
     h+='</div>';
   }
   strips.slice(0,3).forEach(function(c){
-    var res=ctCompute(c),top=res.rows.filter(function(r){return r.qual})[0],tot=ctDays(c.start,c.end),dn=ctDays(c.start,ctToday());
-    h+='<div class="ct-strip"><span aria-hidden="true">🏅</span><span class="ct-strip-t"><strong>Trwa konkurs „'+esc(c.name)+'"</strong> — dzień '+dn+' z '+tot+' · '+(top?'prowadzi '+esc(top.n)+' ('+ctFmtScore(c,top.score)+')':'pierwsze wyniki po imporcie Sprzedaży pracownika')+'</span><button class="btn btn-s btn-sm" onclick="goContests(\''+c.id+'\')">Zobacz</button><button class="ct-strip-x" aria-label="Ukryj do jutra" onclick="ctHide(\'run:'+c.id+':'+ctToday()+'\')">✕</button></div>';
+    var res=ctCompute(c),top=res.rows.filter(function(r){return r.qual})[0],tot=ctDays(c.start,c.end),dn=ctDays(c.start,ctToday()),bs=ctBaseStatus(c),bMiss=bs.need&&!bs.ok;
+    h+='<div class="ct-strip"><span aria-hidden="true">🏅</span><span class="ct-strip-t"><strong>Trwa konkurs „'+esc(c.name)+'"</strong> — dzień '+dn+' z '+tot+' · '+(bMiss?'<span class="ct-strip-warn">wymaga Raportu początkowego '+ctFmtS(bs.f)+'–'+ctFmtS(bs.t)+'</span>':(top?'prowadzi '+esc(top.n)+' ('+ctFmtScore(c,top.score)+')':'pierwsze wyniki po imporcie Sprzedaży pracownika'))+'</span>'+(bMiss&&canEdit()?'<button class="btn btn-p btn-sm" onclick="ctBaseOpen(\''+c.start+'\')">📥 Raport początkowy</button>':'')+'<button class="btn btn-s btn-sm" onclick="goContests(\''+c.id+'\')">Zobacz</button><button class="ct-strip-x" aria-label="Ukryj do jutra" onclick="ctHide(\'run:'+c.id+':'+ctToday()+'\')">✕</button></div>';
   });
   return h;
 }
@@ -12253,10 +12688,11 @@ function alertsContests(al){
     if(st!=='run'||ph!=='during')return;
     var left=ctDays(today,c.end)-1;
     if(left<=3)al.push({t:'wa',key:'ct_end_'+c.id,msg:'Konkurs „'+esc(c.name)+'" kończy się '+(left===0?'dziś':'za '+left+' '+(left===1?'dzień':'dni'))+' ('+ctFmtS(c.end)+'). Do rozstrzygnięcia potrzebny raport do '+ctFmtS(c.end)+'.'});
-    var res=ctCompute(c);
-    if(res.needBase.length)al.push({t:'da',key:'ct_base_'+c.id,msg:'Konkurs „'+esc(c.name)+'": brakuje punktu startowego (raport '+ctFmtS(ctFirstOf(ctMonthOf(c.start)))+'–'+ctFmtS(ctAddDays(c.start,-1))+') dla: '+res.needBase.map(ctOutletName).map(esc).join(', ')+'.'});
+    var res=ctCompute(c),bs=ctBaseStatus(c);
+    if(bs.need&&!bs.ok)al.push({t:'da',key:'ct_base_'+c.id,msg:'Konkurs „'+esc(c.name)+'": wprowadź Raport początkowy ('+ctFmtS(bs.f)+'–'+ctFmtS(bs.t)+') — Pracownicy → Konkursy → 📥 Raport początkowy'+(bs.unknown?'':'. Brakuje dla: '+bs.missing.map(ctOutletName).map(esc).join(', '))+'.'});
+    else if(res.needBase.length)al.push({t:'da',key:'ct_base_'+c.id,msg:'Konkurs „'+esc(c.name)+'": brakuje punktu startowego (raport '+ctFmtS(ctFirstOf(ctMonthOf(c.start)))+'–'+ctFmtS(ctAddDays(c.start,-1))+') dla: '+res.needBase.map(ctOutletName).map(esc).join(', ')+'.'});
     var last=res.dataMax||ctAddDays(c.start,-1);
-    if(!res.needBase.length&&ctDays(last,today)-1>=4&&ctDays(c.start,today)>=4)al.push({t:'wa',key:'ct_stale_'+c.id+'_'+last,msg:'Konkurs „'+esc(c.name)+'": brak nowych danych od '+ctFmtS(last)+' — wczytaj „Sprzedaż użytkowników".'});
+    if(!(bs.need&&!bs.ok)&&!res.needBase.length&&ctDays(last,today)-1>=4&&ctDays(c.start,today)>=4)al.push({t:'wa',key:'ct_stale_'+c.id+'_'+last,msg:'Konkurs „'+esc(c.name)+'": brak nowych danych od '+ctFmtS(last)+' — wczytaj „Sprzedaż użytkowników".'});
   });
 }
 
@@ -12389,7 +12825,7 @@ function ctProtocolPages(c){
     Object.keys(c.groups||{}).forEach(function(k){var g=c.groups[k];pts.push(g.n+' (cała grupa'+(c.metric==='points'&&g.pts!=null?', '+g.pts+' pkt/szt.':'')+')')});
     Object.keys(c.items||{}).forEach(function(k){var it=c.items[k];pts.push(it.n+(c.metric==='points'&&it.pts!=null?' — '+it.pts+' pkt/szt.':''))});
   }
-  var nMeas=0;Object.keys(c.meas||{}).forEach(function(o){Object.keys(c.meas[o]).forEach(function(m){nMeas+=(c.meas[o][m].recs||[]).length})});
+  var nMeas=ctMeasCount(c);
   var rowsInfo=[
     ['Outlety',c.outletsMode==='sel'?(c.outlets||[]).map(ctOutletName).join(', '):'wszystkie'],
     ['Uczestnicy',(c.empMode==='sel'?'wybrani ('+(c.emps||[]).length+' osób)':'wszyscy sprzedający ('+res.rows.length+' osób)')+((c.exclude||[]).length?', bez kont: '+c.exclude.join(', '):'')],
@@ -15114,7 +15550,7 @@ function clearPropTransientState(){
    '_monthlyHosposParsed','_dailyHosposParsed','_dailyHosposDateNote','_kpiPrev','_tableExpanded',
    '_empTab','_pgMonth','_patOutlet','_patMonths','_perfParsed','_perfMonth','_perfViewMonth',
    '_monthlyExcelPending','_msalesDraftInfo',
-   '_ctView','_ctOpen','_ctDraft','_ctEditId','_ctUnlocked','_ctCat','_ctTreeQ','_ctTreeOpen','_ctEmpQ','_ctFilter','_ctPasteMsgs','_ctDip','_ctRankAll','_ctPointList','_ctPost'
+   '_ctView','_ctOpen','_ctDraft','_ctEditId','_ctUnlocked','_ctCat','_ctTreeQ','_ctTreeOpen','_ctEmpQ','_ctFilter','_ctPasteMsgs','_ctDip','_ctRankAll','_ctPointList','_ctPost','_ctBase','_ctMemo','_ctSyncSig'
   ].forEach(function(k){S[k]=null});
   _mcPending=null;
   dChart('emp-trend-chart'); // wykres należy do poprzedniego obiektu
